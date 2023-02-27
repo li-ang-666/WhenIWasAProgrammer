@@ -24,7 +24,7 @@ public class StructureTest {
         tree.add(10);
         tree.add(1);
         tree.add(3);
-
+        System.out.println("层高: " + tree.height());
         System.out.println("深度优先:");
         tree.depthFirstSearch();
         System.out.println("广度优先:");

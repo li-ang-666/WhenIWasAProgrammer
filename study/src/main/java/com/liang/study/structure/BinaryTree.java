@@ -78,6 +78,21 @@ public class BinaryTree {
             }
         }
     }
+
+    public int height() {
+        return height(root);
+    }
+
+    private int height(TreeNode node) {
+        if (node != null) {
+            return Math.max(
+                    height(node.getLeft()),
+                    height(node.getRight())
+            ) + 1;
+        } else {
+            return 0;
+        }
+    }
 }
 
 @Data
