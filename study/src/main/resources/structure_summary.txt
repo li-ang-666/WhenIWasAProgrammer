@@ -1,0 +1,13 @@
+1、
+二叉树、链表的结构, 都是由最外层的Tree或者List, 内部包裹着Node对象
+
+2、
+两者在 add 的时候, 都需要实现 add(T t, @NotNull Node node) 方法
+其中 node!=null 且 node.getValue!=null
+书写思路就是给一个Node对象 和一个 具体值, 怎么融入到一起
+
+3、
+需要遍历的时候, 都需要考虑 root 节点是不是空的问题
+
+4、
+二叉树实现递归方法(DFS、树高)的时候, 都需要private一个同名且带有(Node node)参数的方法
