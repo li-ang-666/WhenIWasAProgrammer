@@ -1,10 +1,10 @@
 排序方法       平均时间复杂度      最佳时间复杂度       最差时间复杂度          空间复杂度         稳定性
 ---------------------------------------------------------------------------------------------------
 SelectSort       o(N²)            o(N²)                -                 o(1)
-BubbleSort       o(N²)            o(N)                 -                 o(1)
-InsertSort       o(N²)            o(N)                 -                 o(1)
+BubbleSort       o(N²)            o(N)                 -                 o(1)             √
+InsertSort       o(N²)            o(N)                 -                 o(1)             √
 ---------------------------------------------------------------------------------------------------
 ShellSort        o(Nᴷ)            o(N)               o(N²)               o(1)
 QuickSort        o(NlogN)           -                o(N²)               o(logN)
-MergeSort        o(NlogN)           -                  -                 o(N)
+MergeSort        o(NlogN)           -                  -                 o(N)             √
 HeapSort         o(NlogN)           -                  -                 o(1)
