@@ -129,7 +129,6 @@ public class BinaryTree {
 @Data
 @RequiredArgsConstructor
 class TreeNode {
-
     /**
      * 任意TreeNode对象, value不为空
      */

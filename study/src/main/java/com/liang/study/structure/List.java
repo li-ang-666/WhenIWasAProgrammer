@@ -83,6 +83,9 @@ public class List {
 @Data
 @RequiredArgsConstructor
 class Node {
+    /**
+     * 任意Node对象, value不为空
+     */
     private @NotNull Integer value;
     private Node next;
 }
