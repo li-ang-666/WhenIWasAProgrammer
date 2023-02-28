@@ -3,8 +3,22 @@ package com.liang.study.structure;
 import com.sun.istack.internal.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.junit.Test;
 
 public class List {
+    @Test
+    public void test() {
+        List list = new List();
+        list.add(1);
+        list.add(2);
+        list.add(3);
+        list.add(4);
+        list.add(5);
+        list.delete(1);
+        list.delete(1);
+        list.printAll();
+    }
+
     private Node root;
     private int length = 0;
 
@@ -33,19 +47,15 @@ public class List {
     /**
      * 遍历
      */
-    @Override
-    public String toString() {
-        if (root == null) {
-            return "[]";
+    public void printAll() {
+        printAll(root);
+    }
+
+    private void printAll(Node node) {
+        if (node != null) {
+            System.out.println(node.getValue());
+            printAll(node.getNext());
         }
-        StringBuilder builder = new StringBuilder();
-        Node current = root;
-        builder.append("[").append(current.getValue());
-        while (current.getNext() != null) {
-            builder.append(" -> ").append(current.getNext().getValue());
-            current = current.getNext();
-        }
-        return builder.append("]").toString();
     }
 
     /**
@@ -55,16 +65,16 @@ public class List {
         //首先埋下一个成员变量, 插入的时候自增1, 删除的时候自减1, 用于判断入参是否越界
         if (index < 0 || index > length - 1) {
             System.out.println("越界, 删除失败");
-            return;
-        }
-        if (index == 0) {
-            root = root.getNext();
         } else {
-            Node current = root;
-            for (int i = index; i > 1; i--) {
-                current = current.getNext();
+            if (index == 0) {
+                root = root.getNext();
+            } else {
+                Node current = root;
+                for (int i = index; i > 1; i--) {
+                    current = current.getNext();
+                }
+                current.setNext(current.getNext().getNext());
             }
-            current.setNext(current.getNext().getNext());
             length--;
         }
     }

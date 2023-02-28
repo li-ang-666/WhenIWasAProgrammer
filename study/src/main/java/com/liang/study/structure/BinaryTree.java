@@ -3,10 +3,38 @@ package com.liang.study.structure;
 import com.sun.istack.internal.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.junit.Test;
 
 import java.util.LinkedList;
 
 public class BinaryTree {
+    @Test
+    public void test() {
+        //                 7
+        //         |               |
+        //         4               9
+        //     |       |       |       |
+        //     2       6       8       10
+        //   |   |
+        //   1   3
+        BinaryTree tree = new BinaryTree();
+        tree.add(7);
+        tree.add(4);
+        tree.add(9);
+        tree.add(2);
+        tree.add(6);
+        tree.add(8);
+        tree.add(10);
+        tree.add(1);
+        tree.add(3);
+
+        System.out.println("深度优先:");
+        tree.depthFirstSearch();
+        System.out.println("广度优先:");
+        tree.breadthFirstSearch();
+        System.out.println("层高: " + tree.height());
+    }
+
     private TreeNode root;
 
     /**
@@ -79,6 +107,9 @@ public class BinaryTree {
         }
     }
 
+    /**
+     * 求树高度
+     */
     public int height() {
         return height(root);
     }
