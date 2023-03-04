@@ -5,7 +5,7 @@ import org.junit.Test;
 
 public class InterviewTest {
     @Test
-    public void test() {
+    public void test() throws Throwable {
         SparkSession spark = SparkSession
                 .builder()
                 .config("spark.sql.autoBroadcastJoinThreshold", "-1")
@@ -14,7 +14,11 @@ public class InterviewTest {
         spark.read()
                 .option("header", "true")
                 .option("inferSchema", "true")
-                .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/tb1.csv")
+                .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/t1.csv")
                 .createTempView("t1");
+
+        spark.sql("select * from t1").show();
+
+        spark.stop();
     }
 }
