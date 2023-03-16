@@ -13,7 +13,7 @@ public class ShellSort {
         for (int incr = n / 2; incr >= 1; incr /= 2) {
             for (int i = incr; i <= n - 1; i++) {
                 //直接插入排序的incr恒等于1而已
-                for (int j = i; j - incr >= 0 && arr[j - incr] > arr[j]; j--) {
+                for (int j = i; j - incr >= 0 && arr[j - incr] > arr[j]; j -= incr) {
                     ArrayUtils.swap(arr, j - incr, j);
                 }
             }
