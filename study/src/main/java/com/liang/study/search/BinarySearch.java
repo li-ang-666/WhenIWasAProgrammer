@@ -24,6 +24,7 @@ public class BinarySearch {
                 l = mid + 1;
             }
         }
+        //return l; //若是二分插入, 则返回l
         return -1;
     }
 }
