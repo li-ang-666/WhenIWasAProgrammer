@@ -1,9 +1,8 @@
 package com.liang.spark;
 
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.storage.StorageLevel;
 import org.junit.Test;
-
-import java.util.Objects;
 
 public class SparkTest {
     @Test
@@ -19,9 +18,19 @@ public class SparkTest {
                 .option("inferSchema", "true")
                 .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/t3.csv")
                 .createTempView("t");
+        spark.udf().register("countd", new CountDistinct());
 
-        spark.sql("select datediff(date,'2000-01-01'),name,date,cost,sum(cost)over(partition by date order by date_sub(date,'2000-01-01') range between unbounded preceding and unbounded following) n " +
-                "from t").show();
+        spark.sql("explain select channel_id,count(distinct candidate_id),collect_list(distinct application_id),sum(candidate_id) from t group by channel_id order by channel_id")
+                .show(false);
+
+
+        spark.sql("explain select t1.* from t t1 join t t2 on t1.channel_id=t2.channel_id")
+                .show(false);
+
+        spark.sql("explain select channel_id,countd(candidate_id),countd(application_id),sum(candidate_id) from t group by channel_id")
+                .show(false);
+
+       // Thread.sleep(1000*3600);
         spark.stop();
     }
 }
