@@ -4,9 +4,12 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.storage.StorageLevel;
 import org.junit.Test;
 
+import java.nio.ByteBuffer;
+
 public class SparkTest {
     @Test
     public void test() throws Throwable {
+        ByteBuffer allocate = ByteBuffer.allocate(11);
         SparkSession spark = SparkSession
                 .builder()
                 .config("spark.sql.autoBroadcastJoinThreshold", "-1")
@@ -30,6 +33,7 @@ public class SparkTest {
         spark.sql("explain select channel_id,countd(candidate_id),countd(application_id),sum(candidate_id) from t group by channel_id")
                 .show(false);
 
+        ByteBuffer
        // Thread.sleep(1000*3600);
         spark.stop();
     }

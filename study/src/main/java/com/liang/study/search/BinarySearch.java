@@ -2,6 +2,9 @@ package com.liang.study.search;
 
 import org.junit.Test;
 
+/**
+ * https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/?favorite=2cktkvj
+ */
 public class BinarySearch {
     @Test
     public void test() {
