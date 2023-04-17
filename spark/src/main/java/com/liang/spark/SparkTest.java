@@ -33,7 +33,6 @@ public class SparkTest {
         spark.sql("explain select channel_id,countd(candidate_id),countd(application_id),sum(candidate_id) from t group by channel_id")
                 .show(false);
 
-        ByteBuffer
        // Thread.sleep(1000*3600);
         spark.stop();
     }
