@@ -1,6 +1,14 @@
 package com.liang.study.nio;
 
+import org.junit.Test;
+
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
+import java.nio.IntBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.Random;
 
 public class IOTest {
     @org.junit.Test
@@ -27,5 +35,30 @@ public class IOTest {
             printWriter.flush();
         }
         System.out.println("io耗时" + (System.currentTimeMillis() - time) / 1000 + "秒");
+    }
+
+    @Test
+    public void head() {
+        //512m
+        long length = 1L << 29;
+        //4g
+        long _4G = 1L << 32;
+        long cur = 0L;
+        try {
+            MappedByteBuffer mappedByteBuffer;
+            Random random = new Random();
+            while (cur < _4G) {
+                mappedByteBuffer = new RandomAccessFile("/Users/liang/Desktop/nio", "rw").getChannel()
+                        .map(FileChannel.MapMode.READ_WRITE, cur, length);
+                IntBuffer intBuffer = mappedByteBuffer.asIntBuffer();
+                while (intBuffer.position() < intBuffer.capacity()) {
+                    intBuffer.put(random.nextInt());
+                }
+                cur += length;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
