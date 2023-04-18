@@ -5,7 +5,7 @@ import lombok.SneakyThrows;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets;
 
 
 public class MemoryMappedWriter {
