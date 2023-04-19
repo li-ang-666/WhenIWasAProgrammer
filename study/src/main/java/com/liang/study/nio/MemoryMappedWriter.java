@@ -11,10 +11,10 @@ import java.nio.charset.StandardCharsets;
 public class MemoryMappedWriter {
     private final String filePrefix;
     private final Boolean roll;
+    private Integer i = 0;
 
     private MappedByteBuffer mappedByteBuffer;
 
-    private Integer i = 0;
     private Long position;
     private Long bufferUsed = 0L;
     private static final Long bufferMax = (long) Integer.MAX_VALUE;
@@ -36,7 +36,11 @@ public class MemoryMappedWriter {
         long length = bytes.length;
 
         if (bufferUsed + length > bufferMax) {
-            mappedByteBuffer = new RandomAccessFile(filePrefix + "-" + (roll ? ++i : i), "rw")
+            if (roll) {
+                position = 0L;
+                i++;
+            }
+            mappedByteBuffer = new RandomAccessFile(filePrefix + "-" + i, "rw")
                     .getChannel()
                     .map(FileChannel.MapMode.READ_WRITE, position, bufferMax);
             bufferUsed = 0L;
