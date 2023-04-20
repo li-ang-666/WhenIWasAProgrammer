@@ -1,6 +1,7 @@
 package com.liang.study.nio;
 
 import lombok.SneakyThrows;
+import sun.nio.ch.DirectBuffer;
 
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
@@ -35,7 +36,9 @@ public class MemoryMappedWriter {
         int length = bytes.length;
 
         if (mmap.position() + length >= bufferMax) {
+            System.out.println("mmap重置");
             randomAccessFile.setLength(position);
+            ((DirectBuffer) mmap).cleaner().clean();
             mmap = fileChannel
                     .map(FileChannel.MapMode.READ_WRITE, position, bufferMax);
         }
@@ -47,6 +50,7 @@ public class MemoryMappedWriter {
     @SneakyThrows
     public void close() {
         randomAccessFile.setLength(position);
+        ((DirectBuffer) mmap).cleaner().clean();
         fileChannel.close();
         randomAccessFile.close();
     }

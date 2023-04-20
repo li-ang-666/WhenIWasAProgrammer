@@ -2,6 +2,7 @@ package com.liang.study.nio;
 
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
@@ -10,9 +11,9 @@ public class IOTest {
     @Test
     public void test() throws Exception {
         //删除文件
-//        new File("/Users/liang/Desktop/nio").delete();
-//        new File("/Users/liang/Desktop/mmap").delete();
-//        new File("/Users/liang/Desktop/io").delete();
+        new File("/Users/liang/Desktop/nio").delete();
+        new File("/Users/liang/Desktop/mmap").delete();
+        new File("/Users/liang/Desktop/io").delete();
         //创建流
         FileChannelWriter fileChannelWriter = new FileChannelWriter("/Users/liang/Desktop/nio");
         MemoryMappedWriter memoryMappedWriter = new MemoryMappedWriter("/Users/liang/Desktop/mmap");
@@ -38,9 +39,9 @@ class Tester {
     private long time;
 
     public void startTest(ExecFunc func) {
-        String content = "time:2022-02-02 12:12:12, partition = 22, offset = 22222, orgId = xiaomi, table = applications, dml = DELETE, id = 2222222, created_at = 2022-02-02 12:12:12, updated_at = 2022-02-02 12:12:12\n";
+        String content = "time = 2022-02-02 22:22:22, partition = 22, offset = 2222222, orgId = xiaomi, table = applications, dml = DELETE, id = 2222222, created_at = 2022-02-02 22:22:22, updated_at = 2022-02-02 22:22:22\n";
         time = System.currentTimeMillis();
-        int times = 100;
+        double times = 5000000 * 3;
         for (long i = 1L; i <= times; i++) {
             func.f(content);
         }
