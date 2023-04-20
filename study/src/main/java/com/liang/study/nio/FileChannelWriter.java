@@ -8,7 +8,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 public class FileChannelWriter {
-    private final static int bufferMax = 1024 * 1024 * 1024;//40M
+    private final static int bufferMax = 40 * 1024 * 1024;
     private final RandomAccessFile randomAccessFile;
     private final FileChannel fileChannel;
     private final ByteBuffer buffer;

@@ -41,7 +41,7 @@ class Tester {
     public void startTest(ExecFunc func) {
         String content = "time = 2022-02-02 22:22:22, partition = 22, offset = 2222222, orgId = xiaomi, table = applications, dml = DELETE, id = 2222222, created_at = 2022-02-02 22:22:22, updated_at = 2022-02-02 22:22:22\n";
         time = System.currentTimeMillis();
-        double times = 5000000 * 3;
+        double times = 500000;
         for (long i = 1L; i <= times; i++) {
             func.f(content);
         }
