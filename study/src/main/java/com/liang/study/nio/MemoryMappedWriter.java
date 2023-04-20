@@ -9,12 +9,11 @@ import java.nio.charset.StandardCharsets;
 
 
 public class MemoryMappedWriter {
+    private static final int bufferMax = 1024 * 1024 * 1024;
     private final RandomAccessFile randomAccessFile;
     private final FileChannel fileChannel;
     private MappedByteBuffer mmap;
-
     private long position;
-    private static final Long bufferMax = 1024L * 1024 * 1024;
 
     @SneakyThrows
     public MemoryMappedWriter(String file) {

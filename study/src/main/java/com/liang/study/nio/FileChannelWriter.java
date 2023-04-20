@@ -8,22 +8,23 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 public class FileChannelWriter {
-    private final static int size = 40 * 1024 * 1024;//40M
-
+    private final static int bufferMax = 40 * 1024 * 1024;//40M
+    private final RandomAccessFile randomAccessFile;
     private final FileChannel fileChannel;
     private final ByteBuffer buffer;
 
     @SneakyThrows
     public FileChannelWriter(String file) {
-        fileChannel = new RandomAccessFile(file, "rw").getChannel();
+        randomAccessFile = new RandomAccessFile(file, "rw");
+        fileChannel = randomAccessFile.getChannel();
         fileChannel.position(fileChannel.size());
-        buffer = ByteBuffer.allocateDirect(size);
+        buffer = ByteBuffer.allocateDirect(bufferMax);
     }
 
     @SneakyThrows
     public void write(String content) {
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-        if (buffer.position() + bytes.length >= size) {
+        if (buffer.position() + bytes.length >= bufferMax) {
             buffer.flip();
             fileChannel.write(buffer);
             buffer.clear();
@@ -35,6 +36,7 @@ public class FileChannelWriter {
     public void close() {
         buffer.flip();
         fileChannel.write(buffer);
+        randomAccessFile.close();
         fileChannel.close();
     }
 }
