@@ -15,39 +15,27 @@ public class MemoryMappedWriter {
 
     private MappedByteBuffer mappedByteBuffer;
 
-    private Long position;
-    private Long bufferUsed = 0L;
-    private static final Long bufferMax = (long) Integer.MAX_VALUE;
+    private static final Long bufferMax = 1024L * 1024 * 1024;
 
     @SneakyThrows
     public MemoryMappedWriter(String filePrefix, boolean roll) {
         this.filePrefix = filePrefix;
         this.roll = roll;
-        RandomAccessFile randomAccessFile = new RandomAccessFile(filePrefix + "-" + i, "rw");
-        position = randomAccessFile.length();
-        mappedByteBuffer = randomAccessFile
-                .getChannel()
-                .map(FileChannel.MapMode.READ_WRITE, position, bufferMax);
+        FileChannel fileChannel = new RandomAccessFile(filePrefix + "-" + i, "rw").getChannel();
+        mappedByteBuffer = fileChannel
+                .map(FileChannel.MapMode.READ_WRITE, fileChannel.size(), bufferMax);
     }
 
     @SneakyThrows
     public void write(String content) {
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-        long length = bytes.length;
 
-        if (bufferUsed + length > bufferMax) {
-            if (roll) {
-                position = 0L;
-                i++;
-            }
-            mappedByteBuffer = new RandomAccessFile(filePrefix + "-" + i, "rw")
-                    .getChannel()
-                    .map(FileChannel.MapMode.READ_WRITE, position, bufferMax);
-            bufferUsed = 0L;
+        if (mappedByteBuffer.position() + bytes.length >= bufferMax) {
+            FileChannel fileChannel = new RandomAccessFile(filePrefix + "-" + (roll ? ++i : i), "rw").getChannel();
+            mappedByteBuffer = fileChannel
+                    .map(FileChannel.MapMode.READ_WRITE, fileChannel.size(), bufferMax);
         }
 
         mappedByteBuffer.put(bytes);
-        position += length;
-        bufferUsed += length;
     }
 }
