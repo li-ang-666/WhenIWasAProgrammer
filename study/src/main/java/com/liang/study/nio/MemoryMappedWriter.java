@@ -9,33 +9,46 @@ import java.nio.charset.StandardCharsets;
 
 
 public class MemoryMappedWriter {
-    private final String filePrefix;
-    private final Boolean roll;
-    private Integer i = 0;
+    private final RandomAccessFile randomAccessFile;
+    private final FileChannel fileChannel;
+    private MappedByteBuffer mmap;
 
-    private MappedByteBuffer mappedByteBuffer;
-
+    private long position;
     private static final Long bufferMax = 1024L * 1024 * 1024;
 
     @SneakyThrows
-    public MemoryMappedWriter(String filePrefix, boolean roll) {
-        this.filePrefix = filePrefix;
-        this.roll = roll;
-        FileChannel fileChannel = new RandomAccessFile(filePrefix + "-" + i, "rw").getChannel();
-        mappedByteBuffer = fileChannel
-                .map(FileChannel.MapMode.READ_WRITE, fileChannel.size(), bufferMax);
+    public MemoryMappedWriter(String file) {
+        randomAccessFile = new RandomAccessFile(file, "rw");
+        position = Math.max(randomAccessFile.length() - bufferMax, 0L);
+        fileChannel = randomAccessFile.getChannel();
+        mmap = fileChannel
+                .map(FileChannel.MapMode.READ_WRITE, position, bufferMax);
+        while (mmap.hasRemaining()) {
+            if ('\u0000' == mmap.getChar()) break;
+        }
+        mmap.position(mmap.position() - 2);
+        position += mmap.position();
     }
 
     @SneakyThrows
     public void write(String content) {
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        int length = bytes.length;
 
-        if (mappedByteBuffer.position() + bytes.length >= bufferMax) {
-            FileChannel fileChannel = new RandomAccessFile(filePrefix + "-" + (roll ? ++i : i), "rw").getChannel();
-            mappedByteBuffer = fileChannel
-                    .map(FileChannel.MapMode.READ_WRITE, fileChannel.size(), bufferMax);
+        if (mmap.position() + length >= bufferMax) {
+            randomAccessFile.setLength(position);
+            mmap = fileChannel
+                    .map(FileChannel.MapMode.READ_WRITE, position, bufferMax);
         }
 
-        mappedByteBuffer.put(bytes);
+        mmap.put(bytes);
+        position += length;
+    }
+
+    @SneakyThrows
+    public void close() {
+        randomAccessFile.setLength(position);
+        fileChannel.close();
+        randomAccessFile.close();
     }
 }

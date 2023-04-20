@@ -6,21 +6,27 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 public class IOTest {
+
     @Test
     public void test() throws Exception {
+        //删除文件
+//        new File("/Users/liang/Desktop/nio").delete();
+//        new File("/Users/liang/Desktop/mmap").delete();
+//        new File("/Users/liang/Desktop/io").delete();
+        //创建流
         FileChannelWriter fileChannelWriter = new FileChannelWriter("/Users/liang/Desktop/nio");
-        MemoryMappedWriter memoryMappedWriter = new MemoryMappedWriter("/Users/liang/Desktop/mmap", false);
+        MemoryMappedWriter memoryMappedWriter = new MemoryMappedWriter("/Users/liang/Desktop/mmap");
         PrintWriter printWriter = new PrintWriter(new FileWriter("/Users/liang/Desktop/io", true), true);
+        //测试器
         Tester tester = new Tester();
-
+        //do test
         System.out.println("nio");
         tester.startTest(fileChannelWriter::write);
         tester.endTest(fileChannelWriter::close);
 
         System.out.println("mmap");
         tester.startTest(memoryMappedWriter::write);
-        tester.endTest(() -> {
-        });
+        tester.endTest(memoryMappedWriter::close);
 
         System.out.println("io");
         tester.startTest(printWriter::print);
@@ -32,12 +38,11 @@ class Tester {
     private long time;
 
     public void startTest(ExecFunc func) {
+        String content = "time:2022-02-02 12:12:12, partition = 22, offset = 22222, orgId = xiaomi, table = applications, dml = DELETE, id = 2222222, created_at = 2022-02-02 12:12:12, updated_at = 2022-02-02 12:12:12\n";
         time = System.currentTimeMillis();
-        for (long i = 1L; i <= 0.5 * 1000 * 1000 * 1000; i++) {
-            if (i % (100 * 1000 * 1000) == 0) {
-                System.out.println(i);
-            }
-            func.f("a");
+        int times = 100;
+        for (long i = 1L; i <= times; i++) {
+            func.f(content);
         }
     }
 
