@@ -1,16 +1,15 @@
 package com.liang.study.test;
 
-import com.liang.study.sort.ArrayUtils;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
-
-import java.nio.ByteBuffer;
-import java.util.BitSet;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 public class Test {
-    @org.junit.Test
-    public void test(){
-        Roaring64Bitmap.bitmapOf(1L);
+    public static void main(String[] args) {
+        Map<Integer, String> dataMap = new HashMap<>();
+        Random r = new Random();
+        while (true) {
+            dataMap.put(r.nextInt(), String.valueOf(r.nextInt()));
+        }
     }
 }
