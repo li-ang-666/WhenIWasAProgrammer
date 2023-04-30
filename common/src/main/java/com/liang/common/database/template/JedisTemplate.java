@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Slf4j
 public class JedisTemplate {
-    private String name;
+    private final String name;
 
     public JedisTemplate(String name) {
         this.name = name;
@@ -26,7 +26,7 @@ public class JedisTemplate {
         try (Jedis jedis = JedisPoolUtils.getConnection(name)) {
             t = jedisMapper.map(jedis);
         } catch (Exception e) {
-            log.error("jedis 查询异常, db: {}", name,e);
+            log.error("jedis 查询异常, db: {}", name, e);
             t = null;
         }
         log.debug(timer.getTimeMs() + " ms");
@@ -50,7 +50,7 @@ public class JedisTemplate {
                 scanResult.getResult().forEach(entry -> result.put(entry.getKey(), entry.getValue()));
             } while (!"0".equals(cursor));
         } catch (Exception e) {
-            log.error("jedis 查询异常, db: {}" , name,e);
+            log.error("jedis 查询异常, db: {}", name, e);
         }
         log.debug(timer.getTimeMs() + " ms");
         return result;
@@ -68,7 +68,7 @@ public class JedisTemplate {
                 result.addAll(scanResult.getResult());
             } while (!"0".equals(cursor));
         } catch (Exception e) {
-            log.error("jedis 查询异常, db: {}", name,e);
+            log.error("jedis 查询异常, db: {}", name, e);
         }
         log.debug(timer.getTimeMs() + " ms");
         return result;

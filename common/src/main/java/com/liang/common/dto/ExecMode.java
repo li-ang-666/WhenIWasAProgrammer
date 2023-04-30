@@ -3,7 +3,7 @@ package com.liang.common.dto;
 public enum ExecMode {
     EXEC("exec"), TEST("test");
 
-    private String name;
+    private final String name;
 
     ExecMode(String name) {
         this.name = name;

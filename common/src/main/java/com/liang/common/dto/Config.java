@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Data
 public class Config implements Serializable {
-    private Map<String, DBConfig> DBConfigs;
+    private Map<String, DBConfig> dbConfigs;
     private Map<String, RedisConfig> redisConfigs;
 }
 
