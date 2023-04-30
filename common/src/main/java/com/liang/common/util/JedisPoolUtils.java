@@ -19,7 +19,7 @@ public class JedisPoolUtils {
     public static synchronized Jedis getConnection(String name) {
         if (jedisPools.get(name) == null) {
             RedisConfig config = ConfigUtils.getConfig().getRedisConfigs().get(name);
-            JedisPool jedisPool = JedisPoolFactory.createConnectionPool(config);
+            JedisPool jedisPool = JedisPoolFactory.create(config);
             jedisPools.put(name, jedisPool);
         }
         return jedisPools.get(name).getResource();

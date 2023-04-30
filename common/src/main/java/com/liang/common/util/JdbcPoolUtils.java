@@ -21,7 +21,7 @@ public class JdbcPoolUtils {
     public static synchronized Connection getConnectionByName(String name) {
         if (dataSources.get(name) == null) {
             DBConfig config = ConfigUtils.getConfig().getDbConfigs().get(name);
-            DataSource dataSource = JdbcPoolFactory.createMySQLConnectionPool(config);
+            DataSource dataSource = JdbcPoolFactory.createPool(config);
             dataSources.put(name, dataSource);
         }
         return dataSources.get(name).getConnection();

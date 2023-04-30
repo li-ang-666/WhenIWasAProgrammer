@@ -10,7 +10,7 @@ public class JedisPoolFactory {
     private JedisPoolFactory() {
     }
 
-    public static JedisPool createConnectionPool(RedisConfig redisConfig) {
+    public static JedisPool create(RedisConfig redisConfig) {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 
         /*---------config---------*/

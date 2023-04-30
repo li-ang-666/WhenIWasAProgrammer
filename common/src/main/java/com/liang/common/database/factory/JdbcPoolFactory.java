@@ -15,8 +15,8 @@ public class JdbcPoolFactory {
     }
 
     @SneakyThrows
-    public static DataSource createMySQLConnectionPool(DBConfig mysqlConfig) {
-        String url = "jdbc:mysql://" + mysqlConfig.getHost() + ":" + mysqlConfig.getPort() + "/" + mysqlConfig.getDatabase() +
+    public static DataSource createPool(DBConfig dbConfig) {
+        String url = "jdbc:mysql://" + dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
                 "?useUnicode=true" +
                 "&characterEncoding=utf-8" +
                 "&zeroDateTimeBehavior=CONVERT_TO_NULL" +
@@ -24,8 +24,8 @@ public class JdbcPoolFactory {
                 "&serverTimezone=GMT%2B8";
         Properties props = new Properties();
         props.put("url", url);
-        props.put("username", mysqlConfig.getUser());
-        props.put("password", mysqlConfig.getPassword());
+        props.put("username", dbConfig.getUser());
+        props.put("password", dbConfig.getPassword());
 
         /*---------config---------*/
         props.put("minIdle", "3");
