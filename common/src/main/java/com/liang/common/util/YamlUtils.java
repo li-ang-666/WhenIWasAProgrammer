@@ -1,35 +1,28 @@
 package com.liang.common.util;
 
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
+@Slf4j
 public class YamlUtils {
     private YamlUtils() {
     }
 
-    public static Map<String, Object> fromResource(String fileName) {
-        return fromResource(fileName, Map.class);
+    public static Map<String, Object> parse(InputStream inputStream) {
+        return parse(inputStream, Map.class);
     }
 
-    @SneakyThrows
-    public static <T> T fromResource(String fileName, Class<T> clz) {
-        try (InputStream inputStream = IOUtils.getInStreamFromResource(fileName)) {
-            return new Yaml().loadAs(inputStream, clz);
+    public static <T> T parse(InputStream inputStream, Class<T> clz) {
+        T res = null;
+        try {
+            res = new Yaml().loadAs(inputStream, clz);
+        } catch (Exception e) {
+            log.error("YamlUtils Error", e);
         }
-    }
-
-    public static Map<String, Object> fromDisk(String path) {
-        return fromDisk(path, Map.class);
-    }
-
-    @SneakyThrows
-    public static <T> T fromDisk(String path, Class<T> clz) {
-        try (InputStream inputStream = IOUtils.getInStreamFromDisk(path)) {
-            return new Yaml().loadAs(inputStream, clz);
-        }
+        return res;
     }
 }

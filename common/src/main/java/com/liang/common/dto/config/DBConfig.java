@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class MySQLConfig implements Serializable {
+public class DBConfig implements Serializable {
     private String host;
     private int port = 3306;
     private String database;

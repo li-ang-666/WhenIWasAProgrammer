@@ -1,26 +1,10 @@
 package com.liang.common.service;
 
-import com.liang.common.dto.StreamLoadDto;
-import com.liang.common.util.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-
-import static com.liang.common.util.lambda.LambdaExceptionEraser.functionEraser;
 
 @Slf4j
 public class StreamLoad {
-    private HttpClientBuilder httpClientBuilder = HttpClients
+    /*private HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DefaultRedirectStrategy() {
                 @Override
@@ -68,5 +52,5 @@ public class StreamLoad {
                 }
             }
         }
-    }
+    }*/
 }

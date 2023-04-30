@@ -1,7 +1,7 @@
 package com.liang.common.database.template;
 
 import com.liang.common.service.Timer;
-import com.liang.common.database.cluster.JedisPoolCluster;
+import com.liang.common.util.JedisPoolUtils;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.ScanParams;
@@ -23,7 +23,7 @@ public class JedisTemplate {
     public <T> T exec(JedisMapper<T> jedisMapper) {
         T t;
         Timer timer = new Timer();
-        try (Jedis jedis = JedisPoolCluster.getConnectionByName(name)) {
+        try (Jedis jedis = JedisPoolUtils.getConnection(name)) {
             t = jedisMapper.map(jedis);
         } catch (Exception e) {
             log.error("jedis 查询异常, db: {}", name,e);
@@ -41,7 +41,7 @@ public class JedisTemplate {
     public Map<String, String> hScan(String key) {
         Map<String, String> result = new HashMap<>();
         Timer timer = new Timer();
-        try (Jedis jedis = JedisPoolCluster.getConnectionByName(name)) {
+        try (Jedis jedis = JedisPoolUtils.getConnection(name)) {
             String cursor = ScanParams.SCAN_POINTER_START; //其实就是 "0"
             ScanParams scanParams = new ScanParams().match("*").count(100);
             do {
@@ -59,7 +59,7 @@ public class JedisTemplate {
     public List<String> scan(String key) {
         List<String> result = new ArrayList<>();
         Timer timer = new Timer();
-        try (Jedis jedis = JedisPoolCluster.getConnectionByName(name)) {
+        try (Jedis jedis = JedisPoolUtils.getConnection(name)) {
             String cursor = ScanParams.SCAN_POINTER_START;
             ScanParams scanParams = new ScanParams().match(key).count(100);
             do {

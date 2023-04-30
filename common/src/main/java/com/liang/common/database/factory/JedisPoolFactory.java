@@ -1,4 +1,4 @@
-package com.liang.common.database.pool;
+package com.liang.common.database.factory;
 
 import com.liang.common.dto.config.RedisConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,6 @@ public class JedisPoolFactory {
         //还给池子的时候测试一下是不是有效连接
         jedisPoolConfig.setTestOnReturn(false);
 
-        JedisPool jedisPool;
         log.info("jedis连接池懒加载, url: {}", redisConfig.getHost() + ":" + redisConfig.getPort());
         return new JedisPool(jedisPoolConfig, redisConfig.getHost(), redisConfig.getPort(), 1000 * 60, redisConfig.getPassword());
     }

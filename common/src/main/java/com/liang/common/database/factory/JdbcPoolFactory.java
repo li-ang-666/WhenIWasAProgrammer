@@ -1,8 +1,8 @@
-package com.liang.common.database.pool;
+package com.liang.common.database.factory;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
-import com.liang.common.dto.config.MySQLConfig;
+import com.liang.common.dto.config.DBConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,7 +15,7 @@ public class JdbcPoolFactory {
     }
 
     @SneakyThrows
-    public static DataSource createMySQLConnectionPool(MySQLConfig mysqlConfig) {
+    public static DataSource createMySQLConnectionPool(DBConfig mysqlConfig) {
         String url = "jdbc:mysql://" + mysqlConfig.getHost() + ":" + mysqlConfig.getPort() + "/" + mysqlConfig.getDatabase() +
                 "?useUnicode=true" +
                 "&characterEncoding=utf-8" +

@@ -1,6 +1,5 @@
 package com.liang.flink.env;
 
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -18,10 +17,7 @@ public class StreamEnvironmentFactory {
         checkpointConfig.setMinPauseBetweenCheckpoints(1000 * 60 * 5);
         checkpointConfig.setCheckpointTimeout(1000 * 60 * 30);
         checkpointConfig.setMaxConcurrentCheckpoints(1);
-        checkpointConfig.enableExternalizedCheckpoints(RETAIN_ON_CANCELLATION);
-
-        ParameterTool parameterTool = ParameterTool.fromArgs(args);
-        env.getConfig().setGlobalJobParameters(parameterTool);
+        checkpointConfig.setExternalizedCheckpointCleanup(RETAIN_ON_CANCELLATION);
         return env;
     }
 }
