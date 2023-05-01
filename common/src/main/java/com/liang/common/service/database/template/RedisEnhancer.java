@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class JedisTemplate {
+public class RedisEnhancer {
     private final String name;
 
-    public JedisTemplate(String name) {
+    public RedisEnhancer(String name) {
         this.name = name;
     }
 
@@ -26,7 +26,7 @@ public class JedisTemplate {
         try (Jedis jedis = JedisPoolHolder.getConnection(name)) {
             t = jedisMapper.map(jedis);
         } catch (Exception e) {
-            log.error("jedis 查询异常, db: {}", name, e);
+            log.error("RedisEnhancer Error", e);
             t = null;
         }
         log.debug(timer.getTimeMs() + " ms");
@@ -50,7 +50,7 @@ public class JedisTemplate {
                 scanResult.getResult().forEach(entry -> result.put(entry.getKey(), entry.getValue()));
             } while (!"0".equals(cursor));
         } catch (Exception e) {
-            log.error("jedis 查询异常, db: {}", name, e);
+            log.error("RedisEnhancer Error", e);
         }
         log.debug(timer.getTimeMs() + " ms");
         return result;
@@ -68,9 +68,23 @@ public class JedisTemplate {
                 result.addAll(scanResult.getResult());
             } while (!"0".equals(cursor));
         } catch (Exception e) {
-            log.error("jedis 查询异常, db: {}", name, e);
+            log.error("RedisEnhancer Error", e);
         }
         log.debug(timer.getTimeMs() + " ms");
         return result;
+    }
+
+    public boolean tryLock(String key, int milliseconds) {
+        try (Jedis jedis = JedisPoolHolder.getConnection(name)) {
+            String res = jedis.set(key, "lock", "NX", "PX", milliseconds);
+            return "OK".equals(res);
+        } catch (Exception e) {
+            log.error("RedisEnhancer Error", e);
+            return false;
+        }
+    }
+
+    public void unlock(String key) {
+        exec(jedis -> jedis.del(key));
     }
 }
