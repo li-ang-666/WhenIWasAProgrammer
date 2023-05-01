@@ -65,7 +65,9 @@ public class JdbcTemplate {
             connection.commit();
         } catch (Exception e) {
             log.error("JdbcTemplate Error, db: {}, sql: {}", name, sqls, e);
-            sqls.forEach(sql -> update(sql, mode));
+            for (String sql : sqls) {
+                update(sql, mode);
+            }
         }
         log.debug(timer.getTimeMs() + " ms");
     }
