@@ -50,19 +50,6 @@ public class JdbcTemplate {
         return list;
     }
 
-    public void update(String sql, ExecMode mode) {
-        log.debug("{} {}: {}", name, mode, sql);
-        if (mode.equals(ExecMode.TEST))
-            return;
-        Timer timer = new Timer();
-        try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
-            connection.prepareStatement(sql).executeUpdate();
-        } catch (Exception e) {
-            log.error("JdbcTemplate Error, db: {}, sql: {}", name, sql, e);
-        }
-        log.debug(timer.getTimeMs() + " ms");
-    }
-
     public void batchUpdate(List<String> sqls, ExecMode mode) {
         log.debug("{} {}: {}", name, mode, sqls);
         if (mode.equals(ExecMode.TEST))
@@ -79,6 +66,19 @@ public class JdbcTemplate {
         } catch (Exception e) {
             log.error("JdbcTemplate Error, db: {}, sql: {}", name, sqls, e);
             sqls.forEach(sql -> update(sql, mode));
+        }
+        log.debug(timer.getTimeMs() + " ms");
+    }
+
+    public void update(String sql, ExecMode mode) {
+        log.debug("{} {}: {}", name, mode, sql);
+        if (mode.equals(ExecMode.TEST))
+            return;
+        Timer timer = new Timer();
+        try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
+            connection.prepareStatement(sql).executeUpdate();
+        } catch (Exception e) {
+            log.error("JdbcTemplate Error, db: {}, sql: {}", name, sql, e);
         }
         log.debug(timer.getTimeMs() + " ms");
     }
