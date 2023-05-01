@@ -1,4 +1,4 @@
-package com.liang.common.database.factory;
+package com.liang.common.service.database.factory;
 
 import com.liang.common.dto.config.RedisConfig;
 import lombok.extern.slf4j.Slf4j;

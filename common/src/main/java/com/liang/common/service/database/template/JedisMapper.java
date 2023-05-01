@@ -1,4 +1,4 @@
-package com.liang.common.database.template;
+package com.liang.common.service.database.template;
 
 import redis.clients.jedis.Jedis;
 

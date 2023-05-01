@@ -1,4 +1,4 @@
-package com.liang.common.database.factory;
+package com.liang.common.service.database.factory;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
@@ -6,16 +6,15 @@ import com.liang.common.dto.config.DBConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.sql.DataSource;
 import java.util.Properties;
 
 @Slf4j
-public class JdbcPoolFactory {
-    private JdbcPoolFactory() {
+public class DruidFactory {
+    private DruidFactory() {
     }
 
     @SneakyThrows
-    public static DataSource createPool(DBConfig dbConfig) {
+    public static DruidDataSource createPool(DBConfig dbConfig) {
         String url = "jdbc:mysql://" + dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
                 "?useUnicode=true" +
                 "&characterEncoding=utf-8" +
@@ -43,10 +42,10 @@ public class JdbcPoolFactory {
         props.put("testOnReturn", "false");
 
         log.info("jdbc连接池懒加载, url: {}", url.split("\\?")[0]);
-        DataSource dataSource = DruidDataSourceFactory.createDataSource(props);
-        ((DruidDataSource) dataSource).setKeepAlive(true);
-        ((DruidDataSource) dataSource).setValidationQuery("select 1");
-        ((DruidDataSource) dataSource).setPoolPreparedStatements(false);
+        DruidDataSource dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(props);
+        dataSource.setKeepAlive(true);
+        dataSource.setValidationQuery("select 1");
+        dataSource.setPoolPreparedStatements(false);
         return dataSource;
     }
 }

@@ -1,11 +1,11 @@
-package com.liang.common.database.template;
+package com.liang.common.service.database.template;
 
+import com.alibaba.druid.pool.DruidPooledConnection;
 import com.liang.common.dto.ExecMode;
 import com.liang.common.service.Timer;
-import com.liang.common.util.JdbcPoolUtils;
+import com.liang.common.service.database.holder.DruidHolder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ public class JdbcTemplate {
         log.debug(name + " query: " + sql);
         ArrayList<T> list = new ArrayList<>();
         Timer timer = new Timer();
-        try (Connection connection = JdbcPoolUtils.getConnectionByName(name)) {
+        try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             list.add(resultSet.next() ? resultSetMapper.map(resultSet) : null);
         } catch (Exception e) {
@@ -37,7 +37,7 @@ public class JdbcTemplate {
         log.debug(name + " query: " + sql);
         ArrayList<T> list = new ArrayList<>();
         Timer timer = new Timer();
-        try (Connection connection = JdbcPoolUtils.getConnectionByName(name)) {
+        try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             while (resultSet.next()) {
                 list.add(resultSetMapper.map(resultSet));
@@ -54,7 +54,7 @@ public class JdbcTemplate {
         if (mode.equals(ExecMode.TEST))
             return;
         Timer timer = new Timer();
-        try (Connection connection = JdbcPoolUtils.getConnectionByName(name)) {
+        try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
             connection.prepareStatement(sql).executeUpdate();
         } catch (Exception e) {
             log.error("jdbc update 异常, db: {}, sql: {}", name, sql, e);
