@@ -78,6 +78,7 @@ public class JdbcTemplate {
             return;
         Timer timer = new Timer();
         try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
+            connection.setAutoCommit(true);
             connection.prepareStatement(sql).executeUpdate();
         } catch (Exception e) {
             log.error("JdbcTemplate Error, db: {}, sql: {}", name, sql, e);
