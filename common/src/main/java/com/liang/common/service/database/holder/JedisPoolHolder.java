@@ -7,24 +7,24 @@ import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class JedisPoolHolder {
     private JedisPoolHolder() {
     }
 
-    private static final Map<String, JedisPool> jedisPools = new HashMap<>();
+    private static final Map<String, JedisPool> jedisPools = new ConcurrentHashMap<>();
 
     public static synchronized Jedis getConnection(String name) {
         if (jedisPools.get(name) == null) {
-            synchronized (JedisPoolHolder.class) {
-                if (jedisPools.get(name) == null) {
-                    RedisConfig config = ConfigUtils.getConfig().getRedisConfigs().get(name);
-                    JedisPool jedisPool = JedisPoolFactory.create(config);
-                    jedisPools.put(name, jedisPool);
-                }
+            RedisConfig config = ConfigUtils.getConfig().getRedisConfigs().get(name);
+            JedisPool jedisPool = JedisPoolFactory.create(config);
+            JedisPool callback = jedisPools.putIfAbsent(name, jedisPool);
+            ////说明这次put已经有值了，jedisPool无用了
+            if (callback != null) {
+                jedisPool.close();
             }
         }
         return jedisPools.get(name).getResource();
