@@ -41,8 +41,8 @@ class Tester {
     public void startTest(ExecFunc func) {
         String content = "time = 2022-02-02 22:22:22, partition = 22, offset = 2222222, orgId = xiaomi, table = applications, dml = DELETE, id = 2222222, created_at = 2022-02-02 22:22:22, updated_at = 2022-02-02 22:22:22\n";
         time = System.currentTimeMillis();
-        double times = 500000;
-        for (long i = 1L; i <= times; i++) {
+        int times = 500000;//5w 50w 500w 1000w
+        for (int i = 1; i <= times; i++) {
             func.f(content);
         }
     }
