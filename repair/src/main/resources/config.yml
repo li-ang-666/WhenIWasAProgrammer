@@ -29,3 +29,4 @@ redisConfigs:
   redisprod: { host: "r-2zeu1u0o4nircnvgwd.redis.rds.aliyuncs.com",password: "Moka_bi@2020" }
   # 腾讯云 生产环境
   redistx: { host: "tc-prod-bi-mokabi-redis.mokahr.com",password: "user_moka_bi@04Av7ypdBeCStg" }
+  localhost: { host: "127.0.0.1",password: "" }

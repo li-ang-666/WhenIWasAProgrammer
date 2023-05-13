@@ -28,7 +28,14 @@ public class JedisPoolFactory {
         //还给池子的时候测试一下是不是有效连接
         jedisPoolConfig.setTestOnReturn(false);
 
-        log.info("jedis连接池懒加载, url: {}", redisConfig.getHost() + ":" + redisConfig.getPort());
-        return new JedisPool(jedisPoolConfig, redisConfig.getHost(), redisConfig.getPort(), 1000 * 60, redisConfig.getPassword());
+        String host = redisConfig.getHost();
+        int port = redisConfig.getPort();
+        String password = redisConfig.getPassword();
+        log.info("jedis连接池懒加载, url: {}", host + ":" + port);
+        if (password.isEmpty()) {
+            return new JedisPool(jedisPoolConfig, host, port, 1000 * 60);
+        }
+        return new JedisPool(jedisPoolConfig, host, port, 1000 * 60, password);
+
     }
 }
