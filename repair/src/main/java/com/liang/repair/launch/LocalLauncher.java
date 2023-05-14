@@ -11,6 +11,7 @@ public class LocalLauncher {
     public static void main(String[] args) {
         init();
         String className = "LocalTest";
+
         run(className, args);
         close();
     }
