@@ -2,8 +2,9 @@
 target/
 #忽略所有.idea目录
 .idea/
-#忽略所有.iml文件
+#忽略所有.iml .DS_store文件
 *.iml
+*.DS_Store
 
 
 
