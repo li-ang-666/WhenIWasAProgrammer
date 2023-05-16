@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcTemplate {
@@ -57,6 +58,7 @@ public class JdbcTemplate {
                 connection.rollback();
                 for (String sql : sqls) {
                     update(sql);
+                    TimeUnit.MILLISECONDS.sleep(50);
                 }
             } catch (Exception ignore) {
             }
