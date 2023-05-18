@@ -1,7 +1,7 @@
 package com.liang.study.structure;
 
-import com.sun.istack.internal.NotNull;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
 
@@ -132,7 +132,7 @@ class TreeNode {
     /**
      * 任意TreeNode对象, value不为空
      */
-    private @NotNull Integer value;
+    private @NonNull Integer value;
     private TreeNode left;
     private TreeNode right;
 }

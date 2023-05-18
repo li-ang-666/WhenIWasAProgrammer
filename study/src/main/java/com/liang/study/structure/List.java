@@ -1,7 +1,7 @@
 package com.liang.study.structure;
 
-import com.sun.istack.internal.NotNull;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
 
@@ -86,6 +86,6 @@ class Node {
     /**
      * 任意Node对象, value不为空
      */
-    private @NotNull Integer value;
+    private @NonNull Integer value;
     private Node next;
 }

@@ -7,13 +7,18 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 @Data
 @Slf4j
 public class BatchCanalBinlog implements Serializable {
-    private List<SingleCanalBinlog> singleCanalBinlogs;
+    private List<SingleCanalBinlog> singleCanalBinlogs = new ArrayList<>();
+
+    public int size() {
+        return this.singleCanalBinlogs.size();
+    }
 
     public BatchCanalBinlog(byte[] kafkaRecord) {
         Message message = CanalMessageDeserializer.deserializer(kafkaRecord);
@@ -36,9 +41,10 @@ public class BatchCanalBinlog implements Serializable {
             }
             CanalEntry.EventType eventType = rowChange.getEventType();
             boolean isDdl = rowChange.getIsDdl();
+            String sql = rowChange.getSql();
             //官方case的排除
             if (eventType == CanalEntry.EventType.QUERY || isDdl) {
-                log.warn("isDdl: {}, sql: {}", isDdl, rowChange.getSql());
+                log.warn("isDdl: {}, sql: {}", isDdl, sql);
                 continue;
             }
             //生成SingleCanalBinlog
@@ -65,8 +71,10 @@ public class BatchCanalBinlog implements Serializable {
                     afterMap.put(columnName, columnValue);
                 }
                 SingleCanalBinlog singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, beforeMap, afterMap);
-                if (!(eventType == CanalEntry.EventType.INSERT || eventType == CanalEntry.EventType.UPDATE || eventType == CanalEntry.EventType.DELETE)) {
-                    log.error("sql: {}, singleCanalBinlogType: {}", rowChange.getSql(), singleCanalBinlog);
+                if (!(eventType == CanalEntry.EventType.INSERT
+                        || eventType == CanalEntry.EventType.UPDATE
+                        || eventType == CanalEntry.EventType.DELETE)) {
+                    log.warn("singleCanalBinlog对象非增删改, sql: {}, singleCanalBinlog: {}", sql, singleCanalBinlog);
                 }
                 singleCanalBinlogs.add(singleCanalBinlog);
             }

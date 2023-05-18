@@ -26,8 +26,7 @@ public class FlinkStream {
                 .addSink(new SinkFunction<KafkaRecord<BatchCanalBinlog>>() {
                     @Override
                     public void invoke(KafkaRecord<BatchCanalBinlog> value, Context context) throws Exception {
-                        BatchCanalBinlog batchCanalBinlog = value.getValue();
-                        System.out.println(batchCanalBinlog);
+                        System.out.println(value);
                     }
                 }).setParallelism(1);
         streamEnvironment.execute();
