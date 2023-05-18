@@ -23,7 +23,13 @@ public class FlinkStream {
 
         streamEnvironment
                 .addSource(kafkaSource).setParallelism(1)
-                .addSink(new MySinkFunction<>()).setParallelism(1);
+                .addSink(new SinkFunction<KafkaRecord<BatchCanalBinlog>>() {
+                    @Override
+                    public void invoke(KafkaRecord<BatchCanalBinlog> value, Context context) throws Exception {
+                        BatchCanalBinlog batchCanalBinlog = value.getValue();
+                        System.out.println(batchCanalBinlog);
+                    }
+                }).setParallelism(1);
         streamEnvironment.execute();
     }
 
@@ -31,12 +37,6 @@ public class FlinkStream {
         InputStream resourceStream = FlinkStream.class.getClassLoader().getResourceAsStream("config.yml");
         Config config = YamlUtils.parse(resourceStream, Config.class);
         ConfigUtils.setConfig(config);
-    }
-}
-
-class MySinkFunction<T> implements SinkFunction<KafkaRecord<T>> {
-    @Override
-    public void invoke(KafkaRecord<T> value, Context context) throws Exception {
     }
 }
 

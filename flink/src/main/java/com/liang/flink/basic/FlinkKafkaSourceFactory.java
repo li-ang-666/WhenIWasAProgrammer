@@ -5,6 +5,7 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.function.KafkaRecordValueMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
@@ -67,12 +68,17 @@ public class FlinkKafkaSourceFactory {
             int partition = record.partition();
             long offset = record.offset();
             long timestamp = record.timestamp();
-            return new KafkaRecord<T>(key, value, topic, partition, offset, timestamp);
+            return new KafkaRecord<>(key, value, topic, partition, offset, timestamp);
         }
 
         @Override
         public TypeInformation<KafkaRecord<T>> getProducedType() {
-            return null;
+            return TypeInformation.of(new TypeHint<KafkaRecord<T>>() {
+                @Override
+                public TypeInformation<KafkaRecord<T>> getTypeInfo() {
+                    return super.getTypeInfo();
+                }
+            });
         }
     }
 }
