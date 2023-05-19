@@ -8,8 +8,12 @@ import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.state.MapState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
+import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 
 import java.io.InputStream;
@@ -22,13 +26,17 @@ public class FlinkStream {
         FlinkKafkaConsumer<KafkaRecord<BatchCanalBinlog>> kafkaSource = FlinkKafkaSourceFactory.createFlinkKafkaStream(BatchCanalBinlog::new);
 
         streamEnvironment
-                .addSource(kafkaSource).setParallelism(1)
-                .addSink(new SinkFunction<KafkaRecord<BatchCanalBinlog>>() {
+                .addSource(kafkaSource)
+                .setParallelism(1)
+                .keyBy(new KeySelector<KafkaRecord<BatchCanalBinlog>, KafkaRecord<BatchCanalBinlog>>() {
                     @Override
-                    public void invoke(KafkaRecord<BatchCanalBinlog> value, Context context) throws Exception {
-                        System.out.println(value);
+                    public KafkaRecord<BatchCanalBinlog> getKey(KafkaRecord<BatchCanalBinlog> value) throws Exception {
+                        return value;
                     }
-                }).setParallelism(1);
+                })
+                .addSink(new SkFunction())
+                .setParallelism(1);
+
         streamEnvironment.execute();
     }
 
@@ -39,5 +47,22 @@ public class FlinkStream {
     }
 }
 
+@Slf4j
+class SkFunction extends RichSinkFunction<KafkaRecord<BatchCanalBinlog>> {
+    MapState<String, Object> mapState;
+    int i;
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+        MapStateDescriptor<String, Object> descriptor = new MapStateDescriptor<>("name", String.class, Object.class);
+        mapState = getRuntimeContext().getMapState(descriptor);
+    }
+
+    @Override
+    public void invoke(KafkaRecord<BatchCanalBinlog> value, Context context) throws Exception {
+        mapState.put(String.valueOf(i), value);
+        log.info("value: {}", value);
+    }
+}
 
 

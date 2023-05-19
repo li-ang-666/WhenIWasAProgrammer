@@ -30,6 +30,7 @@ public class StreamEnvironmentFactory {
         checkpointConfig.enableExternalizedCheckpoints(RETAIN_ON_CANCELLATION);
         //开启非对齐的checkpoint(可跳跃的barrier)
         checkpointConfig.enableUnalignedCheckpoints();
+        checkpointConfig.setForceUnalignedCheckpoints(true);
         return env;
     }
 }

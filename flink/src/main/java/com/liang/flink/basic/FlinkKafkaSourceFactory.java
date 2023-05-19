@@ -73,12 +73,9 @@ public class FlinkKafkaSourceFactory {
 
         @Override
         public TypeInformation<KafkaRecord<T>> getProducedType() {
-            return TypeInformation.of(new TypeHint<KafkaRecord<T>>() {
-                @Override
-                public TypeInformation<KafkaRecord<T>> getTypeInfo() {
-                    return super.getTypeInfo();
-                }
-            });
+            return TypeInformation.of(
+                    new TypeHint<KafkaRecord<T>>() {
+                    });
         }
     }
 }
