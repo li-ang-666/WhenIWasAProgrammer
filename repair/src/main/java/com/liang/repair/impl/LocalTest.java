@@ -2,11 +2,13 @@ package com.liang.repair.impl;
 
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisEnhancer;
+import com.liang.repair.annotation.Prop;
 import com.liang.repair.trait.Runner;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.List;
 import java.util.Map;
+
 
 public class LocalTest implements Runner {
     @Override

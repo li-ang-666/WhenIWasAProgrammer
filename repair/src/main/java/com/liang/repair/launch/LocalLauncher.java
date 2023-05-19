@@ -3,6 +3,7 @@ package com.liang.repair.launch;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.YamlUtils;
+import com.liang.repair.annotation.Prop;
 import com.liang.repair.trait.Runner;
 
 import java.io.InputStream;
@@ -23,7 +24,10 @@ public class LocalLauncher {
 
     private static void run(String className, String[] args) {
         try {
-            Object instance = Class.forName("com.liang.repair.impl." + className).newInstance();
+            Class<?> aClass = Class.forName("com.liang.repair.impl." + className);
+            Prop prop = aClass.getAnnotation(Prop.class);
+            System.out.println(prop);
+            Object instance = aClass.newInstance();
             ((Runner) instance).run(args);
         } catch (Exception e) {
             e.printStackTrace();
