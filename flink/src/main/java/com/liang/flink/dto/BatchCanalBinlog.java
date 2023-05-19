@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 @Slf4j
 public class BatchCanalBinlog implements Serializable {
-    private List<SingleCanalBinlog> singleCanalBinlogs = new ArrayList<>();
+    private List<SingleCanalBinlog> singleCanalBinlogs;
 
     public int size() {
         return this.singleCanalBinlogs.size();
@@ -75,6 +75,9 @@ public class BatchCanalBinlog implements Serializable {
                         || eventType == CanalEntry.EventType.UPDATE
                         || eventType == CanalEntry.EventType.DELETE)) {
                     log.warn("singleCanalBinlog对象非增删改, sql: {}, singleCanalBinlog: {}", sql, singleCanalBinlog);
+                }
+                if (singleCanalBinlogs == null) {
+                    singleCanalBinlogs = new ArrayList<>();
                 }
                 singleCanalBinlogs.add(singleCanalBinlog);
             }
