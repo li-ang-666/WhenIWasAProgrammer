@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Prop(key1 = "aaa", key2 = "bbb")
-public class LocalTest implements Runner {
+public class LocalRunner implements Runner {
     @Override
     public void run(String[] args) throws Exception {
         RedisEnhancer redis = new RedisEnhancer("localhost");

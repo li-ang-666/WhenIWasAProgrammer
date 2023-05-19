@@ -13,7 +13,7 @@ import java.io.InputStream;
 public class LocalLauncher {
     public static void main(String[] args) {
         init();
-        String className = "LocalTest";
+        String className = "LocalRunner";
         run(className, args);
         close();
     }
@@ -28,8 +28,9 @@ public class LocalLauncher {
         try {
             Class<?> aClass = Class.forName("com.liang.repair.impl." + className);
 
-            Prop prop = aClass.getAnnotation(Prop.class);
-            System.out.println(prop);
+            if (aClass.isAnnotationPresent(Prop.class)) {
+                System.out.println(aClass.getAnnotation(Prop.class));
+            }
 
             ((Runner) aClass.newInstance()).run(args);
         } catch (Exception e) {
