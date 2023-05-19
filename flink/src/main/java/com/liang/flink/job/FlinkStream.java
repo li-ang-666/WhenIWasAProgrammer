@@ -27,15 +27,13 @@ public class FlinkStream {
 
         streamEnvironment
                 .addSource(kafkaSource)
-                .setParallelism(1)
                 .keyBy(new KeySelector<KafkaRecord<BatchCanalBinlog>, KafkaRecord<BatchCanalBinlog>>() {
                     @Override
                     public KafkaRecord<BatchCanalBinlog> getKey(KafkaRecord<BatchCanalBinlog> value) throws Exception {
                         return value;
                     }
                 })
-                .addSink(new SkFunction())
-                .setParallelism(1);
+                .addSink(new SkFunction());
 
         streamEnvironment.execute();
     }
@@ -60,7 +58,7 @@ class SkFunction extends RichSinkFunction<KafkaRecord<BatchCanalBinlog>> {
 
     @Override
     public void invoke(KafkaRecord<BatchCanalBinlog> value, Context context) throws Exception {
-        mapState.put(String.valueOf(i), value);
+        mapState.put(String.valueOf(i++), value);
         log.info("value: {}", value);
     }
 }
