@@ -11,7 +11,7 @@ import java.io.InputStream;
 
 @Slf4j
 public class LocalLauncher {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         init();
         String className = "LocalRunner";
         run(className, args);
@@ -24,18 +24,14 @@ public class LocalLauncher {
         ConfigUtils.setConfig(config);
     }
 
-    private static void run(String className, String[] args) {
-        try {
-            Class<?> aClass = Class.forName("com.liang.repair.impl." + className);
+    private static void run(String className, String[] args) throws Exception {
+        Class<?> aClass = Class.forName("com.liang.repair.impl." + className);
 
-            if (aClass.isAnnotationPresent(Prop.class)) {
-                System.out.println(aClass.getAnnotation(Prop.class));
-            }
-
-            ((Runner) aClass.newInstance()).run(args);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (aClass.isAnnotationPresent(Prop.class)) {
+            System.out.println(aClass.getAnnotation(Prop.class));
         }
+
+        ((Runner) aClass.newInstance()).run(args);
     }
 
     private static void close() {
