@@ -12,7 +12,7 @@ flink run -t yarn-per-job -d \
   -D taskmanager.memory.framework.heap.size=128mb \
   -D taskmanager.memory.framework.off-heap.size=128mb \
   -D taskmanager.memory.task.off-heap.size=0mb \
-  -D taskmanager.memory.network.fraction=0.1 \
+  -D taskmanager.memory.network.fraction=0.05 \
   -D taskmanager.memory.managed.size=0mb \
   -D taskmanager.memory.jvm-metaspace.size=256mb \
   -D taskmanager.memory.jvm-overhead.fraction=0.1 \
