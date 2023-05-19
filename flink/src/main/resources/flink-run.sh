@@ -16,8 +16,8 @@ flink run -t yarn-per-job -d \
   -D taskmanager.memory.managed.size=0mb \
   -D taskmanager.memory.jvm-metaspace.size=256mb \
   -D taskmanager.memory.jvm-overhead.fraction=0.1 \
-  -D taskmanager.numberOfTaskSlots=2 \
-  -D parallelism.default=2 \
+  -D taskmanager.numberOfTaskSlots=1 \
+  -D parallelism.default=1 \
   -D yarn.application.name="WhenIWas" \
   -D yarn.application.queue="default" \
   -c com.liang.flink.job.FlinkStream flink-1.0-jar-with-dependencies.jar
