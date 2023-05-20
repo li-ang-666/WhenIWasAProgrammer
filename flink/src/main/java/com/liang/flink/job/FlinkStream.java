@@ -27,14 +27,15 @@ public class FlinkStream {
         FlinkKafkaConsumer<KafkaRecord<BatchCanalBinlog>> kafkaSource = FlinkKafkaSourceFactory.createFlinkKafkaStream(BatchCanalBinlog::new);
 
         streamEnvironment
-                .addSource(kafkaSource)
+                .addSource(kafkaSource).setParallelism(1)
                 .keyBy(new KeySelector<KafkaRecord<BatchCanalBinlog>, KafkaRecord<BatchCanalBinlog>>() {
                     @Override
                     public KafkaRecord<BatchCanalBinlog> getKey(KafkaRecord<BatchCanalBinlog> value) throws Exception {
                         return value;
                     }
                 })
-                .addSink(new SkFunction());
+                .addSink(new SkFunction())
+                .setParallelism(1);
 
         streamEnvironment.execute();
     }
