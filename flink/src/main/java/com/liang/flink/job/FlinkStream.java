@@ -60,7 +60,7 @@ class SkFunction extends RichSinkFunction<KafkaRecord<BatchCanalBinlog>> {
     @Override
     public void invoke(KafkaRecord<BatchCanalBinlog> value, Context context) throws Exception {
         mapState.put(String.valueOf(i++), value);
-        //log.info("value: {}", value);
+        log.info("value: {}", value);
     }
 }
 
