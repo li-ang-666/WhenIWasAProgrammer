@@ -102,26 +102,26 @@ public class BatchCanalBinlog implements Serializable {
             for (CanalEntry.RowData rowData : rowDatasList) {
                 if (eventType == CanalEntry.EventType.INSERT || eventType == CanalEntry.EventType.UPDATE) {
                     //after columns
-                    LinkedHashMap<String, Object> columnMap = new LinkedHashMap<>();
-                    for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                        String columnName = column.getName();
-                        String columnValue = column.getValue();
-                        columnMap.put(columnName, columnValue);
-                    }
+                    Map<String, Object> columnMap = columnListToColumnMap(rowData.getAfterColumnsList());
                     singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap));
                 } else if (eventType == CanalEntry.EventType.DELETE) {
                     //before columns
-                    LinkedHashMap<String, Object> columnMap = new LinkedHashMap<>();
-                    for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
-                        String columnName = column.getName();
-                        String columnValue = column.getValue();
-                        columnMap.put(columnName, columnValue);
-                    }
+                    Map<String, Object> columnMap = columnListToColumnMap(rowData.getBeforeColumnsList());
                     singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap));
                 } else {
                     log.warn("singleCanalBinlog对象非增删改,type: {}, sql: {}", eventType, sql);
                 }
             }
         }
+    }
+
+    private Map<String, Object> columnListToColumnMap(List<CanalEntry.Column> columnList) {
+        LinkedHashMap<String, Object> columnMap = new LinkedHashMap<>(columnList.size());
+        for (CanalEntry.Column column : columnList) {
+            String columnName = column.getName();
+            String columnValue = column.getValue();
+            columnMap.put(columnName, columnValue);
+        }
+        return columnMap;
     }
 }
