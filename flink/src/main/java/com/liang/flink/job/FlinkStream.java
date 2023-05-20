@@ -23,6 +23,7 @@ public class FlinkStream {
     public static void main(String[] args) throws Exception {
         init();
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.createStreamEnvironment();
+        streamEnvironment.setParallelism(1);
         FlinkKafkaConsumer<KafkaRecord<BatchCanalBinlog>> kafkaSource = FlinkKafkaSourceFactory.createFlinkKafkaStream(BatchCanalBinlog::new);
 
         streamEnvironment
@@ -59,7 +60,7 @@ class SkFunction extends RichSinkFunction<KafkaRecord<BatchCanalBinlog>> {
     @Override
     public void invoke(KafkaRecord<BatchCanalBinlog> value, Context context) throws Exception {
         mapState.put(String.valueOf(i++), value);
-        log.info("value: {}", value);
+        //log.info("value: {}", value);
     }
 }
 

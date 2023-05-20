@@ -20,8 +20,24 @@ public class BatchCanalBinlog implements Serializable {
         return this.singleCanalBinlogs.size();
     }
 
-    public BatchCanalBinlog(byte[] kafkaRecord) {
-        Message message = CanalMessageDeserializer.deserializer(kafkaRecord);
+    public BatchCanalBinlog(byte[] kafkaRecordValue) {
+        for (byte b : kafkaRecordValue) {
+            if ('{' == (char) b) {
+                parseJsonMessage(kafkaRecordValue);
+                return;
+            } else if (!Character.isWhitespace((char) b)) {
+                parseProtobufMessage(kafkaRecordValue);
+                return;
+            }
+        }
+    }
+
+    private void parseJsonMessage(byte[] kafkaRecordValue) {
+
+    }
+
+    private void parseProtobufMessage(byte[] kafkaRecordValue) {
+        Message message = CanalMessageDeserializer.deserializer(kafkaRecordValue);
         //判断entries
         if (message.getId() == -1L || message.getEntries().size() == 0) {
             return;
