@@ -13,7 +13,7 @@ import java.io.InputStream;
 public class LocalLauncher {
     public static void main(String[] args) throws Exception {
         init();
-        String className = "LocalRunner";
+        String className = "CommonTest";
         run(className, args);
         close();
     }

@@ -4,6 +4,7 @@ import com.liang.common.service.Timer;
 import com.liang.common.service.database.holder.JedisPoolHolder;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
@@ -14,16 +15,16 @@ import java.util.Map;
 
 @Slf4j
 public class RedisEnhancer {
-    private final String name;
+    private final JedisPool jedisPool;
 
     public RedisEnhancer(String name) {
-        this.name = name;
+        jedisPool = JedisPoolHolder.getJedisPool(name);
     }
 
     public <T> T exec(JedisMapper<T> jedisMapper) {
         T t;
         Timer timer = new Timer();
-        try (Jedis jedis = JedisPoolHolder.getConnection(name)) {
+        try (Jedis jedis = jedisPool.getResource()) {
             t = jedisMapper.map(jedis);
         } catch (Exception e) {
             log.error("RedisEnhancer Error", e);
@@ -41,7 +42,7 @@ public class RedisEnhancer {
     public Map<String, String> hScan(String key) {
         Map<String, String> result = new HashMap<>();
         Timer timer = new Timer();
-        try (Jedis jedis = JedisPoolHolder.getConnection(name)) {
+        try (Jedis jedis = jedisPool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START; //其实就是 "0"
             ScanParams scanParams = new ScanParams().match("*").count(100);
             do {
@@ -59,7 +60,7 @@ public class RedisEnhancer {
     public List<String> scan(String key) {
         List<String> result = new ArrayList<>();
         Timer timer = new Timer();
-        try (Jedis jedis = JedisPoolHolder.getConnection(name)) {
+        try (Jedis jedis = jedisPool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START;
             ScanParams scanParams = new ScanParams().match(key).count(100);
             do {
@@ -75,7 +76,7 @@ public class RedisEnhancer {
     }
 
     public boolean tryLock(String key, int milliseconds) {
-        try (Jedis jedis = JedisPoolHolder.getConnection(name)) {
+        try (Jedis jedis = jedisPool.getResource()) {
             String res = jedis.set(key, "lock", "NX", "PX", milliseconds);
             return "OK".equals(res);
         } catch (Exception e) {

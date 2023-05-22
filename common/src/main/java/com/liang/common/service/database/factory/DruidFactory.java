@@ -14,7 +14,7 @@ public class DruidFactory {
     }
 
     @SneakyThrows
-    public static DruidDataSource createPool(DBConfig dbConfig) {
+    public static DruidDataSource create(DBConfig dbConfig) {
         String url = "jdbc:mysql://" + dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
                 "?useUnicode=true" +
                 "&characterEncoding=utf-8" +

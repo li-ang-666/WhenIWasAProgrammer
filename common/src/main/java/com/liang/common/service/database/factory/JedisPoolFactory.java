@@ -12,7 +12,6 @@ public class JedisPoolFactory {
 
     public static JedisPool create(RedisConfig redisConfig) {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-
         /*---------config---------*/
         jedisPoolConfig.setMinIdle(3);
         jedisPoolConfig.setMaxTotal(5);
@@ -36,6 +35,5 @@ public class JedisPoolFactory {
             return new JedisPool(jedisPoolConfig, host, port, 1000 * 60);
         }
         return new JedisPool(jedisPoolConfig, host, port, 1000 * 60, password);
-
     }
 }

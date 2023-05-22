@@ -17,6 +17,12 @@
     </modules>
     <dependencyManagement>
         <dependencies>
+            <!--hbase-->
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-client</artifactId>
+                <version>2.2.4</version>
+            </dependency>
             <!--canal-->
             <dependency>
                 <groupId>com.alibaba.otter</groupId>

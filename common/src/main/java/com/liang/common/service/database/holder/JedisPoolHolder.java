@@ -4,7 +4,6 @@ import com.liang.common.dto.config.RedisConfig;
 import com.liang.common.service.database.factory.JedisPoolFactory;
 import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.Map;
@@ -17,16 +16,16 @@ public class JedisPoolHolder {
 
     private static final Map<String, JedisPool> jedisPools = new ConcurrentHashMap<>();
 
-    public static synchronized Jedis getConnection(String name) {
+    public static synchronized JedisPool getJedisPool(String name) {
         if (jedisPools.get(name) == null) {
             RedisConfig config = ConfigUtils.getConfig().getRedisConfigs().get(name);
             JedisPool jedisPool = JedisPoolFactory.create(config);
             JedisPool callback = jedisPools.putIfAbsent(name, jedisPool);
-            ////说明这次put已经有值了，jedisPool无用了
+            //说明这次put已经有值了
             if (callback != null) {
-                jedisPool.close();
+                jedisPool = null;//help gc
             }
         }
-        return jedisPools.get(name).getResource();
+        return jedisPools.get(name);
     }
 }

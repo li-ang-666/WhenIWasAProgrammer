@@ -1,5 +1,6 @@
 package com.liang.common.service.database.template;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.liang.common.service.database.holder.DruidHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -12,19 +13,19 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcTemplate {
-    private final String name;
+    private final DruidDataSource druidDataSource;
 
     public JdbcTemplate(String name) {
-        this.name = name;
+        druidDataSource = DruidHolder.getDruid(name);
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {
         ArrayList<T> list = new ArrayList<>();
-        try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
+        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             list.add(resultSet.next() ? resultSetMapper.map(resultSet) : null);
         } catch (Exception e) {
-            log.error("JdbcTemplate Error, db: {}, sql: {}", name, sql, e);
+            log.error("JdbcTemplate Error, sql: {}", sql, e);
             list.add(null);
         }
         return list.get(0);
@@ -32,20 +33,19 @@ public class JdbcTemplate {
 
     public <T> List<T> queryForList(String sql, ResultSetMapper<T> resultSetMapper) {
         ArrayList<T> list = new ArrayList<>();
-        try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
+        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             while (resultSet.next()) {
                 list.add(resultSetMapper.map(resultSet));
             }
         } catch (Exception e) {
-            log.error("JdbcTemplate Error, db: {}, sql: {}", name, sql, e);
+            log.error("JdbcTemplate Error, sql: {}", sql, e);
         }
         return list;
     }
 
     public void batchUpdate(List<String> sqls) {
-        DruidPooledConnection connection = DruidHolder.getConnectionByName(name);
-        try {
+        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
             connection.setAutoCommit(false);
             Statement statement = connection.createStatement();
             for (String sql : sqls) {
@@ -54,28 +54,22 @@ public class JdbcTemplate {
             statement.executeBatch();
             connection.commit();
         } catch (Exception e) {
-            try {
-                connection.rollback();
-                for (String sql : sqls) {
-                    update(sql);
+            for (String sql : sqls) {
+                update(sql);
+                try {
                     TimeUnit.MILLISECONDS.sleep(50);
+                } catch (Exception ignore) {
                 }
-            } catch (Exception ignore) {
-            }
-        } finally {
-            try {
-                connection.close();
-            } catch (Exception ignore) {
             }
         }
     }
 
     public void update(String sql) {
-        try (DruidPooledConnection connection = DruidHolder.getConnectionByName(name)) {
+        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
             connection.setAutoCommit(true);
             connection.prepareStatement(sql).executeUpdate();
         } catch (Exception e) {
-            log.error("JdbcTemplate Error, db: {}, sql: {}", name, sql, e);
+            log.error("JdbcTemplate Error, sql: {}", sql, e);
         }
     }
 }

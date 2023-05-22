@@ -5,3 +5,13 @@ dbConfigs:
 redisConfigs:
   #本地
   localhost: { host: "127.0.0.1",password: "" }
+
+kafkaConfigs:
+  consumer00: {
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092",
+    topics: [ "9349c.proto.prism_shareholder_path.ratio_path_company" ],
+    groupId: "leon",
+    startFrom: "1"
+  }
+hbaseConfigs:
+  test: { "zookeeperQuorum": "10.99.1.165:2181" }

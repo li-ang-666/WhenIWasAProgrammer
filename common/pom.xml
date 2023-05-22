@@ -12,6 +12,11 @@
 
     <artifactId>common</artifactId>
     <dependencies>
+        <!--hbase-->
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+        </dependency>
         <!--http-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

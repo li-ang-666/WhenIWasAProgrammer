@@ -13,3 +13,5 @@ kafkaConfigs:
     groupId: "leon",
     startFrom: "1"
   }
+hbaseConfigs:
+  test: { "zookeeperQuorum": "10.99.1.165:2181" }
