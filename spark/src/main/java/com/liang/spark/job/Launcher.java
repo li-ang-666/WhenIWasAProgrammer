@@ -1,4 +1,4 @@
-package com.liang.spark;
+package com.liang.spark.job;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;

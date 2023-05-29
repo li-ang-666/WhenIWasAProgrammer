@@ -1,4 +1,4 @@
-package com.liang.spark;
+package com.liang.spark.udf;
 
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.expressions.MutableAggregationBuffer;

@@ -11,14 +11,20 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
+        <!--common-->
+        <dependency>
+            <groupId>com.liang</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0</version>
+        </dependency>
         <!--spark-->
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
+            <artifactId>spark-core_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.11</artifactId>
+            <artifactId>spark-sql_2.12</artifactId>
         </dependency>
 
         <!--flink-->
@@ -43,10 +49,12 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
+            <version>2.12.10</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-compiler</artifactId>
+            <version>2.12.10</version>
         </dependency>
 
         <!--yaml-->
@@ -165,7 +173,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <scalaVersion>2.11.12</scalaVersion>
+                    <scalaVersion>2.12.10</scalaVersion>
                 </configuration>
             </plugin>
             <plugin>
