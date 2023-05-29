@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export FLINK_CONF_DIR=/data/liang/flink-conf-demo/
+export FLINK_CONF_DIR=/data/liang/flink-conf/
 
 flink run -t yarn-per-job -d \
   -D taskmanager.network.memory.buffer-debloat.enabled=true \
