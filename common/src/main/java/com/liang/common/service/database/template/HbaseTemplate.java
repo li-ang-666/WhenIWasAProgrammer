@@ -12,6 +12,14 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.Map;
 
+/**
+ * list                                                                 = show tables(所有namespace的)
+ * list_namespace_tables "${namespace}"                                 = show tables(查看某个namespace下的)
+ * create "${namespace}:${tableName}","${family}"                       = 建表
+ * scan "${namespace}:${tableName}"                                     = select *
+ * truncate "${namespace}:${tableName}"                                 = 清空
+ * disable "${namespace}:${tableName}";drop "${namespace}:${tableName}" = 删表
+ */
 @Slf4j
 public class HbaseTemplate {
     private final Connection connection;

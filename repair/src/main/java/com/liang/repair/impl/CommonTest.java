@@ -11,7 +11,7 @@ public class CommonTest implements Runner {
     @Override
     public void run(String[] args) throws Exception {
         HbaseTemplate hbaseTemplate = new HbaseTemplate("test");
-        HbaseOneRow hbaseOneRow = new HbaseOneRow("test", "student", "2",
+        HbaseOneRow hbaseOneRow = new HbaseOneRow("test", "data_concat", "1",
                 new HashMap<String, Object>() {{
                     put("cf1:name", "a");
                     put("cf1:addr", "b");
@@ -19,9 +19,5 @@ public class CommonTest implements Runner {
                     put("cf1:info", "你好");
                 }});
         hbaseTemplate.upsert(hbaseOneRow);
-
-        HbaseOneRow hbaseOneRow2 = new HbaseOneRow("test", "student", "2",
-                new HashMap<String, Object>());
-        hbaseTemplate.delete(hbaseOneRow);
     }
 }
