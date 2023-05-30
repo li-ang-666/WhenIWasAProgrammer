@@ -1,17 +1,79 @@
+flinkSource: Repair # Repair or Kafka
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - sourceName: "judicialRisk"
+    tableName: "restrict_consumption_split_index"
+    columns: "*"
+    where: "1=1"
+    scanMode: Direct
+
+  - sourceName: "judicialRisk"
+    tableName: "judicial_assistance_index"
+    columns: "*"
+    where: "1=1"
+    scanMode: Direct
+
+  - sourceName: "judicialRisk"
+    tableName: "restricted_outbound_index"
+    columns: "*"
+    where: "1=1"
+    scanMode: Direct
+
+  - sourceName: "operatingRisk"
+    tableName: "equity_pledge_reinvest"
+    columns: "*"
+    where: "1=1"
+    scanMode: Direct
+
+  - sourceName: "operatingRisk"
+    tableName: "equity_pledge_detail"
+    columns: "*"
+    where: "1=1"
+    scanMode: Direct
+
 dbConfigs:
   #本地
   localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
+  #生产
+  111judicialRisk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+  111companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+  111operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+  #测试
+  judicialRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  companyBase: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  operatingRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
 
 redisConfigs:
-  #本地
-  localhost: { host: "127.0.0.1",password: "" }
+  localhost:
+    host: "127.0.0.1"
+    password: ~
 
 kafkaConfigs:
-  consumer00: {
-    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092",
-    topics: [ "9349c.proto.prism_shareholder_path.ratio_path_company" ],
-    groupId: "leon",
-    startFrom: "1"
-  }
-hbaseConfigs:
-  test: { "zookeeperQuorum": "10.99.1.165:2181" }
+  flinkKafkaConsumer:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "9349c.proto.judicial_risk.restrict_consumption_split_index"
+      - "9349c.proto.judicial_risk.judicial_assistance_index"
+      - "9349c.proto.judicial_risk.restricted_outbound_index"
+      - "9349c.proto.operating_risk.equity_pledge_reinvest"
+      - "9349c.proto.operating_risk.equity_pledge_detail"
+    groupId: "leon"
+    startFrom: "2023-05-29 00:00:00"
+
+  kafkaProducer:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "none"
+
+hbaseDbConfigs:
+  test:
+    zookeeperQuorum: "10.99.1.165:2181"
+  prod:
+    zookeeperQuorum: "10.99.1.165:2181"
+
+hbaseSchemas:
+  dataConcat:
+    namespace: "test"
+    tableName: "data_concat"
+    columnFamily: "cf1"

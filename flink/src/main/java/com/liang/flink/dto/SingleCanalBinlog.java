@@ -12,7 +12,7 @@ import java.util.Map;
 public class SingleCanalBinlog implements Serializable {
     private String database;
     private String table;
-    private long executeTime;
+    private long executeMilliseconds;
     private CanalEntry.EventType eventType;
     private Map<String, Object> columnMap;
 }

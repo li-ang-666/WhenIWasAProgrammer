@@ -14,5 +14,5 @@ public class KafkaRecord<T> implements Serializable {
     private String topic;
     private long partition;
     private long offset;
-    private long reachTime;
+    private long reachMilliseconds;
 }

@@ -1,4 +1,4 @@
-package com.liang.spark.job;
+package com.liang.spark.test;
 
 import com.esotericsoftware.minlog.Log;
 import com.liang.spark.udf.CountDistinct;

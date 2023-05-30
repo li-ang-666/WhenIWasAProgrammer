@@ -13,9 +13,6 @@ import java.util.Map;
 @Slf4j
 @SuppressWarnings("unchecked")
 public class JsonUtils {
-    private JsonUtils() {
-    }
-
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     static {
@@ -27,6 +24,9 @@ public class JsonUtils {
                 .withFeatures(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
                 .withFeatures(JsonReadFeature.ALLOW_JAVA_COMMENTS);
         objectMapper.setConfig(deserializationConfig);
+    }
+
+    private JsonUtils() {
     }
 
     /*----------------------------------解析{XX=XX, XX=XX, XX=XX}----------------------------------*/

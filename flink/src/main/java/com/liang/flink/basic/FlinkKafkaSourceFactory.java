@@ -2,8 +2,9 @@ package com.liang.flink.basic;
 
 import com.liang.common.dto.config.KafkaConfig;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.flink.dto.KafkaRecord;
-import com.liang.flink.function.KafkaRecordValueMapper;
+import kafka.server.KafkaConfig$;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -11,6 +12,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
+import java.io.Serializable;
 import java.util.Properties;
 
 @Slf4j
@@ -18,9 +20,9 @@ public class FlinkKafkaSourceFactory {
     private FlinkKafkaSourceFactory() {
     }
 
-    public static <T> FlinkKafkaConsumer<KafkaRecord<T>> createFlinkKafkaStream(KafkaRecordValueMapper<T> mapper) {
+    public static <T> FlinkKafkaConsumer<KafkaRecord<T>> create(KafkaRecordValueMapper<T> mapper) {
         SimpleKafkaDeserializationSchema<T> schema = new SimpleKafkaDeserializationSchema<>(mapper);
-        KafkaConfig kafkaConfig = ConfigUtils.getConfig().getKafkaConfigs().get("consumer00");
+        KafkaConfig kafkaConfig = ConfigUtils.getConfig().getKafkaConfigs().get("flinkKafkaConsumer");
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaConfig.getBootstrapServers());
         properties.setProperty("group.id", kafkaConfig.getGroupId());
@@ -28,7 +30,8 @@ public class FlinkKafkaSourceFactory {
         //checkpoint时提交offset
         flinkKafkaConsumer.setCommitOffsetsOnCheckpoints(true);
         //如果没有checkpoint,从哪里消费
-        switch (kafkaConfig.getStartFrom()) {
+        String startFrom = kafkaConfig.getStartFrom();
+        switch (startFrom) {
             case "0":
                 flinkKafkaConsumer.setStartFromGroupOffsets();
                 break;
@@ -39,10 +42,15 @@ public class FlinkKafkaSourceFactory {
                 flinkKafkaConsumer.setStartFromLatest();
                 break;
             default:
-                //毫秒时间戳
-                flinkKafkaConsumer.setStartFromTimestamp(Long.parseLong(kafkaConfig.getStartFrom()));
+                long timestamp = DateTimeUtils.unixTimestamp(startFrom, "yyyy-MM-dd HH:mm:ss");
+                flinkKafkaConsumer.setStartFromTimestamp(timestamp * 1000L);
         }
         return flinkKafkaConsumer;
+    }
+
+    @FunctionalInterface
+    public interface KafkaRecordValueMapper<T> extends Serializable {
+        T map(byte[] kafkaRecord) throws Exception;
     }
 
     private static class SimpleKafkaDeserializationSchema<T> implements KafkaDeserializationSchema<KafkaRecord<T>> {

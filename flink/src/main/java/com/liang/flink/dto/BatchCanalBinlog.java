@@ -20,10 +20,6 @@ import java.util.Map;
 public class BatchCanalBinlog implements Serializable {
     private final List<SingleCanalBinlog> singleCanalBinlogs = new ArrayList<>();
 
-    public int size() {
-        return this.singleCanalBinlogs.size();
-    }
-
     public BatchCanalBinlog(byte[] kafkaRecordValue) {
         for (byte b : kafkaRecordValue) {
             if ((byte) '{' == b) {
@@ -34,6 +30,10 @@ public class BatchCanalBinlog implements Serializable {
                 return;
             }
         }
+    }
+
+    public int size() {
+        return this.singleCanalBinlogs.size();
     }
 
     private void parseJsonMessage(byte[] kafkaRecordValue) {

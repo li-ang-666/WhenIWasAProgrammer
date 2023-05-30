@@ -23,14 +23,12 @@ public class RedisEnhancer {
 
     public <T> T exec(JedisMapper<T> jedisMapper) {
         T t;
-        Timer timer = new Timer();
         try (Jedis jedis = jedisPool.getResource()) {
             t = jedisMapper.map(jedis);
         } catch (Exception e) {
-            log.error("RedisEnhancer Error", e);
+            log.error("RedisEnhancer Exec Error", e);
             t = null;
         }
-        log.debug(timer.getTimeMs() + " ms");
         return t;
     }
 
@@ -39,9 +37,9 @@ public class RedisEnhancer {
      * HSCAN 命令每次被调用之后, 都会向用户返回一个新的游标, 用户在下次迭代时需要使用这个新游标作为 HSCAN 命令的游标参数, 以此来延续之前的迭代
      * 当 SCAN 命令的游标参数被设置为 0 时, 服务器将开始一次新的迭代, 而当服务器向用户返回值为 0 的游标时, 表示迭代已结束
      */
+
     public Map<String, String> hScan(String key) {
         Map<String, String> result = new HashMap<>();
-        Timer timer = new Timer();
         try (Jedis jedis = jedisPool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START; //其实就是 "0"
             ScanParams scanParams = new ScanParams().match("*").count(100);
@@ -53,7 +51,6 @@ public class RedisEnhancer {
         } catch (Exception e) {
             log.error("RedisEnhancer Error", e);
         }
-        log.debug(timer.getTimeMs() + " ms");
         return result;
     }
 

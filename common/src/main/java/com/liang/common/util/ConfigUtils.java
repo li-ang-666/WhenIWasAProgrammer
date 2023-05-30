@@ -10,20 +10,21 @@ public class ConfigUtils {
     private ConfigUtils() {
     }
 
-    public static void setConfig(Config config) {
-        if (ConfigUtils.config == null) {
-            synchronized (ConfigUtils.class) {
-                if (ConfigUtils.config == null) {
-                    ConfigUtils.config = config;
-                }
-            }
-        }
-    }
-
     public static Config getConfig() {
         if (config == null) {
             log.error("ConfigUtils 未初始化");
         }
         return config;
+    }
+
+    public static void setConfig(Config config) {
+        if (ConfigUtils.config == null) {
+            synchronized (ConfigUtils.class) {
+                if (ConfigUtils.config == null) {
+                    ConfigUtils.config = config;
+                    log.info("config加载: {}", config);
+                }
+            }
+        }
     }
 }
