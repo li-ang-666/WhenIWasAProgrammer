@@ -5,9 +5,10 @@ target/
 #忽略所有.iml .DS_store文件
 *.iml
 *.DS_Store
-
+/spark/spark-warehouse/
 
 
 ## git rm -r --cached .
 ## git add .
 ## git commit -m 'update .gitignore'
+
