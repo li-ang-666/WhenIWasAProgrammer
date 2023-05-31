@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.junit.Test;
 
 public class List {
+    private Node root;
+    private int length = 0;
+
     @Test
     public void test() {
         List list = new List();
@@ -18,9 +21,6 @@ public class List {
         list.delete(1);
         list.printAll();
     }
-
-    private Node root;
-    private int length = 0;
 
     /**
      * 添加元素

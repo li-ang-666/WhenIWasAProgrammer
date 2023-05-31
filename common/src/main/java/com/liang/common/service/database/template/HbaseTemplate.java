@@ -56,6 +56,7 @@ public class HbaseTemplate {
                         Bytes.toBytes(value));
             }
             table.put(put);
+            log.warn("hbase upsert {}", hbaseOneRow);
         } catch (Exception e) {
             log.warn("hbase upsert error: {}", hbaseOneRow, e);
         }

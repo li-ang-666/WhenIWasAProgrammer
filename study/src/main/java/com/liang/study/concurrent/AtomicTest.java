@@ -15,7 +15,7 @@ public class AtomicTest {
  * 多线程情况下，HashMap线程不安全，可能存在:
  * 线程A、B都判断需要尾插，A先插入了key1，B又插入key2(key1与key2的hash值相同)，造成A线程的结果被覆盖
  * (LinkedList同理,需要ConcurrentLinkedQueue)
- *
+ * <p>
  * ConcurrentHashMap避免了以上问，通过锁Node的方式
  * 但是用ConcurrentHashMap实现word count,依旧会出现count++的线程不安全
  * 需要使用AtomicReference

@@ -8,6 +8,8 @@ import org.junit.Test;
 import java.util.LinkedList;
 
 public class BinaryTree {
+    private TreeNode root;
+
     @Test
     public void test() {
         //                 7
@@ -34,8 +36,6 @@ public class BinaryTree {
         tree.breadthFirstSearch();
         System.out.println("层高: " + tree.height());
     }
-
-    private TreeNode root;
 
     /**
      * 添加元素

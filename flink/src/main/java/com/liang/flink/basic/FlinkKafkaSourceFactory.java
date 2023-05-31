@@ -4,7 +4,6 @@ import com.liang.common.dto.config.KafkaConfig;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.flink.dto.KafkaRecord;
-import kafka.server.KafkaConfig$;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

@@ -6,6 +6,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
+@FunctionalInterface
+interface ExecFunc {
+    void f(String s);
+}
+
+@FunctionalInterface
+interface CloseFunc {
+    void f();
+}
+
 public class IOTest {
 
     @Test
@@ -51,16 +61,6 @@ class Tester {
         func.f();
         System.out.println("耗时" + (System.currentTimeMillis() - time) / 1000.0 + "秒");
     }
-}
-
-@FunctionalInterface
-interface ExecFunc {
-    void f(String s);
-}
-
-@FunctionalInterface
-interface CloseFunc {
-    void f();
 }
 
 

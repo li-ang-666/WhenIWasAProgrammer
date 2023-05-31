@@ -14,6 +14,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CountDistinct extends UserDefinedAggregateFunction {
+    public static byte[] serialize(Serializable obj) {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)
+        ) {
+            if (obj == null) {
+                return null;
+            }
+            objectOutputStream.writeObject(obj);
+            return byteArrayOutputStream.toByteArray();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Object deserialize(byte[] bytes) {
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)
+        ) {
+            return objectInputStream.readObject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Override
     public StructType inputSchema() {
         List<StructField> structFields = new ArrayList<>();
@@ -67,29 +91,5 @@ public class CountDistinct extends UserDefinedAggregateFunction {
     public Object evaluate(Row buffer) {
         Roaring64Bitmap bitmap = (Roaring64Bitmap) deserialize((byte[]) buffer.get(0));
         return bitmap.getLongCardinality();
-    }
-
-    public static byte[] serialize(Serializable obj) {
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)
-        ) {
-            if (obj == null) {
-                return null;
-            }
-            objectOutputStream.writeObject(obj);
-            return byteArrayOutputStream.toByteArray();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    public static Object deserialize(byte[] bytes) {
-        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
-             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)
-        ) {
-            return objectInputStream.readObject();
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

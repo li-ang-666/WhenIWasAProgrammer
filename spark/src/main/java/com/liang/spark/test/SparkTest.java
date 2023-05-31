@@ -1,11 +1,8 @@
 package com.liang.spark.test;
 
-import com.esotericsoftware.minlog.Log;
 import com.liang.spark.udf.CountDistinct;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.SparkSession;
-import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
