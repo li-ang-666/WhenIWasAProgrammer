@@ -19,6 +19,7 @@ public class HbaseConnectionFactory {
         Configuration conf = new Configuration();
         String zookeeperQuorum = config.getZookeeperQuorum();
         conf.set("hbase.zookeeper.quorum", zookeeperQuorum);
+        log.info("hbase连接加载: {}", config);
         return ConnectionFactory.createConnection(conf);
     }
 }

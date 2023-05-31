@@ -11,10 +11,9 @@ public class ConfigUtils {
     }
 
     public static Config getConfig() {
-        if (config == null) {
+        if (config == null)
             log.error("ConfigUtils 未初始化");
-        }
-        return config;
+        return null;
     }
 
     public static void setConfig(Config config) {

@@ -24,8 +24,12 @@ public class JdbcTemplate {
         druidDataSource = DruidHolder.getDruid(name);
     }
 
-    public void preExecute(Object sqlOrBatch) {
-        log.debug("jdbcTemplate: {} 执行sql: {}", name, sqlOrBatch);
+    private void preExecute(Object sqlOrBatch) {
+        log.debug("jdbcTemplate execute: {}, {}", name, sqlOrBatch);
+    }
+
+    private void whenError(Object sqlOrBatch, Exception e) {
+        log.error("jdbcTemplate execute error: {}, {}", name, sqlOrBatch, e);
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {
@@ -35,7 +39,7 @@ public class JdbcTemplate {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             list.add(resultSet.next() ? resultSetMapper.map(resultSet) : null);
         } catch (Exception e) {
-            log.error("JdbcTemplate Query Error, sql: {}", sql, e);
+            whenError(sql, e);
             list.add(null);
         }
         return list.get(0);
@@ -50,7 +54,7 @@ public class JdbcTemplate {
                 list.add(resultSetMapper.map(resultSet));
             }
         } catch (Exception e) {
-            log.error("JdbcTemplate Query Error, sql: {}", sql, e);
+            whenError(sql, e);
         }
         return list;
     }
@@ -70,7 +74,7 @@ public class JdbcTemplate {
                 result.add(columnMap);
             }
         } catch (Exception e) {
-            log.error("JdbcTemplate Query Error, sql: {}", sql, e);
+            whenError(sql, e);
         }
         return result;
     }
@@ -86,6 +90,7 @@ public class JdbcTemplate {
             statement.executeBatch();
             connection.commit();
         } catch (Exception e) {
+            whenError(sqls, e);
             for (String sql : sqls) {
                 update(sql);
                 try {
@@ -102,7 +107,7 @@ public class JdbcTemplate {
             connection.setAutoCommit(true);
             connection.prepareStatement(sql).executeUpdate();
         } catch (Exception e) {
-            log.error("JdbcTemplate Update Error, sql: {}", sql, e);
+            whenError(sql, e);
         }
     }
 }

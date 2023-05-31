@@ -36,6 +36,7 @@ public class StreamEnvironmentFactory {
             log.warn("参数没有传递外部config文件, 从内部 resource 寻找 ...");
             resourceStream = DataConcatJob.class.getClassLoader().getResourceAsStream("config.yml");
         } else {
+            log.info("外部参数传递 config 文件: {}", args[0]);
             resourceStream = Files.newInputStream(Paths.get(args[0]));
         }
         Config config = YamlUtils.parse(resourceStream, Config.class);

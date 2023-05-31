@@ -21,7 +21,7 @@ public class YamlUtils {
         try {
             res = new Yaml().loadAs(inputStream, clz);
         } catch (Exception e) {
-            log.error("YamlUtils Error", e);
+            log.error("YamlUtils error", e);
         }
         return res;
     }

@@ -12,7 +12,6 @@ import org.apache.spark.sql.SparkSession;
 @Slf4j
 public class DataConcatJob {
     public static void main(String[] args) throws Exception {
-        log.warn("---------------------------------");
         SparkSession spark = SparkSessionFactory.createSpark(args);
         Config config = ConfigUtils.getConfig();
 

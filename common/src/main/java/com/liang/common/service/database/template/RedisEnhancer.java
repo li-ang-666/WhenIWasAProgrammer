@@ -1,6 +1,5 @@
 package com.liang.common.service.database.template;
 
-import com.liang.common.service.Timer;
 import com.liang.common.service.database.holder.JedisPoolHolder;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
@@ -15,18 +14,21 @@ import java.util.Map;
 
 @Slf4j
 public class RedisEnhancer {
+    private final String name;
     private final JedisPool jedisPool;
 
     public RedisEnhancer(String name) {
+        this.name = name;
         jedisPool = JedisPoolHolder.getJedisPool(name);
     }
 
     public <T> T exec(JedisMapper<T> jedisMapper) {
+        log.debug("redisEnhancer exec: {}", name);
         T t;
         try (Jedis jedis = jedisPool.getResource()) {
             t = jedisMapper.map(jedis);
         } catch (Exception e) {
-            log.error("RedisEnhancer Exec Error", e);
+            log.error("redisEnhancer exec error: {}, {}", name, e);
             t = null;
         }
         return t;
@@ -39,6 +41,7 @@ public class RedisEnhancer {
      */
 
     public Map<String, String> hScan(String key) {
+        log.debug("redisEnhancer hScan: {}, {}", name, key);
         Map<String, String> result = new HashMap<>();
         try (Jedis jedis = jedisPool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START; //其实就是 "0"
@@ -49,14 +52,14 @@ public class RedisEnhancer {
                 scanResult.getResult().forEach(entry -> result.put(entry.getKey(), entry.getValue()));
             } while (!"0".equals(cursor));
         } catch (Exception e) {
-            log.error("RedisEnhancer Error", e);
+            log.error("redisEnhancer hScan error: {}, {}, {}", name, key, e);
         }
         return result;
     }
 
     public List<String> scan(String key) {
+        log.debug("redisEnhancer scan: {}, {}", name, key);
         List<String> result = new ArrayList<>();
-        Timer timer = new Timer();
         try (Jedis jedis = jedisPool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START;
             ScanParams scanParams = new ScanParams().match(key).count(100);
@@ -66,9 +69,8 @@ public class RedisEnhancer {
                 result.addAll(scanResult.getResult());
             } while (!"0".equals(cursor));
         } catch (Exception e) {
-            log.error("RedisEnhancer Error", e);
+            log.error("redisEnhancer scan error: {}, {}, {}", name, key, e);
         }
-        log.debug(timer.getTimeMs() + " ms");
         return result;
     }
 

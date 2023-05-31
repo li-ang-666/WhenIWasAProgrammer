@@ -39,7 +39,7 @@ public class JsonUtils {
         try {
             t = objectMapper.readValue(json, clz);
         } catch (Exception e) {
-            log.error("JsonUtils Error", e);
+            log.error("JsonUtils error", e);
             t = null;
         }
         return t;
@@ -56,7 +56,7 @@ public class JsonUtils {
             JavaType javaType = objectMapper.getTypeFactory().constructParametricType(List.class, clz);
             result = objectMapper.readValue(json, javaType);
         } catch (Exception e) {
-            log.error("JsonUtils Error", e);
+            log.error("JsonUtils error", e);
             result = null;
         }
         return result;
@@ -68,7 +68,7 @@ public class JsonUtils {
         try {
             result = objectMapper.writeValueAsString(o);
         } catch (Exception e) {
-            log.error("JsonUtils Error", e);
+            log.error("JsonUtils error", e);
             result = null;
         }
         return result;

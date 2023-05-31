@@ -54,7 +54,7 @@ public class DruidFactory {
         druidDataSource.setPoolPreparedStatements(true);
         druidDataSource.setMaxOpenPreparedStatements(100);
 
-        log.info("jdbc连接池加载, url: {}", url.split("\\?")[0]);
+        log.info("jdbc连接池加载: {}", dbConfig);
         return druidDataSource;
     }
 }
