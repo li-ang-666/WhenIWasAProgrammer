@@ -20,6 +20,11 @@ public class DruidHolder {
             DruidDataSource callback = dataSources.putIfAbsent(name, druidDataSource);
             //说明这次put已经有值了
             if (callback != null) {
+                log.warn("putIfAbsent() fail, delete redundant druid: {}", name);
+                try {
+                    druidDataSource.close();
+                } catch (Exception ignore) {
+                }
                 druidDataSource = null;//help gc
             }
         }

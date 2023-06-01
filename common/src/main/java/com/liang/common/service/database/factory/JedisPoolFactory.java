@@ -30,7 +30,7 @@ public class JedisPoolFactory {
         jedisPoolConfig.setSoftMinEvictableIdleTimeMillis(1000 * 60 * 5);
         jedisPoolConfig.setNumTestsPerEvictionRun(1);
 
-        log.info("jedis连接池加载: {}", redisConfig);
+        log.info("jedisPool 加载: {}", redisConfig);
         if (password == null) {
             return new JedisPool(jedisPoolConfig, host, port, 5000);
         }

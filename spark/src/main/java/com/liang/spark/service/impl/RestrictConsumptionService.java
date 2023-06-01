@@ -1,9 +1,10 @@
-package com.liang.spark.service;
+package com.liang.spark.service.impl;
 
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.util.ConfigUtils;
 import com.liang.spark.dao.RestrictConsumptionSqlHolder;
 import com.liang.spark.job.DataConcatJob;
+import com.liang.spark.service.AbstractSparkRunner;
 import org.apache.spark.sql.SparkSession;
 
 import java.util.Arrays;

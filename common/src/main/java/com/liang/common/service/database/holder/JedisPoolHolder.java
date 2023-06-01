@@ -20,6 +20,11 @@ public class JedisPoolHolder {
             JedisPool callback = jedisPools.putIfAbsent(name, jedisPool);
             //说明这次put已经有值了
             if (callback != null) {
+                log.warn("putIfAbsent() fail, delete redundant jedisPool: {}", name);
+                try {
+                    jedisPool.close();
+                } catch (Exception ignore) {
+                }
                 jedisPool = null;//help gc
             }
         }

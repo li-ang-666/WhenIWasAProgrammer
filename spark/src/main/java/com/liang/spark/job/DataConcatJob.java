@@ -5,7 +5,8 @@ import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.spark.basic.SparkSessionFactory;
-import com.liang.spark.service.RestrictConsumptionService;
+import com.liang.spark.service.impl.CompanyBranchService;
+import com.liang.spark.service.impl.RestrictConsumptionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
@@ -19,6 +20,7 @@ public class DataConcatJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.sql("use ods");
+        new CompanyBranchService().run(spark);
         new RestrictConsumptionService().run(spark);
         spark.close();
     }
@@ -56,6 +58,6 @@ public class DataConcatJob {
 
     @FunctionalInterface
     public interface RowMapper extends Serializable {
-        HbaseOneRow map(boolean isHistory, Row row);
+        HbaseOneRow map(Boolean isHistory, Row row);
     }
 }
