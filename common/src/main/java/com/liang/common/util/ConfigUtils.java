@@ -12,16 +12,20 @@ public class ConfigUtils {
 
     public static Config getConfig() {
         if (config == null)
-            log.error("ConfigUtils 未初始化");
-        return null;
+            log.error("getConfig(), 返回 null");
+        return ConfigUtils.config;
     }
 
     public static void setConfig(Config config) {
+        if (config == null) {
+            log.error("setConfig(), 入参为 null");
+            return;
+        }
         if (ConfigUtils.config == null) {
             synchronized (ConfigUtils.class) {
                 if (ConfigUtils.config == null) {
                     ConfigUtils.config = config;
-                    log.info("config加载: {}", config);
+                    log.info("config加载: {}", ConfigUtils.config);
                 }
             }
         }

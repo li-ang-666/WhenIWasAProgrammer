@@ -2,48 +2,60 @@ package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.spark.basic.HbaseSink;
 import com.liang.spark.basic.SparkSessionFactory;
-import com.liang.spark.dao.RestrictedConsumptionMostApplicant;
+import com.liang.spark.service.RestrictConsumptionService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.spark.api.java.function.ForeachPartitionFunction;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+
+import java.io.Serializable;
+import java.util.Iterator;
 
 @Slf4j
 public class DataConcatJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        Config config = ConfigUtils.getConfig();
-
         spark.sql("use ods");
-        spark.sql(preQuery(RestrictedConsumptionMostApplicant.queryMostApplicant(false)))
-                .foreachPartition(new HbaseSink(config, row -> {
-                    String companyId = String.valueOf(row.get(0));
-                    String concat = String.valueOf(row.get(1));
-                    String type;
-                    String id;
-                    String name;
-                    if (concat.matches(".*?:\\d+")) {
-                        type = "1";
-                        String[] split = concat.split(":");
-                        id = split[1];
-                        name = split[0];
-                    } else {
-                        type = null;
-                        id = null;
-                        name = concat;
-                    }
-                    return new HbaseOneRow("dataConcatOffline", companyId)
-                            .put("test_restrict_consumption_most_applicant_type", type)
-                            .put("test_restrict_consumption_most_applicant_id", id)
-                            .put("test_restrict_consumption_most_applicant_name", name);
-                }));
-
+        new RestrictConsumptionService().run(spark);
         spark.close();
     }
 
-    private static String preQuery(String sql) {
-        log.warn("{}", sql);
-        return sql;
+    @Slf4j
+    public static class HbaseSink implements ForeachPartitionFunction<Row> {
+        private final Config config;
+        private final RowMapper rowMapper;
+        private final Boolean isHistory;
+        private HbaseTemplate hbaseTemplate;
+
+        public HbaseSink(Config config, Boolean isHistory, RowMapper rowMapper) {
+            this.config = config;
+            this.rowMapper = rowMapper;
+            this.isHistory = isHistory;
+        }
+
+        private void open() {
+            ConfigUtils.setConfig(config);
+            hbaseTemplate = new HbaseTemplate("test");
+        }
+
+        @Override
+        public void call(Iterator<Row> iter) throws Exception {
+            open();
+            int i = 0;
+            while (iter.hasNext()) {
+                Row row = iter.next();
+                hbaseTemplate.upsert(rowMapper.map(isHistory, row));
+                i++;
+            }
+            log.info("hbase 写入 {} row", i);
+        }
+    }
+
+    @FunctionalInterface
+    public interface RowMapper extends Serializable {
+        HbaseOneRow map(boolean isHistory, Row row);
     }
 }

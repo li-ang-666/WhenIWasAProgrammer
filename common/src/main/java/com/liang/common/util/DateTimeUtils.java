@@ -80,4 +80,12 @@ public class DateTimeUtils {
         }
         return days;
     }
+
+    public static String getLastNDateTime(int nDays, String format) {
+        return fromUnixTime((System.currentTimeMillis() - (nDays * 24L * 3600L * 1000L)) / 1000, format);
+    }
+
+    public static long getLastNTimestamp(int nDays) {
+        return (System.currentTimeMillis() - (nDays * 24L * 3600L * 1000L)) / 1000;
+    }
 }
