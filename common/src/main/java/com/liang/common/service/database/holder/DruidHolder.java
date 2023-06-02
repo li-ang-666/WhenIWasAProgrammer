@@ -30,4 +30,13 @@ public class DruidHolder {
         }
         return dataSources.get(name);
     }
+
+    public static void close() {
+        for (Map.Entry<String, DruidDataSource> entry : dataSources.entrySet()) {
+            DruidDataSource dataSource = entry.getValue();
+            if (!dataSource.isClosed()) {
+                dataSource.close();
+            }
+        }
+    }
 }

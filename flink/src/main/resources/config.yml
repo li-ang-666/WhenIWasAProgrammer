@@ -2,47 +2,89 @@ flinkSource: Repair # Repair or Kafka
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - sourceName: "judicialRisk"
-    tableName: "restrict_consumption_split_index"
-    columns: "*"
-    where: "1=1"
-    scanMode: Direct
 
-  - sourceName: "judicialRisk"
+  #股权冻结
+  - checkpointUid: "111"
+    sourceName: "judicialRisk"
     tableName: "judicial_assistance_index"
-    columns: "*"
+    columns: "distinct company_id"
     where: "1=1"
     scanMode: Direct
 
-  - sourceName: "judicialRisk"
+  #股权冻结
+  - checkpointUid: "222"
+    sourceName: "judicialRisk"
+    tableName: "judicial_assistance_index"
+    columns: "distinct enforced_target_id,enforced_target_type"
+    where: "1=1"
+    scanMode: Direct
+
+  #限制出境
+  - checkpointUid: "333"
+    sourceName: "judicialRisk"
     tableName: "restricted_outbound_index"
     columns: "*"
     where: "1=1"
     scanMode: Direct
 
-  - sourceName: "operatingRisk"
+  #股权出质
+  - checkpointUid: "444"
+    sourceName: "operatingRisk"
     tableName: "equity_pledge_reinvest"
-    columns: "*"
+    columns: "distinct company_id"
     where: "1=1"
     scanMode: Direct
 
-  - sourceName: "operatingRisk"
-    tableName: "equity_pledge_detail"
-    columns: "*"
+  #股权出质
+  - checkpointUid: "555"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_reinvest"
+    columns: "distinct pledgor_entity_id,pledgor_type"
     where: "1=1"
     scanMode: Direct
+
+  #股权质押
+  - checkpointUid: "666"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_detail"
+    columns: "distinct company_id"
+    where: "1=1"
+    scanMode: Direct
+
+  #股权质押
+  - checkpointUid: "777"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_detail"
+    columns: "distinct pledgor_id"
+    where: "1=1"
+    scanMode: Direct
+
+#  - checkpointUid: "1"
+#    sourceName: "companyBase"
+#    tableName: "company_branch"
+#    columns: "distinct company_id"
+#    where: "1=1"
+#    scanMode: Direct
+
+
+#  - checkpointUid: "1"
+#    sourceName: "judicialRisk"
+#    tableName: "restrict_consumption_split_index"
+#    columns: "*"
+#    where: "1=1"
+#    scanMode: Direct
 
 dbConfigs:
   #本地
   localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
   #生产
-  111judicialRisk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
-  111companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
-  111operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+  judicialRisk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+  companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+  operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   #测试
-  judicialRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-  companyBase: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-  operatingRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  111judicialRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  111companyBase: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  111operatingRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
 
 redisConfigs:
   localhost:
@@ -75,5 +117,5 @@ hbaseDbConfigs:
 hbaseSchemas:
   dataConcat:
     namespace: "test"
-    tableName: "data_concat"
+    tableName: "data_concat_offline"
     columnFamily: "cf1"

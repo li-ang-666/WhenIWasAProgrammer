@@ -13,8 +13,7 @@ public class TaskGenerator {
 
     public static SubRepairTask generateFrom(RepairTask task) {
         if (task.getScanMode() == RepairTask.ScanMode.Direct) {
-            String taskName = String.format("%s/%s", task.getSourceName(), task.getTableName());
-            return new SubRepairTask(task, taskName);
+            return new SubRepairTask(task);
         }
         JdbcTemplate jdbcTemplate = new JdbcTemplate(task.getSourceName());
         String sql = String.format("select min(id),max(id) from %s", task.getTableName());
@@ -25,8 +24,7 @@ public class TaskGenerator {
         }
         long minId = minAndMaxId.f0;
         long maxId = minAndMaxId.f1;
-        String taskName = String.format("%s/%s", task.getSourceName(), task.getTableName());
-        SubRepairTask subTask = new SubRepairTask(task, taskName);
+        SubRepairTask subTask = new SubRepairTask(task);
         subTask.setCurrentId(minId);
         subTask.setTargetId(maxId);
         return subTask;

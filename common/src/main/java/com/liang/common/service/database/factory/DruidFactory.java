@@ -15,17 +15,25 @@ public class DruidFactory {
     public static DruidDataSource create(String name) {
         DBConfig dbConfig = ConfigUtils.getConfig().getDbConfigs().get(name);
         String url = "jdbc:mysql://" + dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
+                //时区
                 "?serverTimezone=GMT%2B8" +
+                //时间字段处理
                 "&zeroDateTimeBehavior=convertToNull" +
+                //编码
                 "&useUnicode=true" +
                 "&characterEncoding=UTF-8" +
                 "&characterSetResults=UTF-8" +
+                //useSSL
                 "&useSSL=false" +
+                //连接策略
                 "&autoReconnect=true" +
+                "&maxReconnects=3" +
                 "&failOverReadOnly=false" +
-                "&initialTimeout=2" +
+                "&initialTimeout=3" +
                 "&socketTimeout=30000" +
                 "&connectTimeout=30000" +
+                //性能优化
+                "&allowMultiQueries=true" +
                 "&rewriteBatchedStatements=true";
         DruidDataSource druidDataSource = new DruidDataSource();
 
@@ -46,6 +54,7 @@ public class DruidFactory {
         druidDataSource.setMaxEvictableIdleTimeMillis(1000 * 60 * 10);
         //清除线程运行间隔
         druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 60);
+        //定期对idle线程进行探活
         druidDataSource.setKeepAlive(true);
         druidDataSource.setKeepAliveBetweenTimeMillis(1000 * 30);
         druidDataSource.setValidationQuery("select 1 from DUAL");

@@ -23,12 +23,12 @@ public class RedisEnhancer {
     }
 
     public <T> T exec(JedisMapper<T> jedisMapper) {
-        log.debug("redisEnhancer exec: {}", name);
+        log.debug("redisEnhancer {} exec", name);
         T t;
         try (Jedis jedis = jedisPool.getResource()) {
             t = jedisMapper.map(jedis);
         } catch (Exception e) {
-            log.error("redisEnhancer exec error: {}, {}", name, e);
+            log.error("redisEnhancer {} exec error", name, e);
             t = null;
         }
         return t;
@@ -41,7 +41,7 @@ public class RedisEnhancer {
      */
 
     public Map<String, String> hScan(String key) {
-        log.debug("redisEnhancer hScan: {}, {}", name, key);
+        log.debug("redisEnhancer {} hScan: {}", name, key);
         Map<String, String> result = new HashMap<>();
         try (Jedis jedis = jedisPool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START; //其实就是 "0"
@@ -52,13 +52,13 @@ public class RedisEnhancer {
                 scanResult.getResult().forEach(entry -> result.put(entry.getKey(), entry.getValue()));
             } while (!"0".equals(cursor));
         } catch (Exception e) {
-            log.error("redisEnhancer hScan error: {}, {}, {}", name, key, e);
+            log.error("redisEnhancer {} hScan error: {}", name, key, e);
         }
         return result;
     }
 
     public List<String> scan(String key) {
-        log.debug("redisEnhancer scan: {}, {}", name, key);
+        log.debug("redisEnhancer {} scan: {}", name, key);
         List<String> result = new ArrayList<>();
         try (Jedis jedis = jedisPool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START;
@@ -69,7 +69,7 @@ public class RedisEnhancer {
                 result.addAll(scanResult.getResult());
             } while (!"0".equals(cursor));
         } catch (Exception e) {
-            log.error("redisEnhancer scan error: {}, {}, {}", name, key, e);
+            log.error("redisEnhancer {} scan error: {}", name, key, e);
         }
         return result;
     }
@@ -79,7 +79,7 @@ public class RedisEnhancer {
             String res = jedis.set(key, "lock", "NX", "PX", milliseconds);
             return "OK".equals(res);
         } catch (Exception e) {
-            log.error("RedisEnhancer Error", e);
+            log.error("redisEnhancer {} tryLock error: {}", name, key, e);
             return false;
         }
     }

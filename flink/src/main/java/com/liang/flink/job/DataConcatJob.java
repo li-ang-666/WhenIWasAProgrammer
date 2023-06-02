@@ -23,8 +23,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Random;
 
 @Slf4j
 public class DataConcatJob {
@@ -36,8 +35,9 @@ public class DataConcatJob {
                 FlinkKafkaSourceStreamFactory.create(streamEnvironment);
         stream
                 .keyBy(new DataConcatKeySelector())
-                .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))
-                .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()));
+                .print();
+//                .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))
+//                .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()));
         streamEnvironment.execute();
     }
 
@@ -54,11 +54,13 @@ public class DataConcatJob {
 
     //keyBy(id)
     private static class DataConcatKeySelector implements KeySelector<SingleCanalBinlog, String> {
+        private final Random random = new Random();
 
         @Override
         public String getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
             return String.valueOf(
-                    singleCanalBinlog.getColumnMap().getOrDefault("id", "")
+                    singleCanalBinlog.getColumnMap()
+                            .getOrDefault("id", random.nextInt())
             );
         }
     }
@@ -104,17 +106,16 @@ public class DataConcatJob {
             if (input == null || input.size() == 0) {
                 return;
             }
-            //print
-            for (HbaseOneRow hbaseOneRow : input) {
-                String rowKey = hbaseOneRow.getRowKey();
-                Map<String, Object> columnMap = new TreeMap<>(hbaseOneRow.getColumnMap());
-                StringBuilder builder = new StringBuilder();
-                builder.append(String.format("\nrowKey: %s", rowKey));
-                for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
-                    builder.append(String.format("\n%s -> %s", entry.getKey(), entry.getValue()));
-                }
-                log.info("{}", builder);
-            }
+//            for (HbaseOneRow hbaseOneRow : input) {
+//                String rowKey = hbaseOneRow.getRowKey();
+//                Map<String, Object> columnMap = new TreeMap<>(hbaseOneRow.getColumnMap());
+//                StringBuilder builder = new StringBuilder();
+//                builder.append(String.format("\nrowKey: %s", rowKey));
+//                for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
+//                    builder.append(String.format("\n%s -> %s", entry.getKey(), entry.getValue()));
+//                }
+//                log.info("{}", builder);
+//            }
             for (HbaseOneRow hbaseOneRow : input) {
                 hbase.upsert(hbaseOneRow);
             }

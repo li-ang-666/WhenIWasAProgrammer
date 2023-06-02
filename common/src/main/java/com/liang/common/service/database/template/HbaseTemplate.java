@@ -39,11 +39,11 @@ public class HbaseTemplate {
     }
 
     private void preExecute(String action, HbaseOneRow hbaseOneRow) {
-        log.debug("hbaseTemplate {}: {}, {}", action, name, hbaseOneRow);
+        log.debug("hbaseTemplate {} {}: {}", name, action, hbaseOneRow);
     }
 
     private void whenError(String action, HbaseOneRow hbaseOneRow, Exception e) {
-        log.error("hbaseTemplate {} error: {}, {}", action, name, hbaseOneRow, e);
+        log.error("hbaseTemplate {} {} error: {}", name, action, hbaseOneRow, e);
     }
 
     public void upsert(HbaseOneRow hbaseOneRow) {

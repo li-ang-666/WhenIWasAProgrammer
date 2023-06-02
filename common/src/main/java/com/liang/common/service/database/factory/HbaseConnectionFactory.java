@@ -16,10 +16,9 @@ public class HbaseConnectionFactory {
     @SneakyThrows
     public static Connection create(String name) {
         HbaseDbConfig config = ConfigUtils.getConfig().getHbaseDbConfigs().get(name);
-        Configuration conf = new Configuration();
-        String zookeeperQuorum = config.getZookeeperQuorum();
-        conf.set("hbase.zookeeper.quorum", zookeeperQuorum);
+        Configuration configuration = new Configuration();
+        configuration.set("hbase.zookeeper.quorum", config.getZookeeperQuorum());
         log.info("hbaseConnection 加载: {}", config);
-        return ConnectionFactory.createConnection(conf);
+        return ConnectionFactory.createConnection(configuration);
     }
 }

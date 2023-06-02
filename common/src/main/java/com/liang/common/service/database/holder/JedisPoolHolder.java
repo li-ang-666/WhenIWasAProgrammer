@@ -30,4 +30,13 @@ public class JedisPoolHolder {
         }
         return jedisPools.get(name);
     }
+
+    public static void close() {
+        for (Map.Entry<String, JedisPool> entry : jedisPools.entrySet()) {
+            JedisPool jedisPool = entry.getValue();
+            if (!jedisPool.isClosed()) {
+                jedisPool.close();
+            }
+        }
+    }
 }

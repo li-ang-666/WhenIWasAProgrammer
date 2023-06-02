@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 @Data
 public class RepairTask implements Serializable {
+    protected String checkpointUid;
     protected String sourceName;
     protected String tableName;
     protected String columns = "*";

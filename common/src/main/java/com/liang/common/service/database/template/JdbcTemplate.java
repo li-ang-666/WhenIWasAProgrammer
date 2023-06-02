@@ -25,11 +25,11 @@ public class JdbcTemplate {
     }
 
     private void preExecute(Object sqlOrBatch) {
-        log.debug("jdbcTemplate execute: {}, {}", name, sqlOrBatch);
+        log.debug("jdbcTemplate {} execute: {}", name, sqlOrBatch);
     }
 
     private void whenError(Object sqlOrBatch, Exception e) {
-        log.error("jdbcTemplate execute error: {}, {}", name, sqlOrBatch, e);
+        log.error("jdbcTemplate {} execute error: {}", name, sqlOrBatch, e);
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {

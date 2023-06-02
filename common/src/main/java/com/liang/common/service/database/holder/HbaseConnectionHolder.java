@@ -30,4 +30,16 @@ public class HbaseConnectionHolder {
         }
         return HbaseConnections.get(name);
     }
+
+    public static void close() {
+        for (Map.Entry<String, Connection> entry : HbaseConnections.entrySet()) {
+            Connection connection = entry.getValue();
+            if (!connection.isClosed()) {
+                try {
+                    connection.close();
+                } catch (Exception ignore) {
+                }
+            }
+        }
+    }
 }
