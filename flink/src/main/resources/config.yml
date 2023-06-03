@@ -1,4 +1,4 @@
-flinkSource: Repair # Repair or Kafka
+flinkSource: Kafka # Repair or Kafka
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
