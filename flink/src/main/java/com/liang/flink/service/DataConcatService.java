@@ -25,8 +25,9 @@ public class DataConcatService implements Serializable {
         shortClassNames.add("RestrictedOutboundIndex");
         shortClassNames.add("EquityPledgeReinvest");
         shortClassNames.add("EquityPledgeDetail");
+        shortClassNames.add("CompanyBranch");
         for (String shortClassName : shortClassNames) {
-            String fullClassName = "com.tyc.darwin.markets.data_concat.flink.service.data.update.impl."
+            String fullClassName = "com.liang.flink.service.data.update.impl."
                     + shortClassName;
             String tableName = TableNameUtils.humpToUnderLine(shortClassName);
             DataUpdateImpls.put(tableName, (AbstractDataUpdate) Class.forName(fullClassName).newInstance());

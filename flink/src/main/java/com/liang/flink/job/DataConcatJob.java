@@ -35,9 +35,10 @@ public class DataConcatJob {
                 FlinkKafkaSourceStreamFactory.create(streamEnvironment);
         stream
                 .keyBy(new DataConcatKeySelector())
-                .print();
-//                .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))
-//                .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()));
+                .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))
+                .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()))
+                .uid("DataConcatHbaseSink")
+                .name("DataConcatHbaseSink");
         streamEnvironment.execute();
     }
 
