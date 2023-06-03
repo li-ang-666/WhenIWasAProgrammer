@@ -7,11 +7,10 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 @Slf4j
-public class JedisPoolFactory {
-    private JedisPoolFactory() {
-    }
+public class JedisPoolFactory implements IFactory<JedisPool> {
 
-    public static JedisPool create(String name) {
+    @Override
+    public JedisPool createPool(String name) {
         RedisConfig redisConfig = ConfigUtils.getConfig().getRedisConfigs().get(name);
         String host = redisConfig.getHost();
         int port = redisConfig.getPort();

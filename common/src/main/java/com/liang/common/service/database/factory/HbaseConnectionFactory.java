@@ -9,12 +9,11 @@ import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 @Slf4j
-public class HbaseConnectionFactory {
-    private HbaseConnectionFactory() {
-    }
+public class HbaseConnectionFactory implements IFactory<Connection> {
 
+    @Override
     @SneakyThrows
-    public static Connection create(String name) {
+    public Connection createPool(String name) {
         HbaseDbConfig config = ConfigUtils.getConfig().getHbaseDbConfigs().get(name);
         Configuration configuration = new Configuration();
         configuration.set("hbase.zookeeper.quorum", config.getZookeeperQuorum());

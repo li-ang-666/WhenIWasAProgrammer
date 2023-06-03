@@ -8,16 +8,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class DruidHolder {
-    private static final Map<String, DruidDataSource> dataSources = new ConcurrentHashMap<>();
+public class DruidHolder implements IHolder<DruidDataSource> {
+    private static final Map<String, DruidDataSource> pools = new ConcurrentHashMap<>();
 
-    private DruidHolder() {
-    }
-
-    public static DruidDataSource getDruid(String name) {
-        if (dataSources.get(name) == null) {
-            DruidDataSource druidDataSource = DruidFactory.create(name);
-            DruidDataSource callback = dataSources.putIfAbsent(name, druidDataSource);
+    @Override
+    public DruidDataSource getPool(String name) {
+        if (pools.get(name) == null) {
+            DruidDataSource druidDataSource = new DruidFactory().createPool(name);
+            DruidDataSource callback = pools.putIfAbsent(name, druidDataSource);
             //说明这次put已经有值了
             if (callback != null) {
                 log.warn("putIfAbsent() fail, delete redundant druid: {}", name);
@@ -28,11 +26,12 @@ public class DruidHolder {
                 druidDataSource = null;//help gc
             }
         }
-        return dataSources.get(name);
+        return pools.get(name);
     }
 
-    public static void close() {
-        for (Map.Entry<String, DruidDataSource> entry : dataSources.entrySet()) {
+    @Override
+    public void closeAll() {
+        for (Map.Entry<String, DruidDataSource> entry : pools.entrySet()) {
             DruidDataSource dataSource = entry.getValue();
             if (!dataSource.isClosed()) {
                 dataSource.close();

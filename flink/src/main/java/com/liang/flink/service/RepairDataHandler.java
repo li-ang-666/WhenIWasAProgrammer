@@ -63,7 +63,7 @@ public class RepairDataHandler implements Runnable {
             highWatermark = Math.min(task.getCurrentId() + BATCH_SIZE, task.getTargetId());
             sql += String.format(" and %s <= id and id < %s", task.getCurrentId(), highWatermark);
         }
-        return jdbcTemplate.queryForColumnMapList(sql);
+        return jdbcTemplate.queryForColumnMaps(sql);
     }
 
     private void commit() {

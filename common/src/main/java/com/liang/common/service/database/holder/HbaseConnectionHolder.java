@@ -8,16 +8,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class HbaseConnectionHolder {
-    private static final Map<String, Connection> HbaseConnections = new ConcurrentHashMap<>();
+public class HbaseConnectionHolder implements IHolder<Connection> {
+    private static final Map<String, Connection> pools = new ConcurrentHashMap<>();
 
-    private HbaseConnectionHolder() {
-    }
-
-    public static Connection getConnection(String name) {
-        if (HbaseConnections.get(name) == null) {
-            Connection connection = HbaseConnectionFactory.create(name);
-            Connection callback = HbaseConnections.putIfAbsent(name, connection);
+    @Override
+    public Connection getPool(String name) {
+        if (pools.get(name) == null) {
+            Connection connection = new HbaseConnectionFactory().createPool(name);
+            Connection callback = pools.putIfAbsent(name, connection);
             //说明这次put已经有值了
             if (callback != null) {
                 log.warn("putIfAbsent() fail, delete redundant hbaseConnection: {}", name);
@@ -28,11 +26,12 @@ public class HbaseConnectionHolder {
                 connection = null;//help gc
             }
         }
-        return HbaseConnections.get(name);
+        return pools.get(name);
     }
 
-    public static void close() {
-        for (Map.Entry<String, Connection> entry : HbaseConnections.entrySet()) {
+    @Override
+    public void closeAll() {
+        for (Map.Entry<String, Connection> entry : pools.entrySet()) {
             Connection connection = entry.getValue();
             if (!connection.isClosed()) {
                 try {

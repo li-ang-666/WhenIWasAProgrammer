@@ -30,29 +30,18 @@ import java.util.Map;
  */
 @Slf4j
 public class HbaseTemplate {
-    private final String name;
-    private final Connection connection;
+    private final Connection pool;
+    private final TemplateLogger logger;
 
     public HbaseTemplate(String name) {
-        this.name = name;
-        connection = HbaseConnectionHolder.getConnection(name);
-    }
-
-    private void preExecute(String action, HbaseOneRow hbaseOneRow) {
-        log.debug("hbaseTemplate {} {}: {}", name, action, hbaseOneRow);
-    }
-
-    private void whenError(String action, HbaseOneRow hbaseOneRow, Exception e) {
-        log.error("hbaseTemplate {} {} error: {}", name, action, hbaseOneRow, e);
+        pool = new HbaseConnectionHolder().getPool(name);
+        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
     }
 
     public void upsert(HbaseOneRow hbaseOneRow) {
-        preExecute("upsert", hbaseOneRow);
+        logger.beforeExecute("upsert", hbaseOneRow);
         Map<String, Object> columnMap = hbaseOneRow.getColumnMap();
-        if (columnMap.isEmpty()) {
-            return;
-        }
-        try (Table table = connection.getTable(
+        try (Table table = pool.getTable(
                 TableName.valueOf(hbaseOneRow.getSchema().getNamespace(), hbaseOneRow.getSchema().getTableName()))) {
             Put put = new Put(Bytes.toBytes(hbaseOneRow.getRowKey()));
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
@@ -66,20 +55,22 @@ public class HbaseTemplate {
             }
             table.put(put);
         } catch (Exception e) {
-            whenError("upsert", hbaseOneRow, e);
+            logger.ifError("upsert", hbaseOneRow, e);
         }
+        logger.afterExecute("upsert", hbaseOneRow);
     }
 
     public void deleteRow(HbaseOneRow hbaseOneRow) {
-        preExecute("deleteRow", hbaseOneRow);
-        try (Table table = connection.getTable(
+        logger.beforeExecute("deleteRow", hbaseOneRow);
+        try (Table table = pool.getTable(
                 TableName.valueOf(
                         hbaseOneRow.getSchema().getNamespace(),
                         hbaseOneRow.getSchema().getTableName()))) {
             Delete delete = new Delete(Bytes.toBytes(hbaseOneRow.getRowKey()));
             table.delete(delete);
         } catch (Exception e) {
-            whenError("deleteRow", hbaseOneRow, e);
+            logger.ifError("deleteRow", hbaseOneRow, e);
         }
+        logger.afterExecute("deleteRow", hbaseOneRow);
     }
 }

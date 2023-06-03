@@ -8,16 +8,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class JedisPoolHolder {
-    private static final Map<String, JedisPool> jedisPools = new ConcurrentHashMap<>();
+public class JedisPoolHolder implements IHolder<JedisPool> {
+    private static final Map<String, JedisPool> pools = new ConcurrentHashMap<>();
 
-    private JedisPoolHolder() {
-    }
-
-    public static synchronized JedisPool getJedisPool(String name) {
-        if (jedisPools.get(name) == null) {
-            JedisPool jedisPool = JedisPoolFactory.create(name);
-            JedisPool callback = jedisPools.putIfAbsent(name, jedisPool);
+    @Override
+    public JedisPool getPool(String name) {
+        if (pools.get(name) == null) {
+            JedisPool jedisPool = new JedisPoolFactory().createPool(name);
+            JedisPool callback = pools.putIfAbsent(name, jedisPool);
             //说明这次put已经有值了
             if (callback != null) {
                 log.warn("putIfAbsent() fail, delete redundant jedisPool: {}", name);
@@ -28,11 +26,12 @@ public class JedisPoolHolder {
                 jedisPool = null;//help gc
             }
         }
-        return jedisPools.get(name);
+        return pools.get(name);
     }
 
-    public static void close() {
-        for (Map.Entry<String, JedisPool> entry : jedisPools.entrySet()) {
+    @Override
+    public void closeAll() {
+        for (Map.Entry<String, JedisPool> entry : pools.entrySet()) {
             JedisPool jedisPool = entry.getValue();
             if (!jedisPool.isClosed()) {
                 jedisPool.close();

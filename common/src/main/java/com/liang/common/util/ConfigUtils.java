@@ -1,6 +1,9 @@
 package com.liang.common.util;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.database.holder.DruidHolder;
+import com.liang.common.service.database.holder.HbaseConnectionHolder;
+import com.liang.common.service.database.holder.JedisPoolHolder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -29,5 +32,12 @@ public class ConfigUtils {
                 }
             }
         }
+    }
+
+    public static void closeAll() {
+        ConfigUtils.config = null;
+        new DruidHolder().closeAll();
+        new JedisPoolHolder().closeAll();
+        new HbaseConnectionHolder().closeAll();
     }
 }

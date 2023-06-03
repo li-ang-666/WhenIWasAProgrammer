@@ -3,16 +3,13 @@ package com.liang.common.service.database.factory;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.liang.common.dto.config.DBConfig;
 import com.liang.common.util.ConfigUtils;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DruidFactory {
-    private DruidFactory() {
-    }
+public class DruidFactory implements IFactory<DruidDataSource> {
 
-    @SneakyThrows
-    public static DruidDataSource create(String name) {
+    @Override
+    public DruidDataSource createPool(String name) {
         DBConfig dbConfig = ConfigUtils.getConfig().getDbConfigs().get(name);
         String url = "jdbc:mysql://" + dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
                 //时区
@@ -40,7 +37,7 @@ public class DruidFactory {
         druidDataSource.setUrl(url);
         druidDataSource.setUsername(dbConfig.getUser());
         druidDataSource.setPassword(dbConfig.getPassword());
-        druidDataSource.setInitialSize(1);
+
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(10);
         druidDataSource.setMaxWait(5000);

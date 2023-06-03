@@ -16,53 +16,47 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcTemplate {
-    private final String name;
-    private final DruidDataSource druidDataSource;
+    private final DruidDataSource pool;
+    private final TemplateLogger logger;
 
     public JdbcTemplate(String name) {
-        this.name = name;
-        druidDataSource = DruidHolder.getDruid(name);
-    }
-
-    private void preExecute(Object sqlOrBatch) {
-        log.debug("jdbcTemplate {} execute: {}", name, sqlOrBatch);
-    }
-
-    private void whenError(Object sqlOrBatch, Exception e) {
-        log.error("jdbcTemplate {} execute error: {}", name, sqlOrBatch, e);
+        pool = new DruidHolder().getPool(name);
+        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {
-        preExecute(sql);
+        logger.beforeExecute("queryForObject", sql);
         ArrayList<T> list = new ArrayList<>();
-        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
+        try (DruidPooledConnection connection = pool.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             list.add(resultSet.next() ? resultSetMapper.map(resultSet) : null);
         } catch (Exception e) {
-            whenError(sql, e);
+            logger.ifError("queryForObject", sql, e);
             list.add(null);
         }
+        logger.afterExecute("queryForObject", sql);
         return list.get(0);
     }
 
     public <T> List<T> queryForList(String sql, ResultSetMapper<T> resultSetMapper) {
-        preExecute(sql);
+        logger.beforeExecute("queryForList", sql);
         ArrayList<T> list = new ArrayList<>();
-        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
+        try (DruidPooledConnection connection = pool.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             while (resultSet.next()) {
                 list.add(resultSetMapper.map(resultSet));
             }
         } catch (Exception e) {
-            whenError(sql, e);
+            logger.ifError("queryForList", sql, e);
         }
+        logger.afterExecute("queryForList", sql);
         return list;
     }
 
-    public List<Map<String, Object>> queryForColumnMapList(String sql) {
-        preExecute(sql);
+    public List<Map<String, Object>> queryForColumnMaps(String sql) {
+        logger.beforeExecute("queryForColumnMaps", sql);
         List<Map<String, Object>> result = new ArrayList<>();
-        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
+        try (DruidPooledConnection connection = pool.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();
@@ -74,14 +68,15 @@ public class JdbcTemplate {
                 result.add(columnMap);
             }
         } catch (Exception e) {
-            whenError(sql, e);
+            logger.ifError("queryForColumnMaps", sql, e);
         }
+        logger.afterExecute("queryForColumnMaps", sql);
         return result;
     }
 
     public void batchUpdate(List<String> sqls) {
-        preExecute(sqls);
-        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
+        logger.beforeExecute("batchUpdate", sqls);
+        try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
             Statement statement = connection.createStatement();
             for (String sql : sqls) {
@@ -90,7 +85,7 @@ public class JdbcTemplate {
             statement.executeBatch();
             connection.commit();
         } catch (Exception e) {
-            whenError(sqls, e);
+            logger.ifError("batchUpdate", sqls, e);
             for (String sql : sqls) {
                 update(sql);
                 try {
@@ -99,16 +94,18 @@ public class JdbcTemplate {
                 }
             }
         }
+        logger.afterExecute("batchUpdate", sqls);
     }
 
     public void update(String sql) {
-        preExecute(sql);
-        try (DruidPooledConnection connection = druidDataSource.getConnection()) {
+        logger.beforeExecute("update", sql);
+        try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(true);
             connection.prepareStatement(sql).executeUpdate();
         } catch (Exception e) {
-            whenError(sql, e);
+            logger.ifError("update", sql, e);
         }
+        logger.afterExecute("update", sql);
     }
 }
 

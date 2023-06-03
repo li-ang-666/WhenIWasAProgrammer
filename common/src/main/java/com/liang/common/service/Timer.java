@@ -1,13 +1,13 @@
 package com.liang.common.service;
 
 public class Timer {
-    private final long createTime;
+    private long starTimestampMilliseconds;
 
-    public Timer() {
-        this.createTime = System.currentTimeMillis();
+    public void remake() {
+        starTimestampMilliseconds = System.currentTimeMillis();
     }
 
-    public long getTimeMs() {
-        return System.currentTimeMillis() - createTime;
+    public long getInterval() {
+        return System.currentTimeMillis() - starTimestampMilliseconds;
     }
 }
