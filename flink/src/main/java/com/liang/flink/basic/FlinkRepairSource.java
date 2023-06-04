@@ -67,7 +67,7 @@ public class FlinkRepairSource extends RichSourceFunction<SingleCanalBinlog> imp
         while (!canceled) {
             if (queue.peek() != null) {
                 ctx.collect(queue.poll());
-                TimeUnit.MILLISECONDS.sleep(3);
+                TimeUnit.MILLISECONDS.sleep(1);
             }
         }
     }

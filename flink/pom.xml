@@ -11,6 +11,7 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
+
         <!--hadoop(flink需要)-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
