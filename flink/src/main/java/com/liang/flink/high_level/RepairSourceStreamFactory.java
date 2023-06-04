@@ -1,25 +1,25 @@
 package com.liang.flink.high_level;
 
 import com.liang.common.dto.SubRepairTask;
-import com.liang.flink.basic.FlinkRepairSource;
-import com.liang.flink.basic.FlinkRepairSourceFactory;
+import com.liang.flink.basic.RepairSource;
+import com.liang.flink.basic.RepairSourceFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.List;
 
-public class FlinkRepairSourceStreamFactory {
-    private FlinkRepairSourceStreamFactory() {
+public class RepairSourceStreamFactory {
+    private RepairSourceStreamFactory() {
     }
 
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
-        List<FlinkRepairSource> flinkFlinkRepairSources = FlinkRepairSourceFactory.create();
+        List<RepairSource> flinkRepairSources = RepairSourceFactory.create();
         DataStream<SingleCanalBinlog> unionedStream = null;
-        for (FlinkRepairSource flinkRepairSource : flinkFlinkRepairSources) {
-            SubRepairTask task = flinkRepairSource.getTask();
+        for (RepairSource repairSource : flinkRepairSources) {
+            SubRepairTask task = repairSource.getTask();
             String name = String.format("table: %s, uid: %s", task.getTableName(), task.getCheckpointUid());
-            DataStream<SingleCanalBinlog> singleStream = streamEnvironment.addSource(flinkRepairSource)
+            DataStream<SingleCanalBinlog> singleStream = streamEnvironment.addSource(repairSource)
                     .uid(name)
                     .name(name);
             unionedStream = (unionedStream == null) ?

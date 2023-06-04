@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class FlinkRepairSource extends RichSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
+public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final Config config;
 
     private final @Getter SubRepairTask task;
@@ -31,7 +31,7 @@ public class FlinkRepairSource extends RichSourceFunction<SingleCanalBinlog> imp
 
     private volatile boolean canceled = false;
 
-    public FlinkRepairSource(Config config, SubRepairTask task) {
+    public RepairSource(Config config, SubRepairTask task) {
         this.config = config;
         this.task = task;
     }
@@ -76,7 +76,7 @@ public class FlinkRepairSource extends RichSourceFunction<SingleCanalBinlog> imp
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         taskState.clear();
         queueState.clear();
-
+        //先快照task,再queue
         taskState.add(task);
         queueState.add(queue);
     }
