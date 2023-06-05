@@ -2,16 +2,16 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
-import com.liang.flink.project.data.concat.dao.CompanyBranchDao;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.service.AbstractDataUpdate;
+import com.liang.flink.project.data.concat.dao.CompanyBranchDao;
+import com.liang.flink.service.data.update.AbstractDataUpdate;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class CompanyBranch extends AbstractDataUpdate {
+public class CompanyBranch extends AbstractDataUpdate<HbaseOneRow> {
     private final CompanyBranchDao dao = new CompanyBranchDao();
 
     @Override

@@ -4,7 +4,7 @@ package com.liang.flink.project.data.concat.impl;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.flink.project.data.concat.dao.JudicialAssistanceIndexDao;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.service.AbstractDataUpdate;
+import com.liang.flink.service.data.update.AbstractDataUpdate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple3;
 
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JudicialAssistanceIndex extends AbstractDataUpdate {
+public class JudicialAssistanceIndex extends AbstractDataUpdate<HbaseOneRow> {
     private final JudicialAssistanceIndexDao dao = new JudicialAssistanceIndexDao();
 
     @Override

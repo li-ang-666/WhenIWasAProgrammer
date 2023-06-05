@@ -5,7 +5,7 @@ package com.liang.flink.project.data.concat.impl;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.flink.project.data.concat.dao.RestrictConsumptionSplitIndexDao;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.service.AbstractDataUpdate;
+import com.liang.flink.service.data.update.AbstractDataUpdate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class RestrictConsumptionSplitIndex extends AbstractDataUpdate {
+public class RestrictConsumptionSplitIndex extends AbstractDataUpdate<HbaseOneRow> {
     private final RestrictConsumptionSplitIndexDao dao = new RestrictConsumptionSplitIndexDao();
 
     @Override

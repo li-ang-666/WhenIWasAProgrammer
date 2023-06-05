@@ -1,4 +1,4 @@
-package com.liang.flink.project.data.concat.service;
+package com.liang.flink.service;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

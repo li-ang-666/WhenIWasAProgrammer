@@ -1,7 +1,7 @@
 package com.liang.flink.project.data.concat.dao;
 
 import com.liang.common.service.database.template.JdbcTemplate;
-import com.liang.flink.project.data.concat.service.Sorter;
+import com.liang.flink.service.Sorter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

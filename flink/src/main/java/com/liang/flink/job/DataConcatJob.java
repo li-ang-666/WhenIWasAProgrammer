@@ -6,21 +6,18 @@ import com.liang.common.dto.config.FlinkSource;
 import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
-import com.liang.flink.dto.BatchCanalBinlog;
-import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.KafkaSourceStreamFactory;
 import com.liang.flink.high.level.api.RepairSourceStreamFactory;
-import com.liang.flink.project.data.concat.service.DataConcatService;
+import com.liang.flink.service.data.update.DataUpdateContext;
+import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-import org.apache.flink.util.Collector;
 
 import java.util.List;
 import java.util.Random;
@@ -44,17 +41,6 @@ public class DataConcatJob {
         streamEnvironment.execute();
     }
 
-    //KafkaRecord<BatchCanalBinlog> -拆包-> SingleCanalBinlog
-    private static class DataConcatFlatMapFunction implements FlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog> {
-        @Override
-        public void flatMap(KafkaRecord<BatchCanalBinlog> kafkaRecord, Collector<SingleCanalBinlog> out) throws Exception {
-            BatchCanalBinlog batchCanalBinlog = kafkaRecord.getValue();
-            for (SingleCanalBinlog singleCanalBinlog : batchCanalBinlog.getSingleCanalBinlogs()) {
-                out.collect(singleCanalBinlog);
-            }
-        }
-    }
-
     //keyBy(id)
     private static class DataConcatKeySelector implements KeySelector<SingleCanalBinlog, String> {
         private final Random random = new Random();
@@ -71,7 +57,7 @@ public class DataConcatJob {
     //核心处理类 dataConcatService.invoke(singleCanalBinlog)
     private static class DataConcatRichMapFunction extends RichMapFunction<SingleCanalBinlog, List<HbaseOneRow>> {
         private final Config config;
-        private DataConcatService service;
+        private DataUpdateService<HbaseOneRow> service;
 
         private DataConcatRichMapFunction(Config config) throws Exception {
             this.config = config;
@@ -80,7 +66,14 @@ public class DataConcatJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            service = new DataConcatService();
+            DataUpdateContext dataUpdateContext = new DataUpdateContext("com.liang.flink.project.data.concat.impl")
+                    .addClass("RestrictConsumptionSplitIndex")
+                    .addClass("JudicialAssistanceIndex")
+                    .addClass("RestrictedOutboundIndex")
+                    .addClass("EquityPledgeReinvest")
+                    .addClass("EquityPledgeDetail")
+                    .addClass("CompanyBranch");
+            service = new DataUpdateService<>(dataUpdateContext);
         }
 
         @Override
