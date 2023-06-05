@@ -19,6 +19,7 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 public class RepairDataHandler implements Runnable {
     private final static int BATCH_SIZE = 200;
     private final static int MAX_QUEUE_SIZE = 1000000;
+    private final static int DIRECT_TASK_FINISH_ID = 404;
 
     private final ConcurrentLinkedQueue<SingleCanalBinlog> queue;
     private final JdbcTemplate jdbcTemplate;
@@ -37,7 +38,10 @@ public class RepairDataHandler implements Runnable {
 
     @Override
     public void run() {
-        while (hasNextBatch() && !Thread.interrupted()) {
+        while (true) {
+            if (!hasNextBatch()) {
+                return;
+            }
             if (task.getScanMode() == Direct || queue.size() < MAX_QUEUE_SIZE) {
                 List<Map<String, Object>> columnMaps = nextBatch();
                 for (Map<String, Object> columnMap : columnMaps) {
@@ -51,7 +55,7 @@ public class RepairDataHandler implements Runnable {
     private boolean hasNextBatch() {
         RepairTask.ScanMode scanMode = task.getScanMode();
         if (scanMode == Direct) {
-            return task.getCurrentId() != -1;
+            return task.getCurrentId() != DIRECT_TASK_FINISH_ID;
         } else {
             return task.getCurrentId() < task.getTargetId();
         }
@@ -68,7 +72,7 @@ public class RepairDataHandler implements Runnable {
 
     private void commit() {
         if (task.getScanMode() == Direct) {
-            task.setCurrentId(-1);
+            task.setCurrentId(DIRECT_TASK_FINISH_ID);
         } else {
             task.setCurrentId(highWatermark);
         }

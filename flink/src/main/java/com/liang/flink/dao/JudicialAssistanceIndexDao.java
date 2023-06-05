@@ -48,7 +48,9 @@ public class JudicialAssistanceIndexDao {
                 String.format("select company_name from company_index where company_id = %s", equityFrozenCompanyId),
                 rs -> rs.getString(1)
         );
-        return Tuple3.of("1", equityFrozenCompanyId, equityFrozenCompanyName);
+        return Tuple3.of(equityFrozenCompanyName == null ? null : "1",
+                equityFrozenCompanyId,
+                equityFrozenCompanyName);
     }
 
     /**

@@ -63,8 +63,15 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) throws Exception {
-        new Thread(new RepairDataHandler(task, queue)).start();
-        while (!canceled) {
+        Thread dataHandler = new Thread(new RepairDataHandler(task, queue));
+        dataHandler.start();
+        while (true) {
+            if (canceled) {
+                return;
+            }
+            if (queue.isEmpty() && !dataHandler.isAlive()) {
+                return;
+            }
             if (queue.peek() != null) {
                 ctx.collect(queue.poll());
                 TimeUnit.MILLISECONDS.sleep(1);
