@@ -1,23 +1,23 @@
-package com.liang.flink.service;
+package com.liang.flink.project.data.concat.service;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Sorter {
-    Map<String, I> map = new LinkedHashMap<>();
+    private final Map<String, AtomicI> map = new LinkedHashMap<>();
 
     public void add(String key, Integer count) {
         if (map.containsKey(key)) {
             map.get(key).add(count);
         } else {
-            map.put(key, new I(count));
+            map.put(key, new AtomicI(count));
         }
     }
 
     public String getMaxCountKey() {
         String key = null;
         int value = Integer.MIN_VALUE;
-        for (Map.Entry<String, I> entry : map.entrySet()) {
+        for (Map.Entry<String, AtomicI> entry : map.entrySet()) {
             //按照先后顺序,后出现的必须大于,才能上位
             if (entry.getValue().get() > value) {
                 key = entry.getKey();
@@ -27,10 +27,10 @@ public class Sorter {
         return key;
     }
 
-    private static class I {
+    private static class AtomicI {
         int i;
 
-        private I(int i) {
+        private AtomicI(int i) {
             this.i = i;
         }
 

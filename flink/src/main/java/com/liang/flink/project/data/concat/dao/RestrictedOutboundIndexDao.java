@@ -2,7 +2,7 @@ package com.liang.flink.project.data.concat.dao;
 
 
 import com.liang.common.service.database.template.JdbcTemplate;
-import com.liang.flink.service.Sorter;
+import com.liang.flink.project.data.concat.service.Sorter;
 
 public class RestrictedOutboundIndexDao {
     private final JdbcTemplate jdbcTemplate = new JdbcTemplate("judicialRisk");
