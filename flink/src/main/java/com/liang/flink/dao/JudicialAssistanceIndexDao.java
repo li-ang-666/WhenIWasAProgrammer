@@ -2,10 +2,8 @@ package com.liang.flink.dao;
 
 import com.liang.common.service.database.template.JdbcTemplate;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple3;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 @Slf4j
 public class JudicialAssistanceIndexDao {
@@ -17,13 +15,14 @@ public class JudicialAssistanceIndexDao {
      * SQL返回格式:
      * 一个数字
      */
-    public String queryTotalFrozenEquity(String companyIdOrEnforcedTargetId, boolean isHistory) {
+    public Long queryTotalFrozenEquity(String companyIdOrEnforcedTargetId, boolean isHistory) {
         String sql = sqlHolder.queryTotalFrozenEquitySql(companyIdOrEnforcedTargetId, isHistory);
         String queryResult = jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
-        if (queryResult == null) {
+        if (!(StringUtils.isNumeric(queryResult) && !"0".equals(queryResult))) {
             return null;
         }
-        BigDecimal res = new BigDecimal(queryResult);
+        return Long.parseLong(queryResult) * 10000L;
+        /*BigDecimal res = new BigDecimal(queryResult);
         if ((res.doubleValue() * 10000L / 100000000L) > 1) {
             return res
                     .multiply(BigDecimal.valueOf(10000L))
@@ -34,7 +33,7 @@ public class JudicialAssistanceIndexDao {
             return res
                     .setScale(4, RoundingMode.HALF_UP)
                     .stripTrailingZeros().toPlainString() + "万元";
-        }
+        }*/
     }
 
     /**

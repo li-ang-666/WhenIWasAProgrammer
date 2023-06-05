@@ -1,10 +1,8 @@
 package com.liang.flink.dao;
 
 import com.liang.common.service.database.template.JdbcTemplate;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple3;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 
 public class EquityPledgeReinvestDao {
@@ -12,13 +10,14 @@ public class EquityPledgeReinvestDao {
     private final JdbcTemplate jdbcTemplateCompanyBase = new JdbcTemplate("companyBase");
     private final EquityPledgeReinvestSql sqlHolder = new EquityPledgeReinvestSql();
 
-    public String queryTotalEquity(String companyId, boolean isHistory) {
+    public Long queryTotalEquity(String companyId, boolean isHistory) {
         String sql = sqlHolder.totalEquitySql(companyId, isHistory);
         String queryResult = jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
-        if (queryResult == null) {
+        if (!(StringUtils.isNumeric(queryResult) && !"0".equals(queryResult))) {
             return null;
         }
-        BigDecimal res = new BigDecimal(queryResult);
+        return Long.parseLong(queryResult) * 10000L;
+        /*BigDecimal res = new BigDecimal(queryResult);
         if ((res.doubleValue() * 10000L / 100000000L) > 1) {
             return res
                     .multiply(BigDecimal.valueOf(10000L))
@@ -29,7 +28,7 @@ public class EquityPledgeReinvestDao {
             return res
                     .setScale(4, RoundingMode.HALF_UP)
                     .stripTrailingZeros().toPlainString() + "万元";
-        }
+        }*/
     }
 
     public Tuple3<String, String, String> queryMaxTargetCompany(String companyId, boolean isHistory) {
