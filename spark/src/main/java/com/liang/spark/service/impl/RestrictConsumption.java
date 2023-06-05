@@ -9,7 +9,7 @@ import org.apache.spark.sql.SparkSession;
 
 import java.util.Arrays;
 
-public class RestrictConsumptionService extends AbstractSparkRunner {
+public class RestrictConsumption extends AbstractSparkRunner {
     private final RestrictConsumptionSqlHolder sqlHolder = new RestrictConsumptionSqlHolder();
 
     @Override

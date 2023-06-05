@@ -7,7 +7,7 @@ import com.liang.spark.job.DataConcatJob;
 import com.liang.spark.service.AbstractSparkRunner;
 import org.apache.spark.sql.SparkSession;
 
-public class CompanyBranchService extends AbstractSparkRunner {
+public class CompanyBranch extends AbstractSparkRunner {
     private final CompanyBranchSqlHolder sqlHolder = new CompanyBranchSqlHolder();
 
     @Override
