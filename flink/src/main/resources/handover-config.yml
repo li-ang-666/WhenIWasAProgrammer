@@ -1,0 +1,41 @@
+flinkSource: Kafka # Repair or Kafka
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+
+
+dbConfigs:
+  #本地
+  localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
+  #生产
+  bigdataOnline: { host: "140f5010b84c4d9abfc4d13bc597a2ebin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+
+redisConfigs:
+  localhost:
+    host: "127.0.0.1"
+    password: ~
+
+kafkaConfigs:
+  flinkKafkaConsumer:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "140f5.proto.bigdata_online.itch_point_secondary_dims_uv_count"
+    groupId: "leon"
+    startFrom: "2"
+
+  kafkaProducer:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "none"
+
+hbaseDbConfigs:
+  test:
+    zookeeperQuorum: "10.99.1.165:2181"
+  prod:
+    zookeeperQuorum: "10.99.1.165:2181"
+
+hbaseSchemas:
+  dataConcat:
+    namespace: "test"
+    tableName: "data_concat_offline"
+    columnFamily: "cf1"

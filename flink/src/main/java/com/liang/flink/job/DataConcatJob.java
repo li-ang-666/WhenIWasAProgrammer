@@ -9,9 +9,9 @@ import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high_level.KafkaSourceStreamFactory;
-import com.liang.flink.high_level.RepairSourceStreamFactory;
-import com.liang.flink.service.DataConcatService;
+import com.liang.flink.high.level.api.KafkaSourceStreamFactory;
+import com.liang.flink.high.level.api.RepairSourceStreamFactory;
+import com.liang.flink.project.data.concat.service.DataConcatService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
@@ -28,6 +28,8 @@ import java.util.Random;
 @Slf4j
 public class DataConcatJob {
     public static void main(String[] args) throws Exception {
+        if (args.length == 0)
+            args = new String[]{"data-concat-config.yml"};
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = config.getFlinkSource() == FlinkSource.Repair ?
