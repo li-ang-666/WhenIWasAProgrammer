@@ -12,6 +12,7 @@
 
     <artifactId>common</artifactId>
     <dependencies>
+
         <!--log4j1 + log4j2 究极方案-->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -21,11 +22,13 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
         </dependency>
+
         <!--hbase-->
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
         </dependency>
+
         <!--http-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -38,7 +41,7 @@
             <artifactId>druid</artifactId>
         </dependency>
 
-        <!--flink-->
+        <!--flink Tuple-->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-java</artifactId>
@@ -90,18 +93,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-        </dependency>
-
-        <!--kafka-->
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.12</artifactId>
-        </dependency>
-
-        <!--mockito-->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
         </dependency>
 
         <!--junit-->

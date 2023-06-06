@@ -202,7 +202,7 @@
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-scala_2.11</artifactId>
+                <artifactId>jackson-module-scala_2.12</artifactId>
                 <version>2.10.0</version>
             </dependency>
 
@@ -227,11 +227,11 @@
                 <version>1.18.10</version>
             </dependency>
 
-            <!--kafka--><!--排除log4j1-->
+            <!--kafka--><!--排除log4j1--><!--排除kafka-client-->
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_2.12</artifactId>
-                <version>2.4.1</version>
+                <version>3.2.3</version>
                 <exclusions>
                     <exclusion>
                         <groupId>log4j</groupId>
