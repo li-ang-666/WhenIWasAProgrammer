@@ -12,9 +12,21 @@ import java.io.InputStream;
 @Slf4j
 public class LocalLauncher {
     public static void main(String[] args) throws Exception {
+        //初始化
         init();
-        String className = "CommonTest";
-        run(className, args);
+
+        //类加载
+        String className = "ReadHbase";
+        Class<?> aClass = Class.forName("com.liang.repair.impl." + className);
+
+        //测试注解
+        if (aClass.isAnnotationPresent(Prop.class))
+            System.out.println(aClass.getAnnotation(Prop.class));
+
+        //程序执行
+        ((Runner) aClass.newInstance()).run(args);
+
+        //程序关闭
         close();
     }
 
@@ -24,17 +36,7 @@ public class LocalLauncher {
         ConfigUtils.setConfig(config);
     }
 
-    private static void run(String className, String[] args) throws Exception {
-        Class<?> aClass = Class.forName("com.liang.repair.impl." + className);
-
-        if (aClass.isAnnotationPresent(Prop.class)) {
-            System.out.println(aClass.getAnnotation(Prop.class));
-        }
-
-        ((Runner) aClass.newInstance()).run(args);
-    }
-
     private static void close() {
-        System.exit(0);
+        ConfigUtils.closeAll();
     }
 }

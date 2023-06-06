@@ -24,7 +24,7 @@ public class KafkaSourceFactory {
     }
 
     public static <T> KafkaSource<KafkaRecord<T>> create(KafkaRecordValueMapper<T> mapper) {
-        KafkaConfig kafkaConfig = ConfigUtils.getConfig().getKafkaConfigs().get("flinkKafkaConsumer");
+        KafkaConfig kafkaConfig = ConfigUtils.getConfig().getKafkaConfigs().get("kafkaSource");
         //如果没有checkpoint,从哪里消费
         String startFrom = kafkaConfig.getStartFrom();
         OffsetsInitializer offsetsInitializer;

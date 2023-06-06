@@ -40,7 +40,7 @@ public class DataConcatJob {
 
         private void open() {
             ConfigUtils.setConfig(config);
-            hbaseTemplate = new HbaseTemplate("test");
+            hbaseTemplate = new HbaseTemplate("hbaseSink");
         }
 
         @Override

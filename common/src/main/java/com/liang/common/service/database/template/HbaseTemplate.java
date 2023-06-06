@@ -2,14 +2,17 @@ package com.liang.common.service.database.template;
 
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
+import com.liang.common.util.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,11 +43,9 @@ public class HbaseTemplate {
 
     public void upsert(HbaseOneRow hbaseOneRow) {
         logger.beforeExecute("upsert", hbaseOneRow);
-        Map<String, Object> columnMap = hbaseOneRow.getColumnMap();
-        try (Table table = pool.getTable(
-                TableName.valueOf(hbaseOneRow.getSchema().getNamespace(), hbaseOneRow.getSchema().getTableName()))) {
+        try (Table table = getTable(hbaseOneRow)) {
             Put put = new Put(Bytes.toBytes(hbaseOneRow.getRowKey()));
-            for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
+            for (Map.Entry<String, Object> entry : hbaseOneRow.getColumnMap().entrySet()) {
                 String[] familyAndCol = entry.getKey().split(":");
                 String family = familyAndCol[0];
                 String col = familyAndCol[1];
@@ -62,15 +63,40 @@ public class HbaseTemplate {
 
     public void deleteRow(HbaseOneRow hbaseOneRow) {
         logger.beforeExecute("deleteRow", hbaseOneRow);
-        try (Table table = pool.getTable(
-                TableName.valueOf(
-                        hbaseOneRow.getSchema().getNamespace(),
-                        hbaseOneRow.getSchema().getTableName()))) {
+        try (Table table = getTable(hbaseOneRow)) {
             Delete delete = new Delete(Bytes.toBytes(hbaseOneRow.getRowKey()));
             table.delete(delete);
         } catch (Exception e) {
             logger.ifError("deleteRow", hbaseOneRow, e);
         }
         logger.afterExecute("deleteRow", hbaseOneRow);
+    }
+
+    public List<Tuple4<String, String, String, String>> getRow(HbaseOneRow hbaseOneRow) {
+        logger.beforeExecute("getRow", hbaseOneRow);
+        List<Tuple4<String, String, String, String>> resultList = new ArrayList<>();
+        try (Table table = getTable(hbaseOneRow)) {
+            Get get = new Get(Bytes.toBytes(hbaseOneRow.getRowKey()));
+            Result result = table.get(get);
+            for (Cell cell : result.listCells()) {
+                resultList.add(Tuple4.of(
+                        Bytes.toString(CellUtil.cloneFamily(cell)),
+                        Bytes.toString(CellUtil.cloneQualifier(cell)),
+                        Bytes.toString(CellUtil.cloneValue(cell)),
+                        DateTimeUtils.fromUnixTime(cell.getTimestamp() / 1000, "yyyy-MM-dd HH:mm:ss")
+                ));
+            }
+        } catch (Exception e) {
+            logger.ifError("getRow", hbaseOneRow, e);
+        }
+        logger.afterExecute("getRow", hbaseOneRow);
+        return resultList;
+    }
+
+    private Table getTable(HbaseOneRow hbaseOneRow) throws Exception {
+        return pool.getTable(
+                TableName.valueOf(
+                        hbaseOneRow.getSchema().getNamespace(),
+                        hbaseOneRow.getSchema().getTableName()));
     }
 }

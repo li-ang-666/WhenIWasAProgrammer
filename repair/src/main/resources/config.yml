@@ -1,121 +1,87 @@
-flinkSource: Repair # Repair or Kafka
-
-# scanMode: Direct or TumblingWindow
-repairTasks:
-
-  #股权冻结
-  - checkpointUid: "111"
-    sourceName: "judicialRisk"
-    tableName: "judicial_assistance_index"
-    columns: "distinct company_id"
-    where: "1=1"
-    scanMode: Direct
-
-  #股权冻结
-  - checkpointUid: "222"
-    sourceName: "judicialRisk"
-    tableName: "judicial_assistance_index"
-    columns: "distinct enforced_target_id,enforced_target_type"
-    where: "1=1"
-    scanMode: Direct
-
-  #限制出境
-  - checkpointUid: "333"
-    sourceName: "judicialRisk"
-    tableName: "restricted_outbound_index"
-    columns: "*"
-    where: "1=1"
-    scanMode: Direct
-
-  #股权出质
-  - checkpointUid: "444"
-    sourceName: "operatingRisk"
-    tableName: "equity_pledge_reinvest"
-    columns: "distinct company_id"
-    where: "1=1"
-    scanMode: Direct
-
-  #股权出质
-  - checkpointUid: "555"
-    sourceName: "operatingRisk"
-    tableName: "equity_pledge_reinvest"
-    columns: "distinct pledgor_entity_id,pledgor_type"
-    where: "1=1"
-    scanMode: Direct
-
-  #股权质押
-  - checkpointUid: "666"
-    sourceName: "operatingRisk"
-    tableName: "equity_pledge_detail"
-    columns: "distinct company_id"
-    where: "1=1"
-    scanMode: Direct
-
-  #股权质押
-  - checkpointUid: "777"
-    sourceName: "operatingRisk"
-    tableName: "equity_pledge_detail"
-    columns: "distinct pledgor_id"
-    where: "1=1"
-    scanMode: Direct
-
-#  - checkpointUid: "1"
-#    sourceName: "companyBase"
-#    tableName: "company_branch"
-#    columns: "distinct company_id"
-#    where: "1=1"
-#    scanMode: Direct
-
-
-#  - checkpointUid: "1"
-#    sourceName: "judicialRisk"
-#    tableName: "restrict_consumption_split_index"
-#    columns: "*"
-#    where: "1=1"
-#    scanMode: Direct
-
 dbConfigs:
   #本地
   localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
+  #测试
+  #judicialRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  #companyBase: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  #operatingRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
   #生产
   judicialRisk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
-  #测试
-  111judicialRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-  111companyBase: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-  111operatingRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
 
 redisConfigs:
+  #本地
   localhost:
     host: "127.0.0.1"
     password: ~
 
 kafkaConfigs:
-  flinkKafkaConsumer:
-    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
-    topics:
-      - "9349c.proto.judicial_risk.restrict_consumption_split_index"
-      - "9349c.proto.judicial_risk.judicial_assistance_index"
-      - "9349c.proto.judicial_risk.restricted_outbound_index"
-      - "9349c.proto.operating_risk.equity_pledge_reinvest"
-      - "9349c.proto.operating_risk.equity_pledge_detail"
-    groupId: "leon"
-    startFrom: "2023-05-29 00:00:00"
+  #测试
+  #kafkaSource:
+  #  bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+  #  topics:
+  #    - "9349c.proto.judicial_risk.restrict_consumption_split_index"
+  #    - "9349c.proto.judicial_risk.judicial_assistance_index"
+  #    - "9349c.proto.judicial_risk.restricted_outbound_index"
+  #    - "9349c.proto.operating_risk.equity_pledge_reinvest"
+  #    - "9349c.proto.operating_risk.equity_pledge_detail"
+  #    - "9349c.proto.company_base.company_branch"
+  #  groupId: "leon"
+  #  startFrom: "1"
 
-  kafkaProducer:
+  #生产
+  kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "none"
+      - "39398.proto.judicial_risk.restrict_consumption_split_index"
+      - "39398.proto.judicial_risk.judicial_assistance_index"
+      - "39398.proto.judicial_risk.restricted_outbound_index"
+      - "b27de.json.operating_risk.equity_pledge_reinvest"
+      - "b27de.proto.operating_risk.equity_pledge_detail"
+      - "ee59d.json.company_base.company_branch"
+    groupId: "leon"
+    startFrom: "1"
 
 hbaseDbConfigs:
-  test:
-    zookeeperQuorum: "10.99.1.165:2181"
-  prod:
-    zookeeperQuorum: "10.99.1.165:2181"
+  hbaseSink:
+    #测试
+    #zookeeperQuorum: "10.99.1.165:2181"
+    #生产
+    zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
 
 hbaseSchemas:
-  dataConcat:
-    namespace: "test"
-    tableName: "data_concat_offline"
-    columnFamily: "cf1"
+  #测试
+  #judicialRisk:
+  #  namespace: "test"
+  #  tableName: "data_concat"
+  #  columnFamily: "cf1"
+  #operatingRisk:
+  #  namespace: "test"
+  #  tableName: "data_concat_offline"
+  #  columnFamily: "cf1"
+  #historicalInfo:
+  #  namespace: "test"
+  #  tableName: "data_concat_offline"
+  #  columnFamily: "cf1"
+  #companyBase:
+  #  namespace: "test"
+  #  tableName: "data_concat_offline"
+  #  columnFamily: "cf1"
+  #生产
+  judicialRisk:
+    namespace: "prism_c"
+    tableName: "judicial_risk_splice"
+    columnFamily: "ds"
+  operatingRisk:
+    namespace: "prism_c"
+    tableName: "operating_risk_splice"
+    columnFamily: "ds"
+  historicalInfo:
+    namespace: "prism_c"
+    tableName: "historical_info_splice"
+    columnFamily: "ds"
+  companyBase:
+    namespace: "prism_c"
+    tableName: "company_base_splice"
+    columnFamily: "ds"

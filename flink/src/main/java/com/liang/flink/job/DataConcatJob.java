@@ -13,14 +13,12 @@ import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichMapFunction;
-import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
-import java.util.Random;
 
 @Slf4j
 public class DataConcatJob {
@@ -33,25 +31,12 @@ public class DataConcatJob {
                 RepairSourceStreamFactory.create(streamEnvironment) :
                 KafkaSourceStreamFactory.create(streamEnvironment);
         stream
-                .keyBy(new DataConcatKeySelector())
+                .rebalance()
                 .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))
                 .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()))
                 .uid("DataConcatHbaseSink")
                 .name("DataConcatHbaseSink");
         streamEnvironment.execute();
-    }
-
-    //keyBy(id)
-    private static class DataConcatKeySelector implements KeySelector<SingleCanalBinlog, String> {
-        private final Random random = new Random();
-
-        @Override
-        public String getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
-            return String.valueOf(
-                    singleCanalBinlog.getColumnMap()
-                            .getOrDefault("id", random.nextInt())
-            );
-        }
     }
 
     //核心处理类 dataConcatService.invoke(singleCanalBinlog)
@@ -94,7 +79,7 @@ public class DataConcatJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            hbase = new HbaseTemplate("test");
+            hbase = new HbaseTemplate("hbaseSink");
         }
 
         @Override
@@ -102,16 +87,6 @@ public class DataConcatJob {
             if (input == null || input.size() == 0) {
                 return;
             }
-//            for (HbaseOneRow hbaseOneRow : input) {
-//                String rowKey = hbaseOneRow.getRowKey();
-//                Map<String, Object> columnMap = new TreeMap<>(hbaseOneRow.getColumnMap());
-//                StringBuilder builder = new StringBuilder();
-//                builder.append(String.format("\nrowKey: %s", rowKey));
-//                for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
-//                    builder.append(String.format("\n%s -> %s", entry.getKey(), entry.getValue()));
-//                }
-//                log.info("{}", builder);
-//            }
             for (HbaseOneRow hbaseOneRow : input) {
                 hbase.upsert(hbaseOneRow);
             }
