@@ -50,19 +50,19 @@
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_2.11</artifactId>
+            <artifactId>flink-streaming-java</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-kafka_2.11</artifactId>
+            <artifactId>flink-connector-kafka</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-clients_2.11</artifactId>
+            <artifactId>flink-clients</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-runtime-web_2.11</artifactId>
+            <artifactId>flink-runtime-web</artifactId>
         </dependency>
 
         <!--scala-->
@@ -169,7 +169,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <scalaVersion>2.11.12</scalaVersion>
+                    <scalaVersion>2.12.17</scalaVersion>
                 </configuration>
             </plugin>
             <plugin>
