@@ -1,10 +1,9 @@
 package com.liang.flink.project.data.concat.impl;
 
 
-
 import com.liang.common.dto.HbaseOneRow;
-import com.liang.flink.project.data.concat.dao.RestrictConsumptionSplitIndexDao;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.project.data.concat.dao.RestrictConsumptionSplitIndexDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +52,10 @@ public class RestrictConsumptionSplitIndex extends AbstractDataUpdate<HbaseOneRo
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_applicant_id", null);
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_applicant_name", null);
             }
-            subResult.add(new HbaseOneRow("dataConcat", companyId).putAll(hbaseColumnMap));
+            if (isHistory)
+                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", companyId).putAll(hbaseColumnMap));
+            else
+                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", companyId).putAll(hbaseColumnMap));
         }
 
         if (StringUtils.isNumeric(restrictedId) && !"0".equals(restrictedId)) {
@@ -78,7 +80,10 @@ public class RestrictConsumptionSplitIndex extends AbstractDataUpdate<HbaseOneRo
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_related_restricted_id", null);
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_related_restricted_name", null);
             }
-            subResult.add(new HbaseOneRow("dataConcat", restrictedId).putAll(hbaseColumnMap));
+            if (isHistory)
+                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", restrictedId).putAll(hbaseColumnMap));
+            else
+                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", restrictedId).putAll(hbaseColumnMap));
         }
 
         if (StringUtils.isNumeric(relatedRestrictedId) && !"0".equals(relatedRestrictedId)) {
@@ -103,7 +108,10 @@ public class RestrictConsumptionSplitIndex extends AbstractDataUpdate<HbaseOneRo
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_restricted_id", null);
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_restricted_name", null);
             }
-            subResult.add(new HbaseOneRow("dataConcat", relatedRestrictedId).putAll(hbaseColumnMap));
+            if (isHistory)
+                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", relatedRestrictedId).putAll(hbaseColumnMap));
+            else
+                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", relatedRestrictedId).putAll(hbaseColumnMap));
         }
         result.addAll(subResult);
     }

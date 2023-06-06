@@ -2,8 +2,8 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
-import com.liang.flink.project.data.concat.dao.EquityPledgeReinvestDao;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.project.data.concat.dao.EquityPledgeReinvestDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -26,7 +26,6 @@ public class EquityPledgeReinvest extends AbstractDataUpdate<HbaseOneRow> {
 
     private void currentAndHistory(SingleCanalBinlog singleCanalBinlog, boolean isHistory, List<HbaseOneRow> result) {
         String prefix = isHistory ? "history_" : "";
-        ArrayList<HbaseOneRow> subResult = new ArrayList<>();
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String companyId = String.valueOf(columnMap.get("company_id"));
         String pledgorEntityId = String.valueOf(columnMap.get("pledgor_entity_id"));
@@ -41,9 +40,10 @@ public class EquityPledgeReinvest extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_company_type", maxTargetCompany.f0);
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_company_id", maxTargetCompany.f1);
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_company_name", maxTargetCompany.f2);
-            subResult.add(
-                    new HbaseOneRow("dataConcat", pledgorEntityId).putAll(hbaseColumnMap)
-            );
+            if (isHistory)
+                result.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", pledgorEntityId).putAll(hbaseColumnMap));
+            else
+                result.add(new HbaseOneRow("dataConcatOperatingRiskSchema", pledgorEntityId).putAll(hbaseColumnMap));
         }
 
         if (StringUtils.isNumeric(companyId) && !"0".equals(companyId)) {
@@ -53,11 +53,11 @@ public class EquityPledgeReinvest extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_pledgor_type", maxPledgor.f0);
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_pledgor_id", maxPledgor.f1);
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_pledgor_name", maxPledgor.f2);
-            subResult.add(
-                    new HbaseOneRow("dataConcat", companyId).putAll(hbaseColumnMap)
-            );
+            if (isHistory)
+                result.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", companyId).putAll(hbaseColumnMap));
+            else
+                result.add(new HbaseOneRow("dataConcatOperatingRiskSchema", companyId).putAll(hbaseColumnMap));
         }
-        result.addAll(subResult);
     }
 
     @Override

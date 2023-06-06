@@ -51,7 +51,7 @@ public class RestrictedOutboundIndex extends AbstractDataUpdate<HbaseOneRow> {
                 hbaseColumnMap.put("restricted_outbound_most_restricted_id", null);
                 hbaseColumnMap.put("restricted_outbound_most_restricted_name", null);
             }
-            result.add(new HbaseOneRow("dataConcat", companyId).putAll(hbaseColumnMap));
+            result.add(new HbaseOneRow("dataConcatJudicialRiskSchema", companyId).putAll(hbaseColumnMap));
         }
         return result;
     }

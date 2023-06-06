@@ -2,8 +2,8 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
-import com.liang.flink.project.data.concat.dao.JudicialAssistanceIndexDao;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.project.data.concat.dao.JudicialAssistanceIndexDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -42,7 +42,10 @@ public class JudicialAssistanceIndex extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_target_type", equityFrozenEnforcedTarget.f0);
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_target_id", equityFrozenEnforcedTarget.f1);
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_target_name", equityFrozenEnforcedTarget.f2);
-            subResult.add(new HbaseOneRow("dataConcat", companyId).putAll(hbaseColumnMap));
+            if (isHistory)
+                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", companyId).putAll(hbaseColumnMap));
+            else
+                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", companyId).putAll(hbaseColumnMap));
         }
 
         //作为被执行人(公司)
@@ -56,7 +59,10 @@ public class JudicialAssistanceIndex extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_company_type", equityFrozenCompany.f0);
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_company_id", equityFrozenCompany.f1);
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_company_name", equityFrozenCompany.f2);
-            subResult.add(new HbaseOneRow("dataConcat", enforcedTargetId).putAll(hbaseColumnMap));
+            if (isHistory)
+                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", enforcedTargetId).putAll(hbaseColumnMap));
+            else
+                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", enforcedTargetId).putAll(hbaseColumnMap));
         }
         result.addAll(subResult);
     }

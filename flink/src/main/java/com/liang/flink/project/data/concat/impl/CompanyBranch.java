@@ -20,7 +20,7 @@ public class CompanyBranch extends AbstractDataUpdate<HbaseOneRow> {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String companyId = String.valueOf(columnMap.get("company_id"));
         if (StringUtils.isNumeric(companyId) && !"0".equals(companyId)) {
-            HbaseOneRow hbaseOneRow = new HbaseOneRow("dataConcat", companyId);
+            HbaseOneRow hbaseOneRow = new HbaseOneRow("dataConcatCompanyBaseSchema", companyId);
             hbaseOneRow
                     .put("company_branch_total_branch", dao.queryTotalBranch(companyId))
                     .put("company_branch_total_canceled_branch", dao.queryTotalCanceledBranch(companyId))
