@@ -12,9 +12,7 @@ dbConfigs:
 
 redisConfigs:
   #本地
-  localhost:
-    host: "127.0.0.1"
-    password: ~
+  localhost: { host: "127.0.0.1",password: ~ }
 
 kafkaConfigs:
   #测试
