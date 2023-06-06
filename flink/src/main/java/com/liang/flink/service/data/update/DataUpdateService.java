@@ -17,7 +17,7 @@ public class DataUpdateService<OUT> {
     }
 
     public List<OUT> invoke(SingleCanalBinlog singleCanalBinlog) {
-        log.debug("dataUpdateService input: {}", JsonUtils.toString(singleCanalBinlog));
+        //log.debug("dataUpdateService input: {}", JsonUtils.toString(singleCanalBinlog));
         AbstractDataUpdate<OUT> impl = dataUpdateContext.getClass(singleCanalBinlog.getTable());
         List<OUT> out = new ArrayList<>();
         CanalEntry.EventType eventType = singleCanalBinlog.getEventType();
@@ -26,7 +26,7 @@ public class DataUpdateService<OUT> {
         } else if (impl != null && eventType == CanalEntry.EventType.DELETE) {
             out.addAll(impl.deleteWithReturn(singleCanalBinlog));
         }
-        log.debug("dataUpdateService output: {}", JsonUtils.toString(out));
+        //log.debug("dataUpdateService output: {}", JsonUtils.toString(out));
         return out;
     }
 }
