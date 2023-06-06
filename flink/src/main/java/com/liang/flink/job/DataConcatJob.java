@@ -53,7 +53,8 @@ public class DataConcatJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            DataUpdateContext dataUpdateContext = new DataUpdateContext("com.liang.flink.project.data.concat.impl")
+            DataUpdateContext<HbaseOneRow> dataUpdateContext = new DataUpdateContext<HbaseOneRow>
+                    ("com.liang.flink.project.data.concat.impl")
                     .addClass("RestrictConsumptionSplitIndex")
                     .addClass("JudicialAssistanceIndex")
                     .addClass("RestrictedOutboundIndex")
@@ -89,16 +90,16 @@ public class DataConcatJob {
             if (input == null || input.size() == 0) {
                 return;
             }
-            for (HbaseOneRow hbaseOneRow : input) {
-                String rowKey = hbaseOneRow.getRowKey();
-                Map<String, Object> columnMap = new HashMap<>(hbaseOneRow.getColumnMap());
-                StringBuilder builder = new StringBuilder();
-                builder.append(String.format("\nrowKey: %s", rowKey));
-                for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
-                    builder.append(String.format("\n%s -> %s", entry.getKey(), entry.getValue()));
-                }
-                log.info("{}", builder);
-            }
+//            for (HbaseOneRow hbaseOneRow : input) {
+//                String rowKey = hbaseOneRow.getRowKey();
+//                Map<String, Object> columnMap = new HashMap<>(hbaseOneRow.getColumnMap());
+//                StringBuilder builder = new StringBuilder();
+//                builder.append(String.format("\nrowKey: %s", rowKey));
+//                for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
+//                    builder.append(String.format("\n%s -> %s", entry.getKey(), entry.getValue()));
+//                }
+//                log.info("{}", builder);
+//            }
             for (HbaseOneRow hbaseOneRow : input) {
                 hbase.upsert(hbaseOneRow);
             }

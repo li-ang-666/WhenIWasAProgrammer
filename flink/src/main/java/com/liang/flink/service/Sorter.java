@@ -10,7 +10,6 @@ public class Sorter {
     private final Map<String, AtomicI> map = new LinkedHashMap<>();
 
     public void add(String key, Integer count) {
-        log.info("add: {} -> {}", key, count);
         if (map.containsKey(key)) {
             map.get(key).add(count);
         } else {
