@@ -95,7 +95,7 @@
         <!--kafka-->
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_2.12</artifactId>
         </dependency>
 
         <!--mockito-->
@@ -159,7 +159,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <scalaVersion>2.11.12</scalaVersion>
+                    <scalaVersion>2.12.17</scalaVersion>
                 </configuration>
             </plugin>
             <plugin>
