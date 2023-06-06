@@ -32,7 +32,7 @@ public class RestrictConsumption extends AbstractSparkRunner {
                             id = null;
                             name = concat.split("、")[0];
                         }
-                        return new HbaseOneRow("dataConcatOffline", companyId)
+                        return new HbaseOneRow(isHistory ? "dataConcatHistoricalInfoSchema" : "dataConcatJudicialRiskSchema", companyId)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_applicant_type", type)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_applicant_id", id)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_applicant_name", name);
@@ -57,7 +57,7 @@ public class RestrictConsumption extends AbstractSparkRunner {
                             id = null;
                             name = concat.split("、")[0];
                         }
-                        return new HbaseOneRow("dataConcatOffline", companyId)
+                        return new HbaseOneRow(isHistory ? "dataConcatHistoricalInfoSchema" : "dataConcatJudicialRiskSchema", companyId)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_related_restricted_type", type)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_related_restricted_id", id)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_related_restricted_name", name);
@@ -84,7 +84,7 @@ public class RestrictConsumption extends AbstractSparkRunner {
                                 id = null;
                                 name = concat.split("、")[0];
                             }
-                            return new HbaseOneRow("dataConcatOffline", companyId)
+                            return new HbaseOneRow(isHistory ? "dataConcatHistoricalInfoSchema" : "dataConcatJudicialRiskSchema", companyId)
                                     .put((isHistory ? "history_" : "") + "restrict_consumption_most_restricted_type", type)
                                     .put((isHistory ? "history_" : "") + "restrict_consumption_most_restricted_id", id)
                                     .put((isHistory ? "history_" : "") + "restrict_consumption_most_restricted_name", name);

@@ -1,0 +1,36 @@
+hbaseDbConfigs:
+  hbaseSink:
+    #################### 测试 ####################
+    zookeeperQuorum: "10.99.1.165:2181"
+    #################### 生产 ####################
+    #zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
+
+# 库、表、列族信息
+hbaseSchemas:
+  #################### 测试 ####################
+  dataConcatJudicialRiskSchema:
+    namespace: "test"
+    tableName: "data_concat_offline"
+    columnFamily: "cf1"
+  dataConcatHistoricalInfoSchema:
+    namespace: "test"
+    tableName: "data_concat_offline"
+    columnFamily: "cf1"
+  dataConcatCompanyBaseSchema:
+    namespace: "test"
+    tableName: "data_concat_offline"
+    columnFamily: "cf1"
+
+  #################### 生产 ####################
+  #dataConcatJudicialRiskSchema:
+  #  namespace: "prism_c"
+  #  tableName: "judicial_risk_splice"
+  #  columnFamily: "ds"
+  #dataConcatHistoricalInfoSchema:
+  #  namespace: "prism_c"
+  #  tableName: "historical_info_splice"
+  #  columnFamily: "ds"
+  #dataConcatCompanyBaseSchema:
+  #  namespace: "prism_c"
+  #  tableName: "company_base_splice"
+  #  columnFamily: "ds"

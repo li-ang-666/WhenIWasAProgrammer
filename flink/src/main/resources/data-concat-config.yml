@@ -2,60 +2,54 @@ flinkSource: Repair # Repair or Kafka
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  #  #股权冻结
-  #  - checkpointUid: "111"
-  #    sourceName: "judicialRisk"
-  #    tableName: "judicial_assistance_index"
-  #    columns: "distinct company_id"
-  #    where: "1=1"
-  #    scanMode: Direct
-  #  #股权冻结
-  #  - checkpointUid: "222"
-  #    sourceName: "judicialRisk"
-  #    tableName: "judicial_assistance_index"
-  #    columns: "distinct enforced_target_id,enforced_target_type"
-  #    where: "1=1"
-  #    scanMode: Direct
-  #  #限制出境
-  #  - checkpointUid: "333"
-  #    sourceName: "judicialRisk"
-  #    tableName: "restricted_outbound_index"
-  #    columns: "*"
-  #    where: "1=1"
-  #    scanMode: Direct
-  #  #股权出质
-  #  - checkpointUid: "444"
-  #    sourceName: "operatingRisk"
-  #    tableName: "equity_pledge_reinvest"
-  #    columns: "distinct company_id"
-  #    where: "1=1"
-  #    scanMode: Direct
-  #  #股权出质
-  #  - checkpointUid: "555"
-  #    sourceName: "operatingRisk"
-  #    tableName: "equity_pledge_reinvest"
-  #    columns: "distinct pledgor_entity_id,pledgor_type"
-  #    where: "1=1"
-  #    scanMode: Direct
-  #  #股权质押
-  #  - checkpointUid: "666"
-  #    sourceName: "operatingRisk"
-  #    tableName: "equity_pledge_detail"
-  #    columns: "distinct company_id"
-  #    where: "1=1"
-  #    scanMode: Direct
-  #  #股权质押
-  #  - checkpointUid: "777"
-  #    sourceName: "operatingRisk"
-  #    tableName: "equity_pledge_detail"
-  #    columns: "distinct pledgor_id"
-  #    where: "1=1"
-  #    scanMode: Direct
-  - checkpointUid: "777"
+  #股权冻结
+  - checkpointUid: "111"
+    sourceName: "judicialRisk"
+    tableName: "judicial_assistance_index"
+    columns: "distinct company_id"
+    where: "1=1"
+    scanMode: Direct
+  #股权冻结
+  - checkpointUid: "222"
+    sourceName: "judicialRisk"
+    tableName: "judicial_assistance_index"
+    columns: "distinct enforced_target_id,enforced_target_type"
+    where: "1=1"
+    scanMode: Direct
+  #限制出境
+  - checkpointUid: "333"
     sourceName: "judicialRisk"
     tableName: "restricted_outbound_index"
     columns: "*"
-    where: "company_id = 11311"
+    where: "1=1"
+    scanMode: Direct
+  #股权出质
+  - checkpointUid: "444"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_reinvest"
+    columns: "distinct company_id"
+    where: "1=1"
+    scanMode: Direct
+  #股权出质
+  - checkpointUid: "555"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_reinvest"
+    columns: "distinct pledgor_entity_id,pledgor_type"
+    where: "1=1"
+    scanMode: Direct
+  #股权质押
+  - checkpointUid: "666"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_detail"
+    columns: "distinct company_id"
+    where: "1=1"
+    scanMode: Direct
+  #股权质押
+  - checkpointUid: "777"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_detail"
+    columns: "distinct pledgor_id"
+    where: "1=1"
     scanMode: Direct
 
 dbConfigs:
@@ -96,11 +90,13 @@ kafkaConfigs:
 #    startFrom: "1"
 
 hbaseDbConfigs:
+  #################### 测试 ####################
   hbaseSink:
-    #################### 测试 ####################
     zookeeperQuorum: "10.99.1.165:2181"
-    #################### 生产 ####################
-    #zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
+
+  #################### 生产 ####################
+#  hbaseSink:
+#    zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
 
 # 库、表、列族信息
 hbaseSchemas:
@@ -123,19 +119,19 @@ hbaseSchemas:
     columnFamily: "cf1"
 
   #################### 生产 ####################
-  #dataConcatJudicialRiskSchema:
-  #  namespace: "prism_c"
-  #  tableName: "judicial_risk_splice"
-  #  columnFamily: "ds"
-  #dataConcatOperatingRiskSchema:
-  #  namespace: "prism_c"
-  #  tableName: "operating_risk_splice"
-  #  columnFamily: "ds"
-  #dataConcatHistoricalInfoSchema:
-  #  namespace: "prism_c"
-  #  tableName: "historical_info_splice"
-  #  columnFamily: "ds"
-  #dataConcatCompanyBaseSchema:
-  #  namespace: "prism_c"
-  #  tableName: "company_base_splice"
-  #  columnFamily: "ds"
+#  dataConcatJudicialRiskSchema:
+#    namespace: "prism_c"
+#    tableName: "judicial_risk_splice"
+#    columnFamily: "ds"
+#  dataConcatOperatingRiskSchema:
+#    namespace: "prism_c"
+#    tableName: "operating_risk_splice"
+#    columnFamily: "ds"
+#  dataConcatHistoricalInfoSchema:
+#    namespace: "prism_c"
+#    tableName: "historical_info_splice"
+#    columnFamily: "ds"
+#  dataConcatCompanyBaseSchema:
+#    namespace: "prism_c"
+#    tableName: "company_base_splice"
+#    columnFamily: "ds"

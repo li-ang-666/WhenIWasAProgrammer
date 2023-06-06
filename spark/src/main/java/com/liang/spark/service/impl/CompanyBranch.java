@@ -16,28 +16,28 @@ public class CompanyBranch extends AbstractSparkRunner {
                 .foreachPartition(new DataConcatJob.HbaseSink(ConfigUtils.getConfig(), null, (isHistory, row) -> {
                     String companyId = String.valueOf(row.get(0));
                     String value = String.valueOf(row.get(1));
-                    return new HbaseOneRow("dataConcatOffline", companyId)
+                    return new HbaseOneRow("dataConcatCompanyBaseSchema", companyId)
                             .put("company_branch_total_branch", value);
                 }));
         spark.sql(preQuery(sqlHolder.queryTotalCanceledBranch()))
                 .foreachPartition(new DataConcatJob.HbaseSink(ConfigUtils.getConfig(), null, (isHistory, row) -> {
                     String companyId = String.valueOf(row.get(0));
                     String value = String.valueOf(row.get(1));
-                    return new HbaseOneRow("dataConcatOffline", companyId)
+                    return new HbaseOneRow("dataConcatCompanyBaseSchema", companyId)
                             .put("company_branch_total_canceled_branch", value);
                 }));
         spark.sql(preQuery(sqlHolder.queryMostYear()))
                 .foreachPartition(new DataConcatJob.HbaseSink(ConfigUtils.getConfig(), null, (isHistory, row) -> {
                     String companyId = String.valueOf(row.get(0));
                     String value = String.valueOf(row.get(1));
-                    return new HbaseOneRow("dataConcatOffline", companyId)
+                    return new HbaseOneRow("dataConcatCompanyBaseSchema", companyId)
                             .put("company_branch_most_year", value);
                 }));
         spark.sql(preQuery(sqlHolder.queryMostArea()))
                 .foreachPartition(new DataConcatJob.HbaseSink(ConfigUtils.getConfig(), null, (isHistory, row) -> {
                     String companyId = String.valueOf(row.get(0));
                     String value = String.valueOf(row.get(1));
-                    return new HbaseOneRow("dataConcatOffline", companyId)
+                    return new HbaseOneRow("dataConcatCompanyBaseSchema", companyId)
                             .put("company_branch_most_area", value);
                 }));
     }
