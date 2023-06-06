@@ -55,6 +55,11 @@ public class KafkaSourceFactory {
     }
 
 
+    @FunctionalInterface
+    public interface KafkaRecordValueMapper<T> extends Serializable {
+        T map(byte[] kafkaRecord);
+    }
+
     private static class KafkaDeserializationSchema<T> implements KafkaRecordDeserializationSchema<KafkaRecord<T>> {
         private final KafkaRecordValueMapper<T> mapper;
 
@@ -81,10 +86,5 @@ public class KafkaSourceFactory {
                     new TypeHint<KafkaRecord<T>>() {
                     });
         }
-    }
-
-    @FunctionalInterface
-    public interface KafkaRecordValueMapper<T> extends Serializable {
-        T map(byte[] kafkaRecord);
     }
 }

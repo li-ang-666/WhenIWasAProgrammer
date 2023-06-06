@@ -28,6 +28,11 @@ public class DataConcatJob {
         spark.close();
     }
 
+    @FunctionalInterface
+    public interface RowMapper extends Serializable {
+        HbaseOneRow map(Boolean isHistory, Row row);
+    }
+
     @Slf4j
     public static class HbaseSink implements ForeachPartitionFunction<Row> {
         private final Config config;
@@ -57,10 +62,5 @@ public class DataConcatJob {
             }
             log.info("hbase 写入 {} row", i);
         }
-    }
-
-    @FunctionalInterface
-    public interface RowMapper extends Serializable {
-        HbaseOneRow map(Boolean isHistory, Row row);
     }
 }
