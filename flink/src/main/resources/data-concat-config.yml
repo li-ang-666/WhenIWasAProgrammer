@@ -59,8 +59,6 @@ repairTasks:
     scanMode: Direct
 
 dbConfigs:
-  #################### 本地 ####################
-  localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
   #################### 测试 ####################
   judicialRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
   companyBase: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
@@ -69,11 +67,6 @@ dbConfigs:
 #  judicialRisk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
 #  companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
 #  operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
-
-redisConfigs:
-  localhost:
-    host: "127.0.0.1"
-    password: ~
 
 kafkaConfigs:
   #################### 测试 ####################
@@ -109,6 +102,7 @@ hbaseDbConfigs:
     #################### 生产 ####################
     #zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
 
+# 库、表、列族信息
 hbaseSchemas:
   #################### 测试 ####################
   dataConcatJudicialRiskSchema:

@@ -35,6 +35,7 @@ public class HbaseConnectionHolder implements IHolder<Connection> {
             Connection connection = entry.getValue();
             if (!connection.isClosed()) {
                 try {
+                    log.warn("hbaseConnection close: {}", entry.getKey());
                     connection.close();
                 } catch (Exception ignore) {
                 }

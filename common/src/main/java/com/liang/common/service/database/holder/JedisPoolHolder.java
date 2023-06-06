@@ -34,6 +34,7 @@ public class JedisPoolHolder implements IHolder<JedisPool> {
         for (Map.Entry<String, JedisPool> entry : pools.entrySet()) {
             JedisPool jedisPool = entry.getValue();
             if (!jedisPool.isClosed()) {
+                log.warn("jedisPool close: {}", entry.getKey());
                 jedisPool.close();
             }
         }

@@ -34,6 +34,7 @@ public class DruidHolder implements IHolder<DruidDataSource> {
         for (Map.Entry<String, DruidDataSource> entry : pools.entrySet()) {
             DruidDataSource dataSource = entry.getValue();
             if (!dataSource.isClosed()) {
+                log.warn("druid close: {}", entry.getKey());
                 dataSource.close();
             }
         }
