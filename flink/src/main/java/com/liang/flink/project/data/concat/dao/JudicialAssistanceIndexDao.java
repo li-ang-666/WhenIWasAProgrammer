@@ -17,23 +17,11 @@ public class JudicialAssistanceIndexDao {
      */
     public Long queryTotalFrozenEquity(String companyIdOrEnforcedTargetId, boolean isHistory) {
         String sql = sqlHolder.queryTotalFrozenEquitySql(companyIdOrEnforcedTargetId, isHistory);
-        String queryResult = jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
-        if (!(StringUtils.isNumeric(queryResult) && !"0".equals(queryResult))) {
-            return null;
+        Long queryResult = jdbcTemplate.queryForObject(sql, rs -> rs.getLong(1));
+        if (queryResult == null) {
+            return queryResult;
         }
-        return Long.parseLong(queryResult) * 10000L;
-        /*BigDecimal res = new BigDecimal(queryResult);
-        if ((res.doubleValue() * 10000L / 100000000L) > 1) {
-            return res
-                    .multiply(BigDecimal.valueOf(10000L))
-                    .divide(BigDecimal.valueOf(100000000L), 4, RoundingMode.HALF_UP)
-                    .setScale(4, RoundingMode.HALF_UP)
-                    .stripTrailingZeros().toPlainString() + "亿元";
-        } else {
-            return res
-                    .setScale(4, RoundingMode.HALF_UP)
-                    .stripTrailingZeros().toPlainString() + "万元";
-        }*/
+        return 10000L * queryResult;
     }
 
     /**
