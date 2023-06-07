@@ -4,14 +4,10 @@ import com.liang.spark.udf.CountDistinct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.SparkSession;
 
-import java.nio.ByteBuffer;
-
 
 @Slf4j
 public class SparkTest {
     public static void main(String[] args) throws Exception {
-        log.info("-----------------------------------------");
-        ByteBuffer allocate = ByteBuffer.allocate(11);
         SparkSession spark = SparkSession
                 .builder()
                 .config("spark.sql.autoBroadcastJoinThreshold", "-1")
@@ -21,7 +17,7 @@ public class SparkTest {
         spark.read()
                 .option("header", "true")
                 .option("inferSchema", "true")
-                .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/t3.csv")
+                .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/tb.csv")
                 .createTempView("t");
         spark.udf().register("countd", new CountDistinct());
 

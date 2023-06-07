@@ -11,6 +11,12 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
+        <!--metric-->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-metrics-slf4j</artifactId>
+            <version>1.17.0</version>
+        </dependency>
 
         <!--hadoop(flink需要)-->
         <dependency>

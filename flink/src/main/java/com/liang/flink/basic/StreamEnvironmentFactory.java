@@ -1,5 +1,6 @@
 package com.liang.flink.basic;
 
+import com.codahale.metrics.Slf4jReporter;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.YamlUtils;
@@ -55,6 +56,11 @@ public class StreamEnvironmentFactory {
             /*configuration.setString("execution.savepoint.path", "file://" +
                     "/Users/liang/Desktop/flink-checkpoints/53b0ef2c94cda86ea614605757352069/chk-2");*/
             configuration.setString("rest.bind-port", "54321");
+            configuration.setString("metrics.reporters","slf4j");
+            configuration.setString("metrics.reporter.slf4j.filter.includes","*:*pendingRecord*:*");
+            configuration.setString("metrics.reporter.slf4j.factory.class","org.apache.flink.metrics.slf4j.Slf4jReporterFactory");
+            configuration.setString("metrics.reporter.slf4j.interval","1s");
+            configuration.setString("metrics.scope.operator","kafkaSource.<subtask_index>");
             env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
         }
         //获取checkpoint管理者

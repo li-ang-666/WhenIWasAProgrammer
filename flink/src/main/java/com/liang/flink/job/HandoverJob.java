@@ -19,6 +19,7 @@ public class HandoverJob {
         if (args.length == 0)
             args = new String[]{"handover-config.yml"};
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
+        env.setParallelism(2);
         DataStream<SingleCanalBinlog> binlogDataStream = KafkaSourceStreamFactory.create(env);
         binlogDataStream.addSink(new Sink(ConfigUtils.getConfig()));
         env.execute();

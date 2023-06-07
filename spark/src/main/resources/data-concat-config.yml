@@ -12,25 +12,31 @@ hbaseSchemas:
     namespace: "test"
     tableName: "data_concat_offline"
     columnFamily: "cf1"
+    rowKeyReverse: false
   dataConcatHistoricalInfoSchema:
     namespace: "test"
     tableName: "data_concat_offline"
     columnFamily: "cf1"
+    rowKeyReverse: false
   dataConcatCompanyBaseSchema:
     namespace: "test"
     tableName: "data_concat_offline"
     columnFamily: "cf1"
+    rowKeyReverse: false
 
   #################### 生产 ####################
-  #dataConcatJudicialRiskSchema:
-  #  namespace: "prism_c"
-  #  tableName: "judicial_risk_splice"
-  #  columnFamily: "ds"
-  #dataConcatHistoricalInfoSchema:
-  #  namespace: "prism_c"
-  #  tableName: "historical_info_splice"
-  #  columnFamily: "ds"
-  #dataConcatCompanyBaseSchema:
-  #  namespace: "prism_c"
-  #  tableName: "company_base_splice"
-  #  columnFamily: "ds"
+#  dataConcatJudicialRiskSchema:
+#    namespace: "prism_c"
+#    tableName: "judicial_risk_splice"
+#    columnFamily: "ds"
+#    rowKeyReverse: true
+#  dataConcatHistoricalInfoSchema:
+#    namespace: "prism_c"
+#    tableName: "historical_info_splice"
+#    columnFamily: "ds"
+#    rowKeyReverse: true
+#  dataConcatCompanyBaseSchema:
+#    namespace: "prism_c"
+#    tableName: "company_base_splice"
+#    columnFamily: "ds"
+#    rowKeyReverse: true

@@ -9,4 +9,5 @@ public class HbaseSchema implements Serializable {
     private String namespace;
     private String tableName;
     private String columnFamily;
+    private boolean rowKeyReverse;
 }
