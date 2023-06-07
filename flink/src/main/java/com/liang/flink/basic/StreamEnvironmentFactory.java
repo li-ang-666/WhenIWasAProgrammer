@@ -72,7 +72,7 @@ public class StreamEnvironmentFactory {
         //同时运行的checkpoint数量
         checkpointConfig.setMaxConcurrentCheckpoints(1);
         //程序停止时保留checkpoint
-        checkpointConfig.enableExternalizedCheckpoints(RETAIN_ON_CANCELLATION);
+        checkpointConfig.setExternalizedCheckpointCleanup(RETAIN_ON_CANCELLATION);
         //开启非对齐的checkpoint(可跳跃的barrier)
         checkpointConfig.enableUnalignedCheckpoints();
         checkpointConfig.setForceUnalignedCheckpoints(true);
