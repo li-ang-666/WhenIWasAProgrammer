@@ -3,6 +3,7 @@ package com.liang.flink.dto;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.Map;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class SingleCanalBinlog implements Serializable {
     private String database;
     private String table;

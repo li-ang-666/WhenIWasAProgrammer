@@ -2,17 +2,12 @@ package com.liang.flink.basic;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.YamlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import static org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION;
 
@@ -30,34 +25,18 @@ public class StreamEnvironmentFactory {
     }
 
     private static void initConfig(String[] args) throws Exception {
-        InputStream resourceStream;
-        if (args.length == 0) {
-            throw new RuntimeException("main(args) 没有传递 config 文件, program exit ...");
-        } else {
-            log.info("main(args) 传递 config 文件: {}", args[0]);
-            try {
-                resourceStream = Files.newInputStream(Paths.get(args[0]));
-            } catch (java.nio.file.NoSuchFileException e) {
-                resourceStream = StreamEnvironmentFactory.class.getClassLoader().getResourceAsStream(args[0]);
-            }
-        }
-        Config config = YamlUtils.parse(resourceStream, Config.class);
+        Config config = ConfigUtils.initConfig(args);
         ConfigUtils.setConfig(config);
     }
 
     private static StreamExecutionEnvironment initEnv() {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        //本地checkpoint调试
-        if (env instanceof LocalStreamEnvironment) {
-            Configuration configuration = new Configuration();
-            configuration.setString("state.checkpoints.dir", "file://" +
-                    "/Users/liang/Desktop/flink-checkpoints/");
-            /*configuration.setString("execution.savepoint.path", "file://" +
-                    "/Users/liang/Desktop/flink-checkpoints/53b0ef2c94cda86ea614605757352069/chk-2");*/
-            configuration.setString("rest.bind-port", "54321");
-            env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
+        StreamExecutionEnvironment env;
+        if (StreamExecutionEnvironment.getExecutionEnvironment() instanceof LocalStreamEnvironment) {
+            env = initLocalEnv();
+        } else {
+            env = initClusterEnv();
         }
-        //获取checkpoint管理者
+        //统一checkpoint管理
         CheckpointConfig checkpointConfig = env.getCheckpointConfig();
         //每5分钟开启一次
         checkpointConfig.setCheckpointInterval(CHECKPOINT_INTERVAL);
@@ -77,5 +56,27 @@ public class StreamEnvironmentFactory {
         checkpointConfig.enableUnalignedCheckpoints();
         checkpointConfig.setForceUnalignedCheckpoints(true);
         return env;
+    }
+
+    private static StreamExecutionEnvironment initLocalEnv() {
+        Configuration configuration = new Configuration();
+
+        //本地测试参数
+        configuration.setString("rest.bind-port", "54321");
+        configuration.setString("metrics.reporter.promgateway.factory.class", "org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterFactory");
+        configuration.setString("metrics.reporter.promgateway.hostUrl", "http://10.99.194.108:9091");
+        configuration.setString("metrics.reporter.promgateway.jobName", "flink_handover_job");
+        configuration.setString("metrics.reporter.promgateway.randomJobNameSuffix", "false");
+        configuration.setString("metrics.reporter.promgateway.deleteOnShutdown", "true");
+        configuration.setString("metrics.reporter.promgateway.interval", "1s");
+
+        //本地checkpoint调试
+        configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints/");
+        //configuration.setString("execution.savepoint.path", "file://" + "/Users/liang/Desktop/flink-checkpoints/53b0ef2c94cda86ea614605757352069/chk-2");
+        return StreamExecutionEnvironment.getExecutionEnvironment(configuration);
+    }
+
+    private static StreamExecutionEnvironment initClusterEnv() {
+        return StreamExecutionEnvironment.getExecutionEnvironment();
     }
 }

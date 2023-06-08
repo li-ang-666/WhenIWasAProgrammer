@@ -6,11 +6,33 @@ import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.service.database.holder.JedisPoolHolder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
+
 @Slf4j
 public class ConfigUtils {
     private static volatile Config config;
 
     private ConfigUtils() {
+    }
+
+    public static Config initConfig(String[] args) throws Exception {
+        InputStream resourceStream;
+        if (args.length == 0) {
+            throw new RuntimeException("main(args) 没有传递 config 文件, program exit ...");
+        }
+        String fileName = args[0];
+        log.info("main(args) 传递 config 文件: {}", fileName);
+        try {
+            log.info("try load {} from cluster ...", fileName);
+            resourceStream = Files.newInputStream(Paths.get(fileName));
+        } catch (NoSuchFileException e) {
+            log.warn("try load {} from package resource ...", fileName);
+            resourceStream = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName);
+        }
+        return YamlUtils.parse(resourceStream, Config.class);
     }
 
     public static Config getConfig() {
