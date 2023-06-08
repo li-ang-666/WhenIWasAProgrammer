@@ -18,7 +18,9 @@ public class KafkaSourceStreamFactory {
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
         KafkaSource<KafkaRecord<BatchCanalBinlog>> kafkaSource = KafkaSourceFactory.create(BatchCanalBinlog::new);
         return streamEnvironment
-                .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "kafka source")
+                .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "kafkaSource")
+                .uid("KafkaSource")
+                .name("KafkaSource")
                 .flatMap(new FlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog>() {
                     @Override
                     public void flatMap(KafkaRecord<BatchCanalBinlog> kafkaRecord, Collector<SingleCanalBinlog> out) throws Exception {

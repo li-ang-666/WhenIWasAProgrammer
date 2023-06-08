@@ -4,11 +4,12 @@ classloader.check-leaked-classloader: false
 classloader.parent-first-patterns.additional: org.apache.kafka.
 
 #metric
-metrics.reporters: slf4j
-metrics.reporter.slf4j.filter.includes: *:*pendingRecord*:*
-metrics.reporter.slf4j.factory.class: org.apache.flink.metrics.slf4j.Slf4jReporterFactory
-metrics.reporter.slf4j.interval: 3m
-metrics.scope.operator: kafkaSource.<subtask_index>
+metrics.reporter.promgateway.factory.class: org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterFactory
+metrics.reporter.promgateway.hostUrl: http://10.99.194.108:9091
+metrics.reporter.promgateway.jobName: FlinkJob
+metrics.reporter.promgateway.randomJobNameSuffix: false
+metrics.reporter.promgateway.deleteOnShutdown: true
+metrics.reporter.promgateway.interval: 1m
 
 # jvm参数
 env.java.opts.all: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8

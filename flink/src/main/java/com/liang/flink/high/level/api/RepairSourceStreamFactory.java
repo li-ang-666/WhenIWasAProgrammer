@@ -18,7 +18,7 @@ public class RepairSourceStreamFactory {
         DataStream<SingleCanalBinlog> unionedStream = null;
         for (RepairSource repairSource : flinkRepairSources) {
             SubRepairTask task = repairSource.getTask();
-            String name = String.format("table: %s, uid: %s", task.getTableName(), task.getCheckpointUid());
+            String name = String.format("RepairSource(table=%s,uid=%s)", task.getTableName(), task.getCheckpointUid());
             DataStream<SingleCanalBinlog> singleStream = streamEnvironment.addSource(repairSource)
                     .uid(name)
                     .name(name);
