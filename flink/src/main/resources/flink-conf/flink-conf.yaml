@@ -3,6 +3,13 @@ taskmanager.network.memory.buffer-debloat.enabled: true
 classloader.check-leaked-classloader: false
 classloader.parent-first-patterns.additional: org.apache.kafka.
 
+#metric
+metrics.reporters: slf4j
+metrics.reporter.slf4j.filter.includes: *:*pendingRecord*:*
+metrics.reporter.slf4j.factory.class: org.apache.flink.metrics.slf4j.Slf4jReporterFactory
+metrics.reporter.slf4j.interval: 3m
+metrics.scope.operator: kafkaSource.<subtask_index>
+
 # jvm参数
 env.java.opts.all: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
 env.java.opts.jobmanager: -XX:+PrintGCDetails -XX:+PrintGCDateStamps
