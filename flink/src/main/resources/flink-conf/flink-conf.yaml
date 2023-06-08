@@ -3,14 +3,6 @@ taskmanager.network.memory.buffer-debloat.enabled: true
 classloader.check-leaked-classloader: false
 classloader.parent-first-patterns.additional: org.apache.kafka.
 
-#metric
-metrics.reporter.promgateway.factory.class: org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterFactory
-metrics.reporter.promgateway.hostUrl: http://10.99.194.108:9091
-metrics.reporter.promgateway.jobName: FlinkJob
-metrics.reporter.promgateway.randomJobNameSuffix: false
-metrics.reporter.promgateway.deleteOnShutdown: true
-metrics.reporter.promgateway.interval: 1m
-
 # jvm参数
 env.java.opts.all: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
 env.java.opts.jobmanager: -XX:+PrintGCDetails -XX:+PrintGCDateStamps

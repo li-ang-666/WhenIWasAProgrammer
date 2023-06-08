@@ -63,12 +63,6 @@ public class StreamEnvironmentFactory {
 
         //本地测试参数
         configuration.setString("rest.bind-port", "54321");
-        configuration.setString("metrics.reporter.promgateway.factory.class", "org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterFactory");
-        configuration.setString("metrics.reporter.promgateway.hostUrl", "http://10.99.194.108:9091");
-        configuration.setString("metrics.reporter.promgateway.jobName", "handover");
-        configuration.setString("metrics.reporter.promgateway.randomJobNameSuffix", "false");
-        configuration.setString("metrics.reporter.promgateway.deleteOnShutdown", "true");
-        configuration.setString("metrics.reporter.promgateway.interval", "1s");
 
         //本地checkpoint调试
         configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints/");
