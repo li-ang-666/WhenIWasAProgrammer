@@ -24,7 +24,7 @@ import java.util.List;
 public class DataConcatJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
-            args = new String[]{"data-concat-config.yml"};
+            args = new String[]{"data-concat.yml"};
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = config.getFlinkSource() == FlinkSource.Repair ?
@@ -36,7 +36,7 @@ public class DataConcatJob {
                 .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()))
                 .uid("DataConcatHbaseSink")
                 .name("DataConcatHbaseSink");
-        streamEnvironment.execute();
+        streamEnvironment.execute("DataConcatJob");
     }
 
     //核心处理类 dataConcatService.invoke(singleCanalBinlog)
