@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcTemplate {
-    private final DruidDataSource pool;
+    public final DruidDataSource pool;
     private final TemplateLogger logger;
 
     public JdbcTemplate(String name) {

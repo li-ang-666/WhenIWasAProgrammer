@@ -14,11 +14,12 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.Map;
 
-public class HandoverJob {
+public class SecondaryDimUvCount {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
-            args = new String[]{"handover-config.yml"};
+            args = new String[]{"secondary-dim-uv-count.yml"};
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
+        env.setParallelism(1);
         DataStream<SingleCanalBinlog> binlogDataStream = KafkaSourceStreamFactory.create(env);
         binlogDataStream.addSink(new Sink(ConfigUtils.getConfig()));
         env.execute();
@@ -44,9 +45,15 @@ public class HandoverJob {
             Map<String, Object> columnMap = value.getColumnMap();
             String secondaryDimName = String.valueOf(columnMap.get("visit_secondary_dim_name"));
             if (eventType != CanalEntry.EventType.DELETE && "最终受益人".equals(secondaryDimName)) {
-                String id = String.valueOf(columnMap.get("id"));
-                String sql = String.format("update itch_point_secondary_dims_uv_count set visit_secondary_dim_name = '最终受益人' where id = %s", id);
-                jdbcTemplate.update(sql);
+                // unique (visit_page_name, visit_secondary_dim_name, visit_date)
+                String visitDate = String.valueOf(columnMap.get("visit_date"));
+                String visitPageName = String.valueOf(columnMap.get("visit_page_name"));
+                String deleteSQL = String.format("delete from itch_point_secondary_dims_uv_count where visit_date = '%s' and visit_page_name = '%s' and visit_secondary_dim_name = '受益所有人'", visitDate, visitPageName);
+                jdbcTemplate.update(deleteSQL);
+                String visitCount = String.valueOf(columnMap.get("visit_count"));
+                String insertSQL = String.format("insert into itch_point_secondary_dims_uv_count(id,visit_date,visit_page_name,visit_secondary_dim_name,visit_count,create_time,update_time)" +
+                        "values(DEFAULT,'%s','%s','受益所有人','%s',DEFAULT,DEFAULT)", visitDate, visitPageName, visitCount);
+                jdbcTemplate.update(insertSQL);
             }
         }
     }
