@@ -32,7 +32,7 @@ public class SecondaryDimUvCountJob {
             binlogDataStream = KafkaSourceStreamFactory.create(env);
         }
         binlogDataStream.addSink(new Sink(ConfigUtils.getConfig()));
-        env.execute();
+        env.execute("SecondaryDimUvCountJob");
     }
 
     private static class Sink extends RichSinkFunction<SingleCanalBinlog> {

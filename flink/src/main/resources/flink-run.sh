@@ -9,7 +9,7 @@ export FLINK_CONF_DIR=/data/liang/flink-conf/
   -D taskmanager.numberOfTaskSlots=1 \
   -D parallelism.default=1 \
   -D yarn.application.queue=default \
-  -D yarn.application.name=DataConcatTest \
-  -D state.checkpoints.dir="hdfs:///liang/flink-checkpoints/demo/" \
+  -D yarn.application.name=${JobName} \
+  -D state.checkpoints.dir="hdfs:///liang/flink-checkpoints/${job-name}/" \
   -D yarn.ship-files="config.yml" \
   -c com.liang.flink.job.DataConcatJob flink-1.0-jar-with-dependencies.jar config.yml
