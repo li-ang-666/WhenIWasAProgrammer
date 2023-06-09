@@ -5,6 +5,8 @@ import com.liang.common.dto.config.DBConfig;
 import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Properties;
+
 @Slf4j
 public class DruidFactory implements IFactory<DruidDataSource> {
 
@@ -59,6 +61,9 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setAsyncInit(true);
         druidDataSource.setPoolPreparedStatements(true);
         druidDataSource.setMaxOpenPreparedStatements(100);
+        druidDataSource.setConnectProperties(new Properties() {{
+            put("druid.mysql.usePingMethod", "false");
+        }});
 
         log.info("druid 加载: {}", dbConfig);
         return druidDataSource;
