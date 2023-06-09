@@ -14,12 +14,8 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>2.5.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-            <version>0.1.54</version>
+            <version>2.7.2</version>
+            <classifier>jdk8</classifier>
         </dependency>
         <dependency>
             <groupId>org.apache.calcite</groupId>
