@@ -2,7 +2,6 @@ package com.liang.flink.project.data.concat.dao;
 
 import com.liang.common.service.database.template.JdbcTemplate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple3;
 
 @Slf4j

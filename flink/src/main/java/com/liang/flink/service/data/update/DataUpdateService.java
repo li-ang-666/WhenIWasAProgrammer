@@ -1,7 +1,6 @@
 package com.liang.flink.service.data.update;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.liang.common.util.JsonUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.extern.slf4j.Slf4j;
 

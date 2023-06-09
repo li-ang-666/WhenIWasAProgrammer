@@ -17,15 +17,15 @@ public class CommonTest implements Runner {
             connection.prepareStatement("create table test(id int,info varchar(255))").execute();
             connection.prepareStatement("insert into test values(1,'aaa'),(2,'bbb')").execute();
             ResultSet resultSet = connection.prepareStatement("select * from test").executeQuery();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 String id = resultSet.getString(1);
                 String info = resultSet.getString(2);
-                log.info("{} -> {}",id,info);
+                log.info("{} -> {}", id, info);
             }
             ResultSet resultSet1 = connection.prepareStatement("select '002' > 1 from test").executeQuery();
-            while (resultSet1.next()){
+            while (resultSet1.next()) {
                 String id = resultSet1.getString(1);
-                log.info("{} -> {}",id);
+                log.info("{} -> {}", id);
             }
         } catch (Exception e) {
             e.printStackTrace();
