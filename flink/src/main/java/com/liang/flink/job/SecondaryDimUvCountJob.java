@@ -29,7 +29,7 @@ public class SecondaryDimUvCountJob {
         if (flinkSource == FlinkSource.Repair) {
             binlogDataStream = RepairSourceStreamFactory.create(env);
         } else {
-            binlogDataStream = KafkaSourceStreamFactory.create(env);
+            binlogDataStream = KafkaSourceStreamFactory.create(env, 1);
         }
         binlogDataStream.addSink(new Sink(ConfigUtils.getConfig()));
         env.execute("SecondaryDimUvCountJob");

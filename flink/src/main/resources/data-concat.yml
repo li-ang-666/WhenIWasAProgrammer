@@ -80,7 +80,7 @@ kafkaConfigs:
       - "9349c.proto.operating_risk.equity_pledge_detail"
       - "9349c.proto.company_base.company_branch"
     groupId: "leon"
-    startFrom: "1"
+    startFrom: "2"
 
   #################### 生产 ####################
 #  kafkaSource:

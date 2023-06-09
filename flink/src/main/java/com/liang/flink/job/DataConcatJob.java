@@ -29,12 +29,11 @@ public class DataConcatJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = config.getFlinkSource() == FlinkSource.Repair ?
                 RepairSourceStreamFactory.create(streamEnvironment) :
-                KafkaSourceStreamFactory.create(streamEnvironment);
+                KafkaSourceStreamFactory.create(streamEnvironment, 5);
         stream
                 .rebalance()
                 .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))
                 .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()))
-                .uid("DataConcatHbaseSink")
                 .name("DataConcatHbaseSink");
         streamEnvironment.execute("DataConcatJob");
     }

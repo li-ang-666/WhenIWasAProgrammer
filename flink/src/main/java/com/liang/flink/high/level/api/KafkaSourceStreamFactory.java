@@ -1,6 +1,7 @@
 package com.liang.flink.high.level.api;
 
 import com.liang.flink.basic.KafkaSourceFactory;
+import com.liang.flink.basic.RichMapMonitor;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -15,12 +16,14 @@ public class KafkaSourceStreamFactory {
     private KafkaSourceStreamFactory() {
     }
 
-    public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
+    public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment, int parallel) {
         KafkaSource<KafkaRecord<BatchCanalBinlog>> kafkaSource = KafkaSourceFactory.create(BatchCanalBinlog::new);
         String name = "KafkaSource";
         return streamEnvironment
                 .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), name)
-                .uid(name)
+                .setParallelism(parallel)
+                .map(new RichMapMonitor<>())
+                .setParallelism(1)
                 .flatMap(new FlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog>() {
                     @Override
                     public void flatMap(KafkaRecord<BatchCanalBinlog> kafkaRecord, Collector<SingleCanalBinlog> out) throws Exception {
@@ -28,6 +31,6 @@ public class KafkaSourceStreamFactory {
                             out.collect(singleCanalBinlog);
                         }
                     }
-                });
+                }).setParallelism(1);
     }
 }
