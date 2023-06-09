@@ -19,7 +19,7 @@ import java.util.Iterator;
 public class DataConcatJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            args = new String[]{"data-concat-config.yml"};
+            args = new String[]{"data-concat.yml"};
         }
         SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.sql("use ods");
