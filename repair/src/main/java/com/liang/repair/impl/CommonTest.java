@@ -1,30 +1,35 @@
 package com.liang.repair.impl;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.liang.repair.trait.Runner;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 
 @Slf4j
 public class CommonTest implements Runner {
     @Override
     public void run(String[] args) throws Exception {
-        log.info("1-------------------");
-        Class.forName("org.hsqldb.jdbc.JDBCDriver");
-        log.info("2-------------------");
-        Connection connection = DriverManager.getConnection("jdbc:hsqldb:mem:db", "user", "password");
-        log.info("3-------------------");
-        connection.prepareStatement("create table test(id int primary key,info varchar(65530))").execute();
-        log.info("4-------------------");
-        connection.prepareStatement("insert into test values (1,'aaa')").execute();
-        connection.prepareStatement("insert into test values (2,'bbb')").execute();
-        connection.prepareStatement("insert into test values (3,'ccc')").execute();
-        connection.prepareStatement("insert into test values (4,'ddd')").execute();
-        log.info("5-------------------");
-        ResultSet resultSet = connection.prepareStatement("SELECT count(1) FROM test").executeQuery();
-        log.info("6-------------------");
+        DruidDataSource druidDataSource = new DruidDataSource();
+        druidDataSource.setTestWhileIdle(false);
+        druidDataSource.setDriverClassName("org.hsqldb.jdbc.JDBCDriver");
+        druidDataSource.setUrl("jdbc:hsqldb:mem:db");
+        druidDataSource.setUsername("user");
+        druidDataSource.setPassword("password");
+
+
+
+        Connection connection;
+        connection = druidDataSource.getConnection();
+        log.info("{}",connection);
+        connection.prepareStatement("create table t1 (id varchar(255),name varchar(255))").execute();
+        connection.prepareStatement("create table t2 (id varchar(255),name varchar(255))").execute();
+        connection.prepareStatement("create table t3 (id varchar(255),name varchar(255))").execute();
+        //connection.close();
+        connection = druidDataSource.getConnection();
+        log.info("{}",connection);
+        ResultSet resultSet = connection.prepareStatement("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='PUBLIC'").executeQuery();
         while (resultSet.next()){
             System.out.println(resultSet.getString(1));
         }
