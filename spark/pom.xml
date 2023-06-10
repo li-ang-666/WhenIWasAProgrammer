@@ -16,7 +16,7 @@
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
         </dependency>
-        
+
         <!--common-->
         <dependency>
             <groupId>com.liang</groupId>
