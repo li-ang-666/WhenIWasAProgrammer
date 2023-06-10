@@ -12,6 +12,16 @@ public class DruidFactory implements IFactory<DruidDataSource> {
 
     @Override
     public DruidDataSource createPool(String name) {
+        DruidDataSource druidDataSource = "mem".equals(name) ? createMem() : createNormal(name);
+        configDruid(druidDataSource);
+        if ("mem".equals(name)) {
+            druidDataSource.setValidationQuery("select 1 from INFORMATION_SCHEMA.SYSTEM_USERS");
+        }
+        log.info("druid 加载: {}", name);
+        return druidDataSource;
+    }
+
+    private DruidDataSource createNormal(String name) {
         DBConfig dbConfig = ConfigUtils.getConfig().getDbConfigs().get(name);
         String url = "jdbc:mysql://" + dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
                 //时区
@@ -35,11 +45,22 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&allowMultiQueries=true" +
                 "&rewriteBatchedStatements=true";
         DruidDataSource druidDataSource = new DruidDataSource();
-
         druidDataSource.setUrl(url);
         druidDataSource.setUsername(dbConfig.getUser());
         druidDataSource.setPassword(dbConfig.getPassword());
+        return druidDataSource;
+    }
 
+    private DruidDataSource createMem() {
+        DruidDataSource druidDataSource = new DruidDataSource();
+        druidDataSource.setDriverClassName("org.hsqldb.jdbcDriver");
+        druidDataSource.setUrl("jdbc:hsqldb:mem:db");
+        druidDataSource.setUsername("李昂");
+        druidDataSource.setPassword("牛逼");
+        return druidDataSource;
+    }
+
+    private void configDruid(DruidDataSource druidDataSource) {
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(10);
         druidDataSource.setMaxWait(5000);
@@ -56,7 +77,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         //定期对idle线程进行探活
         druidDataSource.setKeepAlive(true);
         druidDataSource.setKeepAliveBetweenTimeMillis(1000 * 30);
-        druidDataSource.setValidationQuery("select 1 from DUAL");
+        druidDataSource.setValidationQuery("select 1");
         druidDataSource.setValidationQueryTimeout(5);
         druidDataSource.setAsyncInit(true);
         druidDataSource.setPoolPreparedStatements(true);
@@ -64,8 +85,5 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setConnectProperties(new Properties() {{
             put("druid.mysql.usePingMethod", "false");
         }});
-
-        log.info("druid 加载: {}", dbConfig);
-        return druidDataSource;
     }
 }

@@ -17,5 +17,6 @@ public class CommonTest implements Runner {
         for (String result : res) {
             log.info("-----------{}", result);
         }
+        jdbcTemplate.update("drop table if exists 李昂牛逼");
     }
 }
