@@ -11,6 +11,12 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
+        <!--hsqldb-->
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+        </dependency>
+        
         <!--common-->
         <dependency>
             <groupId>com.liang</groupId>
@@ -72,6 +78,12 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <!--druid-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
         </dependency>
 
         <!--lombok-->
