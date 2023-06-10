@@ -20,7 +20,7 @@ public class FlinkTest {
         TopicPartition partition = new TopicPartition("140f5.proto.bigdata_online.itch_point_secondary_dims_uv_count", 0);
         try {
             Map<TopicPartition, Long> topicPartition2OffsetMap = consumer.endOffsets(Collections.singletonList(partition), Duration.ofMillis(100));
-        }catch (Exception e){
+        } catch (Exception e) {
 
         }
 

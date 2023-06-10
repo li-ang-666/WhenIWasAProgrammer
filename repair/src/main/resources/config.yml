@@ -37,8 +37,8 @@ kafkaConfigs:
 
 hbaseDbConfigs:
   #################### 测试 ####################
-#  hbaseSink:
-#    zookeeperQuorum: "10.99.1.165:2181"
+  #  hbaseSink:
+  #    zookeeperQuorum: "10.99.1.165:2181"
 
   #################### 生产 ####################
   hbaseSink:
