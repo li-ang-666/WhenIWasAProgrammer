@@ -16,12 +16,17 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcTemplate {
-    public final DruidDataSource pool;
+    private final DruidDataSource pool;
     private final TemplateLogger logger;
 
     public JdbcTemplate(String name) {
         pool = new DruidHolder().getPool(name);
         logger = new TemplateLogger(this.getClass().getSimpleName(), name);
+    }
+
+    protected JdbcTemplate(DruidDataSource pool, TemplateLogger logger) {
+        this.pool = pool;
+        this.logger = logger;
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {
