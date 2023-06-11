@@ -16,6 +16,7 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
+            <classifier>jdk8</classifier>
         </dependency>
 
         <!--log4j1 + log4j2 究极方案-->
