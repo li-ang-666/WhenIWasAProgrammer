@@ -11,4 +11,8 @@ public class MemJdbcTemplate extends JdbcTemplate {
     public MemJdbcTemplate(String name) {
         super(druidDataSource, new TemplateLogger(MemJdbcTemplate.class.getSimpleName(), name));
     }
+
+    public static void main(String[] args) {
+        System.out.println(111111111);
+    }
 }
