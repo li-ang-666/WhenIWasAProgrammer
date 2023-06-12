@@ -13,14 +13,10 @@ import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.util.Collector;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Properties;
 
 import static org.apache.flink.connector.kafka.source.KafkaSourceOptions.*;
 
@@ -70,7 +66,6 @@ public class KafkaSourceFactory {
     private static class KafkaDeserializationSchema<T> implements KafkaRecordDeserializationSchema<KafkaRecord<T>> {
         private final Config config;
         private final KafkaRecordValueMapper<T> mapper;
-        private KafkaConsumer<byte[], byte[]> innerConsumer;
 
         public KafkaDeserializationSchema(Config config, KafkaRecordValueMapper<T> mapper) {
             this.config = config;
@@ -80,10 +75,6 @@ public class KafkaSourceFactory {
         @Override
         public void open(DeserializationSchema.InitializationContext context) throws Exception {
             ConfigUtils.setConfig(config);
-            KafkaConfig kafkaConfig = config.getKafkaConfigs().get("kafkaSource");
-            Properties properties = new Properties();
-            properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServers());
-            innerConsumer = new KafkaConsumer<>(properties, new ByteArrayDeserializer(), new ByteArrayDeserializer());
         }
 
         @Override
@@ -98,7 +89,6 @@ public class KafkaSourceFactory {
             int partition = record.partition();
             long offset = record.offset();
             long timestamp = record.timestamp();
-            //监控
             out.collect(new KafkaRecord<>(key, value, topic, partition, offset, timestamp));
         }
 
