@@ -2,7 +2,6 @@ package com.liang.common.service.database.template;
 
 import com.liang.common.service.database.holder.JedisPoolHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.java.tuple.Tuple2;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.ScanParams;
@@ -87,7 +86,7 @@ public class RedisTemplate {
             ScanParams scanParams = new ScanParams().match("*").count(100);
             do {
                 ScanResult<String> scanResult = jedis.scan(cursor, scanParams);
-                cursor = scanResult.getStringCursor();
+                cursor = scanResult.getCursor();
                 result.addAll(scanResult.getResult());
             } while (!"0".equals(cursor));
         } catch (Exception e) {
@@ -97,16 +96,16 @@ public class RedisTemplate {
         return result;
     }
 
-    public boolean tryLock(String key, int milliseconds) {
-        logger.beforeExecute("tryLock", Tuple2.of(key, milliseconds));
+    public boolean tryLock(String key) {
+        logger.beforeExecute("tryLock", key);
         boolean res = false;
         try (Jedis jedis = pool.getResource()) {
-            String back = jedis.set(key, "lock", "NX", "PX", milliseconds);
-            res = ("OK".equals(back));
+            Long reply = jedis.setnx(key, "lock");
+            res = reply == 1;
         } catch (Exception e) {
-            logger.ifError("tryLock", Tuple2.of(key, milliseconds), e);
+            logger.ifError("tryLock", key, e);
         }
-        logger.afterExecute("tryLock", Tuple2.of(key, milliseconds));
+        logger.afterExecute("tryLock", key);
         return res;
     }
 
