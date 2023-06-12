@@ -5,16 +5,15 @@ import com.liang.common.dto.config.DBConfig;
 import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Properties;
-
 @Slf4j
 public class DruidFactory implements IFactory<DruidDataSource> {
 
     @Override
     public DruidDataSource createPool(String name) {
-        DruidDataSource druidDataSource = "mem".equals(name) ? createMem() : createNormal(name);
+        boolean isMem = "mem".equals(name);
+        DruidDataSource druidDataSource = isMem ? createMem() : createNormal(name);
         configDruid(druidDataSource);
-        if ("mem".equals(name)) {
+        if (isMem) {
             druidDataSource.setValidationQuery("select 1 from INFORMATION_SCHEMA.SYSTEM_USERS");
         }
         log.info("druid 加载: {}", name);
@@ -38,11 +37,10 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&autoReconnect=true" +
                 "&maxReconnects=3" +
                 "&failOverReadOnly=false" +
-                "&initialTimeout=3" +
-                "&socketTimeout=30000" +
-                "&connectTimeout=30000" +
                 //性能优化
                 "&allowMultiQueries=true" +
+                "&maxAllowedPacket=64M" +
+                "&useCompression=true" +
                 "&rewriteBatchedStatements=true";
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setUrl(url);
@@ -61,10 +59,10 @@ public class DruidFactory implements IFactory<DruidDataSource> {
     }
 
     private void configDruid(DruidDataSource druidDataSource) {
+        druidDataSource.setInitialSize(1);
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(10);
         druidDataSource.setMaxWait(5000);
-        druidDataSource.setUseUnfairLock(true);
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
         druidDataSource.setTestWhileIdle(true);
@@ -73,17 +71,19 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         //超时的视为idle连接,不管minIdle,下次清除线程都会将其清除
         druidDataSource.setMaxEvictableIdleTimeMillis(1000 * 60 * 10);
         //清除线程运行间隔
-        druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 60);
+        druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 30);
         //定期对idle线程进行探活
         druidDataSource.setKeepAlive(true);
-        druidDataSource.setKeepAliveBetweenTimeMillis(1000 * 30);
+        druidDataSource.setKeepAliveBetweenTimeMillis(1000 * 60);
         druidDataSource.setValidationQuery("select 1");
         druidDataSource.setValidationQueryTimeout(5);
         druidDataSource.setAsyncInit(true);
         druidDataSource.setPoolPreparedStatements(true);
         druidDataSource.setMaxOpenPreparedStatements(100);
-        druidDataSource.setConnectProperties(new Properties() {{
-            put("druid.mysql.usePingMethod", "false");
-        }});
+        druidDataSource.setUsePingMethod(false);
+        //超时
+        druidDataSource.setQueryTimeout(30);
+        druidDataSource.setConnectTimeout(1000 * 60);
+        druidDataSource.setSocketTimeout(1000 * 60);
     }
 }
