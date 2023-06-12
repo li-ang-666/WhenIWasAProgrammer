@@ -54,9 +54,10 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 ";MODE=MySQL" +
                 ";DATABASE_TO_LOWER=TRUE" +
                 ";CASE_INSENSITIVE_IDENTIFIERS=TRUE" +
+                ";IGNORECASE=TRUE" +
                 ";AUTO_RECONNECT=TRUE" +
                 ";DB_CLOSE_ON_EXIT=FALSE" +
-                ";IGNORECASE=TRUE"
+                ";DB_CLOSE_DELAY=-1"
         );
         return druidDataSource;
     }
