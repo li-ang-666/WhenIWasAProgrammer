@@ -12,8 +12,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 
-public class KafkaSourceStreamFactory {
-    private KafkaSourceStreamFactory() {
+public class KafkaStreamFactory {
+    private KafkaStreamFactory() {
     }
 
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment, int parallel) {

@@ -9,8 +9,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.List;
 
-public class RepairSourceStreamFactory {
-    private RepairSourceStreamFactory() {
+public class RepairStreamFactory {
+    private RepairStreamFactory() {
     }
 
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {

@@ -1,5 +1,6 @@
 package com.liang.common.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.ArrayList;
@@ -23,7 +24,9 @@ public class SqlUtils {
             return String.valueOf(value);
         } else {
             String valueString = String.valueOf(value);
-            return escapeValue(valueString);
+            return StringUtils.isNumeric(valueString) ?
+                    valueString :
+                    escapeValue(valueString);
         }
     }
 
@@ -97,7 +100,7 @@ public class SqlUtils {
 
     private static String escapeValue(String value) {
         StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
-        stringBuilder.append("\"");
+        stringBuilder.append("'");
         char[] chars = value.toCharArray();
         for (char c : chars) {
             switch (c) {
@@ -117,6 +120,6 @@ public class SqlUtils {
                     stringBuilder.append(c);
             }
         }
-        return stringBuilder.append("\"").toString();
+        return stringBuilder.append("'").toString();
     }
 }

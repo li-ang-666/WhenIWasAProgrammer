@@ -11,12 +11,7 @@ public class CommonTest implements Runner {
     @Override
     public void run(String[] args) throws Exception {
         MemJdbcTemplate jdbcTemplate = new MemJdbcTemplate("aaaaa");
-        jdbcTemplate.update("create table test(id int)");
-        jdbcTemplate.update("insert into test values(100),(200),(333),(456),(700)");
-        List<String> res = jdbcTemplate.queryForList("select group_concat(t1.id order by cast(id as int) desc separator '-') from test t1 join test t2 on t1.id = t2.id", rs -> rs.getString(1));
-        for (String result : res) {
-            log.info("-----------{}", result);
-        }
-        jdbcTemplate.update("drop table if exists 李昂牛逼");
+        jdbcTemplate.update("create table test(`id` varchar(255), `visit_date` varchar(255), `visit_page_name` varchar(255), `visit_secondary_dim_name` varchar(255), `visit_count` varchar(255), `create_time` varchar(255), `update_time` varchar(255))");
+        jdbcTemplate.update("insert into test(`id`, `visit_date`, `visit_page_name`, `visit_secondary_dim_name`, `visit_count`, `create_time`, `update_time`) values('47427300', \"2023-06-05\", \"公司详情页\", \"最终受益人\", \"24686\", \"2023-06-05 00:00:30\", \"2023-06-05 11:34:00\")");
     }
 }

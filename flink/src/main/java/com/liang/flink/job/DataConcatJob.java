@@ -7,8 +7,8 @@ import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.KafkaSourceStreamFactory;
-import com.liang.flink.high.level.api.RepairSourceStreamFactory;
+import com.liang.flink.high.level.api.KafkaStreamFactory;
+import com.liang.flink.high.level.api.RepairStreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +28,8 @@ public class DataConcatJob {
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = config.getFlinkSource() == FlinkSource.Repair ?
-                RepairSourceStreamFactory.create(streamEnvironment) :
-                KafkaSourceStreamFactory.create(streamEnvironment, 5);
+                RepairStreamFactory.create(streamEnvironment) :
+                KafkaStreamFactory.create(streamEnvironment, 5);
         stream
                 .rebalance()
                 .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))

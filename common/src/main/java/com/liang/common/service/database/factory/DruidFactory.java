@@ -7,15 +7,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DruidFactory implements IFactory<DruidDataSource> {
+    public static final String MEMORY_DRUID = "mem";
 
     @Override
     public DruidDataSource createPool(String name) {
-        boolean isMem = "mem".equals(name);
+        boolean isMem = MEMORY_DRUID.equals(name);
         DruidDataSource druidDataSource = isMem ? createMem() : createNormal(name);
         configDruid(druidDataSource);
-        if (isMem) {
-            druidDataSource.setValidationQuery("select 1 from INFORMATION_SCHEMA.SYSTEM_USERS");
-        }
         log.info("druid 加载: {}", name);
         return druidDataSource;
     }
@@ -51,10 +49,8 @@ public class DruidFactory implements IFactory<DruidDataSource> {
 
     private DruidDataSource createMem() {
         DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setDriverClassName("org.hsqldb.jdbcDriver");
-        druidDataSource.setUrl("jdbc:hsqldb:mem:db");
-        druidDataSource.setUsername("李昂");
-        druidDataSource.setPassword("牛逼");
+        druidDataSource.setDriverClassName("org.h2.Driver");
+        druidDataSource.setUrl("jdbc:h2:mem:db");
         return druidDataSource;
     }
 

@@ -7,8 +7,8 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.KafkaSourceStreamFactory;
-import com.liang.flink.high.level.api.RepairSourceStreamFactory;
+import com.liang.flink.high.level.api.KafkaStreamFactory;
+import com.liang.flink.high.level.api.RepairStreamFactory;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -27,9 +27,9 @@ public class SecondaryDimUvCountJob {
         FlinkSource flinkSource = ConfigUtils.getConfig().getFlinkSource();
         DataStream<SingleCanalBinlog> binlogDataStream;
         if (flinkSource == FlinkSource.Repair) {
-            binlogDataStream = RepairSourceStreamFactory.create(env);
+            binlogDataStream = RepairStreamFactory.create(env);
         } else {
-            binlogDataStream = KafkaSourceStreamFactory.create(env, 1);
+            binlogDataStream = KafkaStreamFactory.create(env, 1);
         }
         binlogDataStream.addSink(new Sink(ConfigUtils.getConfig()));
         env.execute("SecondaryDimUvCountJob");
