@@ -69,7 +69,7 @@ public class RedisTemplate {
             ScanParams scanParams = new ScanParams().match("*").count(100);
             do {
                 ScanResult<Map.Entry<String, String>> scanResult = jedis.hscan(key, cursor, scanParams);
-                cursor = scanResult.getStringCursor();
+                cursor = scanResult.getCursor();
                 scanResult.getResult().forEach(entry -> result.put(entry.getKey(), entry.getValue()));
             } while (!"0".equals(cursor));
         } catch (Exception e) {
