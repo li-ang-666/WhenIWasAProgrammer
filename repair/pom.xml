@@ -12,11 +12,11 @@
     <artifactId>repair</artifactId>
     <dependencies>
         <!--hsqldb-->
-        <dependency>
+        <!--<dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <classifier>jdk8</classifier>
-        </dependency>
+        </dependency>-->
 
         <!--common-->
         <dependency>

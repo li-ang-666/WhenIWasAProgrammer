@@ -13,11 +13,11 @@
     <artifactId>common</artifactId>
     <dependencies>
         <!--hsqldb-->
-        <dependency>
+        <!--<dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <classifier>jdk8</classifier>
-        </dependency>
+        </dependency>-->
 
         <!--log4j1 + log4j2 究极方案-->
         <dependency>
@@ -28,6 +28,17 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
         </dependency>
+        <!--<dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.13</version>
+        </dependency>-->
+
 
         <!--hbase-->
         <dependency>
