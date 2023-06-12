@@ -16,14 +16,10 @@ import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Properties;
 
 import static org.apache.flink.connector.kafka.source.KafkaSourceOptions.*;
@@ -103,15 +99,7 @@ public class KafkaSourceFactory {
             long offset = record.offset();
             long timestamp = record.timestamp();
             //监控
-            long topicPartitionMaxOffset = -1L;
-            TopicPartition topicPartition = new TopicPartition(topic, partition);
-            try {
-                Map<TopicPartition, Long> topicPartition2OffsetMap = innerConsumer.endOffsets(Collections.singletonList(topicPartition), Duration.ofMillis(500));
-                topicPartitionMaxOffset = topicPartition2OffsetMap.getOrDefault(topicPartition, -1L);
-            } catch (Exception e) {
-                log.warn("inner kafka consumer seek latest offset failed, topic: {}, partition: {}", topic, partition);
-            }
-            out.collect(new KafkaRecord<>(key, value, topic, partition, offset, timestamp, topicPartitionMaxOffset));
+            out.collect(new KafkaRecord<>(key, value, topic, partition, offset, timestamp));
         }
 
         @Override

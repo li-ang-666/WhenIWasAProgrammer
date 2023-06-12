@@ -32,11 +32,11 @@ public class DemoJob {
         Config config = ConfigUtils.getConfig();
         FlinkSource flinkSource = config.getFlinkSource();
         DataStream<SingleCanalBinlog> dataStream = flinkSource == FlinkSource.Kafka ?
-                KafkaStreamFactory.create(env, 1) :
+                KafkaStreamFactory.create(env, 5) :
                 RepairStreamFactory.create(env);
         dataStream
                 .rebalance()
-                .addSink(new DemoSink(config)).setParallelism(5);
+                .addSink(new DemoSink(config)).setParallelism(1);
         env.execute("DemoJob");
     }
 

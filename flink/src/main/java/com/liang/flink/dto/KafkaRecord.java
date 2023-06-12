@@ -15,9 +15,7 @@ public class KafkaRecord<T> implements Serializable {
     private T value;
     //其它信息
     private String topic;
-    private long partition;
+    private int partition;
     private long offset;
     private long reachMilliseconds;
-    //监控
-    private long topicPartitionMaxOffset;
 }

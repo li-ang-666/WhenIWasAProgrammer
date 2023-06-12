@@ -4,8 +4,6 @@ import com.liang.common.service.database.template.MemJdbcTemplate;
 import com.liang.repair.trait.Runner;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-
 @Slf4j
 public class CommonTest implements Runner {
     @Override
