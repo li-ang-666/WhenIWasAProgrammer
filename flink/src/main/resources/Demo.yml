@@ -21,4 +21,4 @@ kafkaConfigs:
     topics:
       - "140f5.proto.bigdata_online.itch_point_secondary_dims_uv_count"
     groupId: "demo"
-    startFrom: "2"
+    startFrom: "1"

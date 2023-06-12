@@ -50,7 +50,14 @@ public class DruidFactory implements IFactory<DruidDataSource> {
     private DruidDataSource createMem() {
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setDriverClassName("org.h2.Driver");
-        druidDataSource.setUrl("jdbc:h2:mem:db");
+        druidDataSource.setUrl("jdbc:h2:mem:db" +
+                ";MODE=MySQL" +
+                ";DATABASE_TO_LOWER=TRUE" +
+                ";CASE_INSENSITIVE_IDENTIFIERS=TRUE" +
+                ";AUTO_RECONNECT=TRUE" +
+                ";DB_CLOSE_ON_EXIT=FALSE" +
+                ";IGNORECASE=TRUE"
+        );
         return druidDataSource;
     }
 

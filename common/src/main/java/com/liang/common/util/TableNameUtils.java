@@ -2,7 +2,11 @@ package com.liang.common.util;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Random;
+
 public class TableNameUtils {
+    private static final ThreadLocal<Random> TL = new ThreadLocal<>();
+
     private TableNameUtils() {
     }
 
@@ -20,5 +24,14 @@ public class TableNameUtils {
             builder.append(Character.toLowerCase(c));
         }
         return builder.toString();
+    }
+
+    public static String getRandomTableName() {
+        if (TL.get() == null) {
+            TL.set(new Random());
+        }
+        return String.format("t_%s_%s",
+                System.currentTimeMillis(),
+                TL.get().nextInt(Integer.MAX_VALUE));
     }
 }
