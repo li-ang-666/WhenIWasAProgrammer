@@ -51,7 +51,7 @@ public class KafkaSourceFactory {
                 .setTopics(kafkaConfig.getTopics())
                 .setDeserializer(new KafkaDeserializationSchema<>(config, mapper))
                 .setProperty(PARTITION_DISCOVERY_INTERVAL_MS.key(), "60000")
-                .setProperty(REGISTER_KAFKA_CONSUMER_METRICS.key(), "true")
+                .setProperty(REGISTER_KAFKA_CONSUMER_METRICS.key(), "false")
                 .setProperty(COMMIT_OFFSETS_ON_CHECKPOINT.key(), "true")
                 .setStartingOffsets(offsetsInitializer)
                 .build();
