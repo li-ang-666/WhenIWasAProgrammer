@@ -21,7 +21,7 @@ public class KafkaStreamFactory {
         return streamEnvironment
                 .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), name)
                 .setParallelism(parallel)
-                .flatMap(new CanalKafkaMonitor(ConfigUtils.getConfig()))
+                .flatMap(new CanalKafkaMonitor(ConfigUtils.getConfig())).name("CanalKafkaMonitor")
                 .setParallelism(1);
     }
 }
