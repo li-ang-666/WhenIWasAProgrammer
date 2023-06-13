@@ -16,16 +16,18 @@ public class DataUpdateService<OUT> {
     }
 
     public List<OUT> invoke(SingleCanalBinlog singleCanalBinlog) {
-        //log.debug("dataUpdateService input: {}", JsonUtils.toString(singleCanalBinlog));
-        AbstractDataUpdate<OUT> impl = dataUpdateContext.getClass(singleCanalBinlog.getTable());
         List<OUT> out = new ArrayList<>();
+        AbstractDataUpdate<OUT> impl = dataUpdateContext.getClass(singleCanalBinlog.getTable());
+        if (impl == null) {
+            log.warn("该表无处理类: {}", singleCanalBinlog.getTable());
+            return out;
+        }
         CanalEntry.EventType eventType = singleCanalBinlog.getEventType();
-        if (impl != null && (eventType == CanalEntry.EventType.INSERT || eventType == CanalEntry.EventType.UPDATE)) {
+        if (eventType == CanalEntry.EventType.INSERT || eventType == CanalEntry.EventType.UPDATE) {
             out.addAll(impl.updateWithReturn(singleCanalBinlog));
-        } else if (impl != null && eventType == CanalEntry.EventType.DELETE) {
+        } else if (eventType == CanalEntry.EventType.DELETE) {
             out.addAll(impl.deleteWithReturn(singleCanalBinlog));
         }
-        //log.debug("dataUpdateService output: {}", JsonUtils.toString(out));
         return out;
     }
 }

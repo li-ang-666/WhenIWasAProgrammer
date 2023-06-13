@@ -2,24 +2,73 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.FlinkSource;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.KafkaStreamFactory;
 import com.liang.flink.high.level.api.RepairStreamFactory;
+import com.liang.flink.service.data.update.DataUpdateContext;
+import com.liang.flink.service.data.update.DataUpdateService;
+import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+
+import java.util.List;
+import java.util.Map;
 
 public class NoShareholderCompanyInfoJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
-            args = new String[]{"data-concat.yml"};
+            args = new String[]{"no-shareholder-company-info.yml"};
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = config.getFlinkSource() == FlinkSource.Repair ?
                 RepairStreamFactory.create(streamEnvironment) :
                 KafkaStreamFactory.create(streamEnvironment, 5);
-        stream.rebalance();
+        stream
+                .keyBy(new KeySelector<SingleCanalBinlog, String>() {
+                    @Override
+                    public String getKey(SingleCanalBinlog value) throws Exception {
+                        return String.valueOf(value.getColumnMap().get("company_id"));
+                    }
+                })
+                .addSink(new MySqlSink(ConfigUtils.getConfig()))
+                .name("MySqlSink");
         streamEnvironment.execute("NoShareholderCompanyInfoJob");
+    }
+
+    private final static class MySqlSink extends RichSinkFunction<SingleCanalBinlog> {
+        private final Config config;
+        private DataUpdateService<Map<String, Object>> service;
+        private JdbcTemplate jdbcTemplate;
+
+        public MySqlSink(Config config) throws Exception {
+            this.config = config;
+        }
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+            ConfigUtils.setConfig(config);
+            DataUpdateContext<Map<String, Object>> context = new DataUpdateContext<Map<String, Object>>("com.liang.flink.project.no.thareholder.company.info.impl")
+                    .addClass("CompanyIndex");
+            service = new DataUpdateService<>(context);
+            jdbcTemplate = new JdbcTemplate("test");
+        }
+
+        @Override
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+            List<Map<String, Object>> columnMaps = service.invoke(singleCanalBinlog);
+            if (columnMaps.isEmpty()) {
+                return;
+            }
+            Tuple2<String, String> insertSyntax = SqlUtils.columnMap2Insert(columnMaps.get(0));
+            String sql = String.format("insert into no_shareholder_company_info(%s) values(%s)", insertSyntax.f0, insertSyntax.f1);
+            jdbcTemplate.update(sql);
+        }
     }
 }

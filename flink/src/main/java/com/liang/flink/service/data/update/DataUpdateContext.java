@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class DataUpdateContext<C> {
-    private final Map<String, AbstractDataUpdate<C>> map = new HashMap<>();
+public class DataUpdateContext<OUT> {
+    private final Map<String, AbstractDataUpdate<OUT>> map = new HashMap<>();
     private final String fullPackageName;
 
     public DataUpdateContext(String fullPackageName) {
@@ -16,19 +16,15 @@ public class DataUpdateContext<C> {
     }
 
     @SuppressWarnings("unchecked")
-    public DataUpdateContext<C> addClass(String shortClassName) throws Exception {
+    public DataUpdateContext<OUT> addClass(String shortClassName) throws Exception {
         String fullClassName = fullPackageName + "." + shortClassName;
         String tableName = TableNameUtils.humpToUnderLine(shortClassName);
-        this.map.put(tableName, (AbstractDataUpdate<C>) Class.forName(fullClassName).newInstance());
+        map.put(tableName, (AbstractDataUpdate<OUT>) Class.forName(fullClassName).newInstance());
         log.info("加载表处理类: {} -> {}", tableName, fullClassName);
         return this;
     }
 
-    public AbstractDataUpdate<C> getClass(String tableName) {
-        AbstractDataUpdate<C> impl = map.get(tableName);
-        if (impl == null) {
-            log.warn("该表无处理类: {}", tableName);
-        }
-        return impl;
+    public AbstractDataUpdate<OUT> getClass(String tableName) {
+        return map.get(tableName);
     }
 }
