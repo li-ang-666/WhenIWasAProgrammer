@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class KafkaLagReporter implements Runnable {
-    private static final int INTERVAL_SECONDS = 30;
+    private static final int INTERVAL_SECONDS = 180;
 
     private final Map<TopicPartition, Long> offsetMap;
     private final Map<TopicPartition, Long> timeMap;
