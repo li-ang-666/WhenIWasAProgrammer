@@ -1,8 +1,11 @@
-flinkSource: Repair # Repair or Kafka
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 2
+  otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  #股权冻结
   - checkpointUid: "111"
     sourceName: "companyBase"
     tableName: "company_index"

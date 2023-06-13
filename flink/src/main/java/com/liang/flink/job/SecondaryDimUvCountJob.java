@@ -2,7 +2,6 @@ package com.liang.flink.job;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
-import com.liang.common.dto.config.FlinkSource;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
@@ -16,6 +15,8 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.Map;
 
+import static com.liang.common.dto.config.FlinkConfig.SourceType.Repair;
+
 public class SecondaryDimUvCountJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -23,13 +24,12 @@ public class SecondaryDimUvCountJob {
 
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
         env.setParallelism(1);
-
-        FlinkSource flinkSource = ConfigUtils.getConfig().getFlinkSource();
+        Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> binlogDataStream;
-        if (flinkSource == FlinkSource.Repair) {
+        if (config.getFlinkConfig().getSourceType() == Repair) {
             binlogDataStream = RepairStreamFactory.create(env);
         } else {
-            binlogDataStream = KafkaStreamFactory.create(env, 1);
+            binlogDataStream = KafkaStreamFactory.create(env);
         }
         binlogDataStream.addSink(new Sink(ConfigUtils.getConfig()));
         env.execute("SecondaryDimUvCountJob");

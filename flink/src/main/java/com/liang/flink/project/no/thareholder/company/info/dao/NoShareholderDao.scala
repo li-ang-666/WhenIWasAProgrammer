@@ -20,7 +20,7 @@ class NoShareholderDao {
          |where t1.deleted = 0
          |  and t1.listing_status not in ('暂停上市', 'IPO终止', '退市整理', '终止上市')
          |  and t2.deleted = 0
-         |  and t2.graph_id = $companyId
+         |  and t2.graph_id = $companyId limit 1
          |""".stripMargin
     val res: String = prism1.queryForObject(sql, rs => rs.getString(1))
     res != null
@@ -74,7 +74,7 @@ class NoShareholderDao {
          |select 1
          |from company_equity_relation_details
          |where company_id_invested = $companyId
-         |  and reference_pt_year = DATE_FORMAT(NOW(), '%Y');
+         |  and reference_pt_year = DATE_FORMAT(NOW(), '%Y') limit 1
          |""".stripMargin
     val res: String = graph.queryForObject(sql, rs => rs.getString(1))
     res != null

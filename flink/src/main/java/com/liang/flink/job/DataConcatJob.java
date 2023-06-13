@@ -2,7 +2,6 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.dto.HbaseOneRow;
-import com.liang.common.dto.config.FlinkSource;
 import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
@@ -20,6 +19,8 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
 
+import static com.liang.common.dto.config.FlinkConfig.SourceType.Repair;
+
 @Slf4j
 public class DataConcatJob {
     public static void main(String[] args) throws Exception {
@@ -27,9 +28,9 @@ public class DataConcatJob {
             args = new String[]{"data-concat.yml"};
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        DataStream<SingleCanalBinlog> stream = config.getFlinkSource() == FlinkSource.Repair ?
+        DataStream<SingleCanalBinlog> stream = config.getFlinkConfig().getSourceType() == Repair ?
                 RepairStreamFactory.create(streamEnvironment) :
-                KafkaStreamFactory.create(streamEnvironment, 5);
+                KafkaStreamFactory.create(streamEnvironment);
         stream
                 .rebalance()
                 .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))

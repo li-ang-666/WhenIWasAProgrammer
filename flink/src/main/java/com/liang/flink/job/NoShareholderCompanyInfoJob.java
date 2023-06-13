@@ -1,7 +1,6 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.dto.config.FlinkSource;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
@@ -21,15 +20,17 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.List;
 import java.util.Map;
 
+import static com.liang.common.dto.config.FlinkConfig.SourceType.Repair;
+
 public class NoShareholderCompanyInfoJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
             args = new String[]{"no-shareholder-company-info.yml"};
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        DataStream<SingleCanalBinlog> stream = config.getFlinkSource() == FlinkSource.Repair ?
+        DataStream<SingleCanalBinlog> stream = config.getFlinkConfig().getSourceType() == Repair ?
                 RepairStreamFactory.create(streamEnvironment) :
-                KafkaStreamFactory.create(streamEnvironment, 2);
+                KafkaStreamFactory.create(streamEnvironment);
         stream
                 .keyBy(new KeySelector<SingleCanalBinlog, String>() {
                     @Override
@@ -39,7 +40,7 @@ public class NoShareholderCompanyInfoJob {
                 })
                 .addSink(new MySqlSink(ConfigUtils.getConfig()))
                 .name("MySqlSink")
-                .setParallelism(1);
+                .setParallelism(ConfigUtils.getConfig().getFlinkConfig().getOtherParallel());
         streamEnvironment.execute("NoShareholderCompanyInfoJob");
     }
 
@@ -56,7 +57,8 @@ public class NoShareholderCompanyInfoJob {
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             DataUpdateContext<Map<String, Object>> context = new DataUpdateContext<Map<String, Object>>("com.liang.flink.project.no.thareholder.company.info.impl")
-                    .addClass("CompanyIndex");
+                    .addClass("CompanyIndex")
+                    .addClass("CompanyEquityRelationDetails");
             service = new DataUpdateService<>(context);
             jdbcTemplate = new JdbcTemplate("sink");
         }

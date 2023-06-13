@@ -1,7 +1,6 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.dto.config.FlinkSource;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.MemJdbcTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -23,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.liang.common.dto.config.FlinkConfig.SourceType.Repair;
+
 public class DemoJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -30,9 +31,8 @@ public class DemoJob {
         }
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        FlinkSource flinkSource = config.getFlinkSource();
-        DataStream<SingleCanalBinlog> dataStream = flinkSource == FlinkSource.Kafka ?
-                KafkaStreamFactory.create(env, 5) :
+        DataStream<SingleCanalBinlog> dataStream = config.getFlinkConfig().getSourceType() == Repair ?
+                KafkaStreamFactory.create(env) :
                 RepairStreamFactory.create(env);
         dataStream
                 .rebalance()

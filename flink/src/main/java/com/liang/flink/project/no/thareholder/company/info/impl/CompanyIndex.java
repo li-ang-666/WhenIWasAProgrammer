@@ -3,6 +3,7 @@ package com.liang.flink.project.no.thareholder.company.info.impl;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.no.thareholder.company.info.dao.NoShareholderDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -28,13 +29,16 @@ public class CompanyIndex extends AbstractDataUpdate<Map<String, Object>> {
 
     @Override
     public List<Map<String, Object>> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        HashMap<String, Object> resultMap = new HashMap<>();
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
 
         String companyId = String.valueOf(columnMap.get("company_id"));
-        if ("0".equals(companyId)) {
-            return Collections.singletonList(resultMap);
+        if (!(StringUtils.isNumeric(companyId) && !"0".equals(companyId))) {
+            return new ArrayList<>();
         }
+        if (dao.queryHasRelation(companyId)) {
+            return new ArrayList<>();
+        }
+        HashMap<String, Object> resultMap = new HashMap<>();
         String companyName = String.valueOf(columnMap.get("company_name"));
         String orgType = String.valueOf(columnMap.get("org_type"));
         String companyType = String.valueOf(columnMap.get("company_type"));

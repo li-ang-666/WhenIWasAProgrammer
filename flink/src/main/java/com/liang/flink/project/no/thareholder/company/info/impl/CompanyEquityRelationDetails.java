@@ -4,6 +4,7 @@ import com.liang.common.util.DateTimeUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.no.thareholder.company.info.dao.NoShareholderDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,9 @@ public class CompanyEquityRelationDetails extends AbstractDataUpdate<Map<String,
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String companyId = String.valueOf(columnMap.get("company_id"));
         String year = String.valueOf(columnMap.get("reference_pt_year"));
-        if (year.equals(DateTimeUtils.currentDate().substring(0, 4))) {
+        if (StringUtils.isNumeric(companyId)
+                && !"0".equals(companyId)
+                && year.equals(DateTimeUtils.currentDate().substring(0, 4))) {
             dao.deleteCompany(companyId);
         }
         return new ArrayList<>();

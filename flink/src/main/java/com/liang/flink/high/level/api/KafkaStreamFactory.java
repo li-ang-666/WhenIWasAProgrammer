@@ -15,12 +15,12 @@ public class KafkaStreamFactory {
     private KafkaStreamFactory() {
     }
 
-    public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment, int parallel) {
+    public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
         KafkaSource<KafkaRecord<BatchCanalBinlog>> kafkaSource = KafkaSourceFactory.create(BatchCanalBinlog::new);
         String name = "KafkaSource";
         return streamEnvironment
                 .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), name)
-                .setParallelism(parallel)
+                .setParallelism(ConfigUtils.getConfig().getFlinkConfig().getSourceParallel())
                 .flatMap(new CanalKafkaMonitor(ConfigUtils.getConfig())).name("CanalKafkaMonitor")
                 .setParallelism(1);
     }
