@@ -1,4 +1,8 @@
-flinkSource: Kafka # Repair or Kafka
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 2
+  otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
