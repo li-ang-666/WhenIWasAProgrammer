@@ -21,6 +21,9 @@ public class HbaseOneRow implements Serializable {
     }
 
     public HbaseOneRow put(String column, Object value) {
+        if (String.valueOf(value).equalsIgnoreCase("null")) {
+            value = null;
+        }
         this.columnMap.put(schema.getColumnFamily() + ":" + column, value);
         return this;
     }

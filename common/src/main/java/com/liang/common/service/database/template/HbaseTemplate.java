@@ -49,10 +49,11 @@ public class HbaseTemplate {
                 String[] familyAndCol = entry.getKey().split(":");
                 String family = familyAndCol[0];
                 String col = familyAndCol[1];
-                String value = String.valueOf(entry.getValue());
+                Object value = entry.getValue();
+                byte[] valueArr = value == null ? null : Bytes.toBytes(String.valueOf(value));
                 put.addColumn(Bytes.toBytes(family),
                         Bytes.toBytes(col),
-                        Bytes.toBytes(value));
+                        valueArr);
             }
             table.put(put);
         } catch (Exception e) {
