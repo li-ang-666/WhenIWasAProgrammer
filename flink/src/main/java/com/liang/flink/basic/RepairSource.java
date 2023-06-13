@@ -7,6 +7,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.RepairDataHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeHint;
@@ -71,7 +72,9 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
                 return;
             }
             if (queue.peek() != null) {
-                ctx.collect(queue.poll());
+                synchronized (running) {
+                    ctx.collect(queue.poll());
+                }
                 TimeUnit.MILLISECONDS.sleep(1);
             }
         }
@@ -79,12 +82,16 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
+        SubRepairTask copyTask;
+        ConcurrentLinkedQueue<SingleCanalBinlog> copyQueue;
+        synchronized (running) {
+            copyTask = SerializationUtils.clone(task);
+            copyQueue = SerializationUtils.clone(queue);
+        }
         taskState.clear();
         queueState.clear();
-        synchronized (running) {
-            taskState.add(task);
-            queueState.add(queue);
-        }
+        taskState.add(copyTask);
+        queueState.add(copyQueue);
     }
 
     @Override

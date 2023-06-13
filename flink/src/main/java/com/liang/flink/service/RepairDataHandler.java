@@ -18,14 +18,14 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 
 @Slf4j
 public class RepairDataHandler implements Runnable {
-    private final static int BATCH_SIZE = 1000;
+    private final static int BATCH_SIZE = 200;
     private final static int MAX_QUEUE_SIZE = 10000 * 100;
     private final static int DIRECT_TASK_FINISH_ID = 404;
 
     private final ConcurrentLinkedQueue<SingleCanalBinlog> queue;
     private final JdbcTemplate jdbcTemplate;
     private final SubRepairTask task;
-    private final String basicSql;
+    private final String baseSql;
     private final AtomicBoolean running;
 
     private volatile long highWatermark;
@@ -34,7 +34,7 @@ public class RepairDataHandler implements Runnable {
         this.queue = queue;
         this.jdbcTemplate = new JdbcTemplate(task.getSourceName());
         this.task = task;
-        basicSql = String.format("select %s from %s where %s ",
+        baseSql = String.format("select %s from %s where %s ",
                 task.getColumns(), task.getTableName(), task.getWhere());
         this.running = running;
     }
@@ -67,7 +67,7 @@ public class RepairDataHandler implements Runnable {
     }
 
     private List<Map<String, Object>> nextBatch() {
-        String sql = basicSql;
+        String sql = baseSql;
         if (task.getScanMode() == TumblingWindow) {
             highWatermark = Math.min(task.getCurrentId() + BATCH_SIZE, task.getTargetId());
             sql += String.format(" and %s <= id and id < %s", task.getCurrentId(), highWatermark);
