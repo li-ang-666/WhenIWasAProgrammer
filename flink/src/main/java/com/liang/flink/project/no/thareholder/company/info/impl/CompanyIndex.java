@@ -1,13 +1,10 @@
 package com.liang.flink.project.no.thareholder.company.info.impl;
 
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.project.no.thareholder.company.info.dao.CompanyIndexDao;
+import com.liang.flink.project.no.thareholder.company.info.dao.NoShareholderDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>create table no_shareholder_company_info(
@@ -27,18 +24,21 @@ import java.util.Map;
  * <p>)DEFAULT CHARSET = utf8mb4 COMMENT = '没有股东的投资信息表';
  */
 public class CompanyIndex extends AbstractDataUpdate<Map<String, Object>> {
-    private final CompanyIndexDao dao = new CompanyIndexDao();
+    private final NoShareholderDao dao = new NoShareholderDao();
 
     @Override
     public List<Map<String, Object>> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
+        HashMap<String, Object> resultMap = new HashMap<>();
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+
         String companyId = String.valueOf(columnMap.get("company_id"));
+        if ("0".equals(companyId)) {
+            return Collections.singletonList(resultMap);
+        }
         String companyName = String.valueOf(columnMap.get("company_name"));
         String orgType = String.valueOf(columnMap.get("org_type"));
         String companyType = String.valueOf(columnMap.get("company_type"));
         String unifiedSocialCreditCode = String.valueOf(columnMap.get("unified_social_credit_code"));
-
-        HashMap<String, Object> resultMap = new HashMap<>();
         resultMap.put("id", companyId);
         resultMap.put("company_id_invested", companyId);
         resultMap.put("company_name_invested", companyName);
@@ -63,5 +63,12 @@ public class CompanyIndex extends AbstractDataUpdate<Map<String, Object>> {
                 && !orgType.contains("新闻")
                 && !orgType.contains("旅游")
                 && !orgType.contains("外国非法人");
+    }
+
+    @Override
+    public List<Map<String, Object>> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
+        String companyId = String.valueOf(singleCanalBinlog.getColumnMap().get("company_id"));
+        dao.deleteCompany(companyId);
+        return new ArrayList<>();
     }
 }

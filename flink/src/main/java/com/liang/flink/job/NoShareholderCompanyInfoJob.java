@@ -58,18 +58,17 @@ public class NoShareholderCompanyInfoJob {
             DataUpdateContext<Map<String, Object>> context = new DataUpdateContext<Map<String, Object>>("com.liang.flink.project.no.thareholder.company.info.impl")
                     .addClass("CompanyIndex");
             service = new DataUpdateService<>(context);
-            jdbcTemplate = new JdbcTemplate("test");
+            jdbcTemplate = new JdbcTemplate("sink");
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
             List<Map<String, Object>> columnMaps = service.invoke(singleCanalBinlog);
-            if (columnMaps.isEmpty()) {
-                return;
+            for (Map<String, Object> columnMap : columnMaps) {
+                Tuple2<String, String> insertSyntax = SqlUtils.columnMap2Insert(columnMap);
+                String sql = String.format("replace into no_shareholder_company_info(%s) values(%s)", insertSyntax.f0, insertSyntax.f1);
+                jdbcTemplate.update(sql);
             }
-            Tuple2<String, String> insertSyntax = SqlUtils.columnMap2Insert(columnMaps.get(0));
-            String sql = String.format("replace into no_shareholder_company_info(%s) values(%s)", insertSyntax.f0, insertSyntax.f1);
-            jdbcTemplate.update(sql);
         }
     }
 }

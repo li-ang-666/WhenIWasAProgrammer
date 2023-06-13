@@ -3,10 +3,12 @@ package com.liang.flink.project.no.thareholder.company.info.dao
 import com.liang.common.service.database.template.JdbcTemplate
 import org.apache.commons.lang3.StringUtils
 
-class CompanyIndexDao {
+class NoShareholderDao {
   private final val prism1: JdbcTemplate = new JdbcTemplate("prism1")
   private final val listed: JdbcTemplate = new JdbcTemplate("listed")
   private final val companyBase: JdbcTemplate = new JdbcTemplate("companyBase")
+  private final val graph: JdbcTemplate = new JdbcTemplate("graph")
+  private final val sink: JdbcTemplate = new JdbcTemplate("sink")
 
   def queryIsListedCompanyInvested(companyId: String): Boolean = {
     val sql: String =
@@ -64,5 +66,22 @@ class CompanyIndexDao {
          |""".stripMargin
     val res: String = companyBase.queryForObject(sql, rs => rs.getString(1))
     if (StringUtils.isNotBlank(res)) res else ""
+  }
+
+  def queryHasRelation(companyId: String): Boolean = {
+    val sql: String =
+      s"""
+         |select 1
+         |from company_equity_relation_details
+         |where company_id_invested = $companyId
+         |  and reference_pt_year = DATE_FORMAT(NOW(), '%Y');
+         |""".stripMargin
+    val res: String = graph.queryForObject(sql, rs => rs.getString(1))
+    res != null
+  }
+
+  def deleteCompany(companyId: String): Unit = {
+    val sql: String = s"""delete from no_shareholder_company_info where id = $companyId"""
+    sink.update(sql)
   }
 }
