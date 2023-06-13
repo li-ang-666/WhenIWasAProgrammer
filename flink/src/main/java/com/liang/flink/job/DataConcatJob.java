@@ -17,9 +17,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.liang.common.dto.config.FlinkConfig.SourceType.Repair;
 
@@ -92,16 +90,16 @@ public class DataConcatJob {
             if (input == null || input.size() == 0) {
                 return;
             }
-            for (HbaseOneRow hbaseOneRow : input) {
-                String rowKey = hbaseOneRow.getRowKey();
-                Map<String, Object> columnMap = new HashMap<>(hbaseOneRow.getColumnMap());
-                StringBuilder builder = new StringBuilder();
-                builder.append(String.format("\nrowKey: %s", rowKey));
-                for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
-                    builder.append(String.format("\n%s -> %s", entry.getKey(), entry.getValue()));
-                }
-                log.info("{}", builder);
-            }
+//            for (HbaseOneRow hbaseOneRow : input) {
+//                String rowKey = hbaseOneRow.getRowKey();
+//                Map<String, Object> columnMap = new HashMap<>(hbaseOneRow.getColumnMap());
+//                StringBuilder builder = new StringBuilder();
+//                builder.append(String.format("\nrowKey: %s", rowKey));
+//                for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
+//                    builder.append(String.format("\n%s -> %s", entry.getKey(), entry.getValue()));
+//                }
+//                log.info("{}", builder);
+//            }
             for (HbaseOneRow hbaseOneRow : input) {
                 hbase.upsert(hbaseOneRow);
             }
