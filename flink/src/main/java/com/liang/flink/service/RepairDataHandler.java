@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.liang.common.dto.config.RepairTask.ScanMode.Direct;
 import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
@@ -17,37 +18,41 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 
 @Slf4j
 public class RepairDataHandler implements Runnable {
-    private final static int BATCH_SIZE = 200;
-    private final static int MAX_QUEUE_SIZE = 1000000;
+    private final static int BATCH_SIZE = 10000;
+    private final static int MAX_QUEUE_SIZE = 10000 * 100;
     private final static int DIRECT_TASK_FINISH_ID = 404;
 
     private final ConcurrentLinkedQueue<SingleCanalBinlog> queue;
     private final JdbcTemplate jdbcTemplate;
     private final SubRepairTask task;
     private final String basicSql;
+    private final AtomicBoolean running;
 
     private volatile long highWatermark;
 
-    public RepairDataHandler(SubRepairTask task, ConcurrentLinkedQueue<SingleCanalBinlog> queue) {
+    public RepairDataHandler(SubRepairTask task, ConcurrentLinkedQueue<SingleCanalBinlog> queue, AtomicBoolean running) {
         this.queue = queue;
         this.jdbcTemplate = new JdbcTemplate(task.getSourceName());
         this.task = task;
         basicSql = String.format("select %s from %s where %s ",
                 task.getColumns(), task.getTableName(), task.getWhere());
+        this.running = running;
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (running.get()) {
             if (!hasNextBatch()) {
                 return;
             }
             if (task.getScanMode() == Direct || queue.size() < MAX_QUEUE_SIZE) {
                 List<Map<String, Object>> columnMaps = nextBatch();
-                for (Map<String, Object> columnMap : columnMaps) {
-                    queue.add(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap));
+                synchronized (running) {
+                    for (Map<String, Object> columnMap : columnMaps) {
+                        queue.add(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap));
+                    }
+                    commit();
                 }
-                commit();
             }
         }
     }

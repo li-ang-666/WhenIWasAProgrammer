@@ -19,17 +19,18 @@ import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final Config config;
-
+    private final AtomicBoolean running = new AtomicBoolean(true);
     private final @Getter SubRepairTask task;
     private final ConcurrentLinkedQueue<SingleCanalBinlog> queue = new ConcurrentLinkedQueue<>();
+
     private ListState<SubRepairTask> taskState;
     private ListState<ConcurrentLinkedQueue<SingleCanalBinlog>> queueState;
-
-    private volatile boolean canceled = false;
+    private Thread repairDataHandlerThread;
 
     public RepairSource(Config config, SubRepairTask task) {
         this.config = config;
@@ -59,17 +60,14 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
     @Override
     public void open(Configuration parameters) throws Exception {
         ConfigUtils.setConfig(config);
+        repairDataHandlerThread = new Thread(new RepairDataHandler(task, queue, running));
+        repairDataHandlerThread.start();
     }
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) throws Exception {
-        Thread dataHandler = new Thread(new RepairDataHandler(task, queue));
-        dataHandler.start();
-        while (true) {
-            if (canceled) {
-                return;
-            }
-            if (queue.isEmpty() && !dataHandler.isAlive()) {
+        while (running.get()) {
+            if (queue.isEmpty() && !repairDataHandlerThread.isAlive()) {
                 return;
             }
             if (queue.peek() != null) {
@@ -83,13 +81,14 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         taskState.clear();
         queueState.clear();
-        //先快照task,再queue
-        taskState.add(task);
-        queueState.add(queue);
+        synchronized (running) {
+            taskState.add(task);
+            queueState.add(queue);
+        }
     }
 
     @Override
     public void cancel() {
-        canceled = true;
+        running.set(false);
     }
 }

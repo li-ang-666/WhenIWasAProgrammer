@@ -19,10 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class CanalKafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog> {
     private final Config config;
-
     private final Map<TopicPartition, Long> offsetMap = new HashMap<>();
     private final Map<TopicPartition, Long> timeMap = new HashMap<>();
-
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     public CanalKafkaMonitor(Config config) {
