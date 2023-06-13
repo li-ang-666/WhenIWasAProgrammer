@@ -51,7 +51,7 @@ public class CompanyIndex extends AbstractDataUpdate<Map<String, Object>> {
         }
         resultMap.put("is_partnership_company_invested", "11".equals(companyType));
         resultMap.put("legal_rep_inlinks_invested", dao.queryLegalRepInLinksInvested(companyId));
-        resultMap.put("company_uscc_prefix_code_two_invested", unifiedSocialCreditCode.substring(0, 2));
+        resultMap.put("company_uscc_prefix_code_two_invested", unifiedSocialCreditCode.length() >= 2 ? unifiedSocialCreditCode.substring(0, 2) : "");
         return Collections.singletonList(resultMap);
     }
 

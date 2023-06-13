@@ -29,7 +29,7 @@ public class NoShareholderCompanyInfoJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = config.getFlinkSource() == FlinkSource.Repair ?
                 RepairStreamFactory.create(streamEnvironment) :
-                KafkaStreamFactory.create(streamEnvironment, 5);
+                KafkaStreamFactory.create(streamEnvironment, 2);
         stream
                 .keyBy(new KeySelector<SingleCanalBinlog, String>() {
                     @Override
@@ -38,7 +38,8 @@ public class NoShareholderCompanyInfoJob {
                     }
                 })
                 .addSink(new MySqlSink(ConfigUtils.getConfig()))
-                .name("MySqlSink");
+                .name("MySqlSink")
+                .setParallelism(1);
         streamEnvironment.execute("NoShareholderCompanyInfoJob");
     }
 
@@ -67,7 +68,7 @@ public class NoShareholderCompanyInfoJob {
                 return;
             }
             Tuple2<String, String> insertSyntax = SqlUtils.columnMap2Insert(columnMaps.get(0));
-            String sql = String.format("insert into no_shareholder_company_info(%s) values(%s)", insertSyntax.f0, insertSyntax.f1);
+            String sql = String.format("replace into no_shareholder_company_info(%s) values(%s)", insertSyntax.f0, insertSyntax.f1);
             jdbcTemplate.update(sql);
         }
     }

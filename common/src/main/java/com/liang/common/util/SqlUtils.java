@@ -19,7 +19,7 @@ public class SqlUtils {
         if (value == null) {
             return null;
         } else if (value instanceof Boolean) {
-            return (Boolean) value ? "1" : "0";
+            return (boolean) value ? "1" : "0";
         } else if (value instanceof Number) {
             return String.valueOf(value);
         } else {
