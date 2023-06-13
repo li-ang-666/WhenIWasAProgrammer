@@ -8,14 +8,17 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class KafkaLagReporter implements Runnable {
+    private static final int INTERVAL_SECONDS = 30;
+
     private final Map<TopicPartition, Long> offsetMap;
     private final Map<TopicPartition, Long> timeMap;
     private final AtomicBoolean running;
@@ -25,44 +28,55 @@ public class KafkaLagReporter implements Runnable {
         this.offsetMap = offsetMap;
         this.timeMap = timeMap;
         this.running = running;
-
-        Properties properties = new Properties() {{
+        kafkaConsumer = new KafkaConsumer<>(new Properties() {{
             setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                     ConfigUtils.getConfig().getKafkaConfigs().get("kafkaSource").getBootstrapServers());
-        }};
-        kafkaConsumer = new KafkaConsumer<>(properties, new ByteArrayDeserializer(), new ByteArrayDeserializer());
+        }}, new ByteArrayDeserializer(), new ByteArrayDeserializer());
     }
 
     @Override
     public void run() {
         while (running.get()) {
-            if (!offsetMap.isEmpty()) {
-                Map<TopicPartition, Long> maxOffsetMap = kafkaConsumer.endOffsets(offsetMap.keySet());
-                HashMap<TopicPartition, Long> printMap = new HashMap<>();
-                synchronized (offsetMap) {
-                    for (Map.Entry<TopicPartition, Long> entry : maxOffsetMap.entrySet()) {
-                        TopicPartition key = entry.getKey();
-                        printMap.put(key, entry.getValue() - offsetMap.get(key));
-                    }
-                    log.warn("offset lag: {}", JsonUtils.toString(printMap));
-                    offsetMap.clear();
-                }
-            }
-            if (!timeMap.isEmpty()) {
-                HashMap<TopicPartition, Long> printMap = new HashMap<>();
-                synchronized (timeMap) {
-                    for (Map.Entry<TopicPartition, Long> entry : timeMap.entrySet()) {
-                        TopicPartition key = entry.getKey();
-                        printMap.put(key, (System.currentTimeMillis() - timeMap.get(key)) / 1000);
-                    }
-                    log.warn("time lag: {}", JsonUtils.toString(printMap));
-                    timeMap.clear();
-                }
-            }
-            try {
-                TimeUnit.SECONDS.sleep(60);
-            } catch (Exception ignore) {
-            }
+            print();
+            sleep();
+        }
+    }
+
+    private void print() {
+        Comparator<TopicPartition> topicPartitionComparator = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
+        if (offsetMap.isEmpty() || timeMap.isEmpty()) {
+            log.warn("本轮周期内 kafka 无数据流入");
+            return;
+        }
+        Map<TopicPartition, Long> copyOffsetMap;
+        synchronized (offsetMap) {
+            copyOffsetMap = new TreeMap<>(topicPartitionComparator);
+            copyOffsetMap.putAll(offsetMap);
+            offsetMap.clear();
+        }
+        Map<TopicPartition, Long> maxOffsetMap = kafkaConsumer.endOffsets(copyOffsetMap.keySet());
+        for (Map.Entry<TopicPartition, Long> entry : maxOffsetMap.entrySet()) {
+            TopicPartition key = entry.getKey();
+            copyOffsetMap.put(key, entry.getValue() - copyOffsetMap.get(key));
+        }
+        log.warn("offset lag: {}", JsonUtils.toString(copyOffsetMap));
+        Map<TopicPartition, Long> copyTimeMap;
+        synchronized (timeMap) {
+            copyTimeMap = new TreeMap<>(topicPartitionComparator);
+            copyTimeMap.putAll(timeMap);
+            timeMap.clear();
+        }
+        for (Map.Entry<TopicPartition, Long> entry : copyTimeMap.entrySet()) {
+            TopicPartition key = entry.getKey();
+            copyTimeMap.put(key, (System.currentTimeMillis() - copyTimeMap.get(key)) / 1000);
+        }
+        log.warn("time lag: {}", JsonUtils.toString(copyTimeMap));
+    }
+
+    private void sleep() {
+        try {
+            TimeUnit.SECONDS.sleep(INTERVAL_SECONDS);
+        } catch (Exception ignore) {
         }
     }
 }
