@@ -36,7 +36,8 @@ public class DemoJob {
                 RepairStreamFactory.create(env);
         dataStream
                 .rebalance()
-                .addSink(new DemoSink(config)).setParallelism(1);
+                .addSink(new DemoSink(config))
+                .setParallelism(ConfigUtils.getConfig().getFlinkConfig().getOtherParallel());
         env.execute("DemoJob");
     }
 
@@ -65,7 +66,7 @@ public class DemoJob {
             jdbcTemplate.batchUpdate(Collections.singletonList(String.format("insert into %s(%s) values(%s)", tableName, insert.f0, insert.f1)));
             String querySQL = String.format("select t1.* from %s t1 left join %s t2 on t1.id=t2.id", tableName, tableName);
             List<Map<String, Object>> columnMaps = jdbcTemplate.queryForColumnMaps(querySQL);
-            //log.info("print: {}", columnMaps);
+            log.info("print: {}", columnMaps);
             jdbcTemplate.update("drop table " + tableName);
         }
     }
