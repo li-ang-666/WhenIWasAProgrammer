@@ -19,7 +19,6 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
@@ -60,8 +59,7 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
     @Override
     public void open(Configuration parameters) throws Exception {
         ConfigUtils.setConfig(config);
-        Executors.newSingleThreadExecutor()
-                .execute(new RepairDataHandler(task, queue, running));
+        new Thread(new RepairDataHandler(task, queue, running)).start();
     }
 
     @Override
