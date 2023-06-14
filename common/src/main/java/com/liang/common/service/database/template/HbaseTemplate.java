@@ -46,14 +46,11 @@ public class HbaseTemplate {
         try (Table table = getTable(hbaseOneRow)) {
             Put put = new Put(Bytes.toBytes(hbaseOneRow.getRowKey()));
             for (Map.Entry<String, Object> entry : hbaseOneRow.getColumnMap().entrySet()) {
-                String[] familyAndCol = entry.getKey().split(":");
-                String family = familyAndCol[0];
-                String col = familyAndCol[1];
-                Object value = entry.getValue();
-                byte[] valueArr = value == null ? null : Bytes.toBytes(String.valueOf(value));
-                put.addColumn(Bytes.toBytes(family),
-                        Bytes.toBytes(col),
-                        valueArr);
+                String col = entry.getKey();
+                String value = String.valueOf(entry.getValue());
+                byte[] valueArr = value.equalsIgnoreCase("null") ? null : Bytes.toBytes(value);
+                put.addColumn(Bytes.toBytes(hbaseOneRow.getSchema().getColumnFamily()),
+                        Bytes.toBytes(col), valueArr);
             }
             table.put(put);
         } catch (Exception e) {
