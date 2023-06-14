@@ -45,7 +45,7 @@ public class RepairDataHandler implements Runnable {
             if (!hasNextBatch()) {
                 return;
             }
-            if (task.getScanMode() == Direct || queue.size() < MAX_QUEUE_SIZE) {
+            if (task.getScanMode() == Direct || (queue.size() + BATCH_SIZE) <= MAX_QUEUE_SIZE) {
                 List<Map<String, Object>> columnMaps = nextBatch();
                 synchronized (running) {
                     for (Map<String, Object> columnMap : columnMaps) {
