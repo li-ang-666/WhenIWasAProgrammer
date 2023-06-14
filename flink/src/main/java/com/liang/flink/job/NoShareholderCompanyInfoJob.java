@@ -9,6 +9,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.CanalBinlogStreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -39,6 +40,7 @@ public class NoShareholderCompanyInfoJob {
         streamEnvironment.execute("NoShareholderCompanyInfoJob");
     }
 
+    @Slf4j
     private final static class MySqlSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DataUpdateService<Map<String, Object>> service;

@@ -10,7 +10,6 @@ import com.liang.flink.high.level.api.CanalBinlogStreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -30,20 +29,19 @@ public class DataConcatJob {
         DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(streamEnvironment);
         stream
                 .rebalance()
-                .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))
-                .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("DataConcatHbaseSink");
         streamEnvironment.execute("DataConcatJob");
     }
 
-    //核心处理类 dataConcatService.invoke(singleCanalBinlog)
-    private static class DataConcatRichMapFunction extends RichMapFunction<SingleCanalBinlog, List<HbaseOneRow>> {
+    @Slf4j
+    private static class DataConcatRichSinkFunction extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DataUpdateService<HbaseOneRow> service;
+        private HbaseTemplate hbase;
 
-        private DataConcatRichMapFunction(Config config) throws Exception {
+        private DataConcatRichSinkFunction(Config config) throws Exception {
             this.config = config;
         }
 
@@ -59,31 +57,12 @@ public class DataConcatJob {
                     .addClass("EquityPledgeDetail")
                     .addClass("CompanyBranch");
             service = new DataUpdateService<>(dataUpdateContext);
-        }
-
-        @Override
-        public List<HbaseOneRow> map(SingleCanalBinlog singleCanalBinlog) throws Exception {
-            return service.invoke(singleCanalBinlog);
-        }
-    }
-
-    //HbaseSink
-    private static class DataConcatRichSinkFunction extends RichSinkFunction<List<HbaseOneRow>> {
-        private final Config config;
-        private HbaseTemplate hbase;
-
-        private DataConcatRichSinkFunction(Config config) throws Exception {
-            this.config = config;
-        }
-
-        @Override
-        public void open(Configuration parameters) throws Exception {
-            ConfigUtils.setConfig(config);
             hbase = new HbaseTemplate("hbaseSink");
         }
 
         @Override
-        public void invoke(List<HbaseOneRow> input, Context context) throws Exception {
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+            List<HbaseOneRow> input = service.invoke(singleCanalBinlog);
             if (input == null || input.size() == 0) {
                 return;
             }
