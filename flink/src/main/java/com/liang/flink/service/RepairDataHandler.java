@@ -58,7 +58,7 @@ public class RepairDataHandler implements Runnable {
                     commit();
                 }
             } else {
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(10);
             }
         }
     }

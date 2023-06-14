@@ -66,10 +66,11 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) throws Exception {
         while (running.get() || !queue.isEmpty()) {
-            while (queue.size() > 0) {
+            int i = queue.size();
+            while (i-- > 0) {
                 ctx.collect(queue.poll());
             }
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(10);
         }
     }
 

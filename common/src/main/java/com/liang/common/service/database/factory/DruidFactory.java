@@ -36,7 +36,6 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&maxReconnects=3" +
                 "&failOverReadOnly=false" +
                 //性能优化
-                "&allowMultiQueries=true" +
                 "&maxAllowedPacket=67108864" + //64mb
                 "&useCompression=true" +
                 "&rewriteBatchedStatements=true";
