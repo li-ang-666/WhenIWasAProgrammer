@@ -78,7 +78,6 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setKeepAlive(true);
         druidDataSource.setKeepAliveBetweenTimeMillis(1000 * 60);
         druidDataSource.setValidationQuery("select 1");
-        druidDataSource.setAsyncInit(true);
         druidDataSource.setPoolPreparedStatements(true);
         druidDataSource.setMaxOpenPreparedStatements(100);
         druidDataSource.setUsePingMethod(false);
