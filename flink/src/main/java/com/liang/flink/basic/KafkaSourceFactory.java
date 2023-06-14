@@ -44,6 +44,7 @@ public class KafkaSourceFactory {
             default:
                 long timestamp = DateTimeUtils.unixTimestamp(startFrom, "yyyy-MM-dd HH:mm:ss");
                 offsetsInitializer = OffsetsInitializer.timestamp(timestamp * 1000L);
+                break;
         }
         return KafkaSource.<KafkaRecord<T>>builder()
                 .setBootstrapServers(kafkaConfig.getBootstrapServers())

@@ -11,7 +11,6 @@ import com.liang.flink.high.level.api.CanalBinlogStreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -30,13 +29,14 @@ public class NoShareholderCompanyInfoJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(streamEnvironment);
         stream
-                .keyBy(new KeySelector<SingleCanalBinlog, String>() {
+                .rebalance()
+                /*.keyBy(new KeySelector<SingleCanalBinlog, String>() {
                     @Override
                     public String getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
                         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
                         return String.valueOf(columnMap.getOrDefault("company_id", columnMap.get("company_id_invested")));
                     }
-                })
+                })*/
                 .addSink(new MySqlSink(ConfigUtils.getConfig()))
                 .name("MySqlSink")
                 .setParallelism(ConfigUtils.getConfig().getFlinkConfig().getOtherParallel());
@@ -73,7 +73,7 @@ public class NoShareholderCompanyInfoJob {
                 cache.add(sql);
             }
             FlinkConfig.SourceType sourceType = ConfigUtils.getConfig().getFlinkConfig().getSourceType();
-            if (sourceType == FlinkConfig.SourceType.Kafka || cache.size() >= 1024) {
+            if (sourceType == FlinkConfig.SourceType.Kafka || cache.size() >= 2048) {
                 jdbcTemplate.batchUpdate(cache);
                 cache.clear();
             }

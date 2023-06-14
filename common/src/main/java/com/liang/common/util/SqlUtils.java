@@ -105,19 +105,26 @@ public class SqlUtils {
         for (char c : chars) {
             switch (c) {
                 case '\t':
-                    stringBuilder.append("\\t"); //insert into test values("\t");
+                    stringBuilder.append("\\t");
+                    break;
                 case '\r':
-                    stringBuilder.append("\\r"); //insert into test values("\r");
+                    stringBuilder.append("\\r");
+                    break;
                 case '\n':
-                    stringBuilder.append("\\n"); //insert into test values("\n");
+                    stringBuilder.append("\\n");
+                    break;
                 case '\\':
-                    stringBuilder.append("\\\\"); //insert into test values("\\");
+                    stringBuilder.append("\\\\");
+                    break;
                 case '\"':
-                    stringBuilder.append("\\\""); //insert into test values("\"");
+                    stringBuilder.append("\\\"");
+                    break;
                 case '\'':
-                    stringBuilder.append("\\'"); //insert into test values("\'");
+                    stringBuilder.append("\\'");
+                    break;
                 default:
                     stringBuilder.append(c);
+                    break;
             }
         }
         return stringBuilder.append("'").toString();

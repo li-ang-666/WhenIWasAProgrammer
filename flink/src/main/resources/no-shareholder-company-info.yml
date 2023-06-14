@@ -1,6 +1,6 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 1
 
@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "companyBase"
     tableName: "company_index"
     columns: "*"
-    where: "company_id in (16060)"
+    where: "company_id in (9506276)"
     scanMode: Direct
 
 dbConfigs:
