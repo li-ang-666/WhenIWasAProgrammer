@@ -40,7 +40,7 @@ public class CanalKafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCana
             offsetMap.put(key, kafkaRecord.getOffset());
         }
         synchronized (timeMap) {
-            timeMap.put(key, kafkaRecord.getReachMilliseconds());
+            timeMap.put(key, kafkaRecord.getReachMilliseconds() / 1000);
         }
         for (SingleCanalBinlog singleCanalBinlog : kafkaRecord.getValue().getSingleCanalBinlogs()) {
             out.collect(singleCanalBinlog);

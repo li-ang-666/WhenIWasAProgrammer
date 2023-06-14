@@ -6,8 +6,7 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.KafkaStreamFactory;
-import com.liang.flink.high.level.api.RepairStreamFactory;
+import com.liang.flink.high.level.api.CanalBinlogStreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -20,17 +19,13 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.List;
 import java.util.Map;
 
-import static com.liang.common.dto.config.FlinkConfig.SourceType.Repair;
-
 public class NoShareholderCompanyInfoJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
             args = new String[]{"no-shareholder-company-info.yml"};
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        DataStream<SingleCanalBinlog> stream = config.getFlinkConfig().getSourceType() == Repair ?
-                RepairStreamFactory.create(streamEnvironment) :
-                KafkaStreamFactory.create(streamEnvironment);
+        DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(streamEnvironment);
         stream
                 .keyBy(new KeySelector<SingleCanalBinlog, String>() {
                     @Override

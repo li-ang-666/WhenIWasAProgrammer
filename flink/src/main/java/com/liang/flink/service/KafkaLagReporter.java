@@ -69,7 +69,7 @@ public class KafkaLagReporter implements Runnable {
         }
         for (Map.Entry<TopicPartition, Object> entry : copyTimeMap.entrySet()) {
             TopicPartition key = entry.getKey();
-            copyTimeMap.put(key, DateTimeUtils.fromUnixTime((long) entry.getValue() / 1000, "yyyy-MM-dd HH:mm:ss"));
+            copyTimeMap.put(key, DateTimeUtils.fromUnixTime((long) entry.getValue(), "yyyy-MM-dd HH:mm:ss"));
         }
         log.warn("msg time info: {}", JsonUtils.toString(copyTimeMap));
     }

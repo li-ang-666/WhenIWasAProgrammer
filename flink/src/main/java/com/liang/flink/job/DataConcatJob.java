@@ -6,8 +6,7 @@ import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.KafkaStreamFactory;
-import com.liang.flink.high.level.api.RepairStreamFactory;
+import com.liang.flink.high.level.api.CanalBinlogStreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static com.liang.common.dto.config.FlinkConfig.SourceType.Repair;
-
 @Slf4j
 public class DataConcatJob {
     public static void main(String[] args) throws Exception {
@@ -30,9 +27,7 @@ public class DataConcatJob {
             args = new String[]{"data-concat.yml"};
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        DataStream<SingleCanalBinlog> stream = config.getFlinkConfig().getSourceType() == Repair ?
-                RepairStreamFactory.create(streamEnvironment) :
-                KafkaStreamFactory.create(streamEnvironment);
+        DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(streamEnvironment);
         stream
                 .rebalance()
                 .map(new DataConcatRichMapFunction(ConfigUtils.getConfig()))

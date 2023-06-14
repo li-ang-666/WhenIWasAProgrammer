@@ -8,8 +8,7 @@ import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TableNameUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.KafkaStreamFactory;
-import com.liang.flink.high.level.api.RepairStreamFactory;
+import com.liang.flink.high.level.api.CanalBinlogStreamFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -22,8 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
-
 public class DemoJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -31,10 +28,8 @@ public class DemoJob {
         }
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        DataStream<SingleCanalBinlog> dataStream = config.getFlinkConfig().getSourceType() == Kafka ?
-                KafkaStreamFactory.create(env) :
-                RepairStreamFactory.create(env);
-        dataStream
+        DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(env);
+        stream
                 .rebalance()
                 .addSink(new DemoSink(config))
                 .setParallelism(ConfigUtils.getConfig().getFlinkConfig().getOtherParallel());
