@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
@@ -17,6 +18,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +32,9 @@ public class NoShareholderCompanyInfoJob {
         stream
                 .keyBy(new KeySelector<SingleCanalBinlog, String>() {
                     @Override
-                    public String getKey(SingleCanalBinlog value) throws Exception {
-                        return String.valueOf(value.getColumnMap().get("company_id"));
+                    public String getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
+                        Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+                        return String.valueOf(columnMap.getOrDefault("company_id", columnMap.get("company_id_invested")));
                     }
                 })
                 .addSink(new MySqlSink(ConfigUtils.getConfig()))
@@ -43,6 +46,7 @@ public class NoShareholderCompanyInfoJob {
     @Slf4j
     private final static class MySqlSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
+        private final List<String> cache = new ArrayList<>();
         private DataUpdateService<Map<String, Object>> service;
         private JdbcTemplate jdbcTemplate;
 
@@ -66,7 +70,12 @@ public class NoShareholderCompanyInfoJob {
             for (Map<String, Object> columnMap : columnMaps) {
                 Tuple2<String, String> insertSyntax = SqlUtils.columnMap2Insert(columnMap);
                 String sql = String.format("replace into no_shareholder_company_info(%s) values(%s)", insertSyntax.f0, insertSyntax.f1);
-                jdbcTemplate.update(sql);
+                cache.add(sql);
+            }
+            FlinkConfig.SourceType sourceType = ConfigUtils.getConfig().getFlinkConfig().getSourceType();
+            if (sourceType == FlinkConfig.SourceType.Kafka || cache.size() >= 1024) {
+                jdbcTemplate.batchUpdate(cache);
+                cache.clear();
             }
         }
     }

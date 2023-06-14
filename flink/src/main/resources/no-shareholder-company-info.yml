@@ -19,7 +19,8 @@ dbConfigs:
   prism1: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   listed: { host: "7d89cf1613024a3d9b0511a21743806ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   graph: { host: "1ae09b20e4504ae2a39b6d209b49f269in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "graph_data",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
-  sink: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  #sink: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  sink: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "liang_test",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
 
 kafkaConfigs:
   #################### 生产 ####################
