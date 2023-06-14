@@ -70,7 +70,7 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
             if (queue.isEmpty() && !repairDataHandlerThread.isAlive()) {
                 return;
             }
-            if (queue.size() > 0) {
+            if (queue.peek() != null) {
                 ctx.collect(queue.peek());
                 queue.poll();
             }
