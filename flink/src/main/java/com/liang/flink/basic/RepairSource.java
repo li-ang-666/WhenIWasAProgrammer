@@ -19,6 +19,7 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
@@ -65,10 +66,10 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) throws Exception {
         while (running.get() || !queue.isEmpty()) {
-            if (queue.peek() != null) {
-                ctx.collect(queue.peek());
-                queue.poll();
+            while (queue.size() > 0) {
+                ctx.collect(queue.poll());
             }
+            TimeUnit.MILLISECONDS.sleep(100);
         }
     }
 

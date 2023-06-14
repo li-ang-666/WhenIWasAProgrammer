@@ -5,11 +5,13 @@ import com.liang.common.dto.SubRepairTask;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.flink.dto.SingleCanalBinlog;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.liang.common.dto.config.RepairTask.ScanMode.Direct;
@@ -18,8 +20,8 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 
 @Slf4j
 public class RepairDataHandler implements Runnable {
-    private final static int BATCH_SIZE = 200;
-    private final static int MAX_QUEUE_SIZE = 1000;
+    private final static int BATCH_SIZE = 1000;
+    private final static int MAX_QUEUE_SIZE = 100000;
     private final static int DIRECT_TASK_FINISH_ID = 404;
 
     private final ConcurrentLinkedQueue<SingleCanalBinlog> queue;
@@ -40,6 +42,7 @@ public class RepairDataHandler implements Runnable {
     }
 
     @Override
+    @SneakyThrows
     public void run() {
         while (running.get()) {
             if (!hasNextBatch()) {
@@ -54,6 +57,8 @@ public class RepairDataHandler implements Runnable {
                     }
                     commit();
                 }
+            } else {
+                TimeUnit.MILLISECONDS.sleep(100);
             }
         }
     }
