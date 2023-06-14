@@ -43,6 +43,7 @@ public class RepairDataHandler implements Runnable {
     public void run() {
         while (running.get()) {
             if (!hasNextBatch()) {
+                running.set(false);
                 return;
             }
             if (task.getScanMode() == Direct || (queue.size() + BATCH_SIZE) <= MAX_QUEUE_SIZE) {

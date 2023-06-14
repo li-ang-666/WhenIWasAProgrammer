@@ -19,10 +19,10 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
-@SuppressWarnings("SynchronizeOnNonFinalField")
 public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final Config config;
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -60,16 +60,13 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
     @Override
     public void open(Configuration parameters) throws Exception {
         ConfigUtils.setConfig(config);
+        Executors.newSingleThreadExecutor()
+                .execute(new RepairDataHandler(task, queue, running));
     }
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) throws Exception {
-        Thread repairDataHandlerThread = new Thread(new RepairDataHandler(task, queue, running));
-        repairDataHandlerThread.setDaemon(false);
-        while (running.get()) {
-            if (queue.isEmpty() && !repairDataHandlerThread.isAlive()) {
-                return;
-            }
+        while (running.get() || !queue.isEmpty()) {
             if (queue.peek() != null) {
                 ctx.collect(queue.peek());
                 queue.poll();

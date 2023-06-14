@@ -30,7 +30,7 @@ public class TemplateLogger {
         long interval = timer.getInterval();
         if (interval > 1000L) {
             log.warn(afterLog, methodName, methodArg, interval);
-        } else {
+        } else if (log.isDebugEnabled()) {
             log.debug(afterLog, methodName, methodArg, interval);
         }
     }
