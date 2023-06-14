@@ -18,10 +18,8 @@ public class SecondaryDimUvCountJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
             args = new String[]{"secondary-dim-uv-count.yml"};
-
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
         env.setParallelism(1);
-        Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(env);
         stream.addSink(new Sink(ConfigUtils.getConfig()));
         env.execute("SecondaryDimUvCountJob");
