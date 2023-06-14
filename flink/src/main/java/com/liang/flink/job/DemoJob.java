@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.liang.common.dto.config.FlinkConfig.SourceType.Repair;
+import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 
 public class DemoJob {
     public static void main(String[] args) throws Exception {
@@ -31,7 +31,7 @@ public class DemoJob {
         }
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        DataStream<SingleCanalBinlog> dataStream = config.getFlinkConfig().getSourceType() == Repair ?
+        DataStream<SingleCanalBinlog> dataStream = config.getFlinkConfig().getSourceType() == Kafka ?
                 KafkaStreamFactory.create(env) :
                 RepairStreamFactory.create(env);
         dataStream
@@ -65,7 +65,7 @@ public class DemoJob {
             jdbcTemplate.batchUpdate(Collections.singletonList(String.format("insert into %s(%s) values(%s)", tableName, insert.f0, insert.f1)));
             String querySQL = String.format("select t1.* from %s t1 left join %s t2 on t1.id=t2.id", tableName, tableName);
             List<Map<String, Object>> columnMaps = jdbcTemplate.queryForColumnMaps(querySQL);
-            log.info("print: {}", columnMaps);
+            //log.info("print: {}", columnMaps);
             jdbcTemplate.update("drop table " + tableName);
         }
     }

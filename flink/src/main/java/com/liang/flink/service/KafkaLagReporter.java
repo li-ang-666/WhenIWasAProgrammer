@@ -1,6 +1,7 @@
 package com.liang.flink.service;
 
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -43,14 +44,14 @@ public class KafkaLagReporter implements Runnable {
     }
 
     private void print() {
-        Comparator<TopicPartition> topicPartitionComparator = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
+        Comparator<TopicPartition> mapKeyComparator = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
         if (offsetMap.isEmpty() || timeMap.isEmpty()) {
             log.warn("本轮周期内 kafka 无数据流入");
             return;
         }
         Map<TopicPartition, Long> copyOffsetMap;
         synchronized (offsetMap) {
-            copyOffsetMap = new TreeMap<>(topicPartitionComparator);
+            copyOffsetMap = new TreeMap<>(mapKeyComparator);
             copyOffsetMap.putAll(offsetMap);
             offsetMap.clear();
         }
@@ -60,17 +61,17 @@ public class KafkaLagReporter implements Runnable {
             copyOffsetMap.put(key, entry.getValue() - copyOffsetMap.get(key));
         }
         log.warn("offset lag: {}", JsonUtils.toString(copyOffsetMap));
-        Map<TopicPartition, Long> copyTimeMap;
+        Map<TopicPartition, Object> copyTimeMap;
         synchronized (timeMap) {
-            copyTimeMap = new TreeMap<>(topicPartitionComparator);
+            copyTimeMap = new TreeMap<>(mapKeyComparator);
             copyTimeMap.putAll(timeMap);
             timeMap.clear();
         }
-        for (Map.Entry<TopicPartition, Long> entry : copyTimeMap.entrySet()) {
+        for (Map.Entry<TopicPartition, Object> entry : copyTimeMap.entrySet()) {
             TopicPartition key = entry.getKey();
-            copyTimeMap.put(key, (System.currentTimeMillis() - copyTimeMap.get(key)) / 1000);
+            copyTimeMap.put(key, DateTimeUtils.fromUnixTime((long) entry.getValue() / 1000, "yyyy-MM-dd HH:mm:ss"));
         }
-        log.warn("time lag: {}", JsonUtils.toString(copyTimeMap));
+        log.warn("msg time info: {}", JsonUtils.toString(copyTimeMap));
     }
 
     private void sleep() {
