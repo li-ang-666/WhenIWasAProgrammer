@@ -20,8 +20,8 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 
 @Slf4j
 public class RepairDataHandler implements Runnable {
-    private final static int BATCH_SIZE = 1000;
-    private final static int MAX_QUEUE_SIZE = 100000;
+    private final static int BATCH_SIZE = 1024;
+    private final static int MAX_QUEUE_SIZE = 102400;
     private final static int DIRECT_TASK_FINISH_ID = 404;
 
     private final ConcurrentLinkedQueue<SingleCanalBinlog> queue;
@@ -58,7 +58,7 @@ public class RepairDataHandler implements Runnable {
                     commit();
                 }
             } else {
-                TimeUnit.MILLISECONDS.sleep(10);
+                TimeUnit.MILLISECONDS.sleep(5);
             }
         }
     }

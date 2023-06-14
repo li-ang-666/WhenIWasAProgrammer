@@ -70,7 +70,7 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
             while (i-- > 0) {
                 ctx.collect(queue.poll());
             }
-            TimeUnit.MILLISECONDS.sleep(10);
+            TimeUnit.MILLISECONDS.sleep(5);
         }
     }
 
