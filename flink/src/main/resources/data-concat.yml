@@ -10,30 +10,51 @@ repairTasks:
   - taskId: "111"
     sourceName: "judicialRisk"
     tableName: "judicial_assistance_index"
-    columns: "*"
+    columns: "distinct company_id"
     where: "1=1"
-    scanMode: TumblingWindow
+    scanMode: Direct
+  #股权冻结
+  - taskId: "222"
+    sourceName: "judicialRisk"
+    tableName: "judicial_assistance_index"
+    columns: "distinct enforced_target_id,enforced_target_type"
+    where: "1=1"
+    scanMode: Direct
   #限制出境
   - taskId: "333"
     sourceName: "judicialRisk"
     tableName: "restricted_outbound_index"
     columns: "*"
     where: "1=1"
-    scanMode: TumblingWindow
+    scanMode: Direct
+  #股权出质
+  - taskId: "444"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_reinvest"
+    columns: "distinct company_id"
+    where: "1=1"
+    scanMode: Direct
   #股权出质
   - taskId: "555"
     sourceName: "operatingRisk"
     tableName: "equity_pledge_reinvest"
-    columns: "*"
+    columns: "distinct pledgor_entity_id,pledgor_type"
     where: "1=1"
-    scanMode: TumblingWindow
+    scanMode: Direct
+  #股权质押
+  - taskId: "666"
+    sourceName: "operatingRisk"
+    tableName: "equity_pledge_detail"
+    columns: "distinct company_id"
+    where: "1=1"
+    scanMode: Direct
   #股权质押
   - taskId: "777"
     sourceName: "operatingRisk"
     tableName: "equity_pledge_detail"
-    columns: "*"
+    columns: "distinct pledgor_id"
     where: "1=1"
-    scanMode: TumblingWindow
+    scanMode: Direct
 
 dbConfigs:
   #################### 测试 ####################
