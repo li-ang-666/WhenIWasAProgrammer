@@ -1,14 +1,15 @@
-package com.liang.common.dto;
+package com.liang.flink.dto;
 
 import com.liang.common.dto.config.RepairTask;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import org.apache.flink.api.java.tuple.Tuple2;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class SubRepairTask extends RepairTask {
+    private final ConcurrentLinkedQueue<SingleCanalBinlog> pendingQueue = new ConcurrentLinkedQueue<>();
     private volatile long currentId;
     private long targetId;
 

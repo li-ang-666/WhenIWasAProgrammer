@@ -1,6 +1,6 @@
 package com.liang.flink.basic;
 
-import com.liang.common.dto.SubRepairTask;
+import com.liang.flink.dto.SubRepairTask;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.service.TaskGenerator;

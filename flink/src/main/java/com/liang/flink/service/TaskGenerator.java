@@ -1,6 +1,6 @@
 package com.liang.flink.service;
 
-import com.liang.common.dto.SubRepairTask;
+import com.liang.flink.dto.SubRepairTask;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +15,9 @@ public class TaskGenerator {
         if (task.getScanMode() == RepairTask.ScanMode.Direct) {
             return new SubRepairTask(task);
         }
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(task.getSourceName());
         String sql = String.format("select min(id),max(id) from %s", task.getTableName());
-        Tuple2<Long, Long> minAndMaxId = jdbcTemplate.queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
+        Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(task.getSourceName())
+                .queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
         if (minAndMaxId == null || minAndMaxId.f0 == null || minAndMaxId.f1 == null) {
             log.error("task: {} has none or error data in source", task);
             return null;

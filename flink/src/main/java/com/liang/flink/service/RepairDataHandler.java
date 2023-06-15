@@ -1,7 +1,7 @@
 package com.liang.flink.service;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.liang.common.dto.SubRepairTask;
+import com.liang.flink.dto.SubRepairTask;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.flink.dto.SingleCanalBinlog;

@@ -1,7 +1,7 @@
 package com.liang.flink.high.level.api;
 
 import com.liang.common.dto.Config;
-import com.liang.common.dto.SubRepairTask;
+import com.liang.flink.dto.SubRepairTask;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.CanalKafkaMonitor;
 import com.liang.flink.basic.KafkaSourceFactory;
