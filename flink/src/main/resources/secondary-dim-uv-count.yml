@@ -6,7 +6,7 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - checkpointUid: "111"
+  - taskId: "111"
     sourceName: "bigdataOnline"
     tableName: "itch_point_secondary_dims_uv_count"
     columns: "*"

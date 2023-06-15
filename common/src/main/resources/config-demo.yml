@@ -2,7 +2,7 @@ flinkSource: Repair # Repair or Kafka
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - checkpointUid: ""
+  - taskId: ""
     sourceName: ""
     tableName: ""
     columns: "*"

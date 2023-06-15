@@ -5,7 +5,7 @@ import com.liang.flink.dto.SubRepairTask;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.CanalKafkaMonitor;
 import com.liang.flink.basic.KafkaSourceFactory;
-import com.liang.flink.basic.RepairSource;
+import com.liang.flink.basic.DepRepairSource;
 import com.liang.flink.basic.RepairSourceFactory;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
@@ -41,11 +41,11 @@ public class CanalBinlogStreamFactory {
     }
 
     private static DataStream<SingleCanalBinlog> createRepairStream(StreamExecutionEnvironment streamEnvironment) {
-        List<RepairSource> flinkRepairSources = RepairSourceFactory.create();
+        List<DepRepairSource> flinkRepairSources = RepairSourceFactory.create();
         DataStream<SingleCanalBinlog> unionedStream = null;
-        for (RepairSource repairSource : flinkRepairSources) {
+        for (DepRepairSource repairSource : flinkRepairSources) {
             SubRepairTask task = repairSource.getTask();
-            String name = String.format("RepairSource(table=%s, uid=%s)", task.getTableName(), task.getCheckpointUid());
+            String name = String.format("RepairSource(table=%s, uid=%s)", task.getTableName(), task.getTaskId());
             DataStream<SingleCanalBinlog> singleStream = streamEnvironment.addSource(repairSource)
                     .uid(name)
                     .name(name);

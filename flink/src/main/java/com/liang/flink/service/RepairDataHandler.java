@@ -1,11 +1,10 @@
 package com.liang.flink.service;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.liang.flink.dto.SubRepairTask;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.flink.dto.SingleCanalBinlog;
-import lombok.SneakyThrows;
+import com.liang.flink.dto.SubRepairTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -23,26 +22,24 @@ public class RepairDataHandler implements Runnable {
     private final static int MAX_QUEUE_SIZE = 102400;
     private final static int DIRECT_TASK_FINISH_ID = 404;
 
-    private final ConcurrentLinkedQueue<SingleCanalBinlog> queue;
-    private final JdbcTemplate jdbcTemplate;
+    private final AtomicBoolean running;
     private final SubRepairTask task;
     private final String baseSql;
-    private final AtomicBoolean running;
+    private final JdbcTemplate jdbcTemplate;
 
-    private volatile long highWatermark;
+    private volatile long watermark;
 
-    public RepairDataHandler(SubRepairTask task, ConcurrentLinkedQueue<SingleCanalBinlog> queue, AtomicBoolean running) {
-        this.queue = queue;
-        this.jdbcTemplate = new JdbcTemplate(task.getSourceName());
+    public RepairDataHandler(SubRepairTask task, AtomicBoolean running) {
+        this.running = running;
         this.task = task;
         baseSql = String.format("select %s from %s where %s ",
                 task.getColumns(), task.getTableName(), task.getWhere());
-        this.running = running;
+        jdbcTemplate = new JdbcTemplate(task.getSourceName());
     }
 
     @Override
-    @SneakyThrows
     public void run() {
+        ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (running.get()) {
             if (!hasNextBatch()) {
                 running.set(false);
@@ -72,8 +69,8 @@ public class RepairDataHandler implements Runnable {
     private List<Map<String, Object>> nextBatch() {
         String sql = baseSql;
         if (task.getScanMode() == TumblingWindow) {
-            highWatermark = Math.min(task.getCurrentId() + BATCH_SIZE, task.getTargetId());
-            sql += String.format(" and %s <= id and id < %s", task.getCurrentId(), highWatermark);
+            watermark = Math.min(task.getCurrentId() + BATCH_SIZE, task.getTargetId());
+            sql += String.format(" and %s <= id and id < %s", task.getCurrentId(), watermark);
         }
         return jdbcTemplate.queryForColumnMaps(sql);
     }
@@ -82,7 +79,7 @@ public class RepairDataHandler implements Runnable {
         if (task.getScanMode() == Direct) {
             task.setCurrentId(DIRECT_TASK_FINISH_ID);
         } else {
-            task.setCurrentId(highWatermark);
+            task.setCurrentId(watermark);
         }
     }
 }

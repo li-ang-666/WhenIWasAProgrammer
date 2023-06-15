@@ -6,7 +6,7 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - checkpointUid: "111"
+  - taskId: "111"
     sourceName: "companyBase"
     tableName: "company_index"
     columns: "*"
