@@ -65,9 +65,12 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) throws Exception {
         while (running.get() || !queue.isEmpty()) {
-            int i = queue.size();
-            while (i-- > 0) {
-                ctx.collect(queue.poll());
+            //一次最多锁1024条数据
+            int i = Math.min(1024, queue.size());
+            synchronized (ctx.getCheckpointLock()) {
+                while (i-- > 0) {
+                    ctx.collect(queue.poll());
+                }
             }
         }
     }
