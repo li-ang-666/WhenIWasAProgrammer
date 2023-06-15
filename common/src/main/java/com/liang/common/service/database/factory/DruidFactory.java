@@ -81,8 +81,5 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setPoolPreparedStatements(true);
         druidDataSource.setMaxOpenPreparedStatements(100);
         druidDataSource.setUsePingMethod(false);
-        //超时
-        druidDataSource.setConnectTimeout(5000);
-        druidDataSource.setSocketTimeout(1000 * 30);
     }
 }
