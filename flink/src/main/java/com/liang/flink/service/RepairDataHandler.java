@@ -52,7 +52,7 @@ public class RepairDataHandler implements Runnable {
                 List<Map<String, Object>> columnMaps = nextBatch();
                 synchronized (running) {
                     for (Map<String, Object> columnMap : columnMaps) {
-                        queue.add(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap));
+                        queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap));
                     }
                     commit();
                 }
