@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
+@SuppressWarnings("SynchronizeOnNonFinalField")
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Config config;
@@ -56,13 +57,13 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void open(Configuration parameters) throws Exception {
-        new Thread(new RepairDataHandler(task, running)).start();
+        new Thread(new RepairDataHandler(task)).start();
     }
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) throws Exception {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
-        while (running.get() || !queue.isEmpty()) {
+        while (running.get()) {
             int i = Math.min(1024, queue.size());
             synchronized (ctx.getCheckpointLock()) {
                 while (i-- > 0) {
@@ -75,7 +76,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         SubRepairTask copyTask;
-        synchronized (running) {
+        synchronized (task) {
             copyTask = SerializationUtils.clone(task);
         }
         taskState.clear();

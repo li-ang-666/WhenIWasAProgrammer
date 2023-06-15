@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.liang.common.dto.config.RepairTask.ScanMode.Direct;
 import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
@@ -22,15 +21,13 @@ public class RepairDataHandler implements Runnable {
     private final static int MAX_QUEUE_SIZE = 102400;
     private final static int DIRECT_TASK_FINISH_ID = 404;
 
-    private final AtomicBoolean running;
     private final SubRepairTask task;
     private final String baseSql;
     private final JdbcTemplate jdbcTemplate;
 
     private volatile long watermark;
 
-    public RepairDataHandler(SubRepairTask task, AtomicBoolean running) {
-        this.running = running;
+    public RepairDataHandler(SubRepairTask task) {
         this.task = task;
         baseSql = String.format("select %s from %s where %s ",
                 task.getColumns(), task.getTableName(), task.getWhere());
@@ -40,14 +37,10 @@ public class RepairDataHandler implements Runnable {
     @Override
     public void run() {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
-        while (running.get()) {
-            if (!hasNextBatch()) {
-                running.set(false);
-                return;
-            }
+        while (hasNextBatch()) {
             if (task.getScanMode() == Direct || (queue.size() + BATCH_SIZE) <= MAX_QUEUE_SIZE) {
                 List<Map<String, Object>> columnMaps = nextBatch();
-                synchronized (running) {
+                synchronized (task) {
                     for (Map<String, Object> columnMap : columnMaps) {
                         queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap));
                     }
