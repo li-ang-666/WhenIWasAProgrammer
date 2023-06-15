@@ -30,13 +30,6 @@ public class NoShareholderCompanyInfoJob {
         DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(streamEnvironment);
         stream
                 .shuffle()
-                /*.keyBy(new KeySelector<SingleCanalBinlog, String>() {
-                    @Override
-                    public String getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
-                        Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-                        return String.valueOf(columnMap.getOrDefault("company_id", columnMap.get("company_id_invested")));
-                    }
-                })*/
                 .addSink(new MySqlSink(config))
                 .name("MySqlSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
