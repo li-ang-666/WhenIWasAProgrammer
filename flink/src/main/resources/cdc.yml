@@ -1,0 +1,28 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 1
+  otherParallel: 1
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - checkpointUid: "111"
+    sourceName: "bigdataOnline"
+    tableName: "itch_point_secondary_dims_uv_count"
+    columns: "*"
+    where: "1=1"
+    scanMode: Direct
+
+dbConfigs:
+  #测试
+  #bigdataOnline: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  #生产
+  bigdataOnline: { host: "140f5010b84c4d9abfc4d13bc597a2ebin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "140f5.proto.bigdata_online.itch_point_secondary_dims_uv_count"
+    groupId: "demo"
+    startFrom: "2023-06-14 11:00:00"

@@ -25,7 +25,7 @@ public class SqlUtils {
         } else {
             String valueString = String.valueOf(value);
             return StringUtils.isNumeric(valueString) ?
-                    valueString :
+                    "'" + valueString + "'" :
                     escapeValue(valueString);
         }
     }

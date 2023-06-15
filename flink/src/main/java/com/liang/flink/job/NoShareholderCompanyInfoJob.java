@@ -29,7 +29,7 @@ public class NoShareholderCompanyInfoJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(streamEnvironment);
         stream
-                .rebalance()
+                .shuffle()
                 /*.keyBy(new KeySelector<SingleCanalBinlog, String>() {
                     @Override
                     public String getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
@@ -37,9 +37,9 @@ public class NoShareholderCompanyInfoJob {
                         return String.valueOf(columnMap.getOrDefault("company_id", columnMap.get("company_id_invested")));
                     }
                 })*/
-                .addSink(new MySqlSink(ConfigUtils.getConfig()))
+                .addSink(new MySqlSink(config))
                 .name("MySqlSink")
-                .setParallelism(ConfigUtils.getConfig().getFlinkConfig().getOtherParallel());
+                .setParallelism(config.getFlinkConfig().getOtherParallel());
         streamEnvironment.execute("NoShareholderCompanyInfoJob");
     }
 
@@ -77,6 +77,11 @@ public class NoShareholderCompanyInfoJob {
                 jdbcTemplate.batchUpdate(cache);
                 cache.clear();
             }
+        }
+
+        @Override
+        public void close() throws Exception {
+            ConfigUtils.closeAll();
         }
     }
 }

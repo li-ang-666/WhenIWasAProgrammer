@@ -19,7 +19,6 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
@@ -70,7 +69,6 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
             while (i-- > 0) {
                 ctx.collect(queue.poll());
             }
-            TimeUnit.MILLISECONDS.sleep(5);
         }
     }
 
