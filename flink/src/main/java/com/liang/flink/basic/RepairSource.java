@@ -50,7 +50,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 continue;
             }
             task = stateTask;
-            log.warn("task-{} restored from taskState", task.getTaskId());
+            log.warn("task-{} restored from taskState, currentId: {}, targetId: {}, queueSize: {}",
+                    task.getTaskId(), task.getCurrentId(), task.getTargetId(), task.getPendingQueue().size());
             return;
         }
     }
