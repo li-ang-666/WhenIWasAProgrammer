@@ -71,8 +71,6 @@ public class CompanyIndex extends AbstractDataUpdate<Map<String, Object>> {
 
     @Override
     public List<Map<String, Object>> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        String companyId = String.valueOf(singleCanalBinlog.getColumnMap().get("company_id"));
-        dao.deleteCompany(companyId);
-        return new ArrayList<>();
+        return updateWithReturn(singleCanalBinlog);
     }
 }

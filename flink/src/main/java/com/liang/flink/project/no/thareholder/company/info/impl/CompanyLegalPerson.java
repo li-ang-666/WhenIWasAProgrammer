@@ -20,4 +20,9 @@ public class CompanyLegalPerson extends AbstractDataUpdate<Map<String, Object>> 
         }
         return new ArrayList<>();
     }
+
+    @Override
+    public List<Map<String, Object>> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
+        return updateWithReturn(singleCanalBinlog);
+    }
 }

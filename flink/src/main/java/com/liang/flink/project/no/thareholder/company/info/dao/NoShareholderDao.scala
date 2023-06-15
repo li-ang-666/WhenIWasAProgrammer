@@ -96,11 +96,6 @@ class NoShareholderDao {
     res != null
   }
 
-  def deleteCompany(companyId: String): Unit = {
-    val sql: String = s"""delete from no_shareholder_company_info where id = $companyId"""
-    sink.update(sql)
-  }
-
   def triggerCompanyIndex(companyId: String): Unit = {
     val sql: String = s"""update company_index set update_time = now() where company_id = $companyId"""
     companyBase.update(sql)
