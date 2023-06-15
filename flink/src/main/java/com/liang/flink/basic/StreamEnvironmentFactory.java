@@ -71,6 +71,11 @@ public class StreamEnvironmentFactory {
     }
 
     private static StreamExecutionEnvironment initClusterEnv() {
-        return StreamExecutionEnvironment.getExecutionEnvironment();
+        Configuration configuration = new Configuration();
+        configuration.setString("yarn.application.name", "AAAAAAAAAAAAAAAAAA");
+        configuration.setString("taskmanager.numberOfTaskSlots", "2");
+        StreamExecutionEnvironment executionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
+        executionEnvironment.configure(configuration);
+        return executionEnvironment;
     }
 }
