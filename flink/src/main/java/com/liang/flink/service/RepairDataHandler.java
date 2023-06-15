@@ -1,7 +1,6 @@
 package com.liang.flink.service;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
@@ -19,7 +18,6 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 public class RepairDataHandler implements Runnable {
     private final static int BATCH_SIZE = 1024;
     private final static int MAX_QUEUE_SIZE = 102400;
-    private final static int DIRECT_TASK_FINISH_ID = 404;
 
     private final SubRepairTask task;
     private final String baseSql;
@@ -51,29 +49,20 @@ public class RepairDataHandler implements Runnable {
     }
 
     private boolean hasNextBatch() {
-        RepairTask.ScanMode scanMode = task.getScanMode();
-        if (scanMode == Direct) {
-            return task.getCurrentId() != DIRECT_TASK_FINISH_ID;
-        } else {
-            return task.getCurrentId() < task.getTargetId();
-        }
+        return task.getCurrentId() < task.getTargetId();
     }
 
     private List<Map<String, Object>> nextBatch() {
-        String sql = baseSql;
+        StringBuilder sqlBuilder = new StringBuilder(baseSql);
         if (task.getScanMode() == TumblingWindow) {
             watermark = Math.min(task.getCurrentId() + BATCH_SIZE, task.getTargetId());
-            sql += String.format(" and %s <= id and id < %s", task.getCurrentId(), watermark);
+            sqlBuilder.append(String.format(" and %s <= id and id < %s", task.getCurrentId(), watermark));
         }
-        return jdbcTemplate.queryForColumnMaps(sql);
+        return jdbcTemplate.queryForColumnMaps(sqlBuilder.toString());
     }
 
     private void commit() {
-        if (task.getScanMode() == Direct) {
-            task.setCurrentId(DIRECT_TASK_FINISH_ID);
-        } else {
-            task.setCurrentId(watermark);
-        }
+        task.setCurrentId(task.getScanMode() == Direct ? 1 : watermark);
     }
 }
 

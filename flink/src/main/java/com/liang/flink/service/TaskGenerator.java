@@ -1,8 +1,8 @@
 package com.liang.flink.service;
 
-import com.liang.flink.dto.SubRepairTask;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.flink.dto.SubRepairTask;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 
@@ -13,7 +13,10 @@ public class TaskGenerator {
 
     public static SubRepairTask generateFrom(RepairTask task) {
         if (task.getScanMode() == RepairTask.ScanMode.Direct) {
-            return new SubRepairTask(task);
+            SubRepairTask subTask = new SubRepairTask(task);
+            subTask.setCurrentId(0);
+            subTask.setTargetId(1);
+            return subTask;
         }
         String sql = String.format("select min(id),max(id) from %s", task.getTableName());
         Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(task.getSourceName())
