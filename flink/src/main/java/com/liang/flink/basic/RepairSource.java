@@ -12,6 +12,7 @@ import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -40,15 +41,21 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         taskState = context.getOperatorStateStore().getUnionListState(new ListStateDescriptor<>("taskState", TypeInformation.of(
                 new TypeHint<SubRepairTask>() {
                 })));
-        if (context.isRestored()) {
-            for (SubRepairTask stateTask : taskState.get()) {
-                if (stateTask.getTaskId().equals(task.getTaskId())) {
-                    task = stateTask;
-                    log.warn("task-{} restored from taskState", task.getTaskId());
-                    break;
-                }
-            }
+        if (!context.isRestored()) {
+            return;
         }
+        for (SubRepairTask stateTask : taskState.get()) {
+            if (!stateTask.getTaskId().equals(task.getTaskId())) {
+                continue;
+            }
+            task = stateTask;
+            log.warn("task-{} restored from taskState", task.getTaskId());
+            return;
+        }
+    }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
         new Thread(new RepairDataHandler(task, running)).start();
     }
 
@@ -78,5 +85,11 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void cancel() {
         running.set(false);
+    }
+
+    @Override
+    public void close() throws Exception {
+        cancel();
+        ConfigUtils.closeAll();
     }
 }
