@@ -29,5 +29,8 @@ kafkaConfigs:
     topics:
       - "ee59d.json.company_base.company_index"
       - "1ae09.proto.graph_data.company_equity_relation_details"
+      - "7d89c.proto.data_listed_company.stock_actual_controller"
+      - "ee59d.proto.company_base.company_legal_person"
+      - "9b54e.proto.prism1.company_bond_plates"
     groupId: "no-shareholder-company-info"
     startFrom: "1"

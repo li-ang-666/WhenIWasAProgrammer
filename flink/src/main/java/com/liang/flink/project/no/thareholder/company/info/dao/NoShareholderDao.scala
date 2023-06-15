@@ -26,6 +26,22 @@ class NoShareholderDao {
     res != null
   }
 
+  def queryCompanyId(companyId: String): String = {
+    val sql: String =
+      s"""
+         |select t2.graph_id
+         |from company_bond_plates t1
+         |         join company_graph t2
+         |              on t1.company_id = t2.company_id
+         |where t1.deleted = 0
+         |  and t1.listing_status not in ('暂停上市', 'IPO终止', '退市整理', '终止上市')
+         |  and t2.deleted = 0
+         |  and t1.company_id = $companyId limit 1
+         |""".stripMargin
+    val res: String = prism1.queryForObject(sql, rs => rs.getString(1))
+    res
+  }
+
   def queryListedCompanyActualControllerInvested(companyId: String): String = {
     val sql: String =
       s"""
@@ -83,5 +99,10 @@ class NoShareholderDao {
   def deleteCompany(companyId: String): Unit = {
     val sql: String = s"""delete from no_shareholder_company_info where id = $companyId"""
     sink.update(sql)
+  }
+
+  def triggerCompanyIndex(companyId: String): Unit = {
+    val sql: String = s"""update company_index set update_time = now() where company_id = $companyId"""
+    companyBase.update(sql)
   }
 }

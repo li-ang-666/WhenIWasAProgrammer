@@ -59,6 +59,9 @@ public class NoShareholderCompanyInfoJob {
             ConfigUtils.setConfig(config);
             DataUpdateContext<Map<String, Object>> context = new DataUpdateContext<Map<String, Object>>("com.liang.flink.project.no.thareholder.company.info.impl")
                     .addClass("CompanyIndex")
+                    .addClass("StockActualController")
+                    .addClass("CompanyLegalPerson")
+                    .addClass("CompanyBondPlates")
                     .addClass("CompanyEquityRelationDetails");
             service = new DataUpdateService<>(context);
             jdbcTemplate = new JdbcTemplate("sink");
