@@ -1,13 +1,15 @@
 package com.liang.common.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Data
+@ToString
+@Getter
 public class DorisOnePacket {
     private final Map<String, String> putHeaders = new HashMap<>();
     private final List<String> derivedCols = new ArrayList<>();
