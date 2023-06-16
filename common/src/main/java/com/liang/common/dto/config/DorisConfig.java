@@ -3,11 +3,12 @@ package com.liang.common.dto.config;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
-public class DBConfig implements Serializable {
-    private String host;
-    private int port = 3306;
+public class DorisConfig implements Serializable {
+    private List<String> feHosts;
+    private int port = 8030;
     private String database;
     private String user;
     private String password;

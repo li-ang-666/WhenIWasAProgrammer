@@ -17,5 +17,6 @@ public class Config implements Serializable {
     private Map<String, KafkaConfig> kafkaConfigs;
     private Map<String, HbaseDbConfig> hbaseDbConfigs;
     private Map<String, HbaseSchema> hbaseSchemas;
+    private Map<String,DorisConfig>
 }
 

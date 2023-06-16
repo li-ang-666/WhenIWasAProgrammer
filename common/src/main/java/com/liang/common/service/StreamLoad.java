@@ -15,12 +15,27 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * <p>drop table if exists test;
+ * <p>create table if not exists test(
+ * <p>     id int,
+ * <p>     name text
+ * <p>)
+ * <p>UNIQUE KEY(`id`)
+ * <p>DISTRIBUTED BY HASH(`id`) BUCKETS 1
+ * <p>PROPERTIES (
+ * <p>     "function_column.sequence_type" = 'largeint',
+ * <p>     "replication_num" = "1",
+ * <p>     "in_memory" = "false"
+ * <p>);
+ * <p>SET show_hidden_columns=true;
+ */
 @Slf4j
 public class StreamLoad {
     private final HttpClientBuilder httpClientBuilder = HttpClients
@@ -44,7 +59,8 @@ public class StreamLoad {
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
             put.setHeader("merge_type", "MERGE");
-            put.setHeader("delete", "__DORIS_DELETE_SIGN__ = true");
+            put.setHeader("delete", "__DORIS_DELETE_SIGN__ = 1");
+            put.setHeader("function_column.sequence_col", "__DORIS_SEQUENCE_COL__");
             put.setHeader("columns", parseColumns(columnMaps));
             put.setHeader("jsonpaths", parseJsonPaths(columnMaps));
             //执行 put
@@ -84,12 +100,21 @@ public class StreamLoad {
 
     public static void main(String[] args) {
         StreamLoad streamLoad = new StreamLoad();
-        HashMap<String, Object> columnMap = new HashMap<String, Object>() {{
+        ArrayList<Map<String, Object>> list = new ArrayList<>();
+        HashMap<String, Object> columnMap1 = new HashMap<String, Object>() {{
             put("id", 1);
             put("name", "aaa");
-            put("address", "北京");
             put("__DORIS_DELETE_SIGN__", "0");
+            put("__DORIS_SEQUENCE_COL__", 14);
         }};
-        streamLoad.send(Collections.singletonList(columnMap));
+        HashMap<String, Object> columnMap2 = new HashMap<String, Object>() {{
+            put("id", 1);
+            put("name", "bbb");
+            put("__DORIS_DELETE_SIGN__", "1");
+            put("__DORIS_SEQUENCE_COL__", 15);
+        }};
+        list.add(columnMap1);
+        list.add(columnMap2);
+        streamLoad.send(list);
     }
 }
