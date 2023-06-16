@@ -31,7 +31,7 @@ public class CanalBinlogStreamFactory {
         return streamEnvironment
                 .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "KafkaSource")
                 .setParallelism(ConfigUtils.getConfig().getFlinkConfig().getSourceParallel())
-                .flatMap(new KafkaMonitor(ConfigUtils.getConfig())).name("CanalKafkaMonitor")
+                .flatMap(new KafkaMonitor(ConfigUtils.getConfig())).name("Monitor")
                 .setParallelism(1);
     }
 
