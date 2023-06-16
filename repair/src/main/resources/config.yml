@@ -89,3 +89,9 @@ hbaseSchemas:
     tableName: "company_base_splice"
     columnFamily: "ds"
     rowKeyReverse: true
+dorisConfigs:
+  dorisCluster:
+    feHttpHosts: [ "10.99.197.34","10.99.202.71","10.99.203.88" ]
+    user: "dba"
+    password: "Tyc@1234"
+    database: "liang_test"

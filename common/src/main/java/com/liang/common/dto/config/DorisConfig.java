@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class DorisConfig implements Serializable {
-    private List<String> feHosts;
+    private List<String> feHttpHosts;
     private int port = 8030;
     private String database;
     private String user;
