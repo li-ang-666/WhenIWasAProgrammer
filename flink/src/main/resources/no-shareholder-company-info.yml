@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "companyBase"
     tableName: "company_index"
     columns: "*"
-    where: "company_id in (9506276)"
+    where: "company_id in (2597410928)"
     scanMode: Direct
 
 dbConfigs:
