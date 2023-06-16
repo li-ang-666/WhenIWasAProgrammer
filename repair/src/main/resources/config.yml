@@ -94,4 +94,4 @@ dorisConfigs:
     feHttpHosts: [ "10.99.197.34","10.99.202.71","10.99.203.88" ]
     user: "dba"
     password: "Tyc@1234"
-    database: "liang_test"
+    database: "test_db"

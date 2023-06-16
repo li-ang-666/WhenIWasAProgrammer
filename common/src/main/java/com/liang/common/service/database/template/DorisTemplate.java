@@ -22,6 +22,21 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+/**
+ * <p>drop table if exists stream_load_test;
+ * <p>create table if not exists stream_load_test(
+ * <p>     id int,
+ * <p>     name text
+ * <p>)
+ * <p>UNIQUE KEY(`id`)
+ * <p>DISTRIBUTED BY HASH(`id`) BUCKETS 1
+ * <p>PROPERTIES (
+ * <p>     "function_column.sequence_type" = 'largeint',
+ * <p>     "replication_num" = "1",
+ * <p>     "in_memory" = "false"
+ * <p>);
+ * <p>SET show_hidden_columns=true;
+ */
 @Slf4j
 public class DorisTemplate {
     private final Random random = new Random();

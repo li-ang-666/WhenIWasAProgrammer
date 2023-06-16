@@ -28,6 +28,6 @@ public class CommonTest implements Runner {
         }};
         list.add(columnMap1);
         list.add(columnMap2);
-        dorisCluster.streamLoad("test", list);
+        dorisCluster.streamLoad("stream_load_test", list);
     }
 }
