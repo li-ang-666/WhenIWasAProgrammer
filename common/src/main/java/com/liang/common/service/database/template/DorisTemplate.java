@@ -50,12 +50,20 @@ public class DorisTemplate {
             });
     private final String path;
     private final List<String> feHosts;
+    private final String auth;
 
     public DorisTemplate(String name) {
         DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
         path = String.format("http://%s:%s/api/%s/%s/_stream_load",
                 "%s", dorisConfig.getPort(), dorisConfig.getDatabase(), "%s");
         feHosts = dorisConfig.getFeHttpHosts();
+        auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
+    }
+
+    private String basicAuthHeader(String username, String password) {
+        final String tobeEncode = username + ":" + password;
+        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
+        return "Basic " + new String(encoded);
     }
 
     public void streamLoad(String tableName, List<Map<String, Object>> contents) {
@@ -64,9 +72,8 @@ public class DorisTemplate {
             String url = String.format(path, host, tableName);
             HttpPut put = new HttpPut(url);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
-            put.setHeader(HttpHeaders.AUTHORIZATION, basicAuthHeader("dba", "Tyc@1234"));
+            put.setHeader(HttpHeaders.AUTHORIZATION, auth);
             put.setEntity(new StringEntity(JsonUtils.toString(contents), StandardCharsets.UTF_8));
-            put.setHeader("label", String.valueOf(System.currentTimeMillis()));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
             put.setHeader("merge_type", "MERGE");
@@ -90,15 +97,10 @@ public class DorisTemplate {
         }
     }
 
-    private String basicAuthHeader(String username, String password) {
-        final String tobeEncode = username + ":" + password;
-        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
-        return "Basic " + new String(encoded);
-    }
-
     private String parseColumns(List<Map<String, Object>> columnMaps) {
         Map<String, Object> columnMap = columnMaps.get(0);
         return columnMap.keySet().parallelStream()
+                .map(e -> "`" + e + "`")
                 .collect(Collectors.joining(","));
     }
 
