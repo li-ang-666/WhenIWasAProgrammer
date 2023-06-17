@@ -6,7 +6,6 @@ import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.util.DateTimeUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -37,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class HbaseTemplate {
     private final Connection pool;
     private final TemplateLogger logger;
-    private final Map<Tuple2<HbaseSchema, OptType>, List<HbaseOneRow>> cache = new HashMap<>();
+    private final Map<HbaseSchema, List<HbaseOneRow>> upsertCache = new HashMap<>();
 
     public HbaseTemplate(String name) {
         this(name, 500);
@@ -61,10 +60,10 @@ public class HbaseTemplate {
             return;
         }
         for (HbaseOneRow hbaseOneRow : hbaseOneRows) {
-            synchronized (cache) {
-                Tuple2<HbaseSchema, OptType> key = Tuple2.of(hbaseOneRow.getSchema(), OptType.UPSERT);
-                cache.putIfAbsent(key, new ArrayList<>());
-                cache.get(key).add(hbaseOneRow);
+            synchronized (upsertCache) {
+                HbaseSchema key = hbaseOneRow.getSchema();
+                upsertCache.putIfAbsent(key, new ArrayList<>());
+                upsertCache.get(key).add(hbaseOneRow);
             }
         }
     }
@@ -136,22 +135,18 @@ public class HbaseTemplate {
         public void run() {
             while (true) {
                 TimeUnit.MILLISECONDS.sleep(cacheTime);
-                if (hbaseTemplate.cache.isEmpty()) {
+                if (hbaseTemplate.upsertCache.isEmpty()) {
                     continue;
                 }
-                Map<Tuple2<HbaseSchema, OptType>, List<HbaseOneRow>> copyCache;
-                synchronized (hbaseTemplate.cache) {
-                    copyCache = new HashMap<>(hbaseTemplate.cache);
-                    hbaseTemplate.cache.clear();
+                Map<HbaseSchema, List<HbaseOneRow>> copyUpsertCache;
+                synchronized (hbaseTemplate.upsertCache) {
+                    copyUpsertCache = new HashMap<>(hbaseTemplate.upsertCache);
+                    hbaseTemplate.upsertCache.clear();
                 }
-                for (Map.Entry<Tuple2<HbaseSchema, OptType>, List<HbaseOneRow>> entry : copyCache.entrySet()) {
-                    hbaseTemplate.upsert(entry.getKey().f0, entry.getValue());
+                for (Map.Entry<HbaseSchema, List<HbaseOneRow>> entry : copyUpsertCache.entrySet()) {
+                    hbaseTemplate.upsert(entry.getKey(), entry.getValue());
                 }
             }
         }
-    }
-
-    private enum OptType {
-        UPSERT, DELETE
     }
 }
