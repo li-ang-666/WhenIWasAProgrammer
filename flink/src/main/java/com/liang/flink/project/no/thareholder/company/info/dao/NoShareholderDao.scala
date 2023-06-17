@@ -98,6 +98,6 @@ class NoShareholderDao {
 
   def triggerCompanyIndex(companyId: String): Unit = {
     val sql: String = s"""update company_index set update_time = date_add(update_time, interval 1 second) where company_id = $companyId"""
-    companyBase.update(sql)
+    companyBase.updateImmediately(sql)
   }
 }
