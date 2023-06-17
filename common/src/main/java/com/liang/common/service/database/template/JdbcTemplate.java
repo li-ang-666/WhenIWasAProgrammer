@@ -101,33 +101,41 @@ public class JdbcTemplate {
         cache.addAll(sqls);
     }
 
-    public void updateImmediately(List<String> sqls) {
-        synchronized (this) {
-            logger.beforeExecute();
-            try (DruidPooledConnection connection = pool.getConnection()) {
-                connection.setAutoCommit(false);
-                Statement statement = connection.createStatement();
-                for (String sql : sqls) {
-                    statement.addBatch(sql);
+    public void updateImmediately(String... sqls) {
+        if (sqls == null || sqls.length == 0) {
+            return;
+        }
+        updateImmediately(Arrays.asList(sqls));
+    }
+
+    public synchronized void updateImmediately(List<String> sqls) {
+        if (sqls == null || sqls.isEmpty()) {
+            return;
+        }
+        logger.beforeExecute();
+        try (DruidPooledConnection connection = pool.getConnection()) {
+            connection.setAutoCommit(false);
+            Statement statement = connection.createStatement();
+            for (String sql : sqls) {
+                statement.addBatch(sql);
+            }
+            statement.executeBatch();
+            connection.commit();
+            logger.afterExecute("updateBatch", sqls);
+        } catch (Exception e) {
+            logger.ifError("updateBatch", sqls, e);
+            for (String sql : sqls) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(50);
+                } catch (Exception ignore) {
                 }
-                statement.executeBatch();
-                connection.commit();
-                logger.afterExecute("updateBatch", sqls);
-            } catch (Exception e) {
-                logger.ifError("updateBatch", sqls, e);
-                for (String sql : sqls) {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(50);
-                    } catch (Exception ignore) {
-                    }
-                    logger.beforeExecute();
-                    try (DruidPooledConnection connection = pool.getConnection()) {
-                        connection.setAutoCommit(true);
-                        connection.prepareStatement(sql).executeUpdate();
-                        logger.afterExecute("updateSingle", sql);
-                    } catch (Exception ee) {
-                        logger.ifError("updateSingle", sql, ee);
-                    }
+                logger.beforeExecute();
+                try (DruidPooledConnection connection = pool.getConnection()) {
+                    connection.setAutoCommit(true);
+                    connection.prepareStatement(sql).executeUpdate();
+                    logger.afterExecute("updateSingle", sql);
+                } catch (Exception ee) {
+                    logger.ifError("updateSingle", sql, ee);
                 }
             }
         }
@@ -156,9 +164,7 @@ public class JdbcTemplate {
                     copyCache = new ArrayList<>(jdbcTemplate.cache);
                     jdbcTemplate.cache.clear();
                 }
-                synchronized (jdbcTemplate) {
-                    jdbcTemplate.updateImmediately(copyCache);
-                }
+                jdbcTemplate.updateImmediately(copyCache);
             }
         }
     }
