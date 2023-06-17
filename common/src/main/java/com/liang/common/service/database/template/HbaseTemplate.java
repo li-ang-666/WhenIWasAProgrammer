@@ -40,7 +40,7 @@ public class HbaseTemplate {
     private final Map<Tuple2<HbaseSchema, OptType>, List<HbaseOneRow>> cache = new HashMap<>();
 
     public HbaseTemplate(String name) {
-        this(name, 100);
+        this(name, 500);
     }
 
     public HbaseTemplate(String name, int cacheTime) {
@@ -132,6 +132,7 @@ public class HbaseTemplate {
 
         @Override
         @SneakyThrows
+        @SuppressWarnings("InfiniteLoopStatement")
         public void run() {
             while (true) {
                 TimeUnit.MILLISECONDS.sleep(cacheTime);

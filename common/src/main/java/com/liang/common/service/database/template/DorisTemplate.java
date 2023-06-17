@@ -56,7 +56,7 @@ public class DorisTemplate {
     private final Map<DorisSchema, List<DorisOneRow>> cache = new HashMap<>();
 
     public DorisTemplate(String name) {
-        this(name, 100);
+        this(name, 500);
     }
 
     public DorisTemplate(String name, int cacheTime) {
@@ -162,6 +162,7 @@ public class DorisTemplate {
 
         @Override
         @SneakyThrows
+        @SuppressWarnings("InfiniteLoopStatement")
         public void run() {
             while (true) {
                 TimeUnit.MILLISECONDS.sleep(cacheTime);
