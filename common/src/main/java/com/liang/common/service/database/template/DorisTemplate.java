@@ -49,26 +49,36 @@ public class DorisTemplate {
                     return true;
                 }
             });
+    private final TemplateLogger logger;
     private final List<String> fe;
     private final String auth;
     private final Random random = new Random();
     private final Map<DorisSchema, List<DorisOneRow>> cache = new HashMap<>();
 
     public DorisTemplate(String name) {
+        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
         new Thread(new Sender(this)).start();
     }
 
-    public void merge(DorisOneRow dorisOneRow) {
-        synchronized (cache) {
-            cache.putIfAbsent(dorisOneRow.getSchema(), new ArrayList<>());
-            cache.get(dorisOneRow.getSchema()).add(dorisOneRow);
+    public void load(DorisOneRow... dorisOneRows) {
+        load(Arrays.asList(dorisOneRows));
+    }
+
+    public void load(List<DorisOneRow> dorisOneRows) {
+        for (DorisOneRow dorisOneRow : dorisOneRows) {
+            synchronized (cache) {
+                DorisSchema key = dorisOneRow.getSchema();
+                cache.putIfAbsent(key, new ArrayList<>());
+                cache.get(key).add(dorisOneRow);
+            }
         }
     }
 
-    private void merge(DorisSchema schema, List<DorisOneRow> rows) {
+    private void load(DorisSchema schema, List<DorisOneRow> rows) {
+        logger.beforeExecute("load", rows);
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             String target = fe.get(random.nextInt(fe.size()));
             String url = String.format("http://%s/api/%s/%s/_stream_load", target, schema.getDatabase(), schema.getTableName());
@@ -95,13 +105,13 @@ public class DorisTemplate {
                 String loadResult = EntityUtils.toString(httpEntity);
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
-                    log.info("stream load sunccess, loadResult: {}", loadResult);
+                    logger.afterExecute("load", rows);
                 } else {
-                    log.error("stream load error, statusCode: {}, loadResult: {}", statusCode, loadResult);
+                    throw new Exception(String.format("stream load error, statusCode: %s, loadResult: %s", statusCode, loadResult));
                 }
             }
         } catch (Exception e) {
-            log.error("stream load error", e);
+            logger.ifError("load", rows, e);
         }
     }
 
@@ -146,7 +156,7 @@ public class DorisTemplate {
                     dorisTemplate.cache.clear();
                 }
                 for (Map.Entry<DorisSchema, List<DorisOneRow>> entry : copyCache.entrySet()) {
-                    dorisTemplate.merge(entry.getKey(), entry.getValue());
+                    dorisTemplate.load(entry.getKey(), entry.getValue());
                 }
             }
         }

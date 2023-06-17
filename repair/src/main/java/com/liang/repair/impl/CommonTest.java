@@ -22,7 +22,7 @@ public class CommonTest implements Runner {
         }};
         DorisOneRow dorisOneRow = new DorisOneRow(new DorisSchema("test_db", "stream_load_test", "__DORIS_DELETE_SIGN__ = 1", "__DORIS_SEQUENCE_COL__", Collections.singletonList("name=concat('name-',name)")));
         dorisOneRow.putAll(columnMap1);
-        dorisCluster.merge(dorisOneRow);
+        dorisCluster.load(dorisOneRow);
         HashMap<String, Object> columnMap2 = new HashMap<String, Object>() {{
             put("id", 2);
             put("name", "bbb");
@@ -31,7 +31,7 @@ public class CommonTest implements Runner {
         }};
         dorisOneRow = new DorisOneRow(new DorisSchema("test_db", "stream_load_test", "__DORIS_DELETE_SIGN__ = 1", "__DORIS_SEQUENCE_COL__", Collections.singletonList("name=concat('name-',name)")));
         dorisOneRow.putAll(columnMap2);
-        dorisCluster.merge(dorisOneRow);
+        dorisCluster.load(dorisOneRow);
         HashMap<String, Object> columnMap3 = new HashMap<String, Object>() {{
             put("id", 3);
             put("name", "ccc");
@@ -40,6 +40,6 @@ public class CommonTest implements Runner {
         }};
         dorisOneRow = new DorisOneRow(new DorisSchema("test_db", "stream_load_test", "__DORIS_DELETE_SIGN__ = 1", "__DORIS_SEQUENCE_COL__", Collections.singletonList("name=concat('name-',name)")));
         dorisOneRow.putAll(columnMap3);
-        dorisCluster.merge(dorisOneRow);
+        dorisCluster.load(dorisOneRow);
     }
 }
