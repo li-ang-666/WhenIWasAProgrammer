@@ -25,4 +25,4 @@ kafkaConfigs:
     topics:
       - "140f5.proto.bigdata_online.itch_point_secondary_dims_uv_count"
     groupId: "demo"
-    startFrom: "2023-06-14 11:00:00"
+    startFrom: "2023-06-17 12:00:00"

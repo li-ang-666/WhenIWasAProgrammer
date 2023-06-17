@@ -70,7 +70,7 @@ public class NoShareholderCompanyInfoJob {
             }
             FlinkConfig.SourceType sourceType = ConfigUtils.getConfig().getFlinkConfig().getSourceType();
             if (sourceType == FlinkConfig.SourceType.Kafka || cache.size() >= 2048) {
-                jdbcTemplate.batchUpdate(cache);
+                jdbcTemplate.updateImmediately(cache);
                 cache.clear();
             }
         }

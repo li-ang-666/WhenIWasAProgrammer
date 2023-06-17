@@ -19,7 +19,7 @@ public class CommonTest implements Runner {
                 .build();
         DorisOneRow dorisOneRow = new DorisOneRow(dorisSchema)
                 .put("id", 1)
-                .put("__DORIS_SEQUENCE_COL__", "101")
+                //.put("__DORIS_SEQUENCE_COL__", "101")
                 .put("name", "987654321");
         dorisCluster.load(dorisOneRow);
     }

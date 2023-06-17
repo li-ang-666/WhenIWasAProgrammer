@@ -3,6 +3,7 @@ package com.liang.common.service.database.template;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
+import com.liang.common.service.database.template.inner.TemplateLogger;
 import com.liang.common.util.DateTimeUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -89,10 +90,10 @@ public class HbaseTemplate {
                 puts.add(put);
             }
             table.put(puts);
+            logger.afterExecute("upsert", hbaseOneRows);
         } catch (Exception e) {
             logger.ifError("upsert", hbaseOneRows, e);
         }
-        logger.afterExecute("upsert", hbaseOneRows);
     }
 
     public List<Tuple4<String, String, String, String>> getRow(HbaseOneRow hbaseOneRow) {
@@ -109,11 +110,12 @@ public class HbaseTemplate {
                         DateTimeUtils.fromUnixTime(cell.getTimestamp() / 1000, "yyyy-MM-dd HH:mm:ss")
                 ));
             }
+            logger.afterExecute("getRow", hbaseOneRow);
+            return resultList;
         } catch (Exception e) {
             logger.ifError("getRow", hbaseOneRow, e);
+            return resultList;
         }
-        logger.afterExecute("getRow", hbaseOneRow);
-        return resultList;
     }
 
     private Table getTable(HbaseSchema schema) throws Exception {

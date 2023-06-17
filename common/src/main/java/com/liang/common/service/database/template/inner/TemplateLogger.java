@@ -1,4 +1,4 @@
-package com.liang.common.service.database.template;
+package com.liang.common.service.database.template.inner;
 
 import com.liang.common.service.Timer;
 import lombok.extern.slf4j.Slf4j;

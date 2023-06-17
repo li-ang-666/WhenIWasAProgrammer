@@ -3,6 +3,7 @@ package com.liang.common.service.database.template;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisDbConfig;
+import com.liang.common.service.database.template.inner.TemplateLogger;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.SneakyThrows;
@@ -113,7 +114,6 @@ public class DorisTemplate {
             List<String> keys = new ArrayList<>(contents.get(0).keySet());
             put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
             put.setHeader("jsonpaths", parseJsonPaths(keys));
-            //执行 put
             try (CloseableHttpResponse response = client.execute(put)) {
                 HttpEntity httpEntity = response.getEntity();
                 String loadResult = EntityUtils.toString(httpEntity);

@@ -1,6 +1,7 @@
 package com.liang.common.service.database.template;
 
 import com.liang.common.service.database.holder.JedisPoolHolder;
+import com.liang.common.service.database.template.inner.TemplateLogger;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -24,34 +25,34 @@ public class RedisTemplate {
 
     public String get(String key) {
         logger.beforeExecute();
-        String res = null;
         try (Jedis jedis = pool.getResource()) {
-            res = jedis.get(key);
+            String res = jedis.get(key);
+            logger.afterExecute("get", key);
+            return res;
         } catch (Exception e) {
             logger.ifError("get", key, e);
+            return null;
         }
-        logger.afterExecute("get", key);
-        return res;
     }
 
     public void set(String key, String value) {
         logger.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             jedis.set(key, value);
+            logger.afterExecute("set", key + " -> " + value);
         } catch (Exception e) {
             logger.ifError("set", key + " -> " + value, e);
         }
-        logger.afterExecute("set", key + " -> " + value);
     }
 
     public void del(String key) {
         logger.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             jedis.del(key);
+            logger.afterExecute("del", key);
         } catch (Exception e) {
             logger.ifError("del", key, e);
         }
-        logger.afterExecute("del", key);
     }
 
     /**
@@ -71,11 +72,12 @@ public class RedisTemplate {
                 cursor = scanResult.getCursor();
                 scanResult.getResult().forEach(entry -> result.put(entry.getKey(), entry.getValue()));
             } while (!"0".equals(cursor));
+            logger.afterExecute("hScan", key);
+            return result;
         } catch (Exception e) {
             logger.ifError("hScan", key, e);
+            return result;
         }
-        logger.afterExecute("hScan", key);
-        return result;
     }
 
     public List<String> scan() {
@@ -89,11 +91,12 @@ public class RedisTemplate {
                 cursor = scanResult.getCursor();
                 result.addAll(scanResult.getResult());
             } while (!"0".equals(cursor));
+            logger.afterExecute("scan", "");
+            return result;
         } catch (Exception e) {
             logger.ifError("scan", "", e);
+            return result;
         }
-        logger.afterExecute("scan", "");
-        return result;
     }
 
     public boolean tryLock(String key) {
@@ -101,12 +104,12 @@ public class RedisTemplate {
         boolean res = false;
         try (Jedis jedis = pool.getResource()) {
             Long reply = jedis.setnx(key, "lock");
-            res = reply == 1;
+            logger.afterExecute("tryLock", key);
+            return reply == 1;
         } catch (Exception e) {
             logger.ifError("tryLock", key, e);
+            return false;
         }
-        logger.afterExecute("tryLock", key);
-        return res;
     }
 
     public void unlock(String key) {

@@ -1,4 +1,4 @@
-package com.liang.common.service.database.template;
+package com.liang.common.service.database.template.inner;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
