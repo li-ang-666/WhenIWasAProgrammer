@@ -46,10 +46,16 @@ public class HbaseTemplate {
     }
 
     public void upsert(HbaseOneRow... hbaseOneRows) {
+        if (hbaseOneRows == null || hbaseOneRows.length == 0) {
+            return;
+        }
         upsert(Arrays.asList(hbaseOneRows));
     }
 
     public void upsert(List<HbaseOneRow> hbaseOneRows) {
+        if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
+            return;
+        }
         for (HbaseOneRow hbaseOneRow : hbaseOneRows) {
             synchronized (cache) {
                 Tuple2<HbaseSchema, OptType> key = Tuple2.of(hbaseOneRow.getSchema(), OptType.UPSERT);
@@ -60,6 +66,9 @@ public class HbaseTemplate {
     }
 
     private void upsert(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
+        if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
+            return;
+        }
         logger.beforeExecute("upsert", hbaseOneRows);
         try (Table table = getTable(schema)) {
             ArrayList<Put> puts = new ArrayList<>();
@@ -103,10 +112,9 @@ public class HbaseTemplate {
     }
 
     private Table getTable(HbaseSchema schema) throws Exception {
-        return pool.getTable(
-                TableName.valueOf(
-                        schema.getNamespace(),
-                        schema.getTableName()));
+        return pool.getTable(TableName.valueOf(
+                schema.getNamespace(),
+                schema.getTableName()));
     }
 
     private static class Sender implements Runnable {
@@ -121,6 +129,9 @@ public class HbaseTemplate {
         public void run() {
             while (true) {
                 TimeUnit.MILLISECONDS.sleep(1000);
+                if (hbaseTemplate.cache.isEmpty()) {
+                    continue;
+                }
                 Map<Tuple2<HbaseSchema, OptType>, List<HbaseOneRow>> copyCache;
                 synchronized (hbaseTemplate.cache) {
                     copyCache = new HashMap<>(hbaseTemplate.cache);

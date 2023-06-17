@@ -64,10 +64,16 @@ public class DorisTemplate {
     }
 
     public void load(DorisOneRow... dorisOneRows) {
+        if (dorisOneRows == null || dorisOneRows.length == 0) {
+            return;
+        }
         load(Arrays.asList(dorisOneRows));
     }
 
     public void load(List<DorisOneRow> dorisOneRows) {
+        if (dorisOneRows == null || dorisOneRows.isEmpty()) {
+            return;
+        }
         for (DorisOneRow dorisOneRow : dorisOneRows) {
             synchronized (cache) {
                 DorisSchema key = dorisOneRow.getSchema();
@@ -77,15 +83,18 @@ public class DorisTemplate {
         }
     }
 
-    private void load(DorisSchema schema, List<DorisOneRow> rows) {
-        logger.beforeExecute("load", rows);
+    private void load(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
+        if (dorisOneRows == null || dorisOneRows.isEmpty()) {
+            return;
+        }
+        logger.beforeExecute("load", dorisOneRows);
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             String target = fe.get(random.nextInt(fe.size()));
             String url = String.format("http://%s/api/%s/%s/_stream_load", target, schema.getDatabase(), schema.getTableName());
             HttpPut put = new HttpPut(url);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
-            List<Map<String, Object>> contents = rows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
+            List<Map<String, Object>> contents = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
             put.setEntity(new StringEntity(JsonUtils.toString(contents), StandardCharsets.UTF_8));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
@@ -105,13 +114,13 @@ public class DorisTemplate {
                 String loadResult = EntityUtils.toString(httpEntity);
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
-                    logger.afterExecute("load", rows);
+                    logger.afterExecute("load", dorisOneRows);
                 } else {
                     throw new Exception(String.format("stream load error, statusCode: %s, loadResult: %s", statusCode, loadResult));
                 }
             }
         } catch (Exception e) {
-            logger.ifError("load", rows, e);
+            logger.ifError("load", dorisOneRows, e);
         }
     }
 
@@ -126,7 +135,7 @@ public class DorisTemplate {
         List<String> columns = keys.parallelStream()
                 .map(e -> "`" + e + "`")
                 .collect(Collectors.toList());
-        if (derivedColumns != null && derivedColumns.size() > 0) {
+        if (derivedColumns != null && !derivedColumns.isEmpty()) {
             columns.addAll(derivedColumns);
         }
         return String.join(",", columns);
@@ -149,6 +158,9 @@ public class DorisTemplate {
         @SneakyThrows
         public void run() {
             while (true) {
+                if (dorisTemplate.cache.isEmpty()) {
+                    continue;
+                }
                 TimeUnit.MILLISECONDS.sleep(1000);
                 Map<DorisSchema, List<DorisOneRow>> copyCache;
                 synchronized (dorisTemplate.cache) {
