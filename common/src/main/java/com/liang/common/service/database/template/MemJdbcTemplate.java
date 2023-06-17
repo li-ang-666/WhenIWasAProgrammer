@@ -22,6 +22,6 @@ public class MemJdbcTemplate extends JdbcTemplate {
         if (sqls == null || sqls.isEmpty()) {
             return;
         }
-        super.updateImmediately(sqls);
+        updateImmediately(sqls);
     }
 }
