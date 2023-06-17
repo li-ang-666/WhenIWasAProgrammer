@@ -44,51 +44,6 @@ hbaseDbConfigs:
   hbaseSink:
     zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
 
-# 库、表、列族信息
-hbaseSchemas:
-  #################### 测试 ####################
-  #  dataConcatJudicialRiskSchema:
-  #    namespace: "test"
-  #    tableName: "data_concat"
-  #    columnFamily: "cf1"
-  #    rowKeyReverse: false
-  #  dataConcatOperatingRiskSchema:
-  #    namespace: "test"
-  #    tableName: "data_concat"
-  #    columnFamily: "cf1"
-  #    rowKeyReverse: false
-  #  dataConcatHistoricalInfoSchema:
-  #    namespace: "test"
-  #    tableName: "data_concat"
-  #    columnFamily: "cf1"
-  #    rowKeyReverse: false
-  #  dataConcatCompanyBaseSchema:
-  #    namespace: "test"
-  #    tableName: "data_concat"
-  #    columnFamily: "cf1"
-  #    rowKeyReverse: false
-
-  #################### 生产 ####################
-  dataConcatJudicialRiskSchema:
-    namespace: "prism_c"
-    tableName: "judicial_risk_splice"
-    columnFamily: "ds"
-    rowKeyReverse: true
-  dataConcatOperatingRiskSchema:
-    namespace: "prism_c"
-    tableName: "operating_risk_splice"
-    columnFamily: "ds"
-    rowKeyReverse: true
-  dataConcatHistoricalInfoSchema:
-    namespace: "prism_c"
-    tableName: "historical_info_splice"
-    columnFamily: "ds"
-    rowKeyReverse: true
-  dataConcatCompanyBaseSchema:
-    namespace: "prism_c"
-    tableName: "company_base_splice"
-    columnFamily: "ds"
-    rowKeyReverse: true
 dorisDbConfigs:
   dorisCluster:
     fe: [ "10.99.197.34:8030","10.99.202.71:8030","10.99.203.88:8030" ]

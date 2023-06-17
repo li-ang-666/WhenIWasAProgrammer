@@ -102,7 +102,8 @@ public class DorisTemplate {
             put.setEntity(new StringEntity(JsonUtils.toString(contents), StandardCharsets.UTF_8));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
-            put.setHeader("merge_type", "MERGE");
+            String mergeType = (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) ? "MERGE" : "APPEND";
+            put.setHeader("merge_type", mergeType);
             if (schema.getUniqueDeleteOn() != null) {
                 put.setHeader("delete", schema.getUniqueDeleteOn());
             }

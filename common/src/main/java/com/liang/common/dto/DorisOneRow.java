@@ -1,24 +1,25 @@
 package com.liang.common.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class DorisOneRow implements Serializable {
-    private final DorisSchema schema;
-    private final Map<String, Object> columnMap;
+    private DorisSchema schema;
+    private Map<String, Object> columnMap;
 
     public DorisOneRow(DorisSchema schema) {
         this.schema = schema;
         columnMap = new HashMap<>();
-    }
-
-    public DorisOneRow(DorisSchema schema, Map<String, Object> columnMap) {
-        this.schema = schema;
-        this.columnMap = columnMap;
     }
 
     public DorisOneRow put(String column, Object value) {
