@@ -71,7 +71,7 @@ public class BatchCanalBinlog implements Serializable {
     private void parseProtobufMessage(byte[] kafkaRecordValue) {
         Message message = CanalMessageDeserializer.deserializer(kafkaRecordValue);
         //判断entries
-        if (message.getId() == -1L || message.getEntries().size() == 0) {
+        if (message.getId() == -1L || message.getEntries().isEmpty()) {
             return;
         }
         //遍历entries, 判断每一个entry

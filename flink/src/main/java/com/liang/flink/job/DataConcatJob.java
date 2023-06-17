@@ -63,7 +63,7 @@ public class DataConcatJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
             List<HbaseOneRow> input = service.invoke(singleCanalBinlog);
-            if (input == null || input.size() == 0) {
+            if (input == null || input.isEmpty()) {
                 return;
             }
             if (log.isDebugEnabled()) {
