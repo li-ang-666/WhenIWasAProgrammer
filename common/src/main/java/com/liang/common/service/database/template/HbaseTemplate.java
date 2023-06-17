@@ -73,7 +73,7 @@ public class HbaseTemplate {
         if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
             return;
         }
-        logger.beforeExecute("upsert", hbaseOneRows);
+        logger.beforeExecute();
         try (Table table = getTable(schema)) {
             ArrayList<Put> puts = new ArrayList<>();
             for (HbaseOneRow hbaseOneRow : hbaseOneRows) {
@@ -95,7 +95,7 @@ public class HbaseTemplate {
     }
 
     public List<Tuple4<String, String, String, String>> getRow(HbaseOneRow hbaseOneRow) {
-        logger.beforeExecute("getRow", hbaseOneRow);
+        logger.beforeExecute();
         List<Tuple4<String, String, String, String>> resultList = new ArrayList<>();
         try (Table table = getTable(hbaseOneRow.getSchema())) {
             Get get = new Get(Bytes.toBytes(hbaseOneRow.getRowKey()));

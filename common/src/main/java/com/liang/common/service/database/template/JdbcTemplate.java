@@ -30,7 +30,7 @@ public class JdbcTemplate {
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {
-        logger.beforeExecute("queryForObject", sql);
+        logger.beforeExecute();
         ArrayList<T> list = new ArrayList<>();
         try (DruidPooledConnection connection = pool.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
@@ -44,7 +44,7 @@ public class JdbcTemplate {
     }
 
     public <T> List<T> queryForList(String sql, ResultSetMapper<T> resultSetMapper) {
-        logger.beforeExecute("queryForList", sql);
+        logger.beforeExecute();
         ArrayList<T> list = new ArrayList<>();
         try (DruidPooledConnection connection = pool.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
@@ -59,7 +59,7 @@ public class JdbcTemplate {
     }
 
     public List<Map<String, Object>> queryForColumnMaps(String sql) {
-        logger.beforeExecute("queryForColumnMaps", sql);
+        logger.beforeExecute();
         List<Map<String, Object>> result = new ArrayList<>();
         try (DruidPooledConnection connection = pool.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
@@ -80,7 +80,7 @@ public class JdbcTemplate {
     }
 
     public void batchUpdate(List<String> sqls) {
-        logger.beforeExecute("batchUpdate", sqls);
+        logger.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
             Statement statement = connection.createStatement();
@@ -103,7 +103,7 @@ public class JdbcTemplate {
     }
 
     public void update(String sql) {
-        logger.beforeExecute("update", sql);
+        logger.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(true);
             connection.prepareStatement(sql).executeUpdate();

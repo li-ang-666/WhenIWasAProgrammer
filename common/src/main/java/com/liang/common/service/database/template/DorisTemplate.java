@@ -91,7 +91,7 @@ public class DorisTemplate {
         if (dorisOneRows == null || dorisOneRows.isEmpty()) {
             return;
         }
-        logger.beforeExecute("load", dorisOneRows);
+        logger.beforeExecute();
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             String target = fe.get(random.nextInt(fe.size()));
             String url = String.format("http://%s/api/%s/%s/_stream_load", target, schema.getDatabase(), schema.getTableName());

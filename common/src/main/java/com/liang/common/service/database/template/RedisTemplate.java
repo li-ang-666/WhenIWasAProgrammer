@@ -23,7 +23,7 @@ public class RedisTemplate {
     }
 
     public String get(String key) {
-        logger.beforeExecute("get", key);
+        logger.beforeExecute();
         String res = null;
         try (Jedis jedis = pool.getResource()) {
             res = jedis.get(key);
@@ -35,7 +35,7 @@ public class RedisTemplate {
     }
 
     public void set(String key, String value) {
-        logger.beforeExecute("set", key + " -> " + value);
+        logger.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             jedis.set(key, value);
         } catch (Exception e) {
@@ -45,7 +45,7 @@ public class RedisTemplate {
     }
 
     public void del(String key) {
-        logger.beforeExecute("del", key);
+        logger.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             jedis.del(key);
         } catch (Exception e) {
@@ -61,7 +61,7 @@ public class RedisTemplate {
      */
 
     public Map<String, String> hScan(String key) {
-        logger.beforeExecute("hScan", key);
+        logger.beforeExecute();
         Map<String, String> result = new HashMap<>();
         try (Jedis jedis = pool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START; //其实就是 "0"
@@ -79,7 +79,7 @@ public class RedisTemplate {
     }
 
     public List<String> scan() {
-        logger.beforeExecute("scan", "");
+        logger.beforeExecute();
         List<String> result = new ArrayList<>();
         try (Jedis jedis = pool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START;
@@ -97,7 +97,7 @@ public class RedisTemplate {
     }
 
     public boolean tryLock(String key) {
-        logger.beforeExecute("tryLock", key);
+        logger.beforeExecute();
         boolean res = false;
         try (Jedis jedis = pool.getResource()) {
             Long reply = jedis.setnx(key, "lock");
