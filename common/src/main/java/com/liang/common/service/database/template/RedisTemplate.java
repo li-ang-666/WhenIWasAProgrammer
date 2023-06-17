@@ -101,7 +101,6 @@ public class RedisTemplate {
 
     public boolean tryLock(String key) {
         logger.beforeExecute();
-        boolean res = false;
         try (Jedis jedis = pool.getResource()) {
             Long reply = jedis.setnx(key, "lock");
             logger.afterExecute("tryLock", key);
