@@ -2,6 +2,7 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.data.concat.dao.EquityPledgeDetailDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -30,7 +31,10 @@ public class EquityPledgeDetail extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put("equity_pledgee_most_pledgor_type", maxPledgor.f0);
             hbaseColumnMap.put("equity_pledgee_most_pledgor_id", maxPledgor.f1);
             hbaseColumnMap.put("equity_pledgee_most_pledgor_name", maxPledgor.f2);
-            result.add(new HbaseOneRow("dataConcatOperatingRiskSchema", companyId).putAll(hbaseColumnMap));
+
+            HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "operating_risk_splice", "ds", true);
+            HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId, hbaseColumnMap);
+            result.add(hbaseOneRow);
         }
 
         if (StringUtils.isNumeric(pledgorId) && !"0".equals(pledgorId)) {
@@ -39,9 +43,10 @@ public class EquityPledgeDetail extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put("equity_pledgee_most_company_type", maxTargetCompany.f0);
             hbaseColumnMap.put("equity_pledgee_most_company_id", maxTargetCompany.f1);
             hbaseColumnMap.put("equity_pledgee_most_company_name", maxTargetCompany.f2);
-            result.add(
-                    new HbaseOneRow("dataConcatOperatingRiskSchema", pledgorId).putAll(hbaseColumnMap)
-            );
+
+            HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "operating_risk_splice", "ds", true);
+            HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, pledgorId, hbaseColumnMap);
+            result.add(hbaseOneRow);
         }
         return result;
     }

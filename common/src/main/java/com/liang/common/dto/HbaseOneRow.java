@@ -1,10 +1,7 @@
 package com.liang.common.dto;
 
-import com.liang.common.dto.config.HbaseSchema;
 import com.liang.common.util.ConfigUtils;
 import lombok.Data;
-import lombok.Getter;
-import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -15,11 +12,24 @@ import java.util.Map;
 public class HbaseOneRow implements Serializable {
     private final HbaseSchema schema;
     private final String rowKey;
-    private final Map<String, Object> columnMap = new HashMap<>();
+    private final Map<String, Object> columnMap;
 
     public HbaseOneRow(String schemaName, String rowKey) {
         this.schema = ConfigUtils.getConfig().getHbaseSchemas().get(schemaName);
         this.rowKey = schema.isRowKeyReverse() ? StringUtils.reverse(rowKey) : rowKey;
+        columnMap = new HashMap<>();
+    }
+
+    public HbaseOneRow(HbaseSchema schema, String rowKey) {
+        this.schema = schema;
+        this.rowKey = schema.isRowKeyReverse() ? StringUtils.reverse(rowKey) : rowKey;
+        columnMap = new HashMap<>();
+    }
+
+    public HbaseOneRow(HbaseSchema schema, String rowKey, Map<String, Object> columnMap) {
+        this.schema = schema;
+        this.rowKey = schema.isRowKeyReverse() ? StringUtils.reverse(rowKey) : rowKey;
+        this.columnMap = columnMap;
     }
 
     public HbaseOneRow put(String column, Object value) {

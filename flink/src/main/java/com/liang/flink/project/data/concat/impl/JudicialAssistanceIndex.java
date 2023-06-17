@@ -2,6 +2,7 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.data.concat.dao.JudicialAssistanceIndexDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -42,10 +43,15 @@ public class JudicialAssistanceIndex extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_target_type", equityFrozenEnforcedTarget.f0);
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_target_id", equityFrozenEnforcedTarget.f1);
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_target_name", equityFrozenEnforcedTarget.f2);
-            if (isHistory)
-                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", companyId).putAll(hbaseColumnMap));
-            else
-                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", companyId).putAll(hbaseColumnMap));
+            if (isHistory) {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "historical_info_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            } else {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "judicial_risk_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            }
         }
 
         //作为被执行人(公司)
@@ -59,10 +65,15 @@ public class JudicialAssistanceIndex extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_company_type", equityFrozenCompany.f0);
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_company_id", equityFrozenCompany.f1);
             hbaseColumnMap.put(prefix + "equity_frozen_most_enforced_company_name", equityFrozenCompany.f2);
-            if (isHistory)
-                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", enforcedTargetId).putAll(hbaseColumnMap));
-            else
-                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", enforcedTargetId).putAll(hbaseColumnMap));
+            if (isHistory) {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "historical_info_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, enforcedTargetId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            } else {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "judicial_risk_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, enforcedTargetId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            }
         }
         result.addAll(subResult);
     }

@@ -2,6 +2,7 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.data.concat.dao.CompanyBranchDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -20,7 +21,8 @@ public class CompanyBranch extends AbstractDataUpdate<HbaseOneRow> {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String companyId = String.valueOf(columnMap.get("company_id"));
         if (StringUtils.isNumeric(companyId) && !"0".equals(companyId)) {
-            HbaseOneRow hbaseOneRow = new HbaseOneRow("dataConcatCompanyBaseSchema", companyId);
+            HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "company_base_splice", "ds", true);
+            HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId);
             hbaseOneRow
                     .put("company_branch_total_branch", dao.queryTotalBranch(companyId))
                     .put("company_branch_total_canceled_branch", dao.queryTotalCanceledBranch(companyId))

@@ -2,6 +2,7 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.data.concat.dao.EquityPledgeReinvestDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -40,10 +41,15 @@ public class EquityPledgeReinvest extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_company_type", maxTargetCompany.f0);
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_company_id", maxTargetCompany.f1);
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_company_name", maxTargetCompany.f2);
-            if (isHistory)
-                result.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", pledgorEntityId).putAll(hbaseColumnMap));
-            else
-                result.add(new HbaseOneRow("dataConcatOperatingRiskSchema", pledgorEntityId).putAll(hbaseColumnMap));
+            if (isHistory) {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "historical_info_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, pledgorEntityId, hbaseColumnMap);
+                result.add(hbaseOneRow);
+            } else {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "operating_risk_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, pledgorEntityId, hbaseColumnMap);
+                result.add(hbaseOneRow);
+            }
         }
 
         if (StringUtils.isNumeric(companyId) && !"0".equals(companyId)) {
@@ -53,10 +59,15 @@ public class EquityPledgeReinvest extends AbstractDataUpdate<HbaseOneRow> {
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_pledgor_type", maxPledgor.f0);
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_pledgor_id", maxPledgor.f1);
             hbaseColumnMap.put(prefix + "equity_pledge_reinvest_most_pledgor_name", maxPledgor.f2);
-            if (isHistory)
-                result.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", companyId).putAll(hbaseColumnMap));
-            else
-                result.add(new HbaseOneRow("dataConcatOperatingRiskSchema", companyId).putAll(hbaseColumnMap));
+            if (isHistory) {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "historical_info_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId, hbaseColumnMap);
+                result.add(hbaseOneRow);
+            } else {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "operating_risk_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId, hbaseColumnMap);
+                result.add(hbaseOneRow);
+            }
         }
     }
 

@@ -2,6 +2,7 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.data.concat.dao.RestrictedOutboundIndexDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -51,7 +52,9 @@ public class RestrictedOutboundIndex extends AbstractDataUpdate<HbaseOneRow> {
                 hbaseColumnMap.put("restricted_outbound_most_restricted_id", null);
                 hbaseColumnMap.put("restricted_outbound_most_restricted_name", null);
             }
-            result.add(new HbaseOneRow("dataConcatJudicialRiskSchema", companyId).putAll(hbaseColumnMap));
+            HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "judicial_risk_splice", "ds", true);
+            HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId, hbaseColumnMap);
+            result.add(hbaseOneRow);
         }
         return result;
     }

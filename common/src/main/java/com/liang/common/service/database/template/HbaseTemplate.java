@@ -1,7 +1,7 @@
 package com.liang.common.service.database.template;
 
 import com.liang.common.dto.HbaseOneRow;
-import com.liang.common.dto.config.HbaseSchema;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.util.DateTimeUtils;
 import lombok.SneakyThrows;

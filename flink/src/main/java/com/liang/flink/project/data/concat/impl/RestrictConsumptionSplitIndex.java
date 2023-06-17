@@ -2,6 +2,7 @@ package com.liang.flink.project.data.concat.impl;
 
 
 import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.data.concat.dao.RestrictConsumptionSplitIndexDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -52,10 +53,15 @@ public class RestrictConsumptionSplitIndex extends AbstractDataUpdate<HbaseOneRo
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_applicant_id", null);
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_applicant_name", null);
             }
-            if (isHistory)
-                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", companyId).putAll(hbaseColumnMap));
-            else
-                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", companyId).putAll(hbaseColumnMap));
+            if (isHistory) {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "historical_info_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            } else {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "judicial_risk_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, companyId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            }
         }
 
         if (StringUtils.isNumeric(restrictedId) && !"0".equals(restrictedId)) {
@@ -80,10 +86,15 @@ public class RestrictConsumptionSplitIndex extends AbstractDataUpdate<HbaseOneRo
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_related_restricted_id", null);
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_related_restricted_name", null);
             }
-            if (isHistory)
-                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", restrictedId).putAll(hbaseColumnMap));
-            else
-                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", restrictedId).putAll(hbaseColumnMap));
+            if (isHistory) {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "historical_info_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, restrictedId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            } else {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "judicial_risk_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, restrictedId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            }
         }
 
         if (StringUtils.isNumeric(relatedRestrictedId) && !"0".equals(relatedRestrictedId)) {
@@ -108,10 +119,15 @@ public class RestrictConsumptionSplitIndex extends AbstractDataUpdate<HbaseOneRo
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_restricted_id", null);
                 hbaseColumnMap.put(prefix + "restrict_consumption_most_restricted_name", null);
             }
-            if (isHistory)
-                subResult.add(new HbaseOneRow("dataConcatHistoricalInfoSchema", relatedRestrictedId).putAll(hbaseColumnMap));
-            else
-                subResult.add(new HbaseOneRow("dataConcatJudicialRiskSchema", relatedRestrictedId).putAll(hbaseColumnMap));
+            if (isHistory) {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "historical_info_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, relatedRestrictedId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            } else {
+                HbaseSchema hbaseSchema = new HbaseSchema("prism_c", "judicial_risk_splice", "ds", true);
+                HbaseOneRow hbaseOneRow = new HbaseOneRow(hbaseSchema, relatedRestrictedId, hbaseColumnMap);
+                subResult.add(hbaseOneRow);
+            }
         }
         result.addAll(subResult);
     }
