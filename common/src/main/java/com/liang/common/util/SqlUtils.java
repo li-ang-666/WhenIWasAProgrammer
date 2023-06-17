@@ -31,6 +31,9 @@ public class SqlUtils {
     }
 
     public static Tuple2<String, String> columnMap2Insert(Map<String, Object> columnMap) {
+        if (columnMap == null || columnMap.isEmpty()) {
+            return null;
+        }
         ArrayList<String> columns = new ArrayList<>();
         ArrayList<String> values = new ArrayList<>();
         for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
@@ -44,8 +47,10 @@ public class SqlUtils {
     }
 
     public static Tuple2<String, String> columnMap2Insert(List<Map<String, Object>> columnMaps) {
+        if (columnMaps == null || columnMaps.isEmpty()) {
+            return null;
+        }
         ArrayList<String> formatKeys = new ArrayList<>();
-
         ArrayList<String> keys = new ArrayList<>(columnMaps.get(0).keySet());
         for (String key : keys) {
             formatKeys.add(formatField(key));
@@ -66,6 +71,9 @@ public class SqlUtils {
     }
 
     public static String columnMap2Where(Map<String, Object> columnMap) {
+        if (columnMap == null || columnMap.isEmpty()) {
+            return null;
+        }
         ArrayList<String> res = new ArrayList<>();
         for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
             String syntax;
@@ -82,6 +90,9 @@ public class SqlUtils {
     }
 
     public static String columnMap2Update(Map<String, Object> columnMap) {
+        if (columnMap == null || columnMap.isEmpty()) {
+            return null;
+        }
         ArrayList<String> res = new ArrayList<>();
         for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
             String syntax = formatField(entry.getKey()) + " = " + formatValue(entry.getValue());
@@ -91,6 +102,9 @@ public class SqlUtils {
     }
 
     public static String columnList2Create(List<String> columnList) {
+        if (columnList == null || columnList.isEmpty()) {
+            return null;
+        }
         ArrayList<String> res = new ArrayList<>();
         for (String column : columnList) {
             res.add(formatField(column) + " varchar(255)");
@@ -99,6 +113,9 @@ public class SqlUtils {
     }
 
     private static String escapeValue(String value) {
+        if (value == null) {
+            return null;
+        }
         StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
         stringBuilder.append("'");
         char[] chars = value.toCharArray();
