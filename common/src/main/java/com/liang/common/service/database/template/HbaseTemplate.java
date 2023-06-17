@@ -37,6 +37,8 @@ public class HbaseTemplate {
     private final Connection pool;
     private final TemplateLogger logger;
     private final Map<HbaseSchema, List<HbaseOneRow>> upsertCache = new HashMap<>();
+    // unused
+    private final Map<HbaseSchema, List<HbaseOneRow>> deleteCache = new HashMap<>();
 
     public HbaseTemplate(String name) {
         this(name, 500);
