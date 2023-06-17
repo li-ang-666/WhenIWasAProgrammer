@@ -60,8 +60,8 @@ public class DorisTemplate {
     }
 
     public DorisTemplate(String name, int cacheTime) {
-        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
+        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
         new Thread(new Sender(this, cacheTime)).start();
@@ -164,10 +164,10 @@ public class DorisTemplate {
         @SneakyThrows
         public void run() {
             while (true) {
+                TimeUnit.MILLISECONDS.sleep(cacheTime);
                 if (dorisTemplate.cache.isEmpty()) {
                     continue;
                 }
-                TimeUnit.MILLISECONDS.sleep(cacheTime);
                 Map<DorisSchema, List<DorisOneRow>> copyCache;
                 synchronized (dorisTemplate.cache) {
                     copyCache = new HashMap<>(dorisTemplate.cache);
