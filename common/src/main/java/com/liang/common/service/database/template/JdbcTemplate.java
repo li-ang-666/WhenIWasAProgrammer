@@ -102,30 +102,32 @@ public class JdbcTemplate {
     }
 
     public void updateImmediately(List<String> sqls) {
-        logger.beforeExecute();
-        try (DruidPooledConnection connection = pool.getConnection()) {
-            connection.setAutoCommit(false);
-            Statement statement = connection.createStatement();
-            for (String sql : sqls) {
-                statement.addBatch(sql);
-            }
-            statement.executeBatch();
-            connection.commit();
-            logger.afterExecute("updateBatch", sqls);
-        } catch (Exception e) {
-            logger.ifError("updateBatch", sqls, e);
-            for (String sql : sqls) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(50);
-                } catch (Exception ignore) {
+        synchronized (this) {
+            logger.beforeExecute();
+            try (DruidPooledConnection connection = pool.getConnection()) {
+                connection.setAutoCommit(false);
+                Statement statement = connection.createStatement();
+                for (String sql : sqls) {
+                    statement.addBatch(sql);
                 }
-                logger.beforeExecute();
-                try (DruidPooledConnection connection = pool.getConnection()) {
-                    connection.setAutoCommit(true);
-                    connection.prepareStatement(sql).executeUpdate();
-                    logger.afterExecute("updateSingle", sql);
-                } catch (Exception ee) {
-                    logger.ifError("updateSingle", sql, ee);
+                statement.executeBatch();
+                connection.commit();
+                logger.afterExecute("updateBatch", sqls);
+            } catch (Exception e) {
+                logger.ifError("updateBatch", sqls, e);
+                for (String sql : sqls) {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(50);
+                    } catch (Exception ignore) {
+                    }
+                    logger.beforeExecute();
+                    try (DruidPooledConnection connection = pool.getConnection()) {
+                        connection.setAutoCommit(true);
+                        connection.prepareStatement(sql).executeUpdate();
+                        logger.afterExecute("updateSingle", sql);
+                    } catch (Exception ee) {
+                        logger.ifError("updateSingle", sql, ee);
+                    }
                 }
             }
         }
@@ -154,7 +156,9 @@ public class JdbcTemplate {
                     copyCache = new ArrayList<>(jdbcTemplate.cache);
                     jdbcTemplate.cache.clear();
                 }
-                jdbcTemplate.updateImmediately(copyCache);
+                synchronized (jdbcTemplate) {
+                    jdbcTemplate.updateImmediately(copyCache);
+                }
             }
         }
     }
