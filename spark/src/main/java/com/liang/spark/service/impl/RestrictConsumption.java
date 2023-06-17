@@ -1,6 +1,7 @@
 package com.liang.spark.service.impl;
 
 import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.common.util.ConfigUtils;
 import com.liang.spark.dao.RestrictConsumptionSqlHolder;
 import com.liang.spark.job.DataConcatJob;
@@ -14,6 +15,8 @@ public class RestrictConsumption extends AbstractSparkRunner {
 
     @Override
     public void run(SparkSession spark) {
+        HbaseSchema hbaseSchemaHis = new HbaseSchema("prism_c", "historical_info_splice", "ds", true);
+        HbaseSchema hbaseSchemaJudi = new HbaseSchema("prism_c", "judicial_risk_splice", "ds", true);
         for (Boolean bool : Arrays.asList(true, false)) {
             spark.sql(preQuery(sqlHolder.queryMostApplicant(bool)))
                     .foreachPartition(new DataConcatJob.HbaseSink(ConfigUtils.getConfig(), bool, (isHistory, row) -> {
@@ -32,7 +35,7 @@ public class RestrictConsumption extends AbstractSparkRunner {
                             id = null;
                             name = concat.split("、")[0];
                         }
-                        return new HbaseOneRow(isHistory ? "dataConcatHistoricalInfoSchema" : "dataConcatJudicialRiskSchema", companyId)
+                        return new HbaseOneRow(isHistory ? hbaseSchemaHis : hbaseSchemaJudi, companyId)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_applicant_type", type)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_applicant_id", id)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_applicant_name", name);
@@ -57,7 +60,7 @@ public class RestrictConsumption extends AbstractSparkRunner {
                             id = null;
                             name = concat.split("、")[0];
                         }
-                        return new HbaseOneRow(isHistory ? "dataConcatHistoricalInfoSchema" : "dataConcatJudicialRiskSchema", companyId)
+                        return new HbaseOneRow(isHistory ? hbaseSchemaHis : hbaseSchemaJudi, companyId)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_related_restricted_type", type)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_related_restricted_id", id)
                                 .put((isHistory ? "history_" : "") + "restrict_consumption_most_related_restricted_name", name);
@@ -84,7 +87,7 @@ public class RestrictConsumption extends AbstractSparkRunner {
                                 id = null;
                                 name = concat.split("、")[0];
                             }
-                            return new HbaseOneRow(isHistory ? "dataConcatHistoricalInfoSchema" : "dataConcatJudicialRiskSchema", companyId)
+                            return new HbaseOneRow(isHistory ? hbaseSchemaHis : hbaseSchemaJudi, companyId)
                                     .put((isHistory ? "history_" : "") + "restrict_consumption_most_restricted_type", type)
                                     .put((isHistory ? "history_" : "") + "restrict_consumption_most_restricted_id", id)
                                     .put((isHistory ? "history_" : "") + "restrict_consumption_most_restricted_name", name);

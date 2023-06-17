@@ -1,6 +1,5 @@
 package com.liang.common.dto;
 
-import com.liang.common.util.ConfigUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,12 +12,6 @@ public class HbaseOneRow implements Serializable {
     private final HbaseSchema schema;
     private final String rowKey;
     private final Map<String, Object> columnMap;
-
-    public HbaseOneRow(String schemaName, String rowKey) {
-        this.schema = ConfigUtils.getConfig().getHbaseSchemas().get(schemaName);
-        this.rowKey = schema.isRowKeyReverse() ? StringUtils.reverse(rowKey) : rowKey;
-        columnMap = new HashMap<>();
-    }
 
     public HbaseOneRow(HbaseSchema schema, String rowKey) {
         this.schema = schema;
