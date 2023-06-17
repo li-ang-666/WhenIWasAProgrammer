@@ -40,9 +40,13 @@ public class HbaseTemplate {
     private final Map<Tuple2<HbaseSchema, OptType>, List<HbaseOneRow>> cache = new HashMap<>();
 
     public HbaseTemplate(String name) {
+        this(name, 100);
+    }
+
+    public HbaseTemplate(String name, int cacheTime) {
         pool = new HbaseConnectionHolder().getPool(name);
         logger = new TemplateLogger(this.getClass().getSimpleName(), name);
-        new Thread(new Sender(this)).start();
+        new Thread(new Sender(this, cacheTime)).start();
     }
 
     public void upsert(HbaseOneRow... hbaseOneRows) {
@@ -119,16 +123,18 @@ public class HbaseTemplate {
 
     private static class Sender implements Runnable {
         private final HbaseTemplate hbaseTemplate;
+        private final int cacheTime;
 
-        public Sender(HbaseTemplate hbaseTemplate) {
+        public Sender(HbaseTemplate hbaseTemplate, int cacheTime) {
             this.hbaseTemplate = hbaseTemplate;
+            this.cacheTime = cacheTime;
         }
 
         @Override
         @SneakyThrows
         public void run() {
             while (true) {
-                TimeUnit.MILLISECONDS.sleep(1000);
+                TimeUnit.MILLISECONDS.sleep(cacheTime);
                 if (hbaseTemplate.cache.isEmpty()) {
                     continue;
                 }

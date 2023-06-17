@@ -56,11 +56,15 @@ public class DorisTemplate {
     private final Map<DorisSchema, List<DorisOneRow>> cache = new HashMap<>();
 
     public DorisTemplate(String name) {
+        this(name, 100);
+    }
+
+    public DorisTemplate(String name, int cacheTime) {
         logger = new TemplateLogger(this.getClass().getSimpleName(), name);
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
-        new Thread(new Sender(this)).start();
+        new Thread(new Sender(this, cacheTime)).start();
     }
 
     public void load(DorisOneRow... dorisOneRows) {
@@ -149,9 +153,11 @@ public class DorisTemplate {
 
     private static class Sender implements Runnable {
         private final DorisTemplate dorisTemplate;
+        private final int cacheTime;
 
-        public Sender(DorisTemplate dorisTemplate) {
+        public Sender(DorisTemplate dorisTemplate, int cacheTime) {
             this.dorisTemplate = dorisTemplate;
+            this.cacheTime = cacheTime;
         }
 
         @Override
@@ -161,7 +167,7 @@ public class DorisTemplate {
                 if (dorisTemplate.cache.isEmpty()) {
                     continue;
                 }
-                TimeUnit.MILLISECONDS.sleep(1000);
+                TimeUnit.MILLISECONDS.sleep(cacheTime);
                 Map<DorisSchema, List<DorisOneRow>> copyCache;
                 synchronized (dorisTemplate.cache) {
                     copyCache = new HashMap<>(dorisTemplate.cache);
