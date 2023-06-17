@@ -7,6 +7,7 @@ import com.liang.common.service.database.template.inner.ResultSetMapper;
 import com.liang.common.service.database.template.inner.TemplateLogger;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -36,6 +37,9 @@ public class JdbcTemplate {
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {
+        if (StringUtils.isBlank(sql)) {
+            return null;
+        }
         logger.beforeExecute();
         ArrayList<T> list = new ArrayList<>();
         try (DruidPooledConnection connection = pool.getConnection()) {
@@ -50,8 +54,11 @@ public class JdbcTemplate {
     }
 
     public <T> List<T> queryForList(String sql, ResultSetMapper<T> resultSetMapper) {
-        logger.beforeExecute();
         ArrayList<T> list = new ArrayList<>();
+        if (StringUtils.isBlank(sql)) {
+            return list;
+        }
+        logger.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
             while (resultSet.next()) {
