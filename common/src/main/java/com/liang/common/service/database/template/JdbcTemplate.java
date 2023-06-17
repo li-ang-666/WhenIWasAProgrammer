@@ -115,6 +115,10 @@ public class JdbcTemplate {
         } catch (Exception e) {
             logger.ifError("updateBatch", sqls, e);
             for (String sql : sqls) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(50);
+                } catch (Exception ignore) {
+                }
                 logger.beforeExecute();
                 try (DruidPooledConnection connection = pool.getConnection()) {
                     connection.setAutoCommit(true);
