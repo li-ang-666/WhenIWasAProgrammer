@@ -12,11 +12,14 @@ import java.util.Map;
 public class Config implements Serializable {
     private FlinkConfig flinkConfig;
     private List<RepairTask> repairTasks;
+
     private Map<String, DBConfig> dbConfigs;
     private Map<String, RedisConfig> redisConfigs;
     private Map<String, KafkaConfig> kafkaConfigs;
+
     private Map<String, HbaseDbConfig> hbaseDbConfigs;
     private Map<String, HbaseSchema> hbaseSchemas;
-    private Map<String, DorisConfig> dorisConfigs;
+
+    private Map<String, DorisDbConfig> dorisDbConfigs;
 }
 

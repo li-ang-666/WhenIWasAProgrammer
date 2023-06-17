@@ -6,10 +6,8 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class DorisConfig implements Serializable {
-    private List<String> feHttpHosts;
-    private int port = 8030;
-    private String database;
+public class DorisDbConfig implements Serializable {
+    private List<String> fe;
     private String user;
     private String password;
 }

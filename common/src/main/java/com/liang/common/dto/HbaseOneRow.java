@@ -2,6 +2,7 @@ package com.liang.common.dto;
 
 import com.liang.common.dto.config.HbaseSchema;
 import com.liang.common.util.ConfigUtils;
+import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
@@ -10,8 +11,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-@ToString
-@Getter
+@Data
 public class HbaseOneRow implements Serializable {
     private final HbaseSchema schema;
     private final String rowKey;

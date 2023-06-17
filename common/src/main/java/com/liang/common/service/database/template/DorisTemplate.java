@@ -1,8 +1,11 @@
 package com.liang.common.service.database.template;
 
-import com.liang.common.dto.config.DorisConfig;
+import com.liang.common.dto.DorisOneRow;
+import com.liang.common.dto.DorisSchema;
+import com.liang.common.dto.config.DorisDbConfig;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
@@ -17,9 +20,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -39,7 +41,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class DorisTemplate {
-    private final Random random = new Random();
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DefaultRedirectStrategy() {
@@ -48,39 +49,46 @@ public class DorisTemplate {
                     return true;
                 }
             });
-    private final String path;
-    private final List<String> feHosts;
+    private final List<String> fe;
     private final String auth;
+    private final Random random = new Random();
+    private final Map<DorisSchema, List<DorisOneRow>> cache = new HashMap<>();
 
     public DorisTemplate(String name) {
-        DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
-        path = String.format("http://%s:%s/api/%s/%s/_stream_load",
-                "%s", dorisConfig.getPort(), dorisConfig.getDatabase(), "%s");
-        feHosts = dorisConfig.getFeHttpHosts();
-        auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
+        DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
+        fe = dorisDbConfig.getFe();
+        auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
+        new Thread(new Sender(this)).start();
     }
 
-    private String basicAuthHeader(String username, String password) {
-        final String tobeEncode = username + ":" + password;
-        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
-        return "Basic " + new String(encoded);
+    public void merge(DorisOneRow dorisOneRow) {
+        synchronized (cache) {
+            cache.putIfAbsent(dorisOneRow.getSchema(), new ArrayList<>());
+            cache.get(dorisOneRow.getSchema()).add(dorisOneRow);
+        }
     }
 
-    public void streamLoad(String tableName, List<Map<String, Object>> contents) {
+    private void merge(DorisSchema schema, List<DorisOneRow> rows) {
         try (CloseableHttpClient client = httpClientBuilder.build()) {
-            String host = feHosts.get(random.nextInt(feHosts.size()));
-            String url = String.format(path, host, tableName);
+            String target = fe.get(random.nextInt(fe.size()));
+            String url = String.format("http://%s/api/%s/%s/_stream_load", target, schema.getDatabase(), schema.getTableName());
             HttpPut put = new HttpPut(url);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
+            List<Map<String, Object>> contents = rows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
             put.setEntity(new StringEntity(JsonUtils.toString(contents), StandardCharsets.UTF_8));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
             put.setHeader("merge_type", "MERGE");
-            put.setHeader("delete", "__DORIS_DELETE_SIGN__ = 1");
-            put.setHeader("function_column.sequence_col", "__DORIS_SEQUENCE_COL__");
-            put.setHeader("columns", parseColumns(contents));
-            put.setHeader("jsonpaths", parseJsonPaths(contents));
+            if (schema.getUniqueDeleteOn() != null) {
+                put.setHeader("delete", schema.getUniqueDeleteOn());
+            }
+            if (schema.getUniqueOrderBy() != null) {
+                put.setHeader("function_column.sequence_col", schema.getUniqueOrderBy());
+            }
+            List<String> keys = new ArrayList<>(contents.get(0).keySet());
+            put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
+            put.setHeader("jsonpaths", parseJsonPaths(keys));
             //执行 put
             try (CloseableHttpResponse response = client.execute(put)) {
                 HttpEntity httpEntity = response.getEntity();
@@ -97,17 +105,50 @@ public class DorisTemplate {
         }
     }
 
-    private String parseColumns(List<Map<String, Object>> columnMaps) {
-        Map<String, Object> columnMap = columnMaps.get(0);
-        return columnMap.keySet().parallelStream()
-                .map(e -> "`" + e + "`")
-                .collect(Collectors.joining(","));
+    private String basicAuthHeader(String username, String password) {
+        final String tobeEncode = username + ":" + password;
+        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
+        return "Basic " + new String(encoded);
     }
 
-    private String parseJsonPaths(List<Map<String, Object>> columnMaps) {
-        Map<String, Object> columnMap = columnMaps.get(0);
-        return columnMap.keySet().parallelStream()
+
+    private String parseColumns(List<String> keys, List<String> derivedColumns) {
+        List<String> columns = keys.parallelStream()
+                .map(e -> "`" + e + "`")
+                .collect(Collectors.toList());
+        if (derivedColumns != null && derivedColumns.size() > 0) {
+            columns.addAll(derivedColumns);
+        }
+        return String.join(",", columns);
+    }
+
+    private String parseJsonPaths(List<String> keys) {
+        return keys.parallelStream()
                 .map(e -> "\"$." + e + "\"")
                 .collect(Collectors.joining(",", "[", "]"));
+    }
+
+    private static class Sender implements Runnable {
+        private final DorisTemplate dorisTemplate;
+
+        public Sender(DorisTemplate dorisTemplate) {
+            this.dorisTemplate = dorisTemplate;
+        }
+
+        @Override
+        @SneakyThrows
+        public void run() {
+            while (true) {
+                TimeUnit.MILLISECONDS.sleep(1000);
+                Map<DorisSchema, List<DorisOneRow>> copyCache;
+                synchronized (dorisTemplate.cache) {
+                    copyCache = new HashMap<>(dorisTemplate.cache);
+                    dorisTemplate.cache.clear();
+                }
+                for (Map.Entry<DorisSchema, List<DorisOneRow>> entry : copyCache.entrySet()) {
+                    dorisTemplate.merge(entry.getKey(), entry.getValue());
+                }
+            }
+        }
     }
 }
