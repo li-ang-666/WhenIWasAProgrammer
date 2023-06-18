@@ -6,8 +6,6 @@ import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.repair.trait.Runner;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-
 @Slf4j
 public class CommonTest implements Runner {
     @Override
