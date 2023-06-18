@@ -71,10 +71,6 @@ public class HbaseTemplate {
         if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
             return;
         }
-        if (!enableCache) {
-            upsert(hbaseOneRows.get(0).getSchema(), hbaseOneRows);
-            return;
-        }
         for (HbaseOneRow hbaseOneRow : hbaseOneRows) {
             synchronized (cache) {
                 HbaseSchema key = hbaseOneRow.getSchema();
@@ -86,6 +82,12 @@ public class HbaseTemplate {
                     cache.remove(key);
                 }
             }
+        }
+        if (!enableCache) {
+            for (Map.Entry<HbaseSchema, List<HbaseOneRow>> entry : cache.entrySet()) {
+                upsert(entry.getKey(), entry.getValue());
+            }
+            cache.clear();
         }
     }
 

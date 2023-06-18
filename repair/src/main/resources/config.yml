@@ -8,33 +8,6 @@ dbConfigs:
   companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
 
-kafkaConfigs:
-  #################### 测试 ####################
-  kafkaSource:
-    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
-    topics:
-      - "9349c.proto.judicial_risk.restrict_consumption_split_index"
-      - "9349c.proto.judicial_risk.judicial_assistance_index"
-      - "9349c.proto.judicial_risk.restricted_outbound_index"
-      - "9349c.proto.operating_risk.equity_pledge_reinvest"
-      - "9349c.proto.operating_risk.equity_pledge_detail"
-      - "9349c.proto.company_base.company_branch"
-    groupId: "leon"
-    startFrom: "1"
-
-  #################### 生产 ####################
-#  kafkaSource:
-#    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
-#    topics:
-#      - "39398.proto.judicial_risk.restrict_consumption_split_index"
-#      - "39398.proto.judicial_risk.judicial_assistance_index"
-#      - "39398.proto.judicial_risk.restricted_outbound_index"
-#      - "b27de.json.operating_risk.equity_pledge_reinvest"
-#      - "b27de.proto.operating_risk.equity_pledge_detail"
-#      - "ee59d.json.company_base.company_branch"
-#    groupId: "leon"
-#    startFrom: "1"
-
 hbaseDbConfigs:
   #################### 测试 ####################
   hbaseSink:

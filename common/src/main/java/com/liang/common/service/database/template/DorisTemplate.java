@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DorisTemplate {
     private final static int DEFAULT_CACHE_TIME = 5000;
-    private final static int DEFAULT_CACHE_SIZE = 20480;
+    private final static int DEFAULT_CACHE_SIZE = 10240;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DefaultRedirectStrategy() {
@@ -90,10 +90,6 @@ public class DorisTemplate {
         if (dorisOneRows == null || dorisOneRows.isEmpty()) {
             return;
         }
-        if (!enableCache) {
-            load(dorisOneRows.get(0).getSchema(), dorisOneRows);
-            return;
-        }
         for (DorisOneRow dorisOneRow : dorisOneRows) {
             synchronized (cache) {
                 DorisSchema key = dorisOneRow.getSchema();
@@ -105,6 +101,12 @@ public class DorisTemplate {
                     cache.remove(key);
                 }
             }
+        }
+        if (!enableCache) {
+            for (Map.Entry<DorisSchema, List<DorisOneRow>> entry : cache.entrySet()) {
+                load(entry.getKey(), entry.getValue());
+            }
+            cache.clear();
         }
     }
 

@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CommonTest implements Runner {
     @Override
     public void run(String[] args) throws Exception {
-        HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink").enableCache();
+        HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
 
         HbaseSchema hbaseSchema = new HbaseSchema("test", "data_concat", "cf1", true);
 
