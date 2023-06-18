@@ -42,6 +42,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class DorisTemplate {
+    private final static int DEFAULT_CACHE_TIME = 5000;
+    private final static int DEFAULT_CACHE_SIZE = 20480;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DefaultRedirectStrategy() {
@@ -57,7 +59,7 @@ public class DorisTemplate {
     private final Map<DorisSchema, List<DorisOneRow>> cache = new HashMap<>();
 
     public DorisTemplate(String name) {
-        this(name, 500);
+        this(name, DEFAULT_CACHE_TIME);
     }
 
     public DorisTemplate(String name, int cacheTime) {
@@ -83,12 +85,17 @@ public class DorisTemplate {
             synchronized (cache) {
                 DorisSchema key = dorisOneRow.getSchema();
                 cache.putIfAbsent(key, new ArrayList<>());
-                cache.get(key).add(dorisOneRow);
+                List<DorisOneRow> list = cache.get(key);
+                list.add(dorisOneRow);
+                if (list.size() >= DEFAULT_CACHE_SIZE) {
+                    load(key, list);
+                    cache.remove(key);
+                }
             }
         }
     }
 
-    private void load(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
+    private synchronized void load(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
         if (dorisOneRows == null || dorisOneRows.isEmpty()) {
             return;
         }
@@ -172,6 +179,9 @@ public class DorisTemplate {
                 }
                 Map<DorisSchema, List<DorisOneRow>> copyCache;
                 synchronized (dorisTemplate.cache) {
+                    if (dorisTemplate.cache.isEmpty()) {
+                        continue;
+                    }
                     copyCache = new HashMap<>(dorisTemplate.cache);
                     dorisTemplate.cache.clear();
                 }

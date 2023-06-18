@@ -35,14 +35,14 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class HbaseTemplate {
+    private final static int DEFAULT_CACHE_TIME = 500;
+    private final static int DEFAULT_CACHE_SIZE = 1024;
     private final Connection pool;
     private final TemplateLogger logger;
-    private final Map<HbaseSchema, List<HbaseOneRow>> upsertCache = new HashMap<>();
-    // unused
-    private final Map<HbaseSchema, List<HbaseOneRow>> deleteCache = new HashMap<>();
+    private final Map<HbaseSchema, List<HbaseOneRow>> cache = new HashMap<>();
 
     public HbaseTemplate(String name) {
-        this(name, 500);
+        this(name, DEFAULT_CACHE_TIME);
     }
 
     public HbaseTemplate(String name, int cacheTime) {
@@ -63,15 +63,20 @@ public class HbaseTemplate {
             return;
         }
         for (HbaseOneRow hbaseOneRow : hbaseOneRows) {
-            synchronized (upsertCache) {
+            synchronized (cache) {
                 HbaseSchema key = hbaseOneRow.getSchema();
-                upsertCache.putIfAbsent(key, new ArrayList<>());
-                upsertCache.get(key).add(hbaseOneRow);
+                cache.putIfAbsent(key, new ArrayList<>());
+                List<HbaseOneRow> list = cache.get(key);
+                list.add(hbaseOneRow);
+                if (list.size() >= DEFAULT_CACHE_SIZE) {
+                    upsert(key, list);
+                    cache.remove(key);
+                }
             }
         }
     }
 
-    private void upsert(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
+    private synchronized void upsert(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
         if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
             return;
         }
@@ -89,6 +94,7 @@ public class HbaseTemplate {
                 }
                 puts.add(put);
             }
+            // todo: 源码调用了table.batch()方法,好像可以同时包含put和delete
             table.put(puts);
             logger.afterExecute("upsert", hbaseOneRows);
         } catch (Exception e) {
@@ -139,13 +145,16 @@ public class HbaseTemplate {
         public void run() {
             while (true) {
                 TimeUnit.MILLISECONDS.sleep(cacheTime);
-                if (hbaseTemplate.upsertCache.isEmpty()) {
+                if (hbaseTemplate.cache.isEmpty()) {
                     continue;
                 }
                 Map<HbaseSchema, List<HbaseOneRow>> copyUpsertCache;
-                synchronized (hbaseTemplate.upsertCache) {
-                    copyUpsertCache = new HashMap<>(hbaseTemplate.upsertCache);
-                    hbaseTemplate.upsertCache.clear();
+                synchronized (hbaseTemplate.cache) {
+                    if (hbaseTemplate.cache.isEmpty()) {
+                        continue;
+                    }
+                    copyUpsertCache = new HashMap<>(hbaseTemplate.cache);
+                    hbaseTemplate.cache.clear();
                 }
                 for (Map.Entry<HbaseSchema, List<HbaseOneRow>> entry : copyUpsertCache.entrySet()) {
                     hbaseTemplate.upsert(entry.getKey(), entry.getValue());

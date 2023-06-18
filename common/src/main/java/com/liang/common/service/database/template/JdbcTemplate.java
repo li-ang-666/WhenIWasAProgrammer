@@ -17,12 +17,14 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcTemplate {
+    private final static int DEFAULT_CACHE_TIME = 500;
+    private final static int DEFAULT_CACHE_SIZE = 1024;
     private final DruidDataSource pool;
     private final TemplateLogger logger;
     private final List<String> cache = new ArrayList<>();
 
     public JdbcTemplate(String name) {
-        this(name, 500);
+        this(name, DEFAULT_CACHE_TIME);
     }
 
     public JdbcTemplate(String name, int cacheTime) {
@@ -105,7 +107,13 @@ public class JdbcTemplate {
         if (sqls == null || sqls.isEmpty()) {
             return;
         }
-        cache.addAll(sqls);
+        synchronized (cache) {
+            cache.addAll(sqls);
+            if (cache.size() >= DEFAULT_CACHE_SIZE) {
+                updateImmediately(cache);
+                cache.clear();
+            }
+        }
     }
 
     public void updateImmediately(String... sqls) {
@@ -168,6 +176,9 @@ public class JdbcTemplate {
                 }
                 List<String> copyCache;
                 synchronized (jdbcTemplate.cache) {
+                    if (jdbcTemplate.cache.isEmpty()) {
+                        continue;
+                    }
                     copyCache = new ArrayList<>(jdbcTemplate.cache);
                     jdbcTemplate.cache.clear();
                 }
