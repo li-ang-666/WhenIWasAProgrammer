@@ -23,19 +23,29 @@ public class JdbcTemplate {
     private final TemplateLogger logger;
     private final List<String> cache = new ArrayList<>();
 
-    public JdbcTemplate(String name) {
-        this(name, DEFAULT_CACHE_TIME);
-    }
+    private volatile boolean enableCache = false;
 
-    public JdbcTemplate(String name, int cacheTime) {
+    public JdbcTemplate(String name) {
         pool = new DruidHolder().getPool(name);
         logger = new TemplateLogger(this.getClass().getSimpleName(), name);
-        new Thread(new Sender(this, cacheTime)).start();
     }
 
+    // just for MemJdbcTemplate
     protected JdbcTemplate(DruidDataSource pool, TemplateLogger logger) {
         this.pool = pool;
         this.logger = logger;
+    }
+
+    public JdbcTemplate enableCache() {
+        return enableCache(DEFAULT_CACHE_TIME);
+    }
+
+    public JdbcTemplate enableCache(int cacheTime) {
+        if (!enableCache) {
+            enableCache = true;
+            new Thread(new Sender(this, cacheTime)).start();
+        }
+        return this;
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {
@@ -105,6 +115,10 @@ public class JdbcTemplate {
 
     public void update(List<String> sqls) {
         if (sqls == null || sqls.isEmpty()) {
+            return;
+        }
+        if (!enableCache) {
+            updateImmediately(sqls);
             return;
         }
         synchronized (cache) {

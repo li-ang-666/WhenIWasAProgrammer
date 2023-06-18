@@ -58,16 +58,25 @@ public class DorisTemplate {
     private final Random random = new Random();
     private final Map<DorisSchema, List<DorisOneRow>> cache = new HashMap<>();
 
-    public DorisTemplate(String name) {
-        this(name, DEFAULT_CACHE_TIME);
-    }
+    private volatile boolean enableCache = false;
 
-    public DorisTemplate(String name, int cacheTime) {
+    public DorisTemplate(String name) {
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
         logger = new TemplateLogger(this.getClass().getSimpleName(), name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
-        new Thread(new Sender(this, cacheTime)).start();
+    }
+
+    public DorisTemplate enableCache() {
+        return enableCache(DEFAULT_CACHE_TIME);
+    }
+
+    public DorisTemplate enableCache(int cacheTime) {
+        if (!enableCache) {
+            enableCache = true;
+            new Thread(new Sender(this, cacheTime)).start();
+        }
+        return this;
     }
 
     public void load(DorisOneRow... dorisOneRows) {
@@ -79,6 +88,10 @@ public class DorisTemplate {
 
     public void load(List<DorisOneRow> dorisOneRows) {
         if (dorisOneRows == null || dorisOneRows.isEmpty()) {
+            return;
+        }
+        if (!enableCache) {
+            load(dorisOneRows.get(0).getSchema(), dorisOneRows);
             return;
         }
         for (DorisOneRow dorisOneRow : dorisOneRows) {

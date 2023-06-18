@@ -41,14 +41,23 @@ public class HbaseTemplate {
     private final TemplateLogger logger;
     private final Map<HbaseSchema, List<HbaseOneRow>> cache = new HashMap<>();
 
-    public HbaseTemplate(String name) {
-        this(name, DEFAULT_CACHE_TIME);
-    }
+    private volatile boolean enableCache = false;
 
-    public HbaseTemplate(String name, int cacheTime) {
+    public HbaseTemplate(String name) {
         pool = new HbaseConnectionHolder().getPool(name);
         logger = new TemplateLogger(this.getClass().getSimpleName(), name);
-        new Thread(new Sender(this, cacheTime)).start();
+    }
+
+    public HbaseTemplate enableCache() {
+        return enableCache(DEFAULT_CACHE_TIME);
+    }
+
+    public HbaseTemplate enableCache(int cacheTime) {
+        if (!enableCache) {
+            enableCache = true;
+            new Thread(new Sender(this, cacheTime)).start();
+        }
+        return this;
     }
 
     public void upsert(HbaseOneRow... hbaseOneRows) {
@@ -60,6 +69,10 @@ public class HbaseTemplate {
 
     public void upsert(List<HbaseOneRow> hbaseOneRows) {
         if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
+            return;
+        }
+        if (!enableCache) {
+            upsert(hbaseOneRows.get(0).getSchema(), hbaseOneRows);
             return;
         }
         for (HbaseOneRow hbaseOneRow : hbaseOneRows) {

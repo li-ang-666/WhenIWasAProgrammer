@@ -57,7 +57,7 @@ public class DataConcatJob {
                     .addClass("EquityPledgeDetail")
                     .addClass("CompanyBranch");
             service = new DataUpdateService<>(dataUpdateContext);
-            hbase = new HbaseTemplate("hbaseSink");
+            hbase = new HbaseTemplate("hbaseSink").enableCache();
         }
 
         @Override
