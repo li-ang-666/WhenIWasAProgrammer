@@ -25,18 +25,11 @@ public class LocalLauncher {
 
         //程序执行
         ((Runner) aClass.newInstance()).run(args);
-
-        //程序关闭
-        close();
     }
 
     private static void init() {
         InputStream resourceAsStream = LocalLauncher.class.getClassLoader().getResourceAsStream("config.yml");
         Config config = YamlUtils.parse(resourceAsStream, Config.class);
         ConfigUtils.setConfig(config);
-    }
-
-    private static void close() {
-        ConfigUtils.closeAll();
     }
 }

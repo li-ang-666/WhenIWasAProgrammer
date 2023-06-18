@@ -77,7 +77,7 @@ public class HbaseTemplate {
         }
         logger.beforeExecute();
         try (Table table = getTable(schema)) {
-            ArrayList<Put> puts = new ArrayList<>();
+            List<Put> puts = new ArrayList<>();
             for (HbaseOneRow hbaseOneRow : hbaseOneRows) {
                 Put put = new Put(Bytes.toBytes(hbaseOneRow.getRowKey()));
                 for (Map.Entry<String, Object> entry : hbaseOneRow.getColumnMap().entrySet()) {
