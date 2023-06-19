@@ -1,8 +1,10 @@
 #!/bin/bash
 
+export jobName=MysqlToHiveJob
+
 nohup spark-submit \
-  --class com.liang.spark.job.DataConcatJob \
-  --name DataConcatTest \
+  --class com.liang.spark.job.${jobName} \
+  --name ${jobName}Test \
   --proxy-user liang \
   --master yarn \
   --deploy-mode cluster \
