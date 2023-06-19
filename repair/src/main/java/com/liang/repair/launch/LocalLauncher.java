@@ -16,7 +16,7 @@ public class LocalLauncher {
         init();
 
         //类加载
-        String className = "HbaseTemplateTest";
+        String className = "DorisTemplateTest";
         Class<?> aClass = Class.forName("com.liang.repair.impl." + className);
 
         //测试注解
