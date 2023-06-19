@@ -8,7 +8,7 @@ import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TableNameUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.CanalBinlogStreamFactory;
+import com.liang.flink.high.level.api.StreamFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -28,7 +28,7 @@ public class DemoJob {
         }
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(env);
+        DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
                 .rebalance()
                 .addSink(new DemoSink(config))

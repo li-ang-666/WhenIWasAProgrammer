@@ -15,8 +15,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 
-public class CanalBinlogStreamFactory {
-    private CanalBinlogStreamFactory() {
+public class StreamFactory {
+    private StreamFactory() {
     }
 
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {

@@ -6,7 +6,7 @@ import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.CanalBinlogStreamFactory;
+import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class DataConcatJob {
             args = new String[]{"data-concat.yml"};
         StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        DataStream<SingleCanalBinlog> stream = CanalBinlogStreamFactory.create(streamEnvironment);
+        DataStream<SingleCanalBinlog> stream = StreamFactory.create(streamEnvironment);
         stream
                 .rebalance()
                 .addSink(new DataConcatRichSinkFunction(ConfigUtils.getConfig()))
