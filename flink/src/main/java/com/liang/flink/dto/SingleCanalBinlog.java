@@ -9,8 +9,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * <P>由 BatchCanalBinlog 解析出的 SingleCanalBinlog
- * <P>type 只有INSERT、UPDATE、DELETE 三种
+ * 由 BatchCanalBinlog 解析出的 SingleCanalBinlog
+ * type 只有INSERT、UPDATE、DELETE 三种
  */
 @Data
 @AllArgsConstructor

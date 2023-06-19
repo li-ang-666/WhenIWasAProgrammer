@@ -26,19 +26,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * <p>drop table if exists stream_load_test;
- * <p>create table if not exists stream_load_test(
- * <p>     id int,
- * <p>     name text
- * <p>)
- * <p>UNIQUE KEY(`id`)
- * <p>DISTRIBUTED BY HASH(`id`) BUCKETS 1
- * <p>PROPERTIES (
- * <p>     "function_column.sequence_type" = 'largeint',
- * <p>     "replication_num" = "1",
- * <p>     "in_memory" = "false"
- * <p>);
- * <p>SET show_hidden_columns=true;
+ * drop table if exists stream_load_test;
+ * create table if not exists stream_load_test(id int,name text)
+ * UNIQUE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
+ * PROPERTIES (
+ * "function_column.sequence_type" = 'largeint',
+ * "replication_num" = "1",
+ * "in_memory" = "false"
+ * );
+ * -------------------------------------------------------
+ * drop table if exists agg_test;
+ * create table if not exists agg_test(id int,name text REPLACE_IF_NOT_NULL)
+ * aggregate KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
+ * PROPERTIES (
+ * "replication_num" = "1",
+ * "in_memory" = "false"
+ * );
+ * --------------------------------------------------------
+ * SET show_hidden_columns=true;
  */
 @Slf4j
 public class DorisTemplate {
@@ -151,7 +156,6 @@ public class DorisTemplate {
         byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
         return "Basic " + new String(encoded);
     }
-
 
     private String parseColumns(List<String> keys, List<String> derivedColumns) {
         List<String> columns = keys.parallelStream()

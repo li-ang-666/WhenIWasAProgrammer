@@ -18,20 +18,26 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * <p>列出所有表:
- * <p>list
- * <p>列出某个namespace下的表:
- * <p>list_namespace_tables ${namespace}"'
- * <p>建表:
- * <p>create '${namespace}:${tableName}','${family}'
- * <p>查看所有row:
- * <p>scan '${namespace}:${tableName}',{FORMATTER => 'toString'}
- * <p>查看某个row:
- * <p>get '${namespace}:${tableName}','${rowKey}',{FORMATTER => 'toString'}
- * <p>清表:
- * <p>truncate '${namespace}:${tableName}'
- * <p>删表:
- * <p>disable '${namespace}:${tableName}';drop '${namespace}:${tableName}'
+ * 列出所有表:
+ * list
+ * <p>
+ * 列出某个namespace下的表:
+ * list_namespace_tables ${namespace}"'
+ * <p>
+ * 建表:
+ * create '${namespace}:${tableName}','${family}'
+ * <p>
+ * 查看所有row:
+ * scan '${namespace}:${tableName}',{FORMATTER => 'toString'}
+ * <p>
+ * 查看某个row:
+ * get '${namespace}:${tableName}','${rowKey}',{FORMATTER => 'toString'}
+ * <p>
+ * 清表:
+ * truncate '${namespace}:${tableName}'
+ * <p>
+ * 删表:
+ * disable '${namespace}:${tableName}';drop '${namespace}:${tableName}'
  */
 @Slf4j
 public class HbaseTemplate {
