@@ -117,11 +117,13 @@ public class JdbcTemplate {
         if (sqls == null || sqls.isEmpty()) {
             return;
         }
-        synchronized (cache) {
-            cache.addAll(sqls);
-            if (cache.size() >= DEFAULT_CACHE_SIZE) {
-                updateImmediately(cache);
-                cache.clear();
+        for (String sql : sqls) {
+            synchronized (cache) {
+                cache.add(sql);
+                if (cache.size() >= DEFAULT_CACHE_SIZE) {
+                    updateImmediately(cache);
+                    cache.clear();
+                }
             }
         }
         if (!enableCache) {
