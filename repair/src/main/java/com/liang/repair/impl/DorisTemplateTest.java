@@ -12,8 +12,8 @@ import java.util.Collections;
 public class DorisTemplateTest implements Runner {
     @Override
     public void run(String[] args) throws Exception {
-        DorisTemplate dorisTemplate = new DorisTemplate("dorisSink")
-        .enableCache(1000 * 10);
+        DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
+        //.enableCache(1000 * 10);
 
         DorisSchema uniqueSchema = DorisSchema.builder()
                 .database("test_db")
@@ -55,6 +55,6 @@ public class DorisTemplateTest implements Runner {
         for (int i = 1; i <= 10240; i++) {
             dorisOneRows.add(row1);
         }
-        dorisTemplate.load(dorisOneRows);
+        //dorisTemplate.load(dorisOneRows);
     }
 }

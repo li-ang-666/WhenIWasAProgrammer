@@ -46,12 +46,7 @@ public class DorisTemplate {
     private final static int DEFAULT_CACHE_SIZE = 10240;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
-            .setRedirectStrategy(new DefaultRedirectStrategy() {
-                @Override
-                protected boolean isRedirectable(String method) {
-                    return true;
-                }
-            });
+            .setRedirectStrategy(new RedirectStrategy());
     private final TemplateLogger logger;
     private final List<String> fe;
     private final String auth;
@@ -204,6 +199,14 @@ public class DorisTemplate {
                     dorisTemplate.load(entry.getKey(), entry.getValue());
                 }
             }
+        }
+    }
+
+    @Slf4j
+    private static class RedirectStrategy extends DefaultRedirectStrategy {
+        @Override
+        protected boolean isRedirectable(String method) {
+            return true;
         }
     }
 }
