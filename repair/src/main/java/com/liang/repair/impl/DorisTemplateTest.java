@@ -12,8 +12,8 @@ import java.util.Collections;
 public class DorisTemplateTest implements Runner {
     @Override
     public void run(String[] args) throws Exception {
-        DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
-        //.enableCache(1000 * 10);
+        DorisTemplate dorisTemplate = new DorisTemplate("dorisSink")
+                .enableCache();
 
         DorisSchema uniqueSchema = DorisSchema.builder()
                 .database("test_db")
@@ -50,11 +50,12 @@ public class DorisTemplateTest implements Runner {
                 .put("id", "1")
                 .put("name", "Andy");
 
-        dorisTemplate.load(row1, row2, row3, row4);
         ArrayList<DorisOneRow> dorisOneRows = new ArrayList<>();
         for (int i = 1; i <= 10240; i++) {
             dorisOneRows.add(row1);
         }
-        //dorisTemplate.load(dorisOneRows);
+
+        dorisTemplate.load(row1, row2, row3, row4);
+        dorisTemplate.load(dorisOneRows);
     }
 }
