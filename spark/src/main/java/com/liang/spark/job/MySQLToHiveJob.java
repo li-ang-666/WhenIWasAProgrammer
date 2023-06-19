@@ -35,7 +35,7 @@ public class MySQLToHiveJob {
                 "id",
                 108L,
                 88888888888L,
-                200,
+                888888,
                 new Properties() {{
                     put("user", "jdhw_d_data_dml");
                     put("password", "2s0^tFa4SLrp72");
