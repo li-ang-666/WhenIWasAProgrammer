@@ -19,6 +19,6 @@ nohup spark-submit \
   --conf spark.executor.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
   --conf spark.yarn.am.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
   --conf spark.yarn.cluster.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
-  --files /home/hive/liang/${???}/log4j-all.properties,/home/hive/liang/${???}/config.yml \
+  --files log4j-all.properties,config.yml \
   --conf spark.yarn.maxAppAttempts=1 \
   ./spark-1.0-jar-with-dependencies.jar config.yml >log 2>&1 &
