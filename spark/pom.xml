@@ -11,6 +11,12 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
+        <!--flink Tuple-->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-java</artifactId>
+        </dependency>
+
         <!--common-->
         <dependency>
             <groupId>com.liang</groupId>

@@ -16,6 +16,7 @@ public class MySQLToHiveJob {
         if (args.length == 0) {
             args = new String[]{"mysql-to-hive.yml"};
         }
+        SparkSession spark = SparkSessionFactory.createSpark(args);
         String fromTable = args[1];
         log.info("fromTable: {}", fromTable);
         String toTable = args[2];
@@ -34,7 +35,6 @@ public class MySQLToHiveJob {
         log.info("jdbc user: {}", user);
         String password = dataSource.getPassword();
         log.info("jdbc password: {}", password);
-        SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.read().option("fetchsize", "2048").jdbc(
                 url,
                 fromTable,
