@@ -50,7 +50,7 @@ public class MySQLToHiveJob {
         ).createTempView("source");
 
         spark.sql(
-                String.format("insert overwrite table %s(pt = '%s') select /*+ REPARTITION(10) */ * from source",
+                String.format("insert overwrite table %s partition(pt='%s') select /*+ REPARTITION(10) */ * from source",
                         toTable, DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMdd"))
         );
         spark.stop();
