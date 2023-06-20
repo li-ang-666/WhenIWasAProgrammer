@@ -12,7 +12,7 @@ nohup spark-submit \
   --conf spark.driver.memoryOverhead=512m \
   --executor-memory 5g --num-executors 10 --executor-cores 3 \
   --conf spark.executor.memoryOverhead=512m \
-  --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=1g \
+  --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=512m \
   --queue default \
   --conf spark.memory.fraction=0.7 \
   --conf spark.memory.storageFraction=0.2 \
