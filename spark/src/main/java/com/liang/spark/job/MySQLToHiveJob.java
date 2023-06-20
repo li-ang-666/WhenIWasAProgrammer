@@ -8,7 +8,6 @@ import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.storage.StorageLevel;
 
 import java.util.Properties;
 
@@ -48,7 +47,7 @@ public class MySQLToHiveJob {
                             put("user", user);
                             put("password", password);
                         }}
-                ).persist(StorageLevel.MEMORY_AND_DISK())
+                )//.persist(StorageLevel.MEMORY_AND_DISK())
                 .createTempView("source");
 
         spark.sql(
