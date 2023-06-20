@@ -17,27 +17,39 @@ public class MySQLToHiveJob {
             args = new String[]{"mysql-to-hive.yml"};
         }
         String fromTable = args[1];
+        log.info("fromTable: {}", fromTable);
         String toTable = args[2];
+        log.info("toTable: {}", toTable);
         Tuple2<Long, Long> minAndMax = new JdbcTemplate("source").queryForObject(
                 String.format("select min(id),max(id) from %s", fromTable),
                 rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
+        long minId = minAndMax.f0;
+        log.info("minId: {}", minId);
+        long maxId = minAndMax.f1;
+        log.info("maxId: {}", maxId);
         DruidDataSource dataSource = new DruidHolder().getPool("source");
+        String url = dataSource.getUrl();
+        log.info("jdbc url: {}", url);
+        String user = dataSource.getUsername();
+        log.info("jdbc user: {}", user);
+        String password = dataSource.getPassword();
+        log.info("jdbc password: {}", password);
         SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.read().option("fetchsize", "2048").jdbc(
-                dataSource.getUrl(),
+                url,
                 fromTable,
                 "id",
-                minAndMax.f0,
-                minAndMax.f1,
-                (int) ((minAndMax.f1 - minAndMax.f0) / 500000),
+                minId,
+                maxId,
+                (int) ((maxId - minId) / 500000),
                 new Properties() {{
-                    put("user", dataSource.getUrl());
-                    put("password", dataSource.getPassword());
+                    put("user", user);
+                    put("password", password);
                 }}
         ).createTempView("source");
 
         spark.sql(
-                String.format("insert overwrite table %s select /*+ REPARTITION(10) */ * from sourceTable", toTable)
+                String.format("insert overwrite table %s select /*+ REPARTITION(10) */ * from source", toTable)
         );
         spark.stop();
     }
