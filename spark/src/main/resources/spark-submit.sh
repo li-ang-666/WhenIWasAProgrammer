@@ -4,7 +4,7 @@ export jobName=MysqlToHiveJob
 
 nohup spark-submit \
   --class com.liang.spark.job.${jobName} \
-  --name ${jobName}Test \
+  --name ${jobName} \
   --proxy-user liang \
   --master yarn \
   --deploy-mode cluster \
@@ -20,6 +20,6 @@ nohup spark-submit \
   --conf spark.executor.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
   --conf spark.yarn.am.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
   --conf spark.yarn.cluster.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
-  --files /home/hive/liang/data-concat-test/log4j-all.properties,/home/hive/liang/data-concat/config.yml \
+  --files /home/hive/liang/${???}/log4j-all.properties,/home/hive/liang/${???}/config.yml \
   --conf spark.yarn.maxAppAttempts=1 \
   ./spark-1.0-jar-with-dependencies.jar config.yml >log 2>&1 &
