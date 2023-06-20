@@ -3,6 +3,7 @@ package com.liang.spark.job;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -49,7 +50,8 @@ public class MySQLToHiveJob {
         ).createTempView("source");
 
         spark.sql(
-                String.format("insert overwrite table %s select /*+ REPARTITION(10) */ * from source", toTable)
+                String.format("insert overwrite table %s(pt = '%s') select /*+ REPARTITION(10) */ * from source",
+                        toTable, DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMdd"))
         );
         spark.stop();
     }
