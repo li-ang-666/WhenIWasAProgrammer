@@ -14,8 +14,7 @@ nohup spark-submit \
   --conf spark.executor.memoryOverhead=512m \
   --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=512m \
   --queue default \
-  --conf spark.memory.fraction=0.7 \
-  --conf spark.memory.storageFraction=0.2 \
+  --conf spark.memory.fraction=0.8 \
   --conf spark.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
   --conf spark.executor.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
   --conf spark.yarn.am.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
