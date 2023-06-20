@@ -8,6 +8,7 @@ import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.storage.StorageLevel;
 
 import java.util.Properties;
 
@@ -37,17 +38,18 @@ public class MySQLToHiveJob {
         String password = dataSource.getPassword();
         log.info("jdbc password: {}", password);
         spark.read().option("fetchsize", "1024").jdbc(
-                url,
-                fromTable,
-                "id",
-                minId,
-                maxId,
-                (int) ((maxId - minId) / 500000),
-                new Properties() {{
-                    put("user", user);
-                    put("password", password);
-                }}
-        ).createTempView("source");
+                        url,
+                        fromTable,
+                        "id",
+                        minId,
+                        maxId,
+                        (int) ((maxId - minId) / 500000),
+                        new Properties() {{
+                            put("user", user);
+                            put("password", password);
+                        }}
+                ).persist(StorageLevel.MEMORY_AND_DISK())
+                .createTempView("source");
 
         spark.sql(
                 String.format("insert overwrite table %s partition(pt='%s') select /*+ REPARTITION(10) */ * from source",
