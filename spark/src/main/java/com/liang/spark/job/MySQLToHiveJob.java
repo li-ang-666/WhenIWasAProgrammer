@@ -1,7 +1,6 @@
 package com.liang.spark.job;
 
 import com.liang.spark.basic.SparkSessionFactory;
-import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 
 import java.util.Properties;
@@ -12,6 +11,7 @@ public class MySQLToHiveJob {
             args = new String[]{"mysql-to-hive.yml"};
         }
         SparkSession spark = SparkSessionFactory.createSpark(args);
+        spark.sql("use test");
         spark.read().option("fetchsize", "2048").jdbc(
                 "jdbc:mysql://e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com:3306/prism_shareholder_path" +
                         //时区
@@ -35,13 +35,15 @@ public class MySQLToHiveJob {
                 "id",
                 108L,
                 88888888888L,
-                888888,
+                10000,
                 new Properties() {{
                     put("user", "jdhw_d_data_dml");
                     put("password", "2s0^tFa4SLrp72");
                     put("driver", "com.mysql.jdbc.Driver");
                 }}
-        ).write().mode(SaveMode.Overwrite).saveAsTable("test.no_shareholder_company_info");
+        ).createTempView("sourceTable");
+
+        spark.sql("insert overwrite table no_shareholder_company_info select /*+ REPARTITION(10) */ * from sourceTable");
 
         spark.stop();
     }
