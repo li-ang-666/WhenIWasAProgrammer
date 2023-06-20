@@ -1,0 +1,7 @@
+dbConfigs:
+  #################### 生产 ####################
+  source:
+    host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com"
+    database: "prism_shareholder_path"
+    user: "jdhw_d_data_dml"
+    password: "2s0^tFa4SLrp72"

@@ -1,50 +1,44 @@
 package com.liang.spark.job;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import com.liang.common.service.database.holder.DruidHolder;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.spark.basic.SparkSessionFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.sql.SparkSession;
 
 import java.util.Properties;
 
+@Slf4j
 public class MySQLToHiveJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             args = new String[]{"mysql-to-hive.yml"};
         }
+        String fromTable = args[1];
+        String toTable = args[2];
+        Tuple2<Long, Long> minAndMax = new JdbcTemplate("source").queryForObject(
+                String.format("select min(id),max(id) from %s", fromTable),
+                rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
+        DruidDataSource dataSource = new DruidHolder().getPool("source");
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        spark.sql("use test");
         spark.read().option("fetchsize", "2048").jdbc(
-                "jdbc:mysql://e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com:3306/prism_shareholder_path" +
-                        //时区
-                        "?serverTimezone=GMT%2B8" +
-                        //时间字段处理
-                        "&zeroDateTimeBehavior=convertToNull" +
-                        //编码
-                        "&useUnicode=true" +
-                        "&characterEncoding=UTF-8" +
-                        "&characterSetResults=UTF-8" +
-                        //useSSL
-                        "&useSSL=false" +
-                        //连接策略
-                        "&autoReconnect=true" +
-                        "&maxReconnects=3" +
-                        "&failOverReadOnly=false" +
-                        //性能优化
-                        "&maxAllowedPacket=67108864" + //64mb
-                        "&rewriteBatchedStatements=true",
-                "no_shareholder_company_info",
+                dataSource.getUrl(),
+                fromTable,
                 "id",
-                108L,
-                88888888888L,
-                (int) (88888888888L / 500000),
+                minAndMax.f0,
+                minAndMax.f1,
+                (int) ((minAndMax.f1 - minAndMax.f0) / 500000),
                 new Properties() {{
-                    put("user", "jdhw_d_data_dml");
-                    put("password", "2s0^tFa4SLrp72");
-                    put("driver", "com.mysql.jdbc.Driver");
+                    put("user", dataSource.getUrl());
+                    put("password", dataSource.getPassword());
                 }}
-        ).createTempView("sourceTable");
+        ).createTempView("source");
 
-        spark.sql("insert overwrite table no_shareholder_company_info select /*+ REPARTITION(10) */ * from sourceTable");
-
+        spark.sql(
+                String.format("insert overwrite table %s select /*+ REPARTITION(10) */ * from sourceTable", toTable)
+        );
         spark.stop();
     }
 }

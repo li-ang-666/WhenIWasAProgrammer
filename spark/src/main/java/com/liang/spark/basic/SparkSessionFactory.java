@@ -12,7 +12,7 @@ public class SparkSessionFactory {
 
     public static SparkSession createSpark(String[] args) throws Exception {
         initConfig(args);
-        return initSpark(args.length > 0);
+        return initSpark();
     }
 
     private static void initConfig(String[] args) throws Exception {
@@ -20,11 +20,10 @@ public class SparkSessionFactory {
         ConfigUtils.setConfig(config);
     }
 
-    private static SparkSession initSpark(boolean enableHive) {
-        SparkSession.Builder builder = SparkSession
+    private static SparkSession initSpark() {
+        return SparkSession
                 .builder()
-                .config("spark.debug.maxToStringFields", "200");
-        if (enableHive) builder.enableHiveSupport();
-        return builder.getOrCreate();
+                .config("spark.debug.maxToStringFields", "200")
+                .enableHiveSupport().getOrCreate();
     }
 }
