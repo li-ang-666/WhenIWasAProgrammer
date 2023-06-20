@@ -36,7 +36,7 @@ public class MySQLToHiveJob {
         log.info("jdbc user: {}", user);
         String password = dataSource.getPassword();
         log.info("jdbc password: {}", password);
-        spark.read().option("fetchsize", "10240").jdbc(
+        spark.read().option("fetchsize", "1024").jdbc(
                 url,
                 fromTable,
                 "id",
