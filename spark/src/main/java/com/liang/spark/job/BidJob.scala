@@ -22,9 +22,6 @@ object BidJob {
     )
     createView(spark, tableList)
     createUnionView(spark, tableList)
-
-    spark.sql("select * from unionTable")
-      .show(false)
     spark.sql(
       """
         |insert overwrite table test.bid_obs
@@ -32,7 +29,7 @@ object BidJob {
         |from unionTable
         |group by mid
         |""".stripMargin)
-    //.show(100, truncate = false)
+    spark.stop()
   }
 
   private def createView(spark: SparkSession, tableList: List[String]): Unit = {
