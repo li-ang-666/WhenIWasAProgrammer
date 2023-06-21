@@ -1,10 +1,10 @@
-package com.liang.spark.test
+package com.liang.spark.job
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
 
-object BidTest {
+object BidJob {
   def main(args: Array[String]): Unit = {
     val spark: SparkSession = SparkSession.builder
       .master("local[*]")
@@ -21,23 +21,17 @@ object BidTest {
       "data_bid_dataplus_bid_win_content_df"
     )
     createView(spark, tableList)
-    createUnionView(spark,tableList)
+    createUnionView(spark, tableList)
 
     spark.sql("select * from unionTable")
       .show(false)
-
-
-    //    spark.sql(
-    //      """
-    //        |with tmp as(
-    //        |select * from t1
-    //        |union all
-    //        |select * from t2
-    //        |union all
-    //        |select * from t3
-    //        |)select mid,concat_ws(',',collect_list(js)) from tmp group by mid
-    //        |""".stripMargin)
-    //      .show(false)
+    spark.sql(
+      """
+        |select concat('{', mid, ',', concat_ws(',',collect_list(js)), '}')
+        |from unionTable
+        |group by mid
+        |""".stripMargin)
+      .show(100, truncate = false)
   }
 
   private def createView(spark: SparkSession, tableList: List[String]): Unit = {
