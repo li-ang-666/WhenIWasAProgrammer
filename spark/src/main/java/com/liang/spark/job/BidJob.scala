@@ -24,8 +24,8 @@ object BidJob {
     createUnionView(spark, tableList)
     spark.sql(
       """
-        |insert overwrite table test.bid_obs
-        |select /*+ REPARTITION(5) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}')
+        |insert into table test.bid_obs
+        |select /*+ REPARTITION(1) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}')
         |from unionTable
         |group by mid
         |""".stripMargin)
