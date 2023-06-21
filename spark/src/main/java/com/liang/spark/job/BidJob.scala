@@ -27,6 +27,7 @@ object BidJob {
       .show(false)
     spark.sql(
       """
+        |insert overwrite table test.bid_obs
         |select concat('{', mid, ',', concat_ws(',',collect_list(js)), '}')
         |from unionTable
         |group by mid
@@ -37,9 +38,10 @@ object BidJob {
   private def createView(spark: SparkSession, tableList: List[String]): Unit = {
     import spark.implicits._
     tableList.foreach(tableName => {
-      spark.read.option("header", "true")
-        .option("inferSchema", "true")
-        .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/tb.csv")
+      //      spark.read.option("header", "true")
+      //        .option("inferSchema", "true")
+      //        .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/tb.csv")
+      spark.sql(s"select * from test.$tableName")
         .where("mid is not null and mid <> 0")
         .map(row => (row.getAs("mid").toString, row.json)).toDF("mid", "js")
         .groupBy(col("mid"))
