@@ -32,7 +32,7 @@ object BidJob {
         |from unionTable
         |group by mid
         |""".stripMargin)
-      .show(100, truncate = false)
+    //.show(100, truncate = false)
   }
 
   private def createView(spark: SparkSession, tableList: List[String]): Unit = {
