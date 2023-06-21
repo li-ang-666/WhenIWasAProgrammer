@@ -4,6 +4,9 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
 
+/**
+ * create table test.bid_obs_tmp(js string)stored as textfile;
+ */
 object BidJob {
   def main(args: Array[String]): Unit = {
     val spark: SparkSession = SparkSession.builder
@@ -24,7 +27,7 @@ object BidJob {
     createUnionView(spark, tableList)
     spark.sql(
       """
-        |insert overwrite table test.bid_obs
+        |insert overwrite table test.bid_obs_tmp
         |select /*+ REPARTITION(600) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
         |from union_table
         |group by mid
