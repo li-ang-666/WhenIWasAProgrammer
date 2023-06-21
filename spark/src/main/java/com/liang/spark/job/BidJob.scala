@@ -24,33 +24,33 @@ object BidJob {
     createUnionView(spark, tableList)
     spark.sql(
       """
-        |insert into table test.bid_obs
-        |select /*+ REPARTITION(1) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}')
-        |from unionTable
+        |insert overwrite table test.bid_obs_tmp
+        |select /*+ REPARTITION(20) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
+        |from union_table
         |group by mid
-        |""".stripMargin)
+        |""".stripMargin).show()
     spark.stop()
   }
 
   private def createView(spark: SparkSession, tableList: List[String]): Unit = {
     import spark.implicits._
     tableList.foreach(tableName => {
-      //      spark.read.option("header", "true")
-      //        .option("inferSchema", "true")
-      //        .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/tb.csv")
+      /*spark.read.option("header", "true")
+        .option("inferSchema", "true")
+        .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/tb.csv")*/
       spark.sql(s"select * from test.$tableName")
-        .where("mid is not null and mid <> 0")
+        .where("mid is not null and mid <> ''")
         .map(row => (row.getAs("mid").toString, row.json)).toDF("mid", "js")
         .groupBy(col("mid"))
         .agg(concat(lit("["), concat_ws(",", collect_list("js")), lit("]"))).toDF("mid", "js")
         .map(row => (s""""mid":${row.getAs("mid").toString}""", s""""${tableName}":${row.getAs("js").toString}""")).toDF("mid", "js")
-        .createOrReplaceTempView(tableName)
+        .createOrReplaceTempView(s"${tableName}_2")
     })
   }
 
   private def createUnionView(spark: SparkSession, tableList: List[String]): Unit = {
-    val sql: String = tableList.map(tableName => s"select * from ${tableName}").mkString(" union all ")
+    val sql: String = tableList.map(tableName => s"select mid,js from ${tableName}_2").mkString("\n union all \n")
     spark.sql(sql)
-      .createOrReplaceTempView("unionTable")
+      .createOrReplaceTempView("union_table")
   }
 }
