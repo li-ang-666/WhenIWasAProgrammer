@@ -25,7 +25,7 @@ object BidJob {
     spark.sql(
       """
         |insert overwrite table test.bid_obs
-        |select /*+ REPARTITION(120) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
+        |select /*+ REPARTITION(600) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
         |from union_table
         |group by mid
         |""".stripMargin)
@@ -43,7 +43,7 @@ object BidJob {
         .map(row => (row.getAs("mid").toString, row.json)).toDF("mid", "js")
         .groupBy(col("mid"))
         .agg(concat(lit("["), concat_ws(",", collect_list("js")), lit("]"))).toDF("mid", "js")
-        .map(row => (s""""mid":${row.getAs("mid").toString}""", s""""${tableName}":${row.getAs("js").toString}""")).toDF("mid", "js")
+        .map(row => (s""""mid":"${row.getAs("mid").toString}"""", s""""${tableName}":${row.getAs("js").toString}""")).toDF("mid", "js")
         .createOrReplaceTempView(s"${tableName}_2")
     })
   }
