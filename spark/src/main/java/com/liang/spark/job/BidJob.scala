@@ -28,7 +28,7 @@ object BidJob {
         |select /*+ REPARTITION(20) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
         |from union_table
         |group by mid
-        |""".stripMargin).show()
+        |""".stripMargin)
     spark.stop()
   }
 
