@@ -7,8 +7,8 @@ import org.apache.spark.sql.functions._
 object BidJob {
   def main(args: Array[String]): Unit = {
     val spark: SparkSession = SparkSession.builder
-      .master("local[*]")
-      .getOrCreate()
+      .config("spark.debug.maxToStringFields", "200")
+      .enableHiveSupport().getOrCreate()
     val tableList: List[String] = List[String](
       "data_bid_dataplus_bid_class_df",
       "data_bid_dataplus_bid_notice_df",
@@ -28,7 +28,7 @@ object BidJob {
     spark.sql(
       """
         |insert overwrite table test.bid_obs
-        |select concat('{', mid, ',', concat_ws(',',collect_list(js)), '}')
+        |select /*+ REPARTITION(5) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}')
         |from unionTable
         |group by mid
         |""".stripMargin)
