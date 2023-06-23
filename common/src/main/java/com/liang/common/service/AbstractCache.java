@@ -70,14 +70,15 @@ public abstract class AbstractCache<K, V> {
                 list.add(value);
                 if (enableCache && list.size() >= cacheRecords) {
                     updateImmediately(key, list);
+                    cache.remove(key);
                 }
-                cache.remove(key);
             }
         }
         if (!enableCache && !cache.isEmpty()) {
             for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
                 updateImmediately(entry.getKey(), entry.getValue());
             }
+            cache.clear();
         }
     }
 
