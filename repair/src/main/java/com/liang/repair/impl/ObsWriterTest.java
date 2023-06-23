@@ -20,8 +20,5 @@ public class ObsWriterTest implements Runner {
         writer.update(list);
         writer.update(list);
         writer.update(list);
-
-
-        while (true);
     }
 }

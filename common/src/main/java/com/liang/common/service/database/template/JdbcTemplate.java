@@ -2,8 +2,8 @@ package com.liang.common.service.database.template;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.liang.common.service.Logging;
 import com.liang.common.service.AbstractCache;
+import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,9 +40,6 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
 
     @Override
     protected synchronized void updateImmediately(Object ignore, List<String> sqls) {
-        if (sqls == null || sqls.isEmpty()) {
-            return;
-        }
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
