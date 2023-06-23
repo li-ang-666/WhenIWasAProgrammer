@@ -20,20 +20,20 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcTemplate extends ListCache<String> {
-    private final static int DEFAULT_CACHE_TIME = 500;
-    private final static int DEFAULT_CACHE_SIZE = 1024;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 500;
+    private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final DruidDataSource pool;
     private final Logging logging;
 
     public JdbcTemplate(String name) {
-        super(DEFAULT_CACHE_TIME, DEFAULT_CACHE_SIZE);
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS);
         pool = new DruidHolder().getPool(name);
         logging = new Logging(this.getClass().getSimpleName(), name);
     }
 
     // just for MemJdbcTemplate
     protected JdbcTemplate(DruidDataSource pool, Logging logging) {
-        super(DEFAULT_CACHE_TIME, DEFAULT_CACHE_SIZE);
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS);
         this.pool = pool;
         this.logging = logging;
     }
@@ -94,6 +94,11 @@ public class JdbcTemplate extends ListCache<String> {
             logging.ifError("queryForColumnMaps", sql, e);
             return result;
         }
+    }
+
+    @Override
+    public void updateImmediately(String... sqls) {
+        super.updateImmediately(sqls);
     }
 
     @Override

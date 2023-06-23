@@ -54,7 +54,8 @@ public class NoShareholderCompanyInfoJob {
                     .addClass("CompanyBondPlates")
                     .addClass("CompanyEquityRelationDetails");
             service = new DataUpdateService<>(context);
-            jdbcTemplate = new JdbcTemplate("sink").enableCache();
+            jdbcTemplate = new JdbcTemplate("sink");
+            jdbcTemplate.enableCache();
         }
 
         @Override

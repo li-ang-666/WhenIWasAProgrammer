@@ -28,7 +28,7 @@ public abstract class ListCache<E> {
         }
     }
 
-    @SafeVarargs
+    @SuppressWarnings("unchecked")
     public final void update(E... es) {
         if (es == null || es.length == 0) {
             return;
@@ -53,6 +53,14 @@ public abstract class ListCache<E> {
             updateImmediately(cache);
             cache.clear();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void updateImmediately(E... es) {
+        if (es == null || es.length == 0) {
+            return;
+        }
+        updateImmediately(Arrays.asList(es));
     }
 
     protected abstract void updateImmediately(List<E> es);
