@@ -15,11 +15,11 @@ public abstract class ListCache<E> {
         this.cacheRecords = cacheRecords;
     }
 
-    protected final void enableCache() {
+    public final void enableCache() {
         enableCache(cacheMilliseconds, cacheRecords);
     }
 
-    protected final void enableCache(int cacheMilliseconds, int cacheRecords) {
+    public final void enableCache(int cacheMilliseconds, int cacheRecords) {
         this.cacheMilliseconds = cacheMilliseconds;
         this.cacheRecords = cacheRecords;
         if (!enableCache) {
@@ -29,14 +29,14 @@ public abstract class ListCache<E> {
     }
 
     @SafeVarargs
-    protected final void update(E... es) {
+    public final void update(E... es) {
         if (es == null || es.length == 0) {
             return;
         }
         update(Arrays.asList(es));
     }
 
-    protected final void update(List<E> es) {
+    public final void update(List<E> es) {
         if (es == null || es.isEmpty()) {
             return;
         }

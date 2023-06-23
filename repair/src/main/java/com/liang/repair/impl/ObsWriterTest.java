@@ -15,8 +15,8 @@ public class ObsWriterTest implements Runner {
         for (int i = 1; i <= 50000 * 50 * 1.2; i++) {
             list.add(UUID.randomUUID().toString());
         }
-        writer.println(list);
-        writer.println(list);
-        writer.println(list);
+        writer.update(list);
+        writer.update(list);
+        writer.update(list);
     }
 }
