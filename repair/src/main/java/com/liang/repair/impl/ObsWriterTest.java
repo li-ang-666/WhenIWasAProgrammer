@@ -1,6 +1,6 @@
 package com.liang.repair.impl;
 
-import com.liang.common.service.ObsWriter;
+import com.liang.common.service.filesystem.ObsWriter;
 import com.liang.repair.trait.Runner;
 
 import java.util.ArrayList;

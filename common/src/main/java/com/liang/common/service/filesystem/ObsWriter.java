@@ -1,5 +1,6 @@
-package com.liang.common.service;
+package com.liang.common.service.filesystem;
 
+import com.liang.common.service.Logging;
 import com.obs.services.ObsClient;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,7 @@ public class ObsWriter {
     public ObsWriter enableCache(int cacheTime) {
         if (!enableCache) {
             enableCache = true;
-            new Thread(new Sender(this)).start();
+            new Thread(new Sender(this, cacheTime)).start();
         }
         return this;
     }
