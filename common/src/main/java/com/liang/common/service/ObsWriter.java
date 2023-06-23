@@ -5,8 +5,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -20,7 +20,7 @@ public class ObsWriter {
     private final static String sk = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final static String ep = "obs.cn-north-4.myhuaweicloud.com";
 
-    private final Cache cache = new Cache(DEFAULT_CACHE_SIZE);
+    private final List<String> cache = new ArrayList<>();
     private final String bucket;
     private final String path;
     private final Logging logging;
@@ -58,28 +58,29 @@ public class ObsWriter {
         }
         for (String content : contents) {
             synchronized (cache) {
-                cache.addLine(content);
+                cache.add(content);
                 if (cache.size() >= DEFAULT_CACHE_SIZE) {
-                    printlnImmediately();
+                    printlnImmediately(cache);
+                    cache.clear();
                 }
             }
         }
         if (!enableCache) {
-            printlnImmediately();
+            printlnImmediately(cache);
+            cache.clear();
         }
     }
 
-    private synchronized void printlnImmediately() {
+    private synchronized void printlnImmediately(List<String> contents) {
         if (cache.isEmpty()) {
             return;
         }
         logging.beforeExecute();
         String path = this.path + (this.path.endsWith("/") ? "" : "/");
         String objectName = String.format("%s.%s.%s", System.currentTimeMillis(), UUID.randomUUID(), "txt");
+        byte[] bytes = String.join("\n", contents).getBytes(StandardCharsets.UTF_8);
         try (ObsClient client = new ObsClient(ak, sk, ep)) {
-            client.putObject(bucket, path + objectName, cache.getInputStream());
-            //只有写入成功才清空cache
-            cache.clear();
+            client.putObject(bucket, path + objectName, new ByteArrayInputStream(bytes));
             logging.afterExecute("write", objectName);
         } catch (Exception e) {
             logging.ifError("write", objectName, e);
@@ -104,45 +105,16 @@ public class ObsWriter {
                 if (obsWriter.cache.isEmpty()) {
                     continue;
                 }
+                List<String> copyCache;
                 synchronized (obsWriter.cache) {
                     if (obsWriter.cache.isEmpty()) {
                         continue;
                     }
-                    obsWriter.printlnImmediately();
+                    copyCache = new ArrayList<>(obsWriter.cache);
+                    obsWriter.cache.clear();
                 }
+                obsWriter.printlnImmediately(copyCache);
             }
-        }
-    }
-
-    private static class Cache {
-        private final int initSize;
-        private StringBuilder builder;
-
-        public Cache(int initSize) {
-            this.initSize = (int) (initSize * 1.2);
-            builder = new StringBuilder(initSize);
-        }
-
-        public void addLine(String content) {
-            builder.append(content);
-            builder.append("\n");
-        }
-
-        public InputStream getInputStream() {
-            return new ByteArrayInputStream(
-                    builder.toString().getBytes(StandardCharsets.UTF_8));
-        }
-
-        public void clear() {
-            builder = new StringBuilder(initSize);
-        }
-
-        public boolean isEmpty() {
-            return builder.length() == 0;
-        }
-
-        public int size() {
-            return builder.length();
         }
     }
 }
