@@ -1,6 +1,5 @@
 package com.liang.common.service;
 
-import com.liang.common.util.DateTimeUtils;
 import com.obs.services.ObsClient;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -8,9 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -21,15 +20,17 @@ public class ObsWriter {
     private final static String sk = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final static String ep = "obs.cn-north-4.myhuaweicloud.com";
 
-    private final List<Byte> cache = new ArrayList<>();
+    private final Cache cache = new Cache(DEFAULT_CACHE_SIZE);
     private final String bucket;
     private final String path;
+    private final Logging logging;
 
     private volatile boolean enableCache = false;
 
     public ObsWriter(String folderPath) {
         bucket = folderPath.replaceAll("obs://(.*?)/(.*)", "$1");
         path = folderPath.replaceAll("obs://(.*?)/(.*)", "$2");
+        logging = new Logging(this.getClass().getSimpleName(), folderPath);
     }
 
     public ObsWriter enableCache() {
@@ -57,38 +58,32 @@ public class ObsWriter {
         }
         for (String content : contents) {
             synchronized (cache) {
-                for (byte b : content.getBytes(StandardCharsets.UTF_8)) {
-                    cache.add(b);
-                }
-                cache.add((byte) '\n');
+                cache.addLine(content);
                 if (cache.size() >= DEFAULT_CACHE_SIZE) {
-                    printlnImmediately(getStream(cache));
-                    cache.clear();
+                    printlnImmediately();
                 }
             }
         }
         if (!enableCache) {
-            printlnImmediately(getStream(cache));
-            cache.clear();
+            printlnImmediately();
         }
     }
 
-    private synchronized void printlnImmediately(InputStream inputStream) {
-        long time = System.currentTimeMillis();
-        String objectName = DateTimeUtils.fromUnixTime(time / 1000, "yyyyMMdd-HHmmss");
+    private synchronized void printlnImmediately() {
+        if (cache.isEmpty()) {
+            return;
+        }
+        logging.beforeExecute();
+        String path = this.path + (this.path.endsWith("/") ? "" : "/");
+        String objectName = String.format("%s.%s.%s", System.currentTimeMillis(), UUID.randomUUID(), "txt");
         try (ObsClient client = new ObsClient(ak, sk, ep)) {
-            client.putObject(bucket, path + "/" + objectName, inputStream);
+            client.putObject(bucket, path + objectName, cache.getInputStream());
+            //只有写入成功才清空cache
+            cache.clear();
+            logging.afterExecute("write", objectName);
         } catch (Exception e) {
-            log.error("obs write error", e);
+            logging.ifError("write", objectName, e);
         }
-    }
-
-    private InputStream getStream(List<Byte> cache) {
-        byte[] bytes = new byte[cache.size()];
-        for (int i = 0; i < cache.size(); i++) {
-            bytes[i] = cache.get(i);
-        }
-        return new ByteArrayInputStream(bytes);
     }
 
     private static class Sender implements Runnable {
@@ -113,10 +108,41 @@ public class ObsWriter {
                     if (obsWriter.cache.isEmpty()) {
                         continue;
                     }
-                    obsWriter.printlnImmediately(obsWriter.getStream(obsWriter.cache));
-                    obsWriter.cache.clear();
+                    obsWriter.printlnImmediately();
                 }
             }
+        }
+    }
+
+    private static class Cache {
+        private final int initSize;
+        private StringBuilder builder;
+
+        public Cache(int initSize) {
+            this.initSize = (int) (initSize * 1.2);
+            builder = new StringBuilder(initSize);
+        }
+
+        public void addLine(String content) {
+            builder.append(content);
+            builder.append("\n");
+        }
+
+        public InputStream getInputStream() {
+            return new ByteArrayInputStream(
+                    builder.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        public void clear() {
+            builder = new StringBuilder(initSize);
+        }
+
+        public boolean isEmpty() {
+            return builder.length() == 0;
+        }
+
+        public int size() {
+            return builder.length();
         }
     }
 }
