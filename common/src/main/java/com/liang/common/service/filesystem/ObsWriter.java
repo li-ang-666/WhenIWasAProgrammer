@@ -30,7 +30,7 @@ public class ObsWriter extends ListCache<String> {
     }
 
     protected synchronized void updateImmediately(List<String> contents) {
-        if (cache.isEmpty()) {
+        if (contents == null || contents.isEmpty()) {
             return;
         }
         logging.beforeExecute();

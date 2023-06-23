@@ -20,9 +20,9 @@ public abstract class ListCache<E> {
     }
 
     public final void enableCache(int cacheMilliseconds, int cacheRecords) {
-        this.cacheMilliseconds = cacheMilliseconds;
-        this.cacheRecords = cacheRecords;
         if (!enableCache) {
+            this.cacheMilliseconds = cacheMilliseconds;
+            this.cacheRecords = cacheRecords;
             new Thread(new ListCacheSender<>(this)).start();
             enableCache = true;
         }
@@ -49,7 +49,7 @@ public abstract class ListCache<E> {
                 }
             }
         }
-        if (!enableCache && !es.isEmpty()) {
+        if (!enableCache && !cache.isEmpty()) {
             updateImmediately(cache);
             cache.clear();
         }
