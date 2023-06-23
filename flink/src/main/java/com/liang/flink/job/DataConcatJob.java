@@ -57,17 +57,18 @@ public class DataConcatJob {
                     .addClass("EquityPledgeDetail")
                     .addClass("CompanyBranch");
             service = new DataUpdateService<>(dataUpdateContext);
-            hbase = new HbaseTemplate("hbaseSink").enableCache();
+            hbase = new HbaseTemplate("hbaseSink");
+            hbase.enableCache();
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
-            List<HbaseOneRow> input = service.invoke(singleCanalBinlog);
-            if (input == null || input.isEmpty()) {
+            List<HbaseOneRow> result = service.invoke(singleCanalBinlog);
+            if (result == null || result.isEmpty()) {
                 return;
             }
             if (log.isDebugEnabled()) {
-                for (HbaseOneRow hbaseOneRow : input) {
+                for (HbaseOneRow hbaseOneRow : result) {
                     String rowKey = hbaseOneRow.getRowKey();
                     Map<String, Object> columnMap = new TreeMap<>(hbaseOneRow.getColumnMap());
                     StringBuilder builder = new StringBuilder();
@@ -78,8 +79,8 @@ public class DataConcatJob {
                     log.debug("print before sink: {}", builder);
                 }
             }
-            for (HbaseOneRow hbaseOneRow : input) {
-                hbase.upsertImmediately(hbaseOneRow);
+            for (HbaseOneRow hbaseOneRow : result) {
+                hbase.update(hbaseOneRow);
             }
         }
     }

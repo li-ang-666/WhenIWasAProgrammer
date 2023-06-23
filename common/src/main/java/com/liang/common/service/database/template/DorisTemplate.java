@@ -4,9 +4,9 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisDbConfig;
 import com.liang.common.service.Logging;
+import com.liang.common.service.MapCache;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
@@ -21,8 +21,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -46,9 +48,9 @@ import java.util.stream.Collectors;
  * SET show_hidden_columns=true;
  */
 @Slf4j
-public class DorisTemplate {
-    private final static int DEFAULT_CACHE_TIME = 5000;
-    private final static int DEFAULT_CACHE_SIZE = 10240;
+public class DorisTemplate extends MapCache<DorisSchema, DorisOneRow> {
+    private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
+    private final static int DEFAULT_CACHE_RECORDS = 10240;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new RedirectStrategy());
@@ -56,61 +58,17 @@ public class DorisTemplate {
     private final List<String> fe;
     private final String auth;
     private final Random random = new Random();
-    private final Map<DorisSchema, List<DorisOneRow>> cache = new HashMap<>();
-
-    private volatile boolean enableCache = false;
 
     public DorisTemplate(String name) {
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
         logger = new Logging(this.getClass().getSimpleName(), name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
     }
 
-    public DorisTemplate enableCache() {
-        return enableCache(DEFAULT_CACHE_TIME);
-    }
-
-    public DorisTemplate enableCache(int cacheTime) {
-        if (!enableCache) {
-            enableCache = true;
-            new Thread(new Sender(this, cacheTime)).start();
-        }
-        return this;
-    }
-
-    public void loadImmediately(DorisOneRow... dorisOneRows) {
-        if (dorisOneRows == null || dorisOneRows.length == 0) {
-            return;
-        }
-        loadImmediately(Arrays.asList(dorisOneRows));
-    }
-
-    public void loadImmediately(List<DorisOneRow> dorisOneRows) {
-        if (dorisOneRows == null || dorisOneRows.isEmpty()) {
-            return;
-        }
-        for (DorisOneRow dorisOneRow : dorisOneRows) {
-            synchronized (cache) {
-                DorisSchema key = dorisOneRow.getSchema();
-                cache.putIfAbsent(key, new ArrayList<>());
-                List<DorisOneRow> list = cache.get(key);
-                list.add(dorisOneRow);
-                if (list.size() >= DEFAULT_CACHE_SIZE) {
-                    loadImmediately(key, list);
-                    cache.remove(key);
-                }
-            }
-        }
-        if (!enableCache) {
-            for (Map.Entry<DorisSchema, List<DorisOneRow>> entry : cache.entrySet()) {
-                loadImmediately(entry.getKey(), entry.getValue());
-            }
-            cache.clear();
-        }
-    }
-
-    private synchronized void loadImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
+    @Override
+    protected synchronized void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
         if (dorisOneRows == null || dorisOneRows.isEmpty()) {
             return;
         }
@@ -171,39 +129,6 @@ public class DorisTemplate {
         return keys.parallelStream()
                 .map(e -> "\"$." + e + "\"")
                 .collect(Collectors.joining(",", "[", "]"));
-    }
-
-    private static class Sender implements Runnable {
-        private final DorisTemplate dorisTemplate;
-        private final int cacheTime;
-
-        public Sender(DorisTemplate dorisTemplate, int cacheTime) {
-            this.dorisTemplate = dorisTemplate;
-            this.cacheTime = cacheTime;
-        }
-
-        @Override
-        @SneakyThrows
-        @SuppressWarnings("InfiniteLoopStatement")
-        public void run() {
-            while (true) {
-                TimeUnit.MILLISECONDS.sleep(cacheTime);
-                if (dorisTemplate.cache.isEmpty()) {
-                    continue;
-                }
-                Map<DorisSchema, List<DorisOneRow>> copyCache;
-                synchronized (dorisTemplate.cache) {
-                    if (dorisTemplate.cache.isEmpty()) {
-                        continue;
-                    }
-                    copyCache = new HashMap<>(dorisTemplate.cache);
-                    dorisTemplate.cache.clear();
-                }
-                for (Map.Entry<DorisSchema, List<DorisOneRow>> entry : copyCache.entrySet()) {
-                    dorisTemplate.loadImmediately(entry.getKey(), entry.getValue());
-                }
-            }
-        }
     }
 
     @Slf4j

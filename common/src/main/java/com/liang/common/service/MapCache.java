@@ -63,7 +63,7 @@ public abstract class MapCache<K, V> {
     protected abstract void updateImmediately(K key, List<V> values);
 
     @FunctionalInterface
-    private interface KeySelector<K, V> {
+    protected interface KeySelector<K, V> {
         K selectKey(V v);
     }
 }

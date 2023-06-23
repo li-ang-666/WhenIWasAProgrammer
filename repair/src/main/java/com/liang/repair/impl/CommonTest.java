@@ -19,6 +19,6 @@ public class CommonTest implements Runner {
                 .put("bbb", "2")
                 .put("ccc", "3");
 
-        hbaseTemplate.upsertImmediately(hbaseOneRow);
+        hbaseTemplate.update(hbaseOneRow);
     }
 }

@@ -48,7 +48,8 @@ public class DataConcatJob {
 
         private void open() {
             ConfigUtils.setConfig(config);
-            hbaseTemplate = new HbaseTemplate("hbaseSink").enableCache();
+            hbaseTemplate = new HbaseTemplate("hbaseSink");
+            hbaseTemplate.enableCache();
         }
 
         @Override
@@ -57,7 +58,7 @@ public class DataConcatJob {
             int i = 0;
             while (iter.hasNext()) {
                 Row row = iter.next();
-                hbaseTemplate.upsertImmediately(rowMapper.map(isHistory, row));
+                hbaseTemplate.update(rowMapper.map(isHistory, row));
                 i++;
             }
             log.info("hbase 写入 {} row", i);

@@ -3,9 +3,9 @@ package com.liang.common.service.database.template;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.Logging;
+import com.liang.common.service.MapCache;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.util.DateTimeUtils;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.hadoop.hbase.Cell;
@@ -14,8 +14,9 @@ import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 列出所有表:
@@ -40,64 +41,20 @@ import java.util.concurrent.TimeUnit;
  * disable '${namespace}:${tableName}';drop '${namespace}:${tableName}'
  */
 @Slf4j
-public class HbaseTemplate {
-    private final static int DEFAULT_CACHE_TIME = 500;
-    private final static int DEFAULT_CACHE_SIZE = 1024;
+public class HbaseTemplate extends MapCache<HbaseSchema, HbaseOneRow> {
+    private final static int DEFAULT_CACHE_MILLISECONDS = 500;
+    private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final Connection pool;
     private final Logging logger;
-    private final Map<HbaseSchema, List<HbaseOneRow>> cache = new HashMap<>();
-
-    private volatile boolean enableCache = false;
 
     public HbaseTemplate(String name) {
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, HbaseOneRow::getSchema);
         pool = new HbaseConnectionHolder().getPool(name);
         logger = new Logging(this.getClass().getSimpleName(), name);
     }
 
-    public HbaseTemplate enableCache() {
-        return enableCache(DEFAULT_CACHE_TIME);
-    }
-
-    public HbaseTemplate enableCache(int cacheTime) {
-        if (!enableCache) {
-            enableCache = true;
-            new Thread(new Sender(this, cacheTime)).start();
-        }
-        return this;
-    }
-
-    public void upsertImmediately(HbaseOneRow... hbaseOneRows) {
-        if (hbaseOneRows == null || hbaseOneRows.length == 0) {
-            return;
-        }
-        upsertImmediately(Arrays.asList(hbaseOneRows));
-    }
-
-    public void upsertImmediately(List<HbaseOneRow> hbaseOneRows) {
-        if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
-            return;
-        }
-        for (HbaseOneRow hbaseOneRow : hbaseOneRows) {
-            synchronized (cache) {
-                HbaseSchema key = hbaseOneRow.getSchema();
-                cache.putIfAbsent(key, new ArrayList<>());
-                List<HbaseOneRow> list = cache.get(key);
-                list.add(hbaseOneRow);
-                if (list.size() >= DEFAULT_CACHE_SIZE) {
-                    upsertImmediately(key, list);
-                    cache.remove(key);
-                }
-            }
-        }
-        if (!enableCache) {
-            for (Map.Entry<HbaseSchema, List<HbaseOneRow>> entry : cache.entrySet()) {
-                upsertImmediately(entry.getKey(), entry.getValue());
-            }
-            cache.clear();
-        }
-    }
-
-    private synchronized void upsertImmediately(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
+    @Override
+    protected synchronized void updateImmediately(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
         if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
             return;
         }
@@ -149,38 +106,5 @@ public class HbaseTemplate {
         return pool.getTable(TableName.valueOf(
                 schema.getNamespace(),
                 schema.getTableName()));
-    }
-
-    private static class Sender implements Runnable {
-        private final HbaseTemplate hbaseTemplate;
-        private final int cacheTime;
-
-        public Sender(HbaseTemplate hbaseTemplate, int cacheTime) {
-            this.hbaseTemplate = hbaseTemplate;
-            this.cacheTime = cacheTime;
-        }
-
-        @Override
-        @SneakyThrows
-        @SuppressWarnings("InfiniteLoopStatement")
-        public void run() {
-            while (true) {
-                TimeUnit.MILLISECONDS.sleep(cacheTime);
-                if (hbaseTemplate.cache.isEmpty()) {
-                    continue;
-                }
-                Map<HbaseSchema, List<HbaseOneRow>> copyUpsertCache;
-                synchronized (hbaseTemplate.cache) {
-                    if (hbaseTemplate.cache.isEmpty()) {
-                        continue;
-                    }
-                    copyUpsertCache = new HashMap<>(hbaseTemplate.cache);
-                    hbaseTemplate.cache.clear();
-                }
-                for (Map.Entry<HbaseSchema, List<HbaseOneRow>> entry : copyUpsertCache.entrySet()) {
-                    hbaseTemplate.upsertImmediately(entry.getKey(), entry.getValue());
-                }
-            }
-        }
     }
 }

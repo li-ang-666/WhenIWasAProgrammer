@@ -10,8 +10,8 @@ import java.util.ArrayList;
 public class HbaseTemplateTest implements Runner {
     @Override
     public void run(String[] args) throws Exception {
-        HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink")
-                .enableCache(5000);
+        HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
+        hbaseTemplate.enableCache();
 
         HbaseSchema schema1 = HbaseSchema.builder()
                 .namespace("test")
@@ -40,7 +40,7 @@ public class HbaseTemplateTest implements Runner {
             hbaseOneRows.add(row1);
         }
 
-        hbaseTemplate.upsertImmediately(row1, row2);
-        hbaseTemplate.upsertImmediately(hbaseOneRows);
+        hbaseTemplate.update(row1, row2);
+        hbaseTemplate.update(hbaseOneRows);
     }
 }
