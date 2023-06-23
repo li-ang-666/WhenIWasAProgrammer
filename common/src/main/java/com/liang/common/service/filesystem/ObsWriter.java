@@ -14,9 +14,9 @@ import java.util.UUID;
 public class ObsWriter extends AbstractCache<Object, String> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 1000 * 60 * 10;
     private final static int DEFAULT_CACHE_RECORDS = 100 * 1024 * 1024;
-    private final static String ak = "NT5EWZ4FRH54R2R2CB8G";
-    private final static String sk = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
-    private final static String ep = "obs.cn-north-4.myhuaweicloud.com";
+    private final static String ACCESS_KEY = "NT5EWZ4FRH54R2R2CB8G";
+    private final static String SECRET_KEY = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
+    private final static String END_POINT = "obs.cn-north-4.myhuaweicloud.com";
 
     private final String bucket;
     private final String path;
@@ -35,7 +35,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
         String path = this.path + (this.path.endsWith("/") ? "" : "/");
         String objectName = String.format("%s.%s.%s", System.currentTimeMillis(), UUID.randomUUID(), "txt");
         byte[] bytes = String.join("\n", rows).getBytes(StandardCharsets.UTF_8);
-        try (ObsClient client = new ObsClient(ak, sk, ep)) {
+        try (ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT)) {
             client.putObject(bucket, path + objectName, new ByteArrayInputStream(bytes));
             logging.afterExecute("write", objectName);
         } catch (Exception e) {
