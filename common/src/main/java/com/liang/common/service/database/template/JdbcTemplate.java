@@ -97,12 +97,7 @@ public class JdbcTemplate extends ListCache<String> {
     }
 
     @Override
-    public void updateImmediately(String... sqls) {
-        super.updateImmediately(sqls);
-    }
-
-    @Override
-    public synchronized void updateImmediately(List<String> sqls) {
+    protected synchronized void updateImmediately(List<String> sqls) {
         if (sqls == null || sqls.isEmpty()) {
             return;
         }

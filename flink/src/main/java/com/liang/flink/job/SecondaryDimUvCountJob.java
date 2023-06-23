@@ -49,11 +49,11 @@ public class SecondaryDimUvCountJob {
                 String visitDate = String.valueOf(columnMap.get("visit_date"));
                 String visitPageName = String.valueOf(columnMap.get("visit_page_name"));
                 String deleteSQL = String.format("delete from itch_point_secondary_dims_uv_count where visit_date = '%s' and visit_page_name = '%s' and visit_secondary_dim_name = '受益所有人'", visitDate, visitPageName);
-                jdbcTemplate.updateImmediately(deleteSQL);
+                jdbcTemplate.update(deleteSQL);
                 String visitCount = String.valueOf(columnMap.get("visit_count"));
                 String insertSQL = String.format("insert into itch_point_secondary_dims_uv_count(id,visit_date,visit_page_name,visit_secondary_dim_name,visit_count,create_time,update_time)" +
                         "values(DEFAULT,'%s','%s','受益所有人','%s',DEFAULT,DEFAULT)", visitDate, visitPageName, visitCount);
-                jdbcTemplate.updateImmediately(insertSQL);
+                jdbcTemplate.update(insertSQL);
             }
         }
     }

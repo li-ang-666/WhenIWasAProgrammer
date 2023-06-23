@@ -29,18 +29,18 @@ public abstract class ListCache<E> {
     }
 
     @SuppressWarnings("unchecked")
-    public void update(E... es) {
-        if (es == null || es.length == 0) {
+    public void update(E... elements) {
+        if (elements == null || elements.length == 0) {
             return;
         }
-        update(Arrays.asList(es));
+        update(Arrays.asList(elements));
     }
 
-    public void update(List<E> es) {
-        if (es == null || es.isEmpty()) {
+    public void update(List<E> elements) {
+        if (elements == null || elements.isEmpty()) {
             return;
         }
-        for (E e : es) {
+        for (E e : elements) {
             synchronized (cache) {
                 cache.add(e);
                 if (enableCache && cache.size() >= cacheRecords) {
@@ -55,13 +55,5 @@ public abstract class ListCache<E> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected void updateImmediately(E... es) {
-        if (es == null || es.length == 0) {
-            return;
-        }
-        updateImmediately(Arrays.asList(es));
-    }
-
-    protected abstract void updateImmediately(List<E> es);
+    protected abstract void updateImmediately(List<E> elements);
 }

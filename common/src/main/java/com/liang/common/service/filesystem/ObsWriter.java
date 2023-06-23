@@ -30,14 +30,14 @@ public class ObsWriter extends ListCache<String> {
     }
 
     @Override
-    protected synchronized void updateImmediately(List<String> contents) {
-        if (contents == null || contents.isEmpty()) {
+    protected synchronized void updateImmediately(List<String> elements) {
+        if (elements == null || elements.isEmpty()) {
             return;
         }
         logging.beforeExecute();
         String path = this.path + (this.path.endsWith("/") ? "" : "/");
         String objectName = String.format("%s.%s.%s", System.currentTimeMillis(), UUID.randomUUID(), "txt");
-        byte[] bytes = String.join("\n", contents).getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = String.join("\n", elements).getBytes(StandardCharsets.UTF_8);
         try (ObsClient client = new ObsClient(ak, sk, ep)) {
             client.putObject(bucket, path + objectName, new ByteArrayInputStream(bytes));
             logging.afterExecute("write", objectName);
