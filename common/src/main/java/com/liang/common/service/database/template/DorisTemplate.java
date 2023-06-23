@@ -79,14 +79,14 @@ public class DorisTemplate {
         return this;
     }
 
-    public void load(DorisOneRow... dorisOneRows) {
+    public void loadImmediately(DorisOneRow... dorisOneRows) {
         if (dorisOneRows == null || dorisOneRows.length == 0) {
             return;
         }
-        load(Arrays.asList(dorisOneRows));
+        loadImmediately(Arrays.asList(dorisOneRows));
     }
 
-    public void load(List<DorisOneRow> dorisOneRows) {
+    public void loadImmediately(List<DorisOneRow> dorisOneRows) {
         if (dorisOneRows == null || dorisOneRows.isEmpty()) {
             return;
         }
@@ -97,20 +97,20 @@ public class DorisTemplate {
                 List<DorisOneRow> list = cache.get(key);
                 list.add(dorisOneRow);
                 if (list.size() >= DEFAULT_CACHE_SIZE) {
-                    load(key, list);
+                    loadImmediately(key, list);
                     cache.remove(key);
                 }
             }
         }
         if (!enableCache) {
             for (Map.Entry<DorisSchema, List<DorisOneRow>> entry : cache.entrySet()) {
-                load(entry.getKey(), entry.getValue());
+                loadImmediately(entry.getKey(), entry.getValue());
             }
             cache.clear();
         }
     }
 
-    private synchronized void load(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
+    private synchronized void loadImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
         if (dorisOneRows == null || dorisOneRows.isEmpty()) {
             return;
         }
@@ -200,7 +200,7 @@ public class DorisTemplate {
                     dorisTemplate.cache.clear();
                 }
                 for (Map.Entry<DorisSchema, List<DorisOneRow>> entry : copyCache.entrySet()) {
-                    dorisTemplate.load(entry.getKey(), entry.getValue());
+                    dorisTemplate.loadImmediately(entry.getKey(), entry.getValue());
                 }
             }
         }

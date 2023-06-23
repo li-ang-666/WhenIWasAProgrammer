@@ -40,7 +40,7 @@ public class HbaseTemplateTest implements Runner {
             hbaseOneRows.add(row1);
         }
 
-        hbaseTemplate.upsert(row1, row2);
-        hbaseTemplate.upsert(hbaseOneRows);
+        hbaseTemplate.upsertImmediately(row1, row2);
+        hbaseTemplate.upsertImmediately(hbaseOneRows);
     }
 }

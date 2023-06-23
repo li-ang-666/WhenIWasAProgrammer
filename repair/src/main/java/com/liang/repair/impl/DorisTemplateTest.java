@@ -45,7 +45,7 @@ public class DorisTemplateTest implements Runner {
             dorisOneRows.add(row1);
         }
 
-        dorisTemplate.load(row1, row2);
-        dorisTemplate.load(dorisOneRows);
+        dorisTemplate.loadImmediately(row1, row2);
+        dorisTemplate.loadImmediately(dorisOneRows);
     }
 }

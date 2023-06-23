@@ -2,8 +2,8 @@ package com.liang.common.service.database.template;
 
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
-import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.service.Logging;
+import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.util.DateTimeUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -66,14 +66,14 @@ public class HbaseTemplate {
         return this;
     }
 
-    public void upsert(HbaseOneRow... hbaseOneRows) {
+    public void upsertImmediately(HbaseOneRow... hbaseOneRows) {
         if (hbaseOneRows == null || hbaseOneRows.length == 0) {
             return;
         }
-        upsert(Arrays.asList(hbaseOneRows));
+        upsertImmediately(Arrays.asList(hbaseOneRows));
     }
 
-    public void upsert(List<HbaseOneRow> hbaseOneRows) {
+    public void upsertImmediately(List<HbaseOneRow> hbaseOneRows) {
         if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
             return;
         }
@@ -84,20 +84,20 @@ public class HbaseTemplate {
                 List<HbaseOneRow> list = cache.get(key);
                 list.add(hbaseOneRow);
                 if (list.size() >= DEFAULT_CACHE_SIZE) {
-                    upsert(key, list);
+                    upsertImmediately(key, list);
                     cache.remove(key);
                 }
             }
         }
         if (!enableCache) {
             for (Map.Entry<HbaseSchema, List<HbaseOneRow>> entry : cache.entrySet()) {
-                upsert(entry.getKey(), entry.getValue());
+                upsertImmediately(entry.getKey(), entry.getValue());
             }
             cache.clear();
         }
     }
 
-    private synchronized void upsert(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
+    private synchronized void upsertImmediately(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
         if (hbaseOneRows == null || hbaseOneRows.isEmpty()) {
             return;
         }
@@ -178,7 +178,7 @@ public class HbaseTemplate {
                     hbaseTemplate.cache.clear();
                 }
                 for (Map.Entry<HbaseSchema, List<HbaseOneRow>> entry : copyUpsertCache.entrySet()) {
-                    hbaseTemplate.upsert(entry.getKey(), entry.getValue());
+                    hbaseTemplate.upsertImmediately(entry.getKey(), entry.getValue());
                 }
             }
         }

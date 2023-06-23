@@ -79,7 +79,7 @@ public class DataConcatJob {
                 }
             }
             for (HbaseOneRow hbaseOneRow : input) {
-                hbase.upsert(hbaseOneRow);
+                hbase.upsertImmediately(hbaseOneRow);
             }
         }
     }

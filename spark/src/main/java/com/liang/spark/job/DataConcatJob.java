@@ -57,7 +57,7 @@ public class DataConcatJob {
             int i = 0;
             while (iter.hasNext()) {
                 Row row = iter.next();
-                hbaseTemplate.upsert(rowMapper.map(isHistory, row));
+                hbaseTemplate.upsertImmediately(rowMapper.map(isHistory, row));
                 i++;
             }
             log.info("hbase 写入 {} row", i);
