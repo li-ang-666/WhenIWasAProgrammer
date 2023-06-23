@@ -15,11 +15,11 @@ public abstract class ListCache<E> {
         this.cacheRecords = cacheRecords;
     }
 
-    public final void enableCache() {
+    public void enableCache() {
         enableCache(cacheMilliseconds, cacheRecords);
     }
 
-    public final void enableCache(int cacheMilliseconds, int cacheRecords) {
+    public void enableCache(int cacheMilliseconds, int cacheRecords) {
         if (!enableCache) {
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
@@ -29,14 +29,14 @@ public abstract class ListCache<E> {
     }
 
     @SuppressWarnings("unchecked")
-    public final void update(E... es) {
+    public void update(E... es) {
         if (es == null || es.length == 0) {
             return;
         }
         update(Arrays.asList(es));
     }
 
-    public final void update(List<E> es) {
+    public void update(List<E> es) {
         if (es == null || es.isEmpty()) {
             return;
         }

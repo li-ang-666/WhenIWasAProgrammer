@@ -29,6 +29,7 @@ public class ObsWriter extends ListCache<String> {
         logging = new Logging(this.getClass().getSimpleName(), folderPath);
     }
 
+    @Override
     protected synchronized void updateImmediately(List<String> contents) {
         if (contents == null || contents.isEmpty()) {
             return;
