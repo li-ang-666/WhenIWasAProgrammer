@@ -14,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class ObsWriter {
-    private final static int DEFAULT_CACHE_TIME = 1000 * 60 * 10; //10min
-    private final static int DEFAULT_CACHE_SIZE = 100 * 1024 * 1024; //100mb
+    private final static int DEFAULT_CACHE_TIME = 1000 * 60 * 10;
+    private final static int DEFAULT_CACHE_SIZE = 100 * 1024 * 1024;
     private final static String ak = "NT5EWZ4FRH54R2R2CB8G";
     private final static String sk = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final static String ep = "obs.cn-north-4.myhuaweicloud.com";
