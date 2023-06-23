@@ -40,7 +40,7 @@ public class ObsWriter {
     public ObsWriter enableCache(int cacheTime) {
         if (!enableCache) {
             enableCache = true;
-            new Thread(new Sender(this, cacheTime)).start();
+            new Thread(new Sender(this)).start();
         }
         return this;
     }
@@ -89,11 +89,9 @@ public class ObsWriter {
 
     private static class Sender implements Runnable {
         private final ObsWriter obsWriter;
-        private final int cacheTime;
 
         public Sender(ObsWriter obsWriter, int cacheTime) {
             this.obsWriter = obsWriter;
-            this.cacheTime = cacheTime;
         }
 
         @Override
@@ -101,7 +99,7 @@ public class ObsWriter {
         @SuppressWarnings("InfiniteLoopStatement")
         public void run() {
             while (true) {
-                TimeUnit.MILLISECONDS.sleep(cacheTime);
+                TimeUnit.MILLISECONDS.sleep(ObsWriter.DEFAULT_CACHE_TIME);
                 if (obsWriter.cache.isEmpty()) {
                     continue;
                 }
