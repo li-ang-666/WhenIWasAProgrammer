@@ -43,6 +43,7 @@ public abstract class AbstractCache<K, V> {
                     }
                     for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
                         updateImmediately(entry.getKey(), entry.getValue());
+                        copyCache.remove(entry.getKey()); // help gc
                     }
                 }
             }).start();
