@@ -43,7 +43,7 @@ public abstract class AbstractCache<K, V> {
                     }
                     for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
                         updateImmediately(entry.getKey(), entry.getValue());
-                        copyCache.remove(entry.getKey()); // help gc
+                        copyCache.remove(entry.getKey());
                     }
                 }
             }).start();
@@ -52,14 +52,14 @@ public abstract class AbstractCache<K, V> {
     }
 
     @SuppressWarnings("unchecked")
-    public void update(V... values) {
+    public final void update(V... values) {
         if (values == null || values.length == 0) {
             return;
         }
         update(Arrays.asList(values));
     }
 
-    public void update(List<V> values) {
+    public final void update(List<V> values) {
         if (values == null || values.isEmpty()) {
             return;
         }
