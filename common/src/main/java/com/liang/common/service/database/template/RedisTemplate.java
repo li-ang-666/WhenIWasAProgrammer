@@ -1,7 +1,7 @@
 package com.liang.common.service.database.template;
 
+import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.JedisPoolHolder;
-import com.liang.common.service.database.template.inner.TemplateLogger;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -16,11 +16,11 @@ import java.util.Map;
 @Slf4j
 public class RedisTemplate {
     private final JedisPool pool;
-    private final TemplateLogger logger;
+    private final Logging logger;
 
     public RedisTemplate(String name) {
         pool = new JedisPoolHolder().getPool(name);
-        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
+        logger = new Logging(this.getClass().getSimpleName(), name);
     }
 
     public String get(String key) {

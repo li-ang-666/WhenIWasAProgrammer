@@ -3,7 +3,7 @@ package com.liang.common.service.database.template;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisDbConfig;
-import com.liang.common.service.database.template.inner.TemplateLogger;
+import com.liang.common.service.Logging;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.SneakyThrows;
@@ -52,7 +52,7 @@ public class DorisTemplate {
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new RedirectStrategy());
-    private final TemplateLogger logger;
+    private final Logging logger;
     private final List<String> fe;
     private final String auth;
     private final Random random = new Random();
@@ -62,7 +62,7 @@ public class DorisTemplate {
 
     public DorisTemplate(String name) {
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
-        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
+        logger = new Logging(this.getClass().getSimpleName(), name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
     }

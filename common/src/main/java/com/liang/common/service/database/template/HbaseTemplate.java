@@ -3,7 +3,7 @@ package com.liang.common.service.database.template;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
-import com.liang.common.service.database.template.inner.TemplateLogger;
+import com.liang.common.service.Logging;
 import com.liang.common.util.DateTimeUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -44,14 +44,14 @@ public class HbaseTemplate {
     private final static int DEFAULT_CACHE_TIME = 500;
     private final static int DEFAULT_CACHE_SIZE = 1024;
     private final Connection pool;
-    private final TemplateLogger logger;
+    private final Logging logger;
     private final Map<HbaseSchema, List<HbaseOneRow>> cache = new HashMap<>();
 
     private volatile boolean enableCache = false;
 
     public HbaseTemplate(String name) {
         pool = new HbaseConnectionHolder().getPool(name);
-        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
+        logger = new Logging(this.getClass().getSimpleName(), name);
     }
 
     public HbaseTemplate enableCache() {

@@ -2,13 +2,13 @@ package com.liang.common.service.database.template;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
-import com.liang.common.service.database.template.inner.ResultSetMapper;
-import com.liang.common.service.database.template.inner.TemplateLogger;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
@@ -20,18 +20,18 @@ public class JdbcTemplate {
     private final static int DEFAULT_CACHE_TIME = 500;
     private final static int DEFAULT_CACHE_SIZE = 1024;
     private final DruidDataSource pool;
-    private final TemplateLogger logger;
+    private final Logging logger;
     private final List<String> cache = new ArrayList<>();
 
     private volatile boolean enableCache = false;
 
     public JdbcTemplate(String name) {
         pool = new DruidHolder().getPool(name);
-        logger = new TemplateLogger(this.getClass().getSimpleName(), name);
+        logger = new Logging(this.getClass().getSimpleName(), name);
     }
 
     // just for MemJdbcTemplate
-    protected JdbcTemplate(DruidDataSource pool, TemplateLogger logger) {
+    protected JdbcTemplate(DruidDataSource pool, Logging logger) {
         this.pool = pool;
         this.logger = logger;
     }
@@ -201,6 +201,11 @@ public class JdbcTemplate {
                 jdbcTemplate.updateImmediately(copyCache);
             }
         }
+    }
+
+    @FunctionalInterface
+    public interface ResultSetMapper<T> extends Serializable {
+        T map(ResultSet rs) throws Exception;
     }
 }
 

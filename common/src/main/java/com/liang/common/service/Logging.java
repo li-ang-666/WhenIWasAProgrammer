@@ -1,15 +1,15 @@
-package com.liang.common.service.database.template.inner;
+package com.liang.common.service;
 
 import com.liang.common.service.Timer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TemplateLogger {
+public class Logging {
     private final Timer timer = new Timer();
     private final String errorLog;
     private final String afterLog;
 
-    public TemplateLogger(String classShortName, String instanceName) {
+    public Logging(String classShortName, String instanceName) {
         String commonLog = String.format("[%s %s].", classShortName, instanceName);
         errorLog = commonLog + "{}({}) error";
         afterLog = commonLog + "{}({}) {}ms";

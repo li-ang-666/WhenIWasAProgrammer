@@ -12,6 +12,13 @@
 
     <artifactId>common</artifactId>
     <dependencies>
+        <!--obs-->
+        <dependency>
+            <groupId>com.huaweicloud</groupId>
+            <artifactId>esdk-obs-java</artifactId>
+            <version>3.22.12</version>
+        </dependency>
+
         <!--h2-->
         <dependency>
             <groupId>com.h2database</groupId>
