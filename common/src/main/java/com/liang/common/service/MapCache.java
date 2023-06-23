@@ -48,15 +48,15 @@ public abstract class MapCache<K, V> {
                 list.add(value);
                 if (enableCache && list.size() >= cacheRecords) {
                     updateImmediately(key, list);
-                    cache.clear();
+                    cache.remove(key);
                 }
             }
         }
         if (!enableCache && !cache.isEmpty()) {
             for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
                 updateImmediately(entry.getKey(), entry.getValue());
+                cache.remove(entry.getKey());
             }
-            cache.clear();
         }
     }
 
