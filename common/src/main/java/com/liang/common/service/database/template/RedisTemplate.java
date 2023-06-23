@@ -16,42 +16,42 @@ import java.util.Map;
 @Slf4j
 public class RedisTemplate {
     private final JedisPool pool;
-    private final Logging logger;
+    private final Logging logging;
 
     public RedisTemplate(String name) {
         pool = new JedisPoolHolder().getPool(name);
-        logger = new Logging(this.getClass().getSimpleName(), name);
+        logging = new Logging(this.getClass().getSimpleName(), name);
     }
 
     public String get(String key) {
-        logger.beforeExecute();
+        logging.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             String res = jedis.get(key);
-            logger.afterExecute("get", key);
+            logging.afterExecute("get", key);
             return res;
         } catch (Exception e) {
-            logger.ifError("get", key, e);
+            logging.ifError("get", key, e);
             return null;
         }
     }
 
     public void set(String key, String value) {
-        logger.beforeExecute();
+        logging.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             jedis.set(key, value);
-            logger.afterExecute("set", key + " -> " + value);
+            logging.afterExecute("set", key + " -> " + value);
         } catch (Exception e) {
-            logger.ifError("set", key + " -> " + value, e);
+            logging.ifError("set", key + " -> " + value, e);
         }
     }
 
     public void del(String key) {
-        logger.beforeExecute();
+        logging.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             jedis.del(key);
-            logger.afterExecute("del", key);
+            logging.afterExecute("del", key);
         } catch (Exception e) {
-            logger.ifError("del", key, e);
+            logging.ifError("del", key, e);
         }
     }
 
@@ -62,7 +62,7 @@ public class RedisTemplate {
      */
 
     public Map<String, String> hScan(String key) {
-        logger.beforeExecute();
+        logging.beforeExecute();
         Map<String, String> result = new HashMap<>();
         try (Jedis jedis = pool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START; //其实就是 "0"
@@ -72,16 +72,16 @@ public class RedisTemplate {
                 cursor = scanResult.getCursor();
                 scanResult.getResult().forEach(entry -> result.put(entry.getKey(), entry.getValue()));
             } while (!"0".equals(cursor));
-            logger.afterExecute("hScan", key);
+            logging.afterExecute("hScan", key);
             return result;
         } catch (Exception e) {
-            logger.ifError("hScan", key, e);
+            logging.ifError("hScan", key, e);
             return result;
         }
     }
 
     public List<String> scan() {
-        logger.beforeExecute();
+        logging.beforeExecute();
         List<String> result = new ArrayList<>();
         try (Jedis jedis = pool.getResource()) {
             String cursor = ScanParams.SCAN_POINTER_START;
@@ -91,22 +91,22 @@ public class RedisTemplate {
                 cursor = scanResult.getCursor();
                 result.addAll(scanResult.getResult());
             } while (!"0".equals(cursor));
-            logger.afterExecute("scan", "");
+            logging.afterExecute("scan", "");
             return result;
         } catch (Exception e) {
-            logger.ifError("scan", "", e);
+            logging.ifError("scan", "", e);
             return result;
         }
     }
 
     public boolean tryLock(String key) {
-        logger.beforeExecute();
+        logging.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             Long reply = jedis.setnx(key, "lock");
-            logger.afterExecute("tryLock", key);
+            logging.afterExecute("tryLock", key);
             return reply == 1;
         } catch (Exception e) {
-            logger.ifError("tryLock", key, e);
+            logging.ifError("tryLock", key, e);
             return false;
         }
     }

@@ -54,7 +54,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new RedirectStrategy());
-    private final Logging logger;
+    private final Logging logging;
     private final List<String> fe;
     private final String auth;
     private final Random random = new Random();
@@ -62,14 +62,14 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     public DorisTemplate(String name) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
-        logger = new Logging(this.getClass().getSimpleName(), name);
+        logging = new Logging(this.getClass().getSimpleName(), name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
     }
 
     @Override
     protected synchronized void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
-        logger.beforeExecute();
+        logging.beforeExecute();
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             String target = fe.get(random.nextInt(fe.size()));
             String url = String.format("http://%s/api/%s/%s/_stream_load", target, schema.getDatabase(), schema.getTableName());
@@ -96,13 +96,13 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 String loadResult = EntityUtils.toString(httpEntity);
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
-                    logger.afterExecute("load", dorisOneRows);
+                    logging.afterExecute("load", dorisOneRows);
                 } else {
                     throw new Exception(String.format("stream load error, statusCode: %s, loadResult: %s", statusCode, loadResult));
                 }
             }
         } catch (Exception e) {
-            logger.ifError("load", dorisOneRows, e);
+            logging.ifError("load", dorisOneRows, e);
         }
     }
 

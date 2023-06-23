@@ -45,17 +45,17 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 500;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final Connection pool;
-    private final Logging logger;
+    private final Logging logging;
 
     public HbaseTemplate(String name) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, HbaseOneRow::getSchema);
         pool = new HbaseConnectionHolder().getPool(name);
-        logger = new Logging(this.getClass().getSimpleName(), name);
+        logging = new Logging(this.getClass().getSimpleName(), name);
     }
 
     @Override
     protected synchronized void updateImmediately(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
-        logger.beforeExecute();
+        logging.beforeExecute();
         try (Table table = getTable(schema)) {
             List<Put> puts = new ArrayList<>();
             for (HbaseOneRow hbaseOneRow : hbaseOneRows) {
@@ -71,14 +71,14 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
             }
             // todo: 源码调用了table.batch()方法,好像可以同时包含put和delete
             table.put(puts);
-            logger.afterExecute("upsert", hbaseOneRows);
+            logging.afterExecute("upsert", hbaseOneRows);
         } catch (Exception e) {
-            logger.ifError("upsert", hbaseOneRows, e);
+            logging.ifError("upsert", hbaseOneRows, e);
         }
     }
 
     public List<Tuple4<String, String, String, String>> getRow(HbaseOneRow hbaseOneRow) {
-        logger.beforeExecute();
+        logging.beforeExecute();
         List<Tuple4<String, String, String, String>> resultList = new ArrayList<>();
         try (Table table = getTable(hbaseOneRow.getSchema())) {
             Get get = new Get(Bytes.toBytes(hbaseOneRow.getRowKey()));
@@ -91,10 +91,10 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
                         DateTimeUtils.fromUnixTime(cell.getTimestamp() / 1000, "yyyy-MM-dd HH:mm:ss")
                 ));
             }
-            logger.afterExecute("getRow", hbaseOneRow);
+            logging.afterExecute("getRow", hbaseOneRow);
             return resultList;
         } catch (Exception e) {
-            logger.ifError("getRow", hbaseOneRow, e);
+            logging.ifError("getRow", hbaseOneRow, e);
             return resultList;
         }
     }
