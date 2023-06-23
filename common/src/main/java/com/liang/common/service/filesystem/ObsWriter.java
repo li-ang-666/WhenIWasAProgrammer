@@ -1,7 +1,7 @@
 package com.liang.common.service.filesystem;
 
-import com.liang.common.service.ListCache;
 import com.liang.common.service.Logging;
+import com.liang.common.service.AbstractCache;
 import com.obs.services.ObsClient;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-public class ObsWriter extends ListCache<String> {
+public class ObsWriter extends AbstractCache<Object, String> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 1000 * 60 * 10;
     private final static int DEFAULT_CACHE_RECORDS = 100 * 1024 * 1024;
     private final static String ak = "NT5EWZ4FRH54R2R2CB8G";
@@ -23,14 +23,14 @@ public class ObsWriter extends ListCache<String> {
     private final Logging logging;
 
     public ObsWriter(String folderPath) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS);
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> null);
         bucket = folderPath.replaceAll("obs://(.*?)/(.*)", "$1");
         path = folderPath.replaceAll("obs://(.*?)/(.*)", "$2");
         logging = new Logging(this.getClass().getSimpleName(), folderPath);
     }
 
     @Override
-    protected synchronized void updateImmediately(List<String> elements) {
+    protected synchronized void updateImmediately(Object ignore, List<String> elements) {
         if (elements == null || elements.isEmpty()) {
             return;
         }

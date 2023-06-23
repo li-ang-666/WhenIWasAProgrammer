@@ -4,7 +4,7 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisDbConfig;
 import com.liang.common.service.Logging;
-import com.liang.common.service.MapCache;
+import com.liang.common.service.AbstractCache;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  * SET show_hidden_columns=true;
  */
 @Slf4j
-public class DorisTemplate extends MapCache<DorisSchema, DorisOneRow> {
+public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
     private final static int DEFAULT_CACHE_RECORDS = 10240;
     private final HttpClientBuilder httpClientBuilder = HttpClients

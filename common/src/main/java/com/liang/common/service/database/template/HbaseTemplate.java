@@ -3,7 +3,7 @@ package com.liang.common.service.database.template;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.Logging;
-import com.liang.common.service.MapCache;
+import com.liang.common.service.AbstractCache;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.util.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ import java.util.Map;
  * disable '${namespace}:${tableName}';drop '${namespace}:${tableName}'
  */
 @Slf4j
-public class HbaseTemplate extends MapCache<HbaseSchema, HbaseOneRow> {
+public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 500;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final Connection pool;

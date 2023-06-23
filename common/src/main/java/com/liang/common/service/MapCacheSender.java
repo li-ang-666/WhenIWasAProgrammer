@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MapCacheSender<K, V> implements Runnable {
-    private final MapCache<K, V> mapCache;
+    private final AbstractCache<K, V> abstractCache;
 
 
-    public MapCacheSender(MapCache<K, V> mapCache) {
-        this.mapCache = mapCache;
+    public MapCacheSender(AbstractCache<K, V> abstractCache) {
+        this.abstractCache = abstractCache;
     }
 
     @SuppressWarnings("InfiniteLoopStatement")
@@ -20,20 +20,20 @@ public class MapCacheSender<K, V> implements Runnable {
     @Override
     public void run() {
         while (true) {
-            TimeUnit.MILLISECONDS.sleep(mapCache.cacheMilliseconds);
-            if (mapCache.cache.isEmpty()) {
+            TimeUnit.MILLISECONDS.sleep(abstractCache.cacheMilliseconds);
+            if (abstractCache.cache.isEmpty()) {
                 continue;
             }
             Map<K, List<V>> copyCache;
-            synchronized (mapCache.cache) {
-                if (mapCache.cache.isEmpty()) {
+            synchronized (abstractCache.cache) {
+                if (abstractCache.cache.isEmpty()) {
                     continue;
                 }
-                copyCache = new HashMap<>(mapCache.cache);
-                mapCache.cache.clear();
+                copyCache = new HashMap<>(abstractCache.cache);
+                abstractCache.cache.clear();
             }
             for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
-                mapCache.updateImmediately(entry.getKey(), entry.getValue());
+                abstractCache.updateImmediately(entry.getKey(), entry.getValue());
             }
         }
     }

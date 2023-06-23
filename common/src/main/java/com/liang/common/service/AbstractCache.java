@@ -1,15 +1,16 @@
 package com.liang.common.service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
-public abstract class MapCache<K, V> {
+public abstract class AbstractCache<K, V> {
     protected final Map<K, List<V>> cache = new HashMap<>();
     protected final KeySelector<K, V> keySelector;
     protected int cacheMilliseconds;
     protected int cacheRecords;
     protected boolean enableCache = false;
 
-    protected MapCache(int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
+    protected AbstractCache(int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
         this.cacheMilliseconds = cacheMilliseconds;
         this.cacheRecords = cacheRecords;
         this.keySelector = keySelector;
@@ -23,7 +24,28 @@ public abstract class MapCache<K, V> {
         if (!enableCache) {
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
-            new Thread(new MapCacheSender<>(this)).start();
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(cacheMilliseconds);
+                    } catch (Exception ignore) {
+                    }
+                    if (cache.isEmpty()) {
+                        continue;
+                    }
+                    Map<K, List<V>> copyCache;
+                    synchronized (cache) {
+                        if (cache.isEmpty()) {
+                            continue;
+                        }
+                        copyCache = new HashMap<>(cache);
+                        cache.clear();
+                    }
+                    for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
+                        updateImmediately(entry.getKey(), entry.getValue());
+                    }
+                }
+            }).start();
             enableCache = true;
         }
     }

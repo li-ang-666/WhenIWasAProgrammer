@@ -2,8 +2,8 @@ package com.liang.common.service.database.template;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.liang.common.service.ListCache;
 import com.liang.common.service.Logging;
+import com.liang.common.service.AbstractCache;
 import com.liang.common.service.database.holder.DruidHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -19,23 +19,57 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class JdbcTemplate extends ListCache<String> {
+public class JdbcTemplate extends AbstractCache<Object, String> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 500;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final DruidDataSource pool;
     private final Logging logging;
 
     public JdbcTemplate(String name) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS);
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> null);
         pool = new DruidHolder().getPool(name);
         logging = new Logging(this.getClass().getSimpleName(), name);
     }
 
     // just for MemJdbcTemplate
     protected JdbcTemplate(DruidDataSource pool, Logging logging) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS);
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> null);
         this.pool = pool;
         this.logging = logging;
+    }
+
+    @Override
+    protected synchronized void updateImmediately(Object ignore, List<String> sqls) {
+        if (sqls == null || sqls.isEmpty()) {
+            return;
+        }
+        logging.beforeExecute();
+        try (DruidPooledConnection connection = pool.getConnection()) {
+            connection.setAutoCommit(false);
+            Statement statement = connection.createStatement();
+            for (String sql : sqls) {
+                statement.addBatch(sql);
+            }
+            statement.executeBatch();
+            connection.commit();
+            logging.afterExecute("updateBatch", sqls);
+        } catch (Exception e) {
+            logging.ifError("updateBatch", sqls, e);
+            for (String sql : sqls) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(50);
+                } catch (Exception ignored) {
+                }
+                logging.beforeExecute();
+                try (DruidPooledConnection connection = pool.getConnection()) {
+                    connection.setAutoCommit(true);
+                    connection.prepareStatement(sql).executeUpdate();
+                    logging.afterExecute("updateSingle", sql);
+                } catch (Exception ee) {
+                    logging.ifError("updateSingle", sql, ee);
+                }
+            }
+        }
     }
 
     public <T> T queryForObject(String sql, ResultSetMapper<T> resultSetMapper) {
@@ -93,40 +127,6 @@ public class JdbcTemplate extends ListCache<String> {
         } catch (Exception e) {
             logging.ifError("queryForColumnMaps", sql, e);
             return result;
-        }
-    }
-
-    @Override
-    protected synchronized void updateImmediately(List<String> sqls) {
-        if (sqls == null || sqls.isEmpty()) {
-            return;
-        }
-        logging.beforeExecute();
-        try (DruidPooledConnection connection = pool.getConnection()) {
-            connection.setAutoCommit(false);
-            Statement statement = connection.createStatement();
-            for (String sql : sqls) {
-                statement.addBatch(sql);
-            }
-            statement.executeBatch();
-            connection.commit();
-            logging.afterExecute("updateBatch", sqls);
-        } catch (Exception e) {
-            logging.ifError("updateBatch", sqls, e);
-            for (String sql : sqls) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(50);
-                } catch (Exception ignore) {
-                }
-                logging.beforeExecute();
-                try (DruidPooledConnection connection = pool.getConnection()) {
-                    connection.setAutoCommit(true);
-                    connection.prepareStatement(sql).executeUpdate();
-                    logging.afterExecute("updateSingle", sql);
-                } catch (Exception ee) {
-                    logging.ifError("updateSingle", sql, ee);
-                }
-            }
         }
     }
 
