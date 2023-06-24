@@ -3,8 +3,8 @@ package com.liang.common.service.database.template;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisDbConfig;
-import com.liang.common.service.Logging;
 import com.liang.common.service.AbstractCache;
+import com.liang.common.service.Logging;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -98,11 +98,11 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
                     logging.afterExecute("load", dorisOneRows);
                 } else {
-                    throw new Exception(String.format("stream load error, statusCode: %s, loadResult: %s", statusCode, loadResult));
+                    throw new Exception(String.format("statusCode: %s, loadResult: %s", statusCode, loadResult));
                 }
             }
         } catch (Exception e) {
-            logging.ifError("load", dorisOneRows, e);
+            logging.ifError("stream load", dorisOneRows, e);
         }
     }
 
