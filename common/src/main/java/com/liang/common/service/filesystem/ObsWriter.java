@@ -12,8 +12,8 @@ import java.util.UUID;
 
 @Slf4j
 public class ObsWriter extends AbstractCache<Object, String> {
-    private final static int DEFAULT_CACHE_MILLISECONDS = 1000 * 60 * 10;
-    private final static int DEFAULT_CACHE_RECORDS = 100 * 1024 * 1024;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 1000 * 60;
+    private final static int DEFAULT_CACHE_RECORDS = 102400;
     private final static String ACCESS_KEY = "NT5EWZ4FRH54R2R2CB8G";
     private final static String SECRET_KEY = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final static String END_POINT = "obs.cn-north-4.myhuaweicloud.com";
