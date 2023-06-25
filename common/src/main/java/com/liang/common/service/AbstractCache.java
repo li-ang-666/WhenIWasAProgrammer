@@ -1,11 +1,14 @@
 package com.liang.common.service;
 
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public abstract class AbstractCache<K, V> {
+public abstract class AbstractCache<K, V> implements Serializable {
     protected final Map<K, List<V>> cache = new HashMap<>();
     protected final KeySelector<K, V> keySelector;
     protected int cacheMilliseconds;
@@ -26,29 +29,8 @@ public abstract class AbstractCache<K, V> {
         if (!enableCache) {
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
-            new Thread(() -> {
-                while (true) {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(cacheMilliseconds);
-                    } catch (Exception ignore) {
-                    }
-                    if (cache.isEmpty()) {
-                        continue;
-                    }
-                    Map<K, List<V>> copyCache;
-                    synchronized (cache) {
-                        if (cache.isEmpty()) {
-                            continue;
-                        }
-                        copyCache = new HashMap<>(cache);
-                        cache.clear();
-                    }
-                    for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
-                        updateImmediately(entry.getKey(), entry.getValue());
-                    }
-                }
-            }).start();
             enableCache = true;
+            new Thread(new Sender<>(this)).start();
         }
     }
 
@@ -89,6 +71,37 @@ public abstract class AbstractCache<K, V> {
     }
 
     protected abstract void updateImmediately(K key, List<V> values);
+
+    private static class Sender<K, V> implements Runnable {
+        private final AbstractCache<K, V> abstractCache;
+
+        public Sender(AbstractCache<K, V> abstractCache) {
+            this.abstractCache = SerializationUtils.clone(abstractCache);
+        }
+
+        @Override
+        @SneakyThrows
+        @SuppressWarnings("InfiniteLoopStatement")
+        public void run() {
+            while (true) {
+                TimeUnit.MILLISECONDS.sleep(abstractCache.cacheMilliseconds);
+                if (abstractCache.cache.isEmpty()) {
+                    continue;
+                }
+                Map<K, List<V>> copyCache;
+                synchronized (abstractCache.cache) {
+                    if (abstractCache.cache.isEmpty()) {
+                        continue;
+                    }
+                    copyCache = new HashMap<>(abstractCache.cache);
+                    abstractCache.cache.clear();
+                }
+                for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
+                    abstractCache.updateImmediately(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+    }
 
     @FunctionalInterface
     protected interface KeySelector<K, V> {
