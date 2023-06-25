@@ -7,18 +7,20 @@ import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
+import lombok.SneakyThrows;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class AdsJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.sql("use ads");
-        spark.table("ads_user_tag_commercial_df")
+        spark.sql("select * from ads_user_tag_commercial_df where pt='20230624'")
                 .repartition(100)
                 .foreachPartition(new Sink(ConfigUtils.getConfig()));
         spark.stop();
@@ -32,13 +34,14 @@ public class AdsJob {
         }
 
         @Override
+        @SneakyThrows
         public void call(Iterator<Row> rowIterator) throws Exception {
             ConfigUtils.setConfig(config);
             DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
-            dorisTemplate.enableCache();
+            dorisTemplate.enableCache(1000 * 60, 102400);
 
             DorisSchema dorisSchema = DorisSchema.builder()
-                    .database("ads")
+                    .database("test_db")
                     .tableName("ads_user_tag_commercial_df_tmp")
                     .uniqueOrderBy(DorisSchema.DEFAULT_UNIQUE_ORDER_BY)
                     .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
@@ -52,6 +55,7 @@ public class AdsJob {
                 DorisOneRow dorisOneRow = new DorisOneRow(dorisSchema, columnMap);
                 dorisTemplate.update(dorisOneRow);
             }
+            TimeUnit.MINUTES.sleep(1);
         }
     }
 }
