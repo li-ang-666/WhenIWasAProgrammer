@@ -1,7 +1,11 @@
 package com.liang.spark.job
 
-import org.apache.spark.sql.SparkSession
+import com.liang.common.service.filesystem.ObsWriter
+import org.apache.spark.api.java.function.ForeachPartitionFunction
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{Row, SparkSession}
+
+import java.util
 
 
 /**
@@ -25,13 +29,20 @@ object BidJob {
     )
     createView(spark, tableList)
     createUnionView(spark, tableList)
+    //    spark.sql(
+    //      s"""
+    //         |insert overwrite table test.${args(1)}
+    //         |select /*+ REPARTITION(600) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
+    //         |from union_table
+    //         |group by mid
+    //         |""".stripMargin)
     spark.sql(
-      s"""
-         |insert overwrite table test.${args(1)}
-         |select /*+ REPARTITION(600) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
-         |from union_table
-         |group by mid
-         |""".stripMargin)
+      """
+        |select concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
+        |from union_table
+        |group by mid""".stripMargin)
+      .repartition(600)
+      .foreachPartition(new Sink)
     spark.stop()
   }
 
@@ -55,5 +66,21 @@ object BidJob {
     val sql: String = tableList.map(tableName => s"select mid,js from ${tableName}_2").mkString("\n union all \n")
     spark.sql(sql)
       .createOrReplaceTempView("union_table")
+  }
+}
+
+class Sink extends ForeachPartitionFunction[Row] {
+  private var obsWriter: ObsWriter = _
+
+  override def call(t: util.Iterator[Row]): Unit = {
+    if (obsWriter == null) {
+      obsWriter = new ObsWriter("obs://hadoop-obs/flink/tb1/")
+      obsWriter.enableCache()
+    }
+    while (t.hasNext) {
+      val row: Row = t.next()
+      val content: String = row.getAs("js").toString
+      obsWriter.update(content)
+    }
   }
 }
