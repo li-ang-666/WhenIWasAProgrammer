@@ -30,6 +30,7 @@ object BidJob {
     )
     createView(spark, tableList)
     createUnionView(spark, tableList)
+    createFinalView(spark)
 
     hiveSink(spark, "obs_writer_test_hive")
     obsSink(spark)
