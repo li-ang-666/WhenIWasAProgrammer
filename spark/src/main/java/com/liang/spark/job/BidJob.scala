@@ -30,7 +30,7 @@ object BidJob {
     createView(spark, tableList)
     createUnionView(spark, tableList)
 
-    hiveSink(spark, args(1))
+    //hiveSink(spark, args(1))
     obsSink(spark)
     spark.stop()
   }
