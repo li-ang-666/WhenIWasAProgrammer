@@ -1,5 +1,7 @@
 package com.liang.common.service;
 
+import org.apache.flink.api.java.tuple.Tuple2;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -63,15 +65,19 @@ public abstract class AbstractCache<K, V> {
             return;
         }
         for (V value : values) {
+            Tuple2<K, List<V>> kv = null;
             synchronized (cache) {
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ArrayList<>());
                 List<V> list = cache.get(key);
                 list.add(value);
                 if (enableCache && list.size() >= cacheRecords) {
-                    updateImmediately(key, list);
+                    kv = Tuple2.of(key, list);
                     cache.remove(key);
                 }
+            }
+            if (kv != null) {
+                updateImmediately(kv.f0, kv.f1);
             }
         }
         if (!enableCache && !cache.isEmpty()) {
