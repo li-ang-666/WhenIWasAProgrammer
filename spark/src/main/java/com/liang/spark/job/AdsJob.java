@@ -21,7 +21,7 @@ public class AdsJob {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.sql("use ads");
         spark.sql("select * from ads_user_tag_commercial_df where pt='20230624'")
-                .repartition(100)
+                .repartition(200)
                 .foreachPartition(new Sink(ConfigUtils.getConfig()));
         spark.stop();
     }
@@ -38,7 +38,7 @@ public class AdsJob {
         public void call(Iterator<Row> rowIterator) throws Exception {
             ConfigUtils.setConfig(config);
             DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
-            dorisTemplate.enableCache(1000 * 10, 102400);
+            dorisTemplate.enableCache();
 
             DorisSchema dorisSchema = DorisSchema.builder()
                     .database("test_db")
