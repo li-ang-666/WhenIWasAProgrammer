@@ -4,6 +4,7 @@ import com.liang.common.service.filesystem.ObsWriter
 import org.apache.spark.api.java.function.ForeachPartitionFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.storage.StorageLevel
 
 import java.util
 
@@ -30,7 +31,7 @@ object BidJob {
     createView(spark, tableList)
     createUnionView(spark, tableList)
 
-    //hiveSink(spark, args(1))
+    hiveSink(spark, "obs_writer_test_hive")
     obsSink(spark)
     spark.stop()
   }
@@ -57,6 +58,20 @@ object BidJob {
       .createOrReplaceTempView("union_table")
   }
 
+  private def createFinalView(spark: SparkSession): Unit = {
+    spark.sql(
+      """
+        |
+        |select concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
+        |from union_table
+        |group by mid
+        |
+        |""".stripMargin)
+      .persist(StorageLevel.MEMORY_AND_DISK)
+      .createOrReplaceTempView("final_table")
+
+  }
+
   private def obsSink(spark: SparkSession): Unit = {
     class Sink extends ForeachPartitionFunction[Row] {
       private var obsWriter: ObsWriter = _
@@ -75,10 +90,8 @@ object BidJob {
     }
     spark.sql(
       """
-        |select concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
-        |from union_table
-        |group by mid""".stripMargin)
-      .repartition(600)
+        |select /*+ REPARTITION(600) */ js from final_table
+        |""".stripMargin)
       .foreachPartition(new Sink)
   }
 
@@ -86,9 +99,7 @@ object BidJob {
     spark.sql(
       s"""
          |insert overwrite table test.${tableName}
-         |select /*+ REPARTITION(600) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
-         |from union_table
-         |group by mid
+         |select /*+ REPARTITION(600) */ js from final_table
          |""".stripMargin)
   }
 }
