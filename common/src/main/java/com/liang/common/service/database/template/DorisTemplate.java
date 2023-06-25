@@ -78,8 +78,10 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             HttpPut put = new HttpPut(url);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
-            List<Map<String, Object>> contents = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
-            put.setEntity(new StringEntity(JsonUtils.toString(contents), StandardCharsets.UTF_8));
+            List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
+            String contentString = JsonUtils.toString(contentObject);
+            put.setEntity(new StringEntity(contentString, StandardCharsets.UTF_8));
+            put.setHeader("exec_mem_limit", String.valueOf(contentString.length() * 3));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
             String mergeType = (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) ? "MERGE" : "APPEND";
@@ -90,10 +92,10 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             if (schema.getUniqueOrderBy() != null) {
                 put.setHeader("function_column.sequence_col", schema.getUniqueOrderBy());
             }
-            List<String> keys = new ArrayList<>(contents.get(0).keySet());
+            List<String> keys = new ArrayList<>(contentObject.get(0).keySet());
             put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
             put.setHeader("jsonpaths", parseJsonPaths(keys));
-            put.setHeader("exec_mem_limit", "209715200"); // 200M
+
             try (CloseableHttpResponse response = client.execute(put)) {
                 HttpEntity httpEntity = response.getEntity();
                 String loadResult = EntityUtils.toString(httpEntity);
