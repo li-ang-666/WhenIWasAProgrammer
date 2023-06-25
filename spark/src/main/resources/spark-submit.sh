@@ -21,4 +21,6 @@ nohup spark-submit \
   --conf spark.yarn.cluster.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties" \
   --files log4j-all.properties,config.yml \
   --conf spark.yarn.maxAppAttempts=1 \
+  --conf spark.sql.shuffle.partitions=600 \
+  --conf spark.shuffle.io.maxRetries=10 \
   ./spark-1.0-jar-with-dependencies.jar config.yml >log 2>&1 &
