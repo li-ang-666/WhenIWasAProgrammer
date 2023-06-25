@@ -70,11 +70,4 @@ public class ObsWriter extends AbstractCache<Object, String> {
             logging.ifError("write", objectKeyName, e);
         }
     }
-
-    private String format(String folder) {
-        String[] formatFolder = folder
-                .replaceAll("obs://(.*?)/(.*)", "$1\001$2")
-                .split("\001");
-        return formatFolder[0] + (formatFolder[0].endsWith("/") ? "" : "/");
-    }
 }
