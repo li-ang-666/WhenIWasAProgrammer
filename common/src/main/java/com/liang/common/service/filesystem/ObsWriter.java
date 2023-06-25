@@ -41,13 +41,12 @@ public class ObsWriter extends AbstractCache<Object, String> {
         try (ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT)) {
             long position = 0L;
             try {
-                position = client.getObjectMetadata(bucket, path + "aaa").getNextPosition();
+                position = client.getObjectMetadata(bucket, path + this).getNextPosition();
             } catch (Exception ignored) {
-                log.error("", ignored);
             }
             ModifyObjectRequest request = new ModifyObjectRequest();
             request.setBucketName(bucket);
-            request.setObjectKey(path + "aaa");
+            request.setObjectKey(path + this);
             request.setPosition(position);
             request.setInput(new ByteArrayInputStream(bytes));
             client.modifyObject(request);

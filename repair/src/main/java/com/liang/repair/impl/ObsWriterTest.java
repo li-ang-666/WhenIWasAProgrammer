@@ -10,7 +10,7 @@ public class ObsWriterTest implements Runner {
     @Override
     public void run(String[] args) throws Exception {
         ObsWriter writer = new ObsWriter("obs://hadoop-obs/flink/tb1/");
-        writer.enableCache(210000000,102400);
+        writer.enableCache();
         ArrayList<String> list = new ArrayList<>();
         for (int i = 1; i <= 102400 ; i++) {
             //writer.update(UUID.randomUUID().toString());
