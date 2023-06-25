@@ -49,7 +49,12 @@ public class ObsWriter extends AbstractCache<Object, String> {
             String objectKey = objectKeyPrefix + objectKeyName;
             if (!fileToPosition.containsKey(objectKeyName)) {
                 fileToPosition.clear();
-                fileToPosition.put(objectKeyName, new AtomicLong(client.getObjectMetadata(bucket, objectKey).getNextPosition()));
+                long position = 0L;
+                try {
+                    position = client.getObjectMetadata(bucket, objectKey).getNextPosition();
+                } catch (Exception ignored) {
+                }
+                fileToPosition.put(objectKeyName, new AtomicLong(position));
             }
             AtomicLong position = fileToPosition.get(objectKeyName);
             ModifyObjectRequest request = new ModifyObjectRequest();
