@@ -3,6 +3,7 @@ package com.liang.common.service.filesystem;
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.obs.services.ObsClient;
+import com.obs.services.model.ModifyObjectRequest;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,8 +14,8 @@ import java.util.UUID;
 
 @Slf4j
 public class ObsWriter extends AbstractCache<Object, String> {
-    private final static int DEFAULT_CACHE_MILLISECONDS = 60000;
-    private final static int DEFAULT_CACHE_RECORDS = 102400;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
+    private final static int DEFAULT_CACHE_RECORDS = 10240;
     private final static String ACCESS_KEY = "NT5EWZ4FRH54R2R2CB8G";
     private final static String SECRET_KEY = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final static String END_POINT = "obs.cn-north-4.myhuaweicloud.com";
@@ -38,7 +39,19 @@ public class ObsWriter extends AbstractCache<Object, String> {
         String objectName = String.format("%s.%s.%s", System.currentTimeMillis() % 1000, UUID.randomUUID(), "txt");
         byte[] bytes = String.join("\n", rows).getBytes(StandardCharsets.UTF_8);
         try (ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT)) {
-            client.putObject(bucket, path + objectName, new ByteArrayInputStream(bytes));
+            long position = 0L;
+            try {
+                position = client.getObjectMetadata(bucket, path + "aaa").getNextPosition();
+            } catch (Exception ignored) {
+                log.error("", ignored);
+            }
+            ModifyObjectRequest request = new ModifyObjectRequest();
+            request.setBucketName(bucket);
+            request.setObjectKey(path + "aaa");
+            request.setPosition(position);
+            request.setInput(new ByteArrayInputStream(bytes));
+            client.modifyObject(request);
+            //client.putObject(bucket, path + objectName, new ByteArrayInputStream(bytes));
             logging.afterExecute("write", objectName);
         } catch (Exception e) {
             logging.ifError("write", objectName, e);
