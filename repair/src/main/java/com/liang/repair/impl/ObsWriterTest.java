@@ -12,9 +12,9 @@ public class ObsWriterTest implements Runner {
         ObsWriter writer = new ObsWriter("obs://hadoop-obs/flink/tb1/");
         writer.enableCache();
         ArrayList<String> list = new ArrayList<>();
-        for (int i = 1; i <= 102400 ; i++) {
+        for (int i = 1; i <= 102400; i++) {
             //writer.update(UUID.randomUUID().toString());
-            list.add(UUID.randomUUID().toString()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID()+UUID.randomUUID());
+            list.add(UUID.randomUUID().toString() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID() + UUID.randomUUID());
         }
         writer.update(list);
         writer.update(list);

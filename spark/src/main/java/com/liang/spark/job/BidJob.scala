@@ -57,16 +57,6 @@ object BidJob {
       .createOrReplaceTempView("union_table")
   }
 
-  private def hiveSink(spark: SparkSession, tableName: String): Unit = {
-    spark.sql(
-      s"""
-         |insert overwrite table test.${tableName}
-         |select /*+ REPARTITION(600) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
-         |from union_table
-         |group by mid
-         |""".stripMargin)
-  }
-
   private def obsSink(spark: SparkSession): Unit = {
     class Sink extends ForeachPartitionFunction[Row] {
       private var obsWriter: ObsWriter = _
@@ -90,5 +80,15 @@ object BidJob {
         |group by mid""".stripMargin)
       .repartition(600)
       .foreachPartition(new Sink)
+  }
+
+  private def hiveSink(spark: SparkSession, tableName: String): Unit = {
+    spark.sql(
+      s"""
+         |insert overwrite table test.${tableName}
+         |select /*+ REPARTITION(600) */ concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
+         |from union_table
+         |group by mid
+         |""".stripMargin)
   }
 }
