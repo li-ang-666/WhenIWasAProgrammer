@@ -91,8 +91,9 @@ object BidJob {
     }
     spark.sql(
       """
-        |select /*+ REPARTITION(600) */ js from final_table
+        |select js from final_table
         |""".stripMargin)
+      .repartition(600)
       .foreachPartition(new Sink)
   }
 
