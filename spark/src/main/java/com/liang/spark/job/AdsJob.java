@@ -38,7 +38,7 @@ public class AdsJob {
         public void call(Iterator<Row> rowIterator) throws Exception {
             ConfigUtils.setConfig(config);
             DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
-            dorisTemplate.enableCache(1000 * 30, 102400);
+            dorisTemplate.enableCache(1000 * 10, 102400);
 
             DorisSchema dorisSchema = DorisSchema.builder()
                     .database("test_db")
