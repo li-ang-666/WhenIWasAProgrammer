@@ -3,6 +3,7 @@ package com.liang.common.service.filesystem;
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.obs.services.ObsClient;
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
@@ -30,6 +31,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     }
 
     @Override
+    @Synchronized
     protected void updateImmediately(Object ignore, List<String> rows) {
         logging.beforeExecute();
         String path = this.path + (this.path.endsWith("/") ? "" : "/");

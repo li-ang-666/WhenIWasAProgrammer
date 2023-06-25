@@ -7,6 +7,7 @@ import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
@@ -68,6 +69,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     @Override
+    @Synchronized
     protected void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
         logging.beforeExecute();
         try (CloseableHttpClient client = httpClientBuilder.build()) {

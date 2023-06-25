@@ -12,7 +12,7 @@ public class ObsWriterTest implements Runner {
         ObsWriter writer = new ObsWriter("obs://hadoop-obs/flink/tb1/");
         writer.enableCache(1500, (int) (50000 * 50 * 1.2) - 1);
         ArrayList<String> list = new ArrayList<>();
-        for (int i = 1; i <= 50000 * 50 * 1.2; i++) {
+        for (int i = 1; /*i <= 50000 * 50 * 1.2*/ ; i++) {
             writer.update(UUID.randomUUID().toString());
             //list.add(UUID.randomUUID().toString());
         }
