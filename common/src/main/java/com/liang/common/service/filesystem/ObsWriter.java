@@ -2,6 +2,7 @@ package com.liang.common.service.filesystem;
 
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
+import com.liang.common.util.DateTimeUtils;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ModifyObjectRequest;
 import lombok.Synchronized;
@@ -20,6 +21,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     private final static String SECRET_KEY = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final static String END_POINT = "obs.cn-north-4.myhuaweicloud.com";
 
+    private final UUID uuid = UUID.randomUUID();
     private final String bucket;
     private final String path;
     private final Logging logging;
@@ -36,7 +38,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     protected void updateImmediately(Object ignore, List<String> rows) {
         logging.beforeExecute();
         String path = this.path + (this.path.endsWith("/") ? "" : "/");
-        String objectName = String.format("%s.%s.%s", System.currentTimeMillis() % 1000, UUID.randomUUID(), "txt");
+        String objectName = String.format("%s.%s.%s", DateTimeUtils.currentDate(), uuid, "txt");
         byte[] bytes = String.join("\n", rows).getBytes(StandardCharsets.UTF_8);
         try (ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT)) {
             long position = 0L;
@@ -50,7 +52,6 @@ public class ObsWriter extends AbstractCache<Object, String> {
             request.setPosition(position);
             request.setInput(new ByteArrayInputStream(bytes));
             client.modifyObject(request);
-            //client.putObject(bucket, path + objectName, new ByteArrayInputStream(bytes));
             logging.afterExecute("write", objectName);
         } catch (Exception e) {
             logging.ifError("write", objectName, e);
