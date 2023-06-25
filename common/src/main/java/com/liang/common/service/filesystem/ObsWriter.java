@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Slf4j
 public class ObsWriter extends AbstractCache<Object, String> {
-    private final static int DEFAULT_CACHE_MILLISECONDS = 1000 * 60;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 60000;
     private final static int DEFAULT_CACHE_RECORDS = 102400;
     private final static String ACCESS_KEY = "NT5EWZ4FRH54R2R2CB8G";
     private final static String SECRET_KEY = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
@@ -35,7 +35,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     protected void updateImmediately(Object ignore, List<String> rows) {
         logging.beforeExecute();
         String path = this.path + (this.path.endsWith("/") ? "" : "/");
-        String objectName = String.format("%s.%s.%s", System.currentTimeMillis(), UUID.randomUUID(), "txt");
+        String objectName = String.format("%s.%s.%s", System.currentTimeMillis() % 1000, UUID.randomUUID(), "txt");
         byte[] bytes = String.join("\n", rows).getBytes(StandardCharsets.UTF_8);
         try (ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT)) {
             client.putObject(bucket, path + objectName, new ByteArrayInputStream(bytes));
