@@ -72,11 +72,18 @@ public abstract class AbstractCache<K, V> implements Serializable {
 
     protected abstract void updateImmediately(K key, List<V> values);
 
+    @FunctionalInterface
+    protected interface KeySelector<K, V> {
+        K selectKey(V v);
+    }
+
     private static class Sender<K, V> implements Runnable {
         private final AbstractCache<K, V> abstractCache;
+        private final AbstractCache<K, V> copyAbstractCache;
 
         public Sender(AbstractCache<K, V> abstractCache) {
-            this.abstractCache = SerializationUtils.clone(abstractCache);
+            this.abstractCache = abstractCache;
+            this.copyAbstractCache = SerializationUtils.clone(abstractCache);
         }
 
         @Override
@@ -97,14 +104,9 @@ public abstract class AbstractCache<K, V> implements Serializable {
                     abstractCache.cache.clear();
                 }
                 for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
-                    abstractCache.updateImmediately(entry.getKey(), entry.getValue());
+                    copyAbstractCache.updateImmediately(entry.getKey(), entry.getValue());
                 }
             }
         }
-    }
-
-    @FunctionalInterface
-    protected interface KeySelector<K, V> {
-        K selectKey(V v);
     }
 }

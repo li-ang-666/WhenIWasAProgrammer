@@ -68,7 +68,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     @Override
-    protected synchronized void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
+    protected void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
         logging.beforeExecute();
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             String target = fe.get(random.nextInt(fe.size()));

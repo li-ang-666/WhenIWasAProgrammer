@@ -30,7 +30,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     }
 
     @Override
-    protected synchronized void updateImmediately(Object ignore, List<String> rows) {
+    protected void updateImmediately(Object ignore, List<String> rows) {
         logging.beforeExecute();
         String path = this.path + (this.path.endsWith("/") ? "" : "/");
         String objectName = String.format("%s.%s.%s", System.currentTimeMillis(), UUID.randomUUID(), "txt");

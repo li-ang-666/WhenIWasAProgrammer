@@ -54,7 +54,7 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
     }
 
     @Override
-    protected synchronized void updateImmediately(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
+    protected void updateImmediately(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
         logging.beforeExecute();
         try (Table table = getTable(schema)) {
             List<Put> puts = new ArrayList<>();

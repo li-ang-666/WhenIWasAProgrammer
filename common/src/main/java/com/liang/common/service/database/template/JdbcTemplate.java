@@ -39,7 +39,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
     }
 
     @Override
-    protected synchronized void updateImmediately(Object ignore, List<String> sqls) {
+    protected void updateImmediately(Object ignore, List<String> sqls) {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
