@@ -24,6 +24,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     private final static String SECRET_KEY = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final static String END_POINT = "obs.cn-north-4.myhuaweicloud.com";
 
+    private final ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT);
     private final UUID uuid = UUID.randomUUID();
     private final Map<String, AtomicLong> fileToPosition = new HashMap<>();
     private final String bucket;
@@ -45,7 +46,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     protected void updateImmediately(Object ignore, List<String> rows) {
         logging.beforeExecute();
         String objectKeyName = String.format("%s.%s.%s", DateTimeUtils.currentDate(), uuid, "txt");
-        try (ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT)) {
+        try {
             String objectKey = objectKeyPrefix + objectKeyName;
             if (!fileToPosition.containsKey(objectKeyName)) {
                 fileToPosition.clear();
