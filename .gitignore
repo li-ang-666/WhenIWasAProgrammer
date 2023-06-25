@@ -5,7 +5,8 @@ target/
 #忽略所有.iml .DS_store文件
 *.iml
 *.DS_Store
-/spark/spark-warehouse/
+#忽略所有 spark-warehouse 目录
+spark-warehouse/
 
 
 ## git rm -r --cached .
