@@ -10,8 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class ObsWriter extends AbstractCache<Object, String> {
@@ -22,39 +25,50 @@ public class ObsWriter extends AbstractCache<Object, String> {
     private final static String END_POINT = "obs.cn-north-4.myhuaweicloud.com";
 
     private final UUID uuid = UUID.randomUUID();
+    private final Map<String, AtomicLong> fileToPosition = new HashMap<>();
     private final String bucket;
-    private final String path;
+    private final String objectKeyPrefix;
     private final Logging logging;
 
-    public ObsWriter(String folderPath) {
+    public ObsWriter(String folder) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> null);
-        bucket = folderPath.replaceAll("obs://(.*?)/(.*)", "$1");
-        path = folderPath.replaceAll("obs://(.*?)/(.*)", "$2");
-        logging = new Logging(this.getClass().getSimpleName(), folderPath);
+        String[] formatFolder = folder
+                .replaceAll("obs://(.*?)/(.*)", "$1\001$2")
+                .split("\001");
+        bucket = formatFolder[0];
+        objectKeyPrefix = formatFolder[1] + (formatFolder[1].endsWith("/") ? "" : "/");
+        logging = new Logging(this.getClass().getSimpleName(), folder);
     }
 
     @Override
     @Synchronized
     protected void updateImmediately(Object ignore, List<String> rows) {
         logging.beforeExecute();
-        String path = this.path + (this.path.endsWith("/") ? "" : "/");
-        String objectName = String.format("%s.%s.%s", DateTimeUtils.currentDate(), uuid, "txt");
-        byte[] bytes = String.join("\n", rows).getBytes(StandardCharsets.UTF_8);
+        String objectKeyName = String.format("%s.%s.%s", DateTimeUtils.currentDate(), uuid, "txt");
         try (ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT)) {
-            long position = 0L;
-            try {
-                position = client.getObjectMetadata(bucket, path + objectName).getNextPosition();
-            } catch (Exception ignored) {
+            String objectKey = objectKeyPrefix + objectKeyName;
+            if (!fileToPosition.containsKey(objectKeyName)) {
+                fileToPosition.clear();
+                fileToPosition.put(objectKeyName, new AtomicLong(client.getObjectMetadata(bucket, objectKey).getNextPosition()));
             }
+            AtomicLong position = fileToPosition.get(objectKeyName);
             ModifyObjectRequest request = new ModifyObjectRequest();
             request.setBucketName(bucket);
-            request.setObjectKey(path + objectName);
-            request.setPosition(position);
+            request.setObjectKey(objectKey);
+            byte[] bytes = (String.join("\n", rows) + "\n").getBytes(StandardCharsets.UTF_8);
             request.setInput(new ByteArrayInputStream(bytes));
+            request.setPosition(position.getAndAdd(bytes.length));
             client.modifyObject(request);
-            logging.afterExecute("write", objectName);
+            logging.afterExecute("write", objectKeyName);
         } catch (Exception e) {
-            logging.ifError("write", objectName, e);
+            logging.ifError("write", objectKeyName, e);
         }
+    }
+
+    private String format(String folder) {
+        String[] formatFolder = folder
+                .replaceAll("obs://(.*?)/(.*)", "$1\001$2")
+                .split("\001");
+        return formatFolder[0] + (formatFolder[0].endsWith("/") ? "" : "/");
     }
 }
