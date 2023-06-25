@@ -68,7 +68,7 @@ object BidJob {
         |group by mid
         |
         |""".stripMargin)
-      .persist(StorageLevel.MEMORY_AND_DISK)
+      .persist(StorageLevel.DISK_ONLY)
       .createOrReplaceTempView("final_table")
 
   }
@@ -93,7 +93,7 @@ object BidJob {
       """
         |select js from final_table
         |""".stripMargin)
-      .repartition(600)
+      .repartition(1200)
       .foreachPartition(new Sink)
   }
 
@@ -101,7 +101,7 @@ object BidJob {
     spark.sql(
       s"""
          |insert overwrite table test.${tableName}
-         |select /*+ REPARTITION(600) */ js from final_table
+         |select /*+ REPARTITION(1200) */ js from final_table
          |""".stripMargin)
   }
 }
