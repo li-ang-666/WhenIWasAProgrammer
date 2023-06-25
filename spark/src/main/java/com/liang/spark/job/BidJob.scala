@@ -7,6 +7,7 @@ import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import java.util
+import java.util.concurrent.TimeUnit
 
 
 /**
@@ -87,6 +88,7 @@ object BidJob {
           val content: String = row.getAs("js").toString
           obsWriter.update(content)
         }
+        TimeUnit.SECONDS.sleep(10)
       }
     }
     spark.sql(
