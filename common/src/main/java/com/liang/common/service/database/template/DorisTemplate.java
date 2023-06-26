@@ -81,7 +81,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
             String contentString = JsonUtils.toString(contentObject);
             put.setEntity(new StringEntity(contentString, StandardCharsets.UTF_8));
-            put.setHeader("exec_mem_limit", String.valueOf(contentString.length() * 2));
+            put.setHeader("exec_mem_limit", String.valueOf(128 * 1024 * 1024));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
             String mergeType = (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) ? "MERGE" : "APPEND";
