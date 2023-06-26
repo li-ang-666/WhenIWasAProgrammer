@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
-    private final static int DEFAULT_CACHE_MILLISECONDS = 100000;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 10000;
     private final static int DEFAULT_CACHE_RECORDS = 204800;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
