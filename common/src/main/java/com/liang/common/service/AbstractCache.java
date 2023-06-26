@@ -48,7 +48,7 @@ public abstract class AbstractCache<K, V> {
                     }
                 }
             });
-            //sender.setDaemon(false);
+            sender.setDaemon(false);
             sender.start();
             enableCache = true;
         }
