@@ -85,13 +85,14 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             put.setHeader("strip_outer_array", "true");
             put.setHeader("exec_mem_limit", String.valueOf(100 * 1024 * 1024));
             // for unique table
-            String mergeType = (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) ? "MERGE" : "APPEND";
-            put.setHeader("merge_type", mergeType);
-            if (schema.getUniqueDeleteOn() != null) {
-                put.setHeader("delete", schema.getUniqueDeleteOn());
-            }
-            if (schema.getUniqueOrderBy() != null) {
-                put.setHeader("function_column.sequence_col", schema.getUniqueOrderBy());
+            if (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) {
+                put.setHeader("merge_type", "MERGE");
+                if (schema.getUniqueDeleteOn() != null) {
+                    put.setHeader("delete", schema.getUniqueDeleteOn());
+                }
+                if (schema.getUniqueOrderBy() != null) {
+                    put.setHeader("function_column.sequence_col", schema.getUniqueOrderBy());
+                }
             }
             // for content
             List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
