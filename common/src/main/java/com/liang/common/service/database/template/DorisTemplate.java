@@ -50,8 +50,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
-    private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
-    private final static int DEFAULT_CACHE_RECORDS = 102400;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 100000;
+    private final static int DEFAULT_CACHE_RECORDS = 204800;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new RedirectStrategy());
@@ -81,7 +81,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
             String contentString = JsonUtils.toString(contentObject);
             put.setEntity(new StringEntity(contentString, StandardCharsets.UTF_8));
-            put.setHeader("exec_mem_limit", String.valueOf((int) (contentString.getBytes(StandardCharsets.UTF_8).length * 1.2)));
+            put.setHeader("exec_mem_limit", String.valueOf(contentString.length() * 2));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
             String mergeType = (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) ? "MERGE" : "APPEND";

@@ -20,8 +20,8 @@ public class AdsJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.sql("use ads");
-        spark.sql("select * from ads_user_tag_commercial_df where pt='20230624'")
-                .repartition(200)
+        spark.sql("select * from ads_user_tag_commercial_df where pt='20230625'")
+                .repartition(600)
                 .foreachPartition(new Sink(ConfigUtils.getConfig()));
         spark.stop();
     }
@@ -55,7 +55,7 @@ public class AdsJob {
                 DorisOneRow dorisOneRow = new DorisOneRow(dorisSchema, columnMap);
                 dorisTemplate.update(dorisOneRow);
             }
-            TimeUnit.SECONDS.sleep(30);
+            TimeUnit.SECONDS.sleep(10);
         }
     }
 }
