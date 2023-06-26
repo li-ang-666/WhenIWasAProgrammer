@@ -82,7 +82,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
-            put.setHeader("exec_mem_limit", String.valueOf(100 * 1024 * 1024));
+            put.setHeader("exec_mem_limit", String.valueOf(64 * 1024 * 1024));
             // for unique table
             if (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) {
                 put.setHeader("merge_type", "MERGE");
