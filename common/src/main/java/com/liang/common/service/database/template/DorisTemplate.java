@@ -106,7 +106,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 String loadResult = EntityUtils.toString(httpEntity);
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
-                    logging.afterExecute("load", dorisOneRows);
+                    logging.afterExecute("stream load", dorisOneRows);
                 } else {
                     throw new Exception(String.format("statusCode: %s, loadResult: %s", statusCode, loadResult));
                 }
