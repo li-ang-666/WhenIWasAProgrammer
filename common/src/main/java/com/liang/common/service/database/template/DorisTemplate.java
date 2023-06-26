@@ -95,7 +95,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             List<String> keys = new ArrayList<>(contentObject.get(0).keySet());
             put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
             put.setHeader("jsonpaths", parseJsonPaths(keys));
-
             try (CloseableHttpResponse response = client.execute(put)) {
                 HttpEntity httpEntity = response.getEntity();
                 String loadResult = EntityUtils.toString(httpEntity);
