@@ -73,17 +73,18 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     protected void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
         logging.beforeExecute();
         try (CloseableHttpClient client = httpClientBuilder.build()) {
+            // url
             String target = fe.get(random.nextInt(fe.size()));
             String url = String.format("http://%s/api/%s/%s/_stream_load", target, schema.getDatabase(), schema.getTableName());
+            // init put
+            // common
             HttpPut put = new HttpPut(url);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
-            List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
-            String contentString = JsonUtils.toString(contentObject);
-            put.setEntity(new StringEntity(contentString, StandardCharsets.UTF_8));
-            put.setHeader("exec_mem_limit", String.valueOf(128 * 1024 * 1024));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
+            put.setHeader("exec_mem_limit", String.valueOf(100 * 1024 * 1024));
+            // for unique table
             String mergeType = (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) ? "MERGE" : "APPEND";
             put.setHeader("merge_type", mergeType);
             if (schema.getUniqueDeleteOn() != null) {
@@ -92,9 +93,14 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             if (schema.getUniqueOrderBy() != null) {
                 put.setHeader("function_column.sequence_col", schema.getUniqueOrderBy());
             }
+            // for content
+            List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
             List<String> keys = new ArrayList<>(contentObject.get(0).keySet());
             put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
             put.setHeader("jsonpaths", parseJsonPaths(keys));
+            String contentString = JsonUtils.toString(contentObject);
+            put.setEntity(new StringEntity(contentString, StandardCharsets.UTF_8));
+            // execute
             try (CloseableHttpResponse response = client.execute(put)) {
                 HttpEntity httpEntity = response.getEntity();
                 String loadResult = EntityUtils.toString(httpEntity);
