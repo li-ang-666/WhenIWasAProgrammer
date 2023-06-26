@@ -22,10 +22,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -50,8 +47,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
-    private final static int DEFAULT_CACHE_MILLISECONDS = 10000;
-    private final static int DEFAULT_CACHE_RECORDS = 1024 * 64;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
+    private final static int DEFAULT_CACHE_RECORDS = 10240;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new RedirectStrategy());
@@ -72,6 +69,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     @Synchronized
     protected void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
         logging.beforeExecute();
+        String uuid = UUID.randomUUID().toString();
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             // url
             String target = fe.get(random.nextInt(fe.size()));
@@ -79,6 +77,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             // init put
             // common
             HttpPut put = new HttpPut(url);
+            put.setHeader("label", uuid);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
             put.setHeader("format", "json");
@@ -107,13 +106,13 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 String loadResult = EntityUtils.toString(httpEntity);
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
-                    logging.afterExecute("stream load", dorisOneRows);
+                    logging.afterExecute("stream load", uuid);
                 } else {
                     throw new Exception(String.format("statusCode: %s, loadResult: %s", statusCode, loadResult));
                 }
             }
         } catch (Exception e) {
-            logging.ifError("stream load", dorisOneRows, e);
+            logging.ifError("stream load", uuid, e);
         }
     }
 
