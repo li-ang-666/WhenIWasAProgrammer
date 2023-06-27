@@ -42,13 +42,21 @@ public class JiaoFu {
         String fromDir = String.format("/nfs/open_data/dblog/%s/all_table/%s/_c1=%s", pt, pt, tableName);
         String toDir = String.format("/nfs/ftp/databases3/%s/%s/_c1=%s", orgId, pt, tableName);
 
-        System.out.println(String.format("# %s", target));
+        String head = String.format("# %s", target);
+        System.out.println("echo '" + head + "'");
+        String lsFromDir = String.format("# ls %s # fromDir", fromDir);
+        System.out.println("echo '" + lsFromDir + "'");
+        String lsToDir = String.format("# ls %s # toDir", toDir);
+        System.out.println("echo '" + lsToDir + "'");
 
-        System.out.println(String.format("# ls %s # fromDir", fromDir));
-        System.out.println(String.format("# ls %s # toDir", toDir));
+        String rm = String.format("rm -rf %s/*", toDir);
+        System.out.println("echo '" + rm + "'");
+        System.out.println(rm);
+        String cp = String.format("cp -r %s/* %s/", fromDir, toDir);
+        System.out.println("echo '" + cp + "'");
+        System.out.println(cp);
 
-        System.out.println(String.format("rm -rf %s/*", toDir));
-        System.out.println(String.format("cp -r %s/* %s/", fromDir, toDir));
+        System.out.println();
     }
 
     @AllArgsConstructor
