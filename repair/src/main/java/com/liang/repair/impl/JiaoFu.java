@@ -1,8 +1,9 @@
-package com.liang.repair.test;
+package com.liang.repair.impl;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 
-public class Nfs {
+public class JiaoFu {
     public static void main(String[] args) {
         printShell(new Target("20230619", "wangzhitianyuanT7", "company_tm"));
     }
@@ -14,6 +15,8 @@ public class Nfs {
         String fromDir = String.format("/nfs/open_data/dblog/%s/all_table/%s/_c1=%s", pt, pt, tableName);
         String toDir = String.format("/nfs/ftp/databases3/%s/%s/_c1=%s", orgId, pt, tableName);
 
+        System.out.println(String.format("# %s", target));
+
         System.out.println(String.format("# ls %s # fromDir", fromDir));
         System.out.println(String.format("# ls %s # toDir", toDir));
 
@@ -22,6 +25,7 @@ public class Nfs {
     }
 
     @AllArgsConstructor
+    @Data
     private static final class Target {
         private String pt;
         private String orgId;
