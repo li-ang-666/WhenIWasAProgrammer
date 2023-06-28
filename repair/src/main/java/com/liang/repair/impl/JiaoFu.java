@@ -8,31 +8,7 @@ import lombok.Data;
  */
 public class JiaoFu {
     public static void main(String[] args) {
-        /**
-         * 辛苦老师们优先解决下一下客户的问题：
-         * 网智天元客户是数据库产品，FTP的，反馈：
-         * 日更文件格式不对的问题：
-         * 20230616，company_patent、company_tm
-         * 20230617，company、company_patent、company_tm
-         * 20230618，company_tm
-         * 视野金融的
-         * 20230619， company_patent、compnay_tm
-         * 20230617，company_paten
-         * 20230616, company_patent
-         * 20230615, company_patent
-         */
-        printShell(new Target("20230616", "wangzhitianyuanT7", "company_patent"));
-        printShell(new Target("20230616", "wangzhitianyuanT7", "company_tm"));
-        printShell(new Target("20230617", "wangzhitianyuanT7", "company"));
-        printShell(new Target("20230617", "wangzhitianyuanT7", "company_patent"));
-        printShell(new Target("20230617", "wangzhitianyuanT7", "company_tm"));
-        printShell(new Target("20230618", "wangzhitianyuanT7", "company_tm"));
-
-        printShell(new Target("20230619", "shiyejinfunew", "company_patent"));
-        printShell(new Target("20230619", "shiyejinfunew", "company_tm"));
-        printShell(new Target("20230617", "shiyejinfunew", "company_patent"));
-        printShell(new Target("20230616", "shiyejinfunew", "company_patent"));
-        printShell(new Target("20230615", "shiyejinfunew", "company_patent"));
+        printShell(new Target("20230621", "shiyejinfunew", "company_patent"));
     }
 
     private static void printShell(Target target) {
