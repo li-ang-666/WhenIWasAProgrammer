@@ -7,6 +7,7 @@ dbConfigs:
   judicialRisk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+  doris: { host: "10.99.202.70",database: "test_db",user: "dba",password: "Tyc@1234" ,port: 6060 }
 
 hbaseDbConfigs:
   #################### 测试 ####################

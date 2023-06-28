@@ -16,7 +16,7 @@ public class LocalLauncher {
         init();
 
         //类加载
-        String className = "ObsWriterTest";
+        String className = "DorisBitmapTest";
         Class<?> aClass = Class.forName("com.liang.repair.impl." + className);
 
         //测试注解
