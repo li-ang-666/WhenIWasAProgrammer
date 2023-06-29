@@ -29,6 +29,11 @@ public class DorisBitmapTest implements Runner {
         doris.update("set global return_object_data_as_binary=true");
         List<Object> bitmaps = doris.queryForList("select btmp from bitmap_test", this::parseBitmap);
         System.out.println(bitmaps);
+
+//        List<Object> lst = doris.queryForList("select btmp from bitmap_test", rs -> rs.getObject(1));
+//        for (Object o : lst) {
+//            System.out.println(o.getClass());
+//        }
     }
 
     private Object[] decodeVarInt64(byte[] bt) { // nolint
@@ -55,7 +60,8 @@ public class DorisBitmapTest implements Runner {
     }
 
     private Object parseBitmap(ResultSet resultSet) throws Exception {
-        byte[] bytes = resultSet.getBytes(1);
+        //byte[] bytes = resultSet.getBytes(1);
+        byte[] bytes = resultSet.getString(1).getBytes();
 
         RoaringBitmap bitmap32 = new RoaringBitmap();
         // Only Roaring64NavigableMap can work, Roaring64Bitmap can't work!!!
