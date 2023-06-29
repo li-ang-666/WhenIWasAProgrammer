@@ -11,11 +11,12 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
-        <dependency>
+        <!--hive udf-->
+        <!--<dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
             <version>3.1.1</version>
-        </dependency>
+        </dependency>-->
         <!--flink Tuple-->
         <dependency>
             <groupId>org.apache.flink</groupId>
