@@ -31,7 +31,7 @@ public class DorisBitmapTest implements Runner {
         System.out.println(bitmaps);
     }
 
-    private Object[] decodeVarint64(byte[] bt) { // nolint
+    private Object[] decodeVarInt64(byte[] bt) { // nolint
         long result = 0;
         int shift = 0;
         short B = 128;
@@ -77,7 +77,7 @@ public class DorisBitmapTest implements Runner {
                         .getLong());
                 break;
             case 4: // for more than 1 element in bitmap64
-                Object[] tuple2 = decodeVarint64(bytes);
+                Object[] tuple2 = decodeVarInt64(bytes);
                 int offset = (int) tuple2[1];
                 int newLen = 8 + bytes.length - offset;
 
