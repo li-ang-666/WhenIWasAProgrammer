@@ -5,6 +5,7 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
+import com.liang.common.util.DorisBitmapUtils;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +26,8 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final DruidDataSource pool;
     private final Logging logging;
+
+    private final static String BITMAP_COLUMN_NAME = "bitmap";
 
     public JdbcTemplate(String name) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> null);
@@ -117,7 +120,10 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
             while (resultSet.next()) {
                 HashMap<String, Object> columnMap = new HashMap<>();
                 for (int i = 1; i <= columnCount; i++) {
-                    columnMap.put(metaData.getColumnName(i), resultSet.getString(i));
+                    String columnName = metaData.getColumnName(i);
+                    Object columnValue = BITMAP_COLUMN_NAME.equals(columnName) ?
+                            DorisBitmapUtils.parseBinary(resultSet.getBytes(i)) : resultSet.getString(i);
+                    columnMap.put(columnName, columnValue);
                 }
                 result.add(columnMap);
             }
