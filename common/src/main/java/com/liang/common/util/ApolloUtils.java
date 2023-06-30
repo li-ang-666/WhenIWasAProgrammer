@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @UtilityClass
 @Slf4j
+// https://www.apolloconfig.com/#/zh/README
 public class ApolloUtils {
     private static final Config apollo;
 
@@ -23,7 +24,7 @@ public class ApolloUtils {
             public void onChange(ConfigChangeEvent configChangeEvent) {
                 for (String key : configChangeEvent.changedKeys()) {
                     ConfigChange change = configChangeEvent.getChange(key);
-                    log.info("{} {}, {} -> {}", change.getPropertyName(), change.getChangeType(), change.getOldValue(), change.getNewValue());
+                    log.info("Apollo: {} {}, {} -> {}", change.getPropertyName(), change.getChangeType(), change.getOldValue(), change.getNewValue());
                 }
             }
         });
@@ -35,9 +36,5 @@ public class ApolloUtils {
 
     public static String getOrDefault(String key, String defaultValue) {
         return apollo.getProperty(key, defaultValue);
-    }
-
-    public static void main(String[] args) {
-        apollo.
     }
 }
