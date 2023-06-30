@@ -29,6 +29,15 @@ public class ApolloUtils {
         });
     }
 
+    public static String get(String key) {
+        return apollo.getProperty(key, null);
+    }
+
+    public static String getOrDefault(String key, String defaultValue) {
+        return apollo.getProperty(key, defaultValue);
+    }
+
     public static void main(String[] args) {
+        apollo.
     }
 }
