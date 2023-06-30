@@ -24,10 +24,9 @@ import java.util.concurrent.TimeUnit;
 public class JdbcTemplate extends AbstractCache<Object, String> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 500;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
+    private final static String BITMAP_COLUMN_NAME = "bitmap";
     private final DruidDataSource pool;
     private final Logging logging;
-
-    private final static String BITMAP_COLUMN_NAME = "bitmap";
 
     public JdbcTemplate(String name) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> null);

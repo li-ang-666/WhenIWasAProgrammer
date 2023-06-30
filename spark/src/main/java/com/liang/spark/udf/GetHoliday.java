@@ -7,6 +7,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class GetHoliday /*extends UDF*/ {
+    public static void main(String[] args) {
+        System.out.println(new GetHoliday().request("2023-05-01"));
+    }
+
     public String evaluate(String dt) {
         if (dt == null || dt.trim().isEmpty())
             return null;
@@ -44,9 +48,5 @@ public class GetHoliday /*extends UDF*/ {
             e.printStackTrace();
         }
         return result;
-    }
-
-    public static void main(String[] args) {
-        System.out.println(new GetHoliday().request("2023-05-01"));
     }
 }
