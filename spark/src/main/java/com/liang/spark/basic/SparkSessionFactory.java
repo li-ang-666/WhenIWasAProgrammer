@@ -20,10 +20,15 @@ public class SparkSessionFactory {
         ConfigUtils.setConfig(config);
     }
 
-    private static SparkSession initSpark() {
-        return SparkSession
+    private static SparkSession initSpark(boolean isLocal) {
+        SparkSession.Builder builder = SparkSession
                 .builder()
-                .config("spark.debug.maxToStringFields", "200")
-                .enableHiveSupport().getOrCreate();
+                .config("spark.debug.maxToStringFields", "200");
+        if (isLocal) {
+            builder.master("local[*]");
+        } else {
+            builder.enableHiveSupport();
+        }
+        return builder.getOrCreate();
     }
 }

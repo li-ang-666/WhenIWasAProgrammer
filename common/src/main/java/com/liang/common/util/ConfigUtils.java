@@ -21,7 +21,7 @@ public class ConfigUtils {
     public static Config initConfig(String[] args) throws Exception {
         InputStream resourceStream;
         if (args.length == 0) {
-            throw new RuntimeException("main(args) 没有传递 config 文件, program exit ...");
+            log.warn("main(args) 没有传递 config 文件");
         }
         String fileName = args[0];
         log.info("main(args) 传递 config 文件: {}", fileName);
