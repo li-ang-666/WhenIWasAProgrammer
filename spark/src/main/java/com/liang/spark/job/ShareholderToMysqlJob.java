@@ -31,7 +31,7 @@ public class ShareholderToMysqlJob {
         }
 
         spark.sql(String.format("select * from %s where pt = '20230702'  ", source))
-                .repartition(600)
+                .repartition(1200)
                 .foreachPartition(new Sink(ConfigUtils.getConfig(), sink));
     }
 
@@ -48,7 +48,7 @@ public class ShareholderToMysqlJob {
         public void call(Iterator<Row> t) throws Exception {
             ConfigUtils.setConfig(config);
             JdbcTemplate jdbcTemplate = new JdbcTemplate("sink");
-            jdbcTemplate.enableCache(1000 * 5, 512);
+            jdbcTemplate.enableCache(1000 * 10, 1024);
             while (t.hasNext()) {
                 Row row = t.next();
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(row.json());
