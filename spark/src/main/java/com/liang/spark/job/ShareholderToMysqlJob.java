@@ -30,7 +30,7 @@ public class ShareholderToMysqlJob {
             throw new RuntimeException();
         }
 
-        spark.sql(String.format("select * from %s where pt = '20230702'  ", source))
+        spark.sql(String.format("select * from %s where pt = '20230702' ", source))
                 .repartition(1200)
                 .foreachPartition(new Sink(ConfigUtils.getConfig(), sink));
     }
