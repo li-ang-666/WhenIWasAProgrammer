@@ -53,7 +53,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
             }
             statement.executeBatch();
             connection.commit();
-            logging.afterExecute("updateBatch", sqls);
+            logging.afterExecute("updateBatch", sqls.size() + "条");
         } catch (Exception e) {
             logging.ifError("updateBatch", sqls, e);
             for (String sql : sqls) {

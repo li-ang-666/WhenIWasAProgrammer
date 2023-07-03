@@ -13,8 +13,9 @@ import org.apache.spark.sql.SparkSession;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-public class shareholderToMysqlJob {
+public class ShareholderToMysqlJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         String arg = args[1];
@@ -30,7 +31,8 @@ public class shareholderToMysqlJob {
             throw new RuntimeException();
         }
 
-        spark.sql(String.format("select * from %s where pt = '20230207'", source))
+        spark.sql(String.format("select * from %s where pt = '20230207' ", source))
+                .repartition(600)
                 .foreachPartition(new Sink(ConfigUtils.getConfig(), sink));
     }
 
@@ -56,6 +58,7 @@ public class shareholderToMysqlJob {
                 String sql = String.format("insert ignore into %s(%s)values(%s)", sink, insert.f0, insert.f1);
                 jdbcTemplate.update(sql);
             }
+            TimeUnit.SECONDS.sleep(10);
         }
     }
 }
