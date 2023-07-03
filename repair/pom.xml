@@ -11,6 +11,12 @@
 
     <artifactId>repair</artifactId>
     <dependencies>
+        <dependency>
+            <groupId>org.apache.calcite</groupId>
+            <artifactId>calcite-core</artifactId>
+            <version>1.28.0</version>
+        </dependency>
+
         <!--common-->
         <dependency>
             <groupId>com.liang</groupId>
