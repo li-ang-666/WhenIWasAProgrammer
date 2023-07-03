@@ -46,7 +46,7 @@ public class shareholderToMysqlJob {
         @Override
         public void call(Iterator<Row> t) throws Exception {
             ConfigUtils.setConfig(config);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(sink);
+            JdbcTemplate jdbcTemplate = new JdbcTemplate("sink");
             jdbcTemplate.enableCache(1000 * 5, 1024);
             while (t.hasNext()) {
                 Row row = t.next();
