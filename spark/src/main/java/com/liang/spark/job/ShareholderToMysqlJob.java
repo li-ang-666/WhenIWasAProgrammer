@@ -31,7 +31,7 @@ public class ShareholderToMysqlJob {
             throw new RuntimeException();
         }
 
-        spark.sql(String.format("select * from %s where pt = '20230207' ", source))
+        spark.sql(String.format("select * from %s where pt = '20230702' limit 100000 ", source))
                 .repartition(600)
                 .foreachPartition(new Sink(ConfigUtils.getConfig(), sink));
     }
@@ -54,11 +54,12 @@ public class ShareholderToMysqlJob {
                 Row row = t.next();
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(row.json());
                 columnMap.remove("id");
+                columnMap.remove("pt");
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
                 String sql = String.format("insert ignore into %s(%s)values(%s)", sink, insert.f0, insert.f1);
                 jdbcTemplate.update(sql);
             }
-            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(7);
         }
     }
 }

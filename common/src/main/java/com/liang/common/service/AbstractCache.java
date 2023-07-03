@@ -90,6 +90,21 @@ public abstract class AbstractCache<K, V> {
         }
     }
 
+    public final void flush() {
+        if (cache.isEmpty()) {
+            return;
+        }
+        synchronized (cache) {
+            if (cache.isEmpty()) {
+                return;
+            }
+            for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
+                updateImmediately(entry.getKey(), entry.getValue());
+            }
+            cache.clear();
+        }
+    }
+
     protected abstract void updateImmediately(K key, List<V> values);
 
     @FunctionalInterface
