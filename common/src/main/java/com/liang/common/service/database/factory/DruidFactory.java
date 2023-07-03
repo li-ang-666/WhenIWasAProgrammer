@@ -30,7 +30,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&characterEncoding=UTF-8" +
                 "&characterSetResults=UTF-8" +
                 "&socketTimeout=30000" +
-                "&connectTimeout=5000" +
+                "&connectTimeout=30000" +
                 //useSSL
                 "&useSSL=false" +
                 //连接策略
