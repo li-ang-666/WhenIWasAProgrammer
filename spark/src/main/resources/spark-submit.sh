@@ -21,4 +21,4 @@ nohup spark-submit \
   --conf spark.yarn.maxAppAttempts=1 \
   --conf spark.sql.shuffle.partitions=1200 \
   --conf spark.shuffle.io.maxRetries=10 \
-  ./spark-1.0-jar-with-dependencies.jar config.yml bid_obs_tmp >log 2>&1 &
+  ./spark-1.0-jar-with-dependencies.jar config.yml >log 2>&1 &
