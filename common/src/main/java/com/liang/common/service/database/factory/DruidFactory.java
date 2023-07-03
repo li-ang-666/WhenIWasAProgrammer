@@ -29,11 +29,11 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&useUnicode=true" +
                 "&characterEncoding=UTF-8" +
                 "&characterSetResults=UTF-8" +
-                "&socketTimeout=30000" +
-                "&connectTimeout=30000" +
                 //useSSL
                 "&useSSL=false" +
                 //连接策略
+                "&socketTimeout=30000" +
+                "&connectTimeout=30000" +
                 "&autoReconnect=true" +
                 "&maxReconnects=3" +
                 "&failOverReadOnly=false" +
