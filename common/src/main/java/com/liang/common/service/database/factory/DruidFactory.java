@@ -83,5 +83,6 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setPoolPreparedStatements(true);
         druidDataSource.setMaxOpenPreparedStatements(100);
         druidDataSource.setUsePingMethod(false);
+        druidDataSource.setAsyncInit(true);
     }
 }
