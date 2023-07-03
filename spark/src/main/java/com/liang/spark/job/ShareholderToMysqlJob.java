@@ -13,7 +13,6 @@ import org.apache.spark.sql.SparkSession;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class ShareholderToMysqlJob {
     public static void main(String[] args) throws Exception {
@@ -31,7 +30,7 @@ public class ShareholderToMysqlJob {
             throw new RuntimeException();
         }
 
-        spark.sql(String.format("select * from %s where pt = '20230702' limit 100000 ", source))
+        spark.sql(String.format("select * from %s where pt = '20230702'  ", source))
                 .repartition(600)
                 .foreachPartition(new Sink(ConfigUtils.getConfig(), sink));
     }
@@ -49,7 +48,7 @@ public class ShareholderToMysqlJob {
         public void call(Iterator<Row> t) throws Exception {
             ConfigUtils.setConfig(config);
             JdbcTemplate jdbcTemplate = new JdbcTemplate("sink");
-            jdbcTemplate.enableCache(1000 * 5, 1024);
+            jdbcTemplate.enableCache(1000 * 5, 512);
             while (t.hasNext()) {
                 Row row = t.next();
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(row.json());
@@ -59,7 +58,7 @@ public class ShareholderToMysqlJob {
                 String sql = String.format("insert ignore into %s(%s)values(%s)", sink, insert.f0, insert.f1);
                 jdbcTemplate.update(sql);
             }
-            TimeUnit.SECONDS.sleep(7);
+            jdbcTemplate.flush();
         }
     }
 }
