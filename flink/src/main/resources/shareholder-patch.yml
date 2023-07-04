@@ -1,8 +1,8 @@
 # sourceType: Kafka or Repair
 flinkConfig:
   sourceType: Kafka
-  sourceParallel: 2
-  otherParallel: 2
+  sourceParallel: 5
+  otherParallel: 10
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
