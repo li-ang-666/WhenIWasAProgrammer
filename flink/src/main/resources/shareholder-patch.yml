@@ -1,0 +1,25 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 1
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  #股权冻结
+  - taskId: "111"
+    sourceName: "bdpEquity"
+    tableName: "entity_beneficiary_details"
+    columns: "*"
+    where: "id=733327143"
+    scanMode: Direct
+dbConfigs:
+  bdpEquity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "39398.proto.judicial_risk.restrict_consumption_split_index"
+    groupId: "leon"
+    startFrom: "1"
