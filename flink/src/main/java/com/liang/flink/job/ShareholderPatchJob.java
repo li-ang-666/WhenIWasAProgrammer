@@ -5,10 +5,12 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -49,27 +51,29 @@ public class ShareholderPatchJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
-            //log.info("binlog: {}", singleCanalBinlog);
             if (CanalEntry.EventType.DELETE == singleCanalBinlog.getEventType()) {
                 return;
             }
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String entityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
-            String bnfIf = String.valueOf(columnMap.get("tyc_unique_entity_id_beneficiary"));
             String beneficiaryName = String.valueOf(columnMap.get("entity_name_beneficiary"));
+            String id = String.valueOf(columnMap.get("id"));
+            String entityName = String.valueOf(columnMap.get("entity_name_valid"));
             if ("null".equals(entityId) || "".equals(entityId)) {
                 String repairEntityId = getRepairEntityId(columnMap);
-                String id = String.valueOf(columnMap.get("id"));
-                String sql = String.format("update entity_beneficiary_details set tyc_unique_entity_id = '%s' where id = %s and tyc_unique_entity_id = '%s' and entity_name_beneficiary = '%s'", repairEntityId, id, entityId, bnfIf);
-                //log.info("sql: {}", sql);
-                jdbcTemplate.update(sql);
+                columnMap.put("tyc_unique_entity_id", repairEntityId);
+                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+                String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
+                String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
+                jdbcTemplate.update(deleteSql, replaceSql);
             } else if ("null".equals(beneficiaryName) || "".equals(beneficiaryName)) {
                 String repairEntityName = getRepairEntityName(columnMap);
-                String id = String.valueOf(columnMap.get("id"));
-                String entityName = String.valueOf(columnMap.get("entity_name_valid"));
-                String sql = String.format("update entity_beneficiary_details set entity_name_valid = '%s', entity_name_beneficiary = '%s' where id = %s and tyc_unique_entity_id = '%s' and entity_name_beneficiary = '%s'", repairEntityName, entityName, id, entityId, bnfIf);
-                //log.info("sql: {}", sql);
-                jdbcTemplate.update(sql);
+                columnMap.put("entity_name_valid", repairEntityName);
+                columnMap.put("entity_name_beneficiary", entityName);
+                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+                String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
+                String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
+                jdbcTemplate.update(deleteSql, replaceSql);
             }
         }
 
