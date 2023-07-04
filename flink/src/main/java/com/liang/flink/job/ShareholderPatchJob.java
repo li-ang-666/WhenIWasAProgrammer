@@ -10,6 +10,7 @@ import com.liang.flink.basic.StreamEnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -38,6 +39,7 @@ public class ShareholderPatchJob {
     public static final class Sink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private JdbcTemplate jdbcTemplate;
+        private JdbcTemplate jdbcTemplateShareholder;
 
         public Sink(Config config) {
             this.config = config;
@@ -47,6 +49,7 @@ public class ShareholderPatchJob {
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             jdbcTemplate = new JdbcTemplate("bdpEquity");
+            jdbcTemplateShareholder = new JdbcTemplate("shareholder");
         }
 
         @Override
@@ -55,21 +58,52 @@ public class ShareholderPatchJob {
                 return;
             }
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String entityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
-            String beneficiaryName = String.valueOf(columnMap.get("entity_name_beneficiary"));
             String id = String.valueOf(columnMap.get("id"));
-            String entityName = String.valueOf(columnMap.get("entity_name_valid"));
-            if ("null".equals(entityId) || "".equals(entityId)) {
+            String companyId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
+            String shareholderId = String.valueOf(columnMap.get("tyc_unique_entity_id_beneficiary"));
+            String companyName = String.valueOf(columnMap.get("entity_name_valid"));
+            String shareholderName = String.valueOf(columnMap.get("entity_name_beneficiary"));
+            if (!StringUtils.isNumeric(companyId)) {
+                companyId = getRepairEntityId(columnMap);
+                columnMap.put("tyc_unique_entity_id", companyId);
+            }
+            // 检查 company_id 是不是有意义
+            String checkInvestedCompanyNameSql = String.format("select company_name_invested from investment_relation where company_id_invested = %s -- and update_time >= '2023-01-01'", companyId);
+            String checkInvestedCompanyName = jdbcTemplateShareholder.queryForObject(checkInvestedCompanyNameSql, rs -> rs.getString(1));
+            if (checkInvestedCompanyName == null) {
+                String deleteSql = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s'", companyId);
+                jdbcTemplate.update(deleteSql);
+                return;
+            }
+            // 检查 shareholder 是不是有意义
+            String checkShareholderSql = String.format("select 1 from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", shareholderId);
+            String checkedShareholderName = jdbcTemplate.queryForObject(checkShareholderSql, rs -> rs.getString(1));
+            if (checkedShareholderName == null) {
+                String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
+                jdbcTemplate.update(deleteSql);
+                return;
+            }
+            //两个都有意义,更新两个的名字
+            columnMap.put("entity_name_valid", checkInvestedCompanyName);
+            columnMap.put("entity_name_beneficiary", checkedShareholderName);
+            String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
+            jdbcTemplate.update(replaceSql);
+
+            if ("null".equals(companyId) || "".equals(companyId)) {
                 String repairEntityId = getRepairEntityId(columnMap);
                 columnMap.put("tyc_unique_entity_id", repairEntityId);
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
                 String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
                 String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
                 jdbcTemplate.update(deleteSql, replaceSql);
-            } else if ("null".equals(beneficiaryName) || "".equals(beneficiaryName)) {
+            } else if ("null".equals(shareholderName) || "".equals(shareholderName)) {
                 String repairEntityName = getRepairEntityName(columnMap);
+                if (repairEntityName.equals(companyName)) {
+                    log.error("{} , {}", companyName, singleCanalBinlog);
+                    //System.exit(0);
+                }
                 columnMap.put("entity_name_valid", repairEntityName);
-                columnMap.put("entity_name_beneficiary", entityName);
+                columnMap.put("entity_name_beneficiary", companyName);
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
                 String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
                 String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
