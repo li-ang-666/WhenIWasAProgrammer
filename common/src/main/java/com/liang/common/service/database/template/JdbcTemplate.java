@@ -6,6 +6,7 @@ import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.util.DorisBitmapUtils;
+import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
 
     @Override
     @Synchronized
+    @SneakyThrows
     protected void updateImmediately(Object ignore, List<String> sqls) {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
@@ -57,17 +59,20 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
         } catch (Exception e) {
             logging.ifError("updateBatch", sqls, e);
             for (String sql : sqls) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(50);
-                } catch (Exception ignored) {
-                }
-                logging.beforeExecute();
-                try (DruidPooledConnection connection = pool.getConnection()) {
-                    connection.setAutoCommit(true);
-                    connection.prepareStatement(sql).executeUpdate();
-                    logging.afterExecute("updateSingle", sql);
-                } catch (Exception ee) {
-                    logging.ifError("updateSingle", sql, ee);
+                TimeUnit.MILLISECONDS.sleep(50);
+                int i = 3;
+                while (i > 0) {
+                    logging.beforeExecute();
+                    try (DruidPooledConnection connection = pool.getConnection()) {
+                        connection.setAutoCommit(true);
+                        connection.prepareStatement(sql).executeUpdate();
+                        logging.afterExecute("updateSingle", sql);
+                        i = 0;
+                    } catch (Exception ee) {
+                        logging.ifError("updateSingle", sql, ee);
+                        i--;
+                        TimeUnit.MILLISECONDS.sleep(50);
+                    }
                 }
             }
         }
