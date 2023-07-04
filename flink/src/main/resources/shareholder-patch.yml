@@ -11,7 +11,7 @@ repairTasks:
     sourceName: "bdpEquity"
     tableName: "entity_beneficiary_details"
     columns: "*"
-    where: "id=733327143"
+    where: "tyc_unique_entity_id in ('2348986410', '3210886907')"
     scanMode: Direct
 dbConfigs:
   bdpEquity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }

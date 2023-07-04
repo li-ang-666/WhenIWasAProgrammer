@@ -24,9 +24,12 @@ public class ShareholderPatchJob {
             args = new String[]{"shareholder-patch.yml"};
         }
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
+        Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
-        sourceStream.addSink(new Sink(ConfigUtils.getConfig()));
-        env.execute();
+        sourceStream.rebalance()
+                .addSink(new Sink(config))
+                .setParallelism(config.getFlinkConfig().getOtherParallel());
+        env.execute("ShareholderPatchJob");
     }
 
     @Slf4j
@@ -46,7 +49,7 @@ public class ShareholderPatchJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
-            log.info("binlog: {}",singleCanalBinlog);
+            //log.info("binlog: {}", singleCanalBinlog);
             if (CanalEntry.EventType.DELETE == singleCanalBinlog.getEventType()) {
                 return;
             }
@@ -57,13 +60,15 @@ public class ShareholderPatchJob {
                 String repairEntityId = getRepairEntityId(columnMap);
                 String id = String.valueOf(columnMap.get("id"));
                 String sql = String.format("update entity_beneficiary_details set tyc_unique_entity_id = '%s' where id = %s", repairEntityId, id);
-                log.info("sql: {}", sql);
+                //log.info("sql: {}", sql);
+                jdbcTemplate.update(sql);
             } else if ("null".equals(beneficiaryName) || "".equals(beneficiaryName)) {
                 String repairEntityName = getRepairEntityName(columnMap);
                 String id = String.valueOf(columnMap.get("id"));
                 String entityName = String.valueOf(columnMap.get("entity_name_valid"));
                 String sql = String.format("update entity_beneficiary_details set entity_name_valid = '%s', entity_name_beneficiary = '%s' where id = %s", repairEntityName, entityName, id);
-                log.info("sql: {}", sql);
+                //log.info("sql: {}", sql);
+                jdbcTemplate.update(sql);
             }
         }
 
