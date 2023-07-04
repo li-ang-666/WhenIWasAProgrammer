@@ -75,8 +75,14 @@ public class ShareholderPatchJob {
             resultMap.put("tyc_unique_entity_id", companyId);
             resultMap.put("tyc_unique_entity_id_beneficiary", shareholderId);
             String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", companyId), rs -> rs.getString(1));
+            if (companyName == null) {
+                companyName = "";
+            }
             resultMap.put("entity_name_valid", companyName);
             String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", shareholderId), rs -> rs.getString(1));
+            if (shareholderName == null) {
+                shareholderName = "";
+            }
             resultMap.put("entity_name_beneficiary", shareholderName);
             BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
             resultMap.put("equity_relation_path_cnt", pathNode.getCount());
@@ -88,7 +94,9 @@ public class ShareholderPatchJob {
             String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
-            jdbcTemplate.update(deleteSql1, deleteSql2, replaceSql);
+            jdbcTemplate.update(deleteSql1);
+            jdbcTemplate.update(deleteSql2);
+            jdbcTemplate.update(replaceSql);
         }
     }
 }

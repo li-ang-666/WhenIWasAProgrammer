@@ -22,5 +22,5 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "e1d4c.proto.prism_shareholder_path.ratio_path_company"
-    groupId: "leon"
+    groupId: "shareholder-patch-job"
     startFrom: "2"
