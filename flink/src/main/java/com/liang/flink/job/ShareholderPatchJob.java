@@ -86,29 +86,9 @@ public class ShareholderPatchJob {
             //两个都有意义,更新两个的名字
             columnMap.put("entity_name_valid", checkInvestedCompanyName);
             columnMap.put("entity_name_beneficiary", checkedShareholderName);
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
             jdbcTemplate.update(replaceSql);
-
-            if ("null".equals(companyId) || "".equals(companyId)) {
-                String repairEntityId = getRepairEntityId(columnMap);
-                columnMap.put("tyc_unique_entity_id", repairEntityId);
-                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-                String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
-                String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
-                jdbcTemplate.update(deleteSql, replaceSql);
-            } else if ("null".equals(shareholderName) || "".equals(shareholderName)) {
-                String repairEntityName = getRepairEntityName(columnMap);
-                if (repairEntityName.equals(companyName)) {
-                    log.error("{} , {}", companyName, singleCanalBinlog);
-                    //System.exit(0);
-                }
-                columnMap.put("entity_name_valid", repairEntityName);
-                columnMap.put("entity_name_beneficiary", companyName);
-                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-                String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
-                String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
-                jdbcTemplate.update(deleteSql, replaceSql);
-            }
         }
 
         @SuppressWarnings("unchecked")
@@ -121,22 +101,6 @@ public class ShareholderPatchJob {
                     if (properties.containsKey("name") && properties.containsKey("company_id")
                             && String.valueOf(properties.get("name")).equals(entityName)) {
                         return String.valueOf(properties.get("company_id"));
-                    }
-                }
-            }
-            return null;
-        }
-
-        @SuppressWarnings("unchecked")
-        private String getRepairEntityName(Map<String, Object> columnMap) {
-            String entityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
-            List<Object> detail = JsonUtils.parseJsonArr(String.valueOf(columnMap.get("beneficiary_equity_relation_path_detail")));
-            for (Object obj : detail) {
-                for (Object o : (List<Object>) obj) {
-                    Map<String, Object> properties = (Map<String, Object>) ((Map<String, Object>) o).get("properties");
-                    if (properties.containsKey("name") && properties.containsKey("company_id")
-                            && String.valueOf(properties.get("company_id")).equals(entityId)) {
-                        return String.valueOf(properties.get("name"));
                     }
                 }
             }
