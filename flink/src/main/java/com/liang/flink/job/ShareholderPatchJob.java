@@ -55,21 +55,24 @@ public class ShareholderPatchJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String id = String.valueOf(columnMap.get("id"));
-            String companyId = String.valueOf(columnMap.get("company_id"));
-            String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-            String investmentRatioTotal = String.valueOf(columnMap.get("investment_ratio_total"));
             String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
-            String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
-            String isDeleted = String.valueOf(columnMap.get("is_deleted"));
             if (!"1".equals(isUltimate)) {
                 return;
             }
+            String isDeleted = String.valueOf(columnMap.get("is_deleted"));
             CanalEntry.EventType eventType = singleCanalBinlog.getEventType();
+            String id = String.valueOf(columnMap.get("id"));
+            String companyId = String.valueOf(columnMap.get("company_id"));
+            String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
+            String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
+            String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
+            jdbcTemplate.update(deleteSql1);
+            jdbcTemplate.update(deleteSql2);
             if (DELETE == eventType || "1".equals(isDeleted)) {
-                jdbcTemplate.update("delete from entity_beneficiary_details where id = " + id);
                 return;
             }
+            String investmentRatioTotal = String.valueOf(columnMap.get("investment_ratio_total"));
+            String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
             HashMap<String, Object> resultMap = new HashMap<>();
             resultMap.put("id", id);
             resultMap.put("tyc_unique_entity_id", companyId);
@@ -90,12 +93,8 @@ public class ShareholderPatchJob {
             resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
             resultMap.put("beneficiary_validation_time_year", 2023);
             resultMap.put("entity_type_id", 1);
-            String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
-            String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
-            jdbcTemplate.update(deleteSql1);
-            jdbcTemplate.update(deleteSql2);
             jdbcTemplate.update(replaceSql);
         }
     }
