@@ -61,8 +61,6 @@ public class ShareholderPatchJob {
             String id = String.valueOf(columnMap.get("id"));
             String companyId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
             String shareholderId = String.valueOf(columnMap.get("tyc_unique_entity_id_beneficiary"));
-            String companyName = String.valueOf(columnMap.get("entity_name_valid"));
-            String shareholderName = String.valueOf(columnMap.get("entity_name_beneficiary"));
             if (!StringUtils.isNumeric(companyId)) {
                 companyId = getRepairEntityId(columnMap);
                 columnMap.put("tyc_unique_entity_id", companyId);
