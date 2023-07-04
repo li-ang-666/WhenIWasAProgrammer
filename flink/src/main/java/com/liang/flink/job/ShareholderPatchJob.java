@@ -55,18 +55,19 @@ public class ShareholderPatchJob {
             }
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String entityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
+            String bnfIf = String.valueOf(columnMap.get("tyc_unique_entity_id_beneficiary"));
             String beneficiaryName = String.valueOf(columnMap.get("entity_name_beneficiary"));
             if ("null".equals(entityId) || "".equals(entityId)) {
                 String repairEntityId = getRepairEntityId(columnMap);
                 String id = String.valueOf(columnMap.get("id"));
-                String sql = String.format("update entity_beneficiary_details set tyc_unique_entity_id = '%s' where id = %s", repairEntityId, id);
+                String sql = String.format("update entity_beneficiary_details set tyc_unique_entity_id = '%s' where id = %s and tyc_unique_entity_id = '%s' and entity_name_beneficiary = '%s'", repairEntityId, id, entityId, bnfIf);
                 //log.info("sql: {}", sql);
                 jdbcTemplate.update(sql);
             } else if ("null".equals(beneficiaryName) || "".equals(beneficiaryName)) {
                 String repairEntityName = getRepairEntityName(columnMap);
                 String id = String.valueOf(columnMap.get("id"));
                 String entityName = String.valueOf(columnMap.get("entity_name_valid"));
-                String sql = String.format("update entity_beneficiary_details set entity_name_valid = '%s', entity_name_beneficiary = '%s' where id = %s", repairEntityName, entityName, id);
+                String sql = String.format("update entity_beneficiary_details set entity_name_valid = '%s', entity_name_beneficiary = '%s' where id = %s and tyc_unique_entity_id = '%s' and entity_name_beneficiary = '%s'", repairEntityName, entityName, id, entityId, bnfIf);
                 //log.info("sql: {}", sql);
                 jdbcTemplate.update(sql);
             }
