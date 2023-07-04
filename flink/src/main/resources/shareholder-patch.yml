@@ -6,13 +6,12 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  #股权冻结
   - taskId: "111"
-    sourceName: "bdpEquity"
-    tableName: "entity_beneficiary_details"
+    sourceName: "shareholder"
+    tableName: "ratio_path_company"
     columns: "*"
-    where: "id = 735452964"
-    scanMode: Direct
+    where: "1=1"
+    scanMode: TumblingWindow
 dbConfigs:
   bdpEquity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
   shareholder: { host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
