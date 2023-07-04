@@ -11,6 +11,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -29,7 +30,13 @@ public class ShareholderPatchJob {
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
-        sourceStream.rebalance()
+        sourceStream
+                .keyBy(new KeySelector<SingleCanalBinlog, Object>() {
+                    @Override
+                    public Object getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
+                        return singleCanalBinlog.getColumnMap().get("beneficiary_equity_relation_path_detail");
+                    }
+                })
                 .addSink(new Sink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("ShareholderPatchJob");
@@ -69,7 +76,8 @@ public class ShareholderPatchJob {
             String checkInvestedCompanyNameSql = String.format("select company_name_invested from investment_relation where company_id_invested = %s -- and update_time >= '2023-01-01'", companyId);
             String checkInvestedCompanyName = jdbcTemplateShareholder.queryForObject(checkInvestedCompanyNameSql, rs -> rs.getString(1));
             if (checkInvestedCompanyName == null) {
-                String deleteSql = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s'", companyId);
+                //String deleteSql = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s'", companyId);
+                String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
                 jdbcTemplate.update(deleteSql);
                 return;
             }
