@@ -74,7 +74,7 @@ public class ShareholderPatchJob {
                 return;
             }
             // 检查 shareholder 是不是有意义
-            String checkShareholderSql = String.format("select 1 from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", shareholderId);
+            String checkShareholderSql = String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", shareholderId);
             String checkedShareholderName = jdbcTemplate.queryForObject(checkShareholderSql, rs -> rs.getString(1));
             if (checkedShareholderName == null) {
                 String deleteSql = String.format("delete from entity_beneficiary_details where id = %s", id);
