@@ -1,19 +1,15 @@
 package com.liang.flink.project.dim.count.dao;
 
-import com.liang.common.dto.HbaseOneRow;
-import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.service.data.update.AbstractDataUpdate;
+import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.util.ApolloUtils;
+import com.liang.common.util.SqlUtils;
 
-import java.util.List;
+public class EntityBeneficiaryDetailsDao {
+    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("bdpEquity");
 
-public class EntityBeneficiaryDetailsDao extends AbstractDataUpdate<HbaseOneRow> {
-    @Override
-    public List<HbaseOneRow> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        return super.updateWithReturn(singleCanalBinlog);
-    }
-
-    @Override
-    public List<HbaseOneRow> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        return updateWithReturn(singleCanalBinlog);
+    public String queryCount(String shareholderId) {
+        String sql = ApolloUtils.get("EntityBeneficiaryDetailsCount");
+        sql = String.format(sql, SqlUtils.formatValue(shareholderId));
+        return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
     }
 }
