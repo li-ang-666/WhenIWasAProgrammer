@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SparkTest {
     public static void main(String[] args) throws Exception {
         SparkTester.test(spark -> {
-            SparkTester.getCSVTable(spark, "tb.csv")
-                    .show(false);
+            SparkTester.getCSVTable(spark, "tb.csv").createOrReplaceTempView("t");
+            spark.sql("explain select distinct c1 from t").show(false);
         });
     }
 }
