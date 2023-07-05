@@ -7,9 +7,9 @@ flinkConfig:
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "judicialRisk"
-    tableName: "judicial_assistance_index"
-    columns: "distinct company_id"
+    sourceName: "bdpEquity"
+    tableName: "entity_beneficiary_details"
+    columns: "*"
     where: "1=1"
     scanMode: Direct
 
