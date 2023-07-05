@@ -38,7 +38,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void initializeState(FunctionInitializationContext context) throws Exception {
         ConfigUtils.setConfig(config);
         int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
-        task = TaskGenerator.generateFrom(config.getRepairTasks().get(indexOfThisSubtask));
+        SubRepairTask initTask = TaskGenerator.generateFrom(config.getRepairTasks().get(indexOfThisSubtask));
+        task = initTask;
         taskState = context.getOperatorStateStore().getUnionListState(new ListStateDescriptor<>("taskState", TypeInformation.of(
                 new TypeHint<SubRepairTask>() {
                 })));
@@ -51,7 +52,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             }
             task = stateTask;
             // 程序重启, targetId用最新的
-            task.setTargetId(stateTask.getTargetId());
+            task.setTargetId(initTask.getTargetId());
             log.warn("task-{} restored from taskState, currentId: {}, targetId: {}, queueSize: {}",
                     task.getTaskId(), task.getCurrentId(), task.getTargetId(), task.getPendingQueue().size());
             return;

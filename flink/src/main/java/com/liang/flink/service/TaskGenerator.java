@@ -11,7 +11,7 @@ public class TaskGenerator {
     private TaskGenerator() {
     }
 
-    public static SubRepairTask generateFrom(RepairTask task) {
+    public static SubRepairTask generateFrom(RepairTask task) throws Exception {
         if (task.getScanMode() == RepairTask.ScanMode.Direct) {
             SubRepairTask subTask = new SubRepairTask(task);
             subTask.setCurrentId(0);
@@ -22,8 +22,8 @@ public class TaskGenerator {
         Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(task.getSourceName())
                 .queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
         if (minAndMaxId == null || minAndMaxId.f0 == null || minAndMaxId.f1 == null) {
-            log.error("task: {} has none or error data in source", task);
-            return null;
+            log.error();
+            throw new RuntimeException(String.format("task: %s error while query min and max id", task))
         }
         long minId = minAndMaxId.f0;
         long maxId = minAndMaxId.f1;
