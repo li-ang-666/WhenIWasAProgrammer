@@ -61,7 +61,7 @@ public class ShareholderPatchJob {
             if ("ratio_path_company".equals(tableName)) {
                 parseRatioPathCompany(singleCanalBinlog);
             } else if ("tyc_entity_main_reference".equals(tableName)) {
-
+                parseEntity(singleCanalBinlog);
             }
         }
 
