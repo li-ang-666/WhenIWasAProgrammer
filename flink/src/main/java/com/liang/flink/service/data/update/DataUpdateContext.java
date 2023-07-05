@@ -24,7 +24,7 @@ public class DataUpdateContext<OUT> {
         return this;
     }
 
-    public AbstractDataUpdate<OUT> getClass(String tableName) {
+    AbstractDataUpdate<OUT> getClass(String tableName) {
         return map.get(tableName);
     }
 }
