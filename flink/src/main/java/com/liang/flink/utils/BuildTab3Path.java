@@ -11,15 +11,6 @@ import java.io.Serializable;
 
 public class BuildTab3Path implements Serializable {
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class PathNode implements Serializable {
-        int count;
-        String pathStr;
-    }
-
-
     /**
      * 实现把字符串转为比例
      *
@@ -30,7 +21,6 @@ public class BuildTab3Path implements Serializable {
         double result = Double.parseDouble(formattedPercentage) / 100.0;
         return result;
     }
-
 
     /**
      * 构造人的node-人只出现在首个
@@ -67,7 +57,6 @@ public class BuildTab3Path implements Serializable {
         return pointNode;
     }
 
-
     /**
      * 构造新的边
      *
@@ -85,7 +74,6 @@ public class BuildTab3Path implements Serializable {
         edge.put("properties", properties);
         return edge;
     }
-
 
     public static PathNode buildTab3PathSafe(String shareholderId, String prePath) {
         try {
@@ -163,5 +151,13 @@ public class BuildTab3Path implements Serializable {
         pathNode.setPathStr(resArr.toJSONString());
         pathNode.setCount(resArr.size());
         return pathNode;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PathNode implements Serializable {
+        int count;
+        String pathStr;
     }
 }
