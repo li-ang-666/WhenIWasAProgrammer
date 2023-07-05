@@ -66,10 +66,10 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
                     try (DruidPooledConnection connection = pool.getConnection()) {
                         connection.setAutoCommit(true);
                         connection.prepareStatement(sql).executeUpdate();
-                        logging.afterExecute("updateSingle", sql);
+                        logging.afterExecute("updateSingle", "/* 第" + (4 - i) + "次重试 */" + sql);
                         i = 0;
                     } catch (Exception ee) {
-                        logging.ifError("updateSingle", sql, ee);
+                        logging.ifError("updateSingle", "/* 第" + (4 - i) + "次重试 */" + sql, ee);
                         i--;
                         TimeUnit.MILLISECONDS.sleep(50);
                     }
