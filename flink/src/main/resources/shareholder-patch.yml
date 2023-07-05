@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "shareholder"
     tableName: "ratio_path_company"
     columns: "*"
-    where: "company_id = 490952627"
+    where: "company_id = 5430287993"
     scanMode: Direct
 dbConfigs:
   bdpEquity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }

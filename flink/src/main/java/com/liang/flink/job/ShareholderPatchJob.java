@@ -11,6 +11,7 @@ import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.utils.BuildTab3Path;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -32,7 +33,19 @@ public class ShareholderPatchJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
         sourceStream
-                .rebalance()
+                .keyBy(new KeySelector<SingleCanalBinlog, String>() {
+                    @Override
+                    public String getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
+                        String tableName = singleCanalBinlog.getTable();
+                        Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+                        if ("ratio_path_company".equals(tableName)) {
+                            return String.valueOf(columnMap.get("company_id")) + columnMap.get("shareholder_id");
+                        } else if ("tyc_entity_main_reference".equals(tableName)) {
+                            return String.valueOf(columnMap.get("tyc_unique_entity_id"));
+                        }
+                        return "";
+                    }
+                })
                 .addSink(new Sink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("ShareholderPatchJob");
