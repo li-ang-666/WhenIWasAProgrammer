@@ -20,9 +20,9 @@ public class EntityBeneficiaryDetails extends AbstractDataUpdate<HbaseOneRow> {
         String count = dao.queryCount(shareholderId);
         HbaseSchema hbaseSchema = HbaseSchema.builder()
                 .namespace("prism_c")
-                .tableName("company_all_count")
-                .columnFamily("count")
-                .rowKeyReverse(true)
+                .tableName("human_all_count")
+                .columnFamily("cf")
+                .rowKeyReverse(false)
                 .build();
         HbaseOneRow row = new HbaseOneRow(hbaseSchema, shareholderId)
                 .put("entity_beneficiary_details_count", count);

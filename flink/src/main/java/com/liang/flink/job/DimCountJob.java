@@ -20,6 +20,9 @@ import java.util.List;
 @Slf4j
 public class DimCountJob {
     public static void main(String[] args) throws Exception {
+        if (args.length == 0) {
+            args = new String[]{"dim-count.yml"};
+        }
         StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
         Config config = ConfigUtils.getConfig();

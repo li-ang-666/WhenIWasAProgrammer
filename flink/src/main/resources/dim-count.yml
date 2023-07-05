@@ -11,14 +11,14 @@ repairTasks:
     sourceName: "bdpEquity"
     tableName: "entity_beneficiary_details"
     columns: "*"
-    where: "1=1"
+    where: "tyc_unique_entity_id_beneficiary='V0M9EM200ND6FPNUP'"
     scanMode: Direct
   # 实际控制人
   - taskId: "222"
     sourceName: "bdpEquity"
     tableName: "entity_controller_details"
     columns: "*"
-    where: "1=1"
+    where: "tyc_unique_entity_id='V0M9EM200ND6FPNUP'"
     scanMode: Direct
 
 dbConfigs:
