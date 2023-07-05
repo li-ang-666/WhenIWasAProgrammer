@@ -118,8 +118,14 @@ public class ShareholderPatchJob {
             String entityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
             String entityName = String.valueOf(columnMap.get("entity_name_valid"));
             if (StringUtils.isNotBlank(entityName)) {
-                String sql = String.format("update ratio_path_company set update_time = now() where company_id = '%s' or shareholder_id = '%s'", entityId, entityId);
+                String sql;
+                if (StringUtils.isNumeric(entityId)) {
+                    sql = String.format("update ratio_path_company set update_time = now() where company_id = %s", entityId, entityId);
+                } else {
+                    sql = String.format("update ratio_path_company set update_time = now() where shareholder_id = '%s'", entityId, entityId);
+                }
                 jdbcTemplateShareholder.update(sql);
+
             }
         }
     }
