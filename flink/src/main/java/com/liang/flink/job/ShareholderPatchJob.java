@@ -125,7 +125,6 @@ public class ShareholderPatchJob {
                     sql = String.format("update ratio_path_company set update_time = now() where shareholder_id = '%s'", entityId);
                 }
                 jdbcTemplateShareholder.update(sql);
-
             }
         }
     }
