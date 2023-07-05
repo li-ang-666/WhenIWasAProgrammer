@@ -120,9 +120,9 @@ public class ShareholderPatchJob {
             if (StringUtils.isNotBlank(entityName)) {
                 String sql;
                 if (StringUtils.isNumeric(entityId)) {
-                    sql = String.format("update ratio_path_company set update_time = now() where company_id = %s", entityId, entityId);
+                    sql = String.format("update ratio_path_company set update_time = now() where company_id = %s", entityId);
                 } else {
-                    sql = String.format("update ratio_path_company set update_time = now() where shareholder_id = '%s'", entityId, entityId);
+                    sql = String.format("update ratio_path_company set update_time = now() where shareholder_id = '%s'", entityId);
                 }
                 jdbcTemplateShareholder.update(sql);
 
