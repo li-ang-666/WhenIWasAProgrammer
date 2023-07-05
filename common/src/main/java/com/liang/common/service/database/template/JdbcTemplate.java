@@ -62,14 +62,15 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
                 TimeUnit.MILLISECONDS.sleep(50);
                 int i = 3;
                 while (i > 0) {
+                    String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
                     logging.beforeExecute();
                     try (DruidPooledConnection connection = pool.getConnection()) {
                         connection.setAutoCommit(true);
                         connection.prepareStatement(sql).executeUpdate();
-                        logging.afterExecute("updateSingle", "/* 第" + (4 - i) + "次重试 */" + sql);
+                        logging.afterExecute("updateSingle", failedLogPrefix + sql);
                         i = 0;
                     } catch (Exception ee) {
-                        logging.ifError("updateSingle", "/* 第" + (4 - i) + "次重试 */" + sql, ee);
+                        logging.ifError("updateSingle", failedLogPrefix + sql, ee);
                         i--;
                         TimeUnit.MILLISECONDS.sleep(50);
                     }
