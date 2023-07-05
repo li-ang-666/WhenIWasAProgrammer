@@ -6,9 +6,17 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
+  # 受益所有人
   - taskId: "111"
     sourceName: "bdpEquity"
     tableName: "entity_beneficiary_details"
+    columns: "*"
+    where: "1=1"
+    scanMode: Direct
+  # 实际控制人
+  - taskId: "222"
+    sourceName: "bdpEquity"
+    tableName: "entity_controller_details"
     columns: "*"
     where: "1=1"
     scanMode: Direct
