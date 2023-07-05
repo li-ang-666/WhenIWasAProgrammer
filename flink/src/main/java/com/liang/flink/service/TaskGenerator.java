@@ -22,7 +22,6 @@ public class TaskGenerator {
         Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(task.getSourceName())
                 .queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
         if (minAndMaxId == null || minAndMaxId.f0 == null || minAndMaxId.f1 == null) {
-            log.error();
             throw new RuntimeException(String.format("task: %s error while query min and max id", task))
         }
         long minId = minAndMaxId.f0;
