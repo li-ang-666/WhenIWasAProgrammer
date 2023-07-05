@@ -10,6 +10,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.utils.BuildTab3Path;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -41,6 +42,7 @@ public class ShareholderPatchJob {
     public static final class Sink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private JdbcTemplate jdbcTemplate;
+        private JdbcTemplate jdbcTemplateShareholder;
 
         public Sink(Config config) {
             this.config = config;
@@ -50,10 +52,20 @@ public class ShareholderPatchJob {
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             jdbcTemplate = new JdbcTemplate("bdpEquity");
+            jdbcTemplateShareholder = new JdbcTemplate("shareholder");
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+            String tableName = singleCanalBinlog.getTable();
+            if ("ratio_path_company".equals(tableName)) {
+                parseRatioPathCompany(singleCanalBinlog);
+            } else if ("tyc_entity_main_reference".equals(tableName)) {
+
+            }
+        }
+
+        private void parseRatioPathCompany(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
             if (!"1".equals(isUltimate)) {
@@ -96,6 +108,19 @@ public class ShareholderPatchJob {
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
             jdbcTemplate.update(replaceSql);
+        }
+
+        private void parseEntity(SingleCanalBinlog singleCanalBinlog) {
+            if (DELETE == singleCanalBinlog.getEventType()) {
+                return;
+            }
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String entityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
+            String entityName = String.valueOf(columnMap.get("entity_name_valid"));
+            if (StringUtils.isNotBlank(entityName)) {
+                String sql = String.format("update ratio_path_company set update_time = now() where company_id = '%s' or shareholder_id = '%s'", entityId, entityId);
+                jdbcTemplateShareholder.update(sql);
+            }
         }
     }
 }
