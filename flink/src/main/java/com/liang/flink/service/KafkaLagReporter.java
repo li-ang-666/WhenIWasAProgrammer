@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class KafkaLagReporter implements Runnable {
@@ -22,13 +21,11 @@ public class KafkaLagReporter implements Runnable {
 
     private final Map<TopicPartition, Long> offsetMap;
     private final Map<TopicPartition, Long> timeMap;
-    private final AtomicBoolean running;
     private final KafkaConsumer<byte[], byte[]> kafkaConsumer;
 
-    public KafkaLagReporter(Map<TopicPartition, Long> offsetMap, Map<TopicPartition, Long> timeMap, AtomicBoolean running) {
+    public KafkaLagReporter(Map<TopicPartition, Long> offsetMap, Map<TopicPartition, Long> timeMap) {
         this.offsetMap = offsetMap;
         this.timeMap = timeMap;
-        this.running = running;
         kafkaConsumer = new KafkaConsumer<>(new Properties() {{
             setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                     ConfigUtils.getConfig().getKafkaConfigs().get("kafkaSource").getBootstrapServers());
@@ -37,7 +34,7 @@ public class KafkaLagReporter implements Runnable {
 
     @Override
     public void run() {
-        while (running.get()) {
+        while (true) {
             print();
             sleep();
         }

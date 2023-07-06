@@ -26,7 +26,7 @@ public abstract class AbstractCache<K, V> {
         if (!enableCache) {
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
-            Thread sender = new Thread(() -> {
+            new Thread(() -> {
                 while (true) {
                     try {
                         TimeUnit.MILLISECONDS.sleep(cacheMilliseconds);
@@ -47,9 +47,7 @@ public abstract class AbstractCache<K, V> {
                         updateImmediately(entry.getKey(), entry.getValue());
                     }
                 }
-            });
-            sender.setDaemon(false);
-            sender.start();
+            }).start();
             enableCache = true;
         }
     }
