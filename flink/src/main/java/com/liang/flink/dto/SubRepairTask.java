@@ -3,7 +3,9 @@ package com.liang.flink.dto;
 import com.liang.common.dto.config.RepairTask;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
 import lombok.ToString;
+import org.apache.commons.beanutils.BeanUtils;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -15,7 +17,8 @@ public class SubRepairTask extends RepairTask {
     private volatile long currentId;
     private long targetId;
 
+    @SneakyThrows
     public SubRepairTask(RepairTask repairTask) {
-        super(repairTask);
+        BeanUtils.copyProperties(this, repairTask);
     }
 }

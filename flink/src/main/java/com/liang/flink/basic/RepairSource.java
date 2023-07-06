@@ -60,12 +60,12 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     @Override
-    public void open(Configuration parameters){
+    public void open(Configuration parameters) {
         new Thread(new RepairDataHandler(task)).start();
     }
 
     @Override
-    public void run(SourceContext<SingleCanalBinlog> ctx){
+    public void run(SourceContext<SingleCanalBinlog> ctx) {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (running.get()) {
             int i = Math.min(1024, queue.size());
@@ -93,7 +93,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     @Override
-    public void close(){
+    public void close() {
         cancel();
         ConfigUtils.closeAll();
     }

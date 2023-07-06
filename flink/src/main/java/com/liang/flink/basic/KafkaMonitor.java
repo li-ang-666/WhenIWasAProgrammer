@@ -32,7 +32,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
     }
 
     @Override
-    public void flatMap(KafkaRecord<BatchCanalBinlog> kafkaRecord, Collector<SingleCanalBinlog> out) throws Exception {
+    public void flatMap(KafkaRecord<BatchCanalBinlog> kafkaRecord, Collector<SingleCanalBinlog> out) {
         TopicPartition key = new TopicPartition(kafkaRecord.getTopic(), kafkaRecord.getPartition());
         synchronized (offsetMap) {
             offsetMap.put(key, kafkaRecord.getOffset());
