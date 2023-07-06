@@ -56,9 +56,14 @@ public class KafkaLagReporter implements Runnable {
             offsetMap.clear();
         }
         Map<TopicPartition, Long> maxOffsetMap = kafkaConsumer.endOffsets(copyOffsetMap.keySet());
+        int i = 0;
         for (Map.Entry<TopicPartition, Long> entry : maxOffsetMap.entrySet()) {
             TopicPartition key = entry.getKey();
-            copyOffsetMap.put(key, entry.getValue() - copyOffsetMap.get(key));
+            Long lag = entry.getValue() - copyOffsetMap.get(key);
+            if (lag > 1000) {
+                i++;
+            }
+            copyOffsetMap.put(key, lag);
         }
         log.warn("offset lag: {}", JsonUtils.toString(copyOffsetMap));
         Map<TopicPartition, Object> copyTimeMap;
