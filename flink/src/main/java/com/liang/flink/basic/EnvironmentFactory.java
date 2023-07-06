@@ -21,7 +21,9 @@ public class EnvironmentFactory {
 
     public static StreamExecutionEnvironment create(String[] args) throws Exception {
         initConfig(args);
-        return initEnv();
+        StreamExecutionEnvironment env = initEnv();
+        configEnv(env);
+        return env;
     }
 
     private static void initConfig(String[] args) throws Exception {
@@ -36,6 +38,25 @@ public class EnvironmentFactory {
         } else {
             env = initClusterEnv();
         }
+        return env;
+    }
+
+    private static StreamExecutionEnvironment initLocalEnv() {
+        Configuration configuration = new Configuration();
+        //本地测试参数
+        configuration.setString("rest.bind-port", "54321");
+        //本地checkpoint调试
+        configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints/");
+        //从savepoint恢复
+        //configuration.setString("execution.savepoint.path", "file://" + "/Users/liang/Desktop/flink-checkpoints/53b0ef2c94cda86ea614605757352069/chk-2");
+        return StreamExecutionEnvironment.getExecutionEnvironment(configuration);
+    }
+
+    private static StreamExecutionEnvironment initClusterEnv() {
+        return StreamExecutionEnvironment.getExecutionEnvironment();
+    }
+
+    private static void configEnv(StreamExecutionEnvironment env) {
         //统一checkpoint管理
         CheckpointConfig checkpointConfig = env.getCheckpointConfig();
         //每5分钟开启一次
@@ -55,21 +76,5 @@ public class EnvironmentFactory {
         //开启非对齐的checkpoint(可跳跃的barrier)
         checkpointConfig.enableUnalignedCheckpoints();
         checkpointConfig.setForceUnalignedCheckpoints(true);
-        return env;
-    }
-
-    private static StreamExecutionEnvironment initLocalEnv() {
-        Configuration configuration = new Configuration();
-        //本地测试参数
-        configuration.setString("rest.bind-port", "54321");
-        //本地checkpoint调试
-        configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints/");
-        //从savepoint恢复
-        //configuration.setString("execution.savepoint.path", "file://" + "/Users/liang/Desktop/flink-checkpoints/53b0ef2c94cda86ea614605757352069/chk-2");
-        return StreamExecutionEnvironment.getExecutionEnvironment(configuration);
-    }
-
-    private static StreamExecutionEnvironment initClusterEnv() {
-        return StreamExecutionEnvironment.getExecutionEnvironment();
     }
 }
