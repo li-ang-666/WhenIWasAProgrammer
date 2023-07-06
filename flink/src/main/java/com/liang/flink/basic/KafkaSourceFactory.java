@@ -95,9 +95,8 @@ public class KafkaSourceFactory {
 
         @Override
         public TypeInformation<KafkaRecord<T>> getProducedType() {
-            return TypeInformation.of(
-                    new TypeHint<KafkaRecord<T>>() {
-                    });
+            return TypeInformation.of(new TypeHint<KafkaRecord<T>>() {
+            });
         }
     }
 }
