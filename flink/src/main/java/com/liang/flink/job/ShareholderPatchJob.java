@@ -5,7 +5,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
-import com.liang.flink.basic.StreamEnvironmentFactory;
+import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.utils.BuildTab3Path;
@@ -29,7 +29,7 @@ public class ShareholderPatchJob {
         if (args.length == 0) {
             args = new String[]{"shareholder-patch.yml"};
         }
-        StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
+        StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
         sourceStream

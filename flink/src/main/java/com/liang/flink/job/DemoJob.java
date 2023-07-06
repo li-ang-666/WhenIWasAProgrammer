@@ -6,7 +6,7 @@ import com.liang.common.service.database.template.MemJdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TableNameUtils;
-import com.liang.flink.basic.StreamEnvironmentFactory;
+import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class DemoJob {
         if (args.length == 0) {
             args = new String[]{"demo.yml"};
         }
-        StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
+        StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream

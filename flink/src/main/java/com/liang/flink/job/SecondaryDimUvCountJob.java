@@ -4,7 +4,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.flink.basic.StreamEnvironmentFactory;
+import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import org.apache.flink.configuration.Configuration;
@@ -18,7 +18,7 @@ public class SecondaryDimUvCountJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
             args = new String[]{"secondary-dim-uv-count.yml"};
-        StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
+        StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         env.setParallelism(1);
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream.addSink(new Sink(ConfigUtils.getConfig()));

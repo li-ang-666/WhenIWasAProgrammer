@@ -4,7 +4,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.flink.basic.StreamEnvironmentFactory;
+import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
@@ -24,7 +24,7 @@ public class DataConcatJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
             args = new String[]{"data-concat.yml"};
-        StreamExecutionEnvironment streamEnvironment = StreamEnvironmentFactory.create(args);
+        StreamExecutionEnvironment streamEnvironment = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(streamEnvironment);
         stream

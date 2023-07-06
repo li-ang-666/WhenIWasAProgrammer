@@ -12,11 +12,11 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import static org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION;
 
 @Slf4j
-public class StreamEnvironmentFactory {
+public class EnvironmentFactory {
     private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 3;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 10;
 
-    private StreamEnvironmentFactory() {
+    private EnvironmentFactory() {
     }
 
     public static StreamExecutionEnvironment create(String[] args) throws Exception {

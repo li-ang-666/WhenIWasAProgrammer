@@ -4,7 +4,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.flink.basic.StreamEnvironmentFactory;
+import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
@@ -23,7 +23,7 @@ public class DimCountJob {
         if (args.length == 0) {
             args = new String[]{"dim-count.yml"};
         }
-        StreamExecutionEnvironment env = StreamEnvironmentFactory.create(args);
+        StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
         Config config = ConfigUtils.getConfig();
         sourceStream.addSink(new DimCountSink(config))
