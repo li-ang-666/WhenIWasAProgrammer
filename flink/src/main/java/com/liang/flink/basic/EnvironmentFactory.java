@@ -32,13 +32,8 @@ public class EnvironmentFactory {
     }
 
     private static StreamExecutionEnvironment initEnv() {
-        StreamExecutionEnvironment env;
-        if (StreamExecutionEnvironment.getExecutionEnvironment() instanceof LocalStreamEnvironment) {
-            env = initLocalEnv();
-        } else {
-            env = initClusterEnv();
-        }
-        return env;
+        StreamExecutionEnvironment tempEnv = StreamExecutionEnvironment.getExecutionEnvironment();
+        return tempEnv instanceof LocalStreamEnvironment ? initLocalEnv() : initClusterEnv();
     }
 
     private static StreamExecutionEnvironment initLocalEnv() {
