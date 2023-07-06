@@ -95,6 +95,5 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void close() {
         cancel();
-        ConfigUtils.closeAll();
     }
 }
