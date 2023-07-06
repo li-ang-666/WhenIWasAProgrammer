@@ -3,6 +3,7 @@ package com.liang.flink.service;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.JsonUtils;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -34,10 +35,11 @@ public class KafkaLagReporter implements Runnable {
 
     @Override
     @SuppressWarnings("InfiniteLoopStatement")
+    @SneakyThrows
     public void run() {
         while (true) {
             print();
-            sleep();
+            TimeUnit.SECONDS.sleep(INTERVAL_SECONDS);
         }
     }
 
@@ -70,12 +72,5 @@ public class KafkaLagReporter implements Runnable {
             copyTimeMap.put(key, DateTimeUtils.fromUnixTime((long) entry.getValue(), "yyyy-MM-dd HH:mm:ss"));
         }
         log.warn("msg time info: {}", JsonUtils.toString(copyTimeMap));
-    }
-
-    private void sleep() {
-        try {
-            TimeUnit.SECONDS.sleep(INTERVAL_SECONDS);
-        } catch (Exception ignore) {
-        }
     }
 }
