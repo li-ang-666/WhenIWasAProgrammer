@@ -4,9 +4,7 @@ import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.repair.service.ConfigHolder;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class CommonTest extends ConfigHolder {
     public static void main(String[] args) {
         HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
