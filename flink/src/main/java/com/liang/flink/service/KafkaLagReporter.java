@@ -33,6 +33,7 @@ public class KafkaLagReporter implements Runnable {
     }
 
     @Override
+    @SuppressWarnings("InfiniteLoopStatement")
     public void run() {
         while (true) {
             print();
