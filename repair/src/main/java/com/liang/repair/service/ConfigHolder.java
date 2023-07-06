@@ -6,7 +6,7 @@ import com.liang.common.util.YamlUtils;
 
 import java.io.InputStream;
 
-public class ConfigHolder {
+public abstract class ConfigHolder {
     static {
         InputStream resourceAsStream = ConfigHolder.class.getClassLoader().getResourceAsStream("config.yml");
         Config config = YamlUtils.parse(resourceAsStream, Config.class);
