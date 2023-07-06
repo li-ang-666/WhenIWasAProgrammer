@@ -11,11 +11,16 @@ public class DruidFactory implements IFactory<DruidDataSource> {
 
     @Override
     public DruidDataSource createPool(String name) {
-        boolean isMem = MEMORY_DRUID.equals(name);
-        DruidDataSource druidDataSource = isMem ? createMem() : createNormal(name);
-        configDruid(druidDataSource);
-        log.info("druid 加载: {}", name);
-        return druidDataSource;
+        try {
+            boolean isMem = MEMORY_DRUID.equals(name);
+            DruidDataSource druidDataSource = isMem ? createMem() : createNormal(name);
+            configDruid(druidDataSource);
+            log.info("druid 加载: {}", name);
+            return druidDataSource;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private DruidDataSource createNormal(String name) {
