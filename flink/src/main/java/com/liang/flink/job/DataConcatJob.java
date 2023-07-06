@@ -41,7 +41,7 @@ public class DataConcatJob {
         private DataUpdateService<HbaseOneRow> service;
         private HbaseTemplate hbase;
 
-        private DataConcatRichSinkFunction(Config config) throws Exception {
+        private DataConcatRichSinkFunction(Config config){
             this.config = config;
         }
 

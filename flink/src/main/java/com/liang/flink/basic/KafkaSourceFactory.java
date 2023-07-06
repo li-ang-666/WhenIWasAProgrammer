@@ -15,7 +15,6 @@ import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDe
 import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 import static org.apache.flink.connector.kafka.source.KafkaSourceOptions.*;
@@ -74,12 +73,12 @@ public class KafkaSourceFactory {
         }
 
         @Override
-        public void open(DeserializationSchema.InitializationContext context) throws Exception {
+        public void open(DeserializationSchema.InitializationContext context) {
             ConfigUtils.setConfig(config);
         }
 
         @Override
-        public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<KafkaRecord<T>> out) throws IOException {
+        public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<KafkaRecord<T>> out) {
             //基本KV
             byte[] keyBytes = record.key();
             byte[] valueBytes = record.value();
