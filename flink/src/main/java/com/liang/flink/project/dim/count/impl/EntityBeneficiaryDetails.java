@@ -18,15 +18,27 @@ public class EntityBeneficiaryDetails extends AbstractDataUpdate<HbaseOneRow> {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String shareholderId = String.valueOf(columnMap.get("tyc_unique_entity_id_beneficiary"));
         String count = dao.queryCount(shareholderId);
-        HbaseSchema hbaseSchema = HbaseSchema.builder()
-                .namespace("prism_c")
-                .tableName("human_all_count")
-                .columnFamily("cf")
-                .rowKeyReverse(false)
-                .build();
-        HbaseOneRow row = new HbaseOneRow(hbaseSchema, shareholderId)
-                .put("entity_beneficiary_details_count", count);
-        return Collections.singletonList(row);
+        if (shareholderId.matches("\\d+")) {
+            HbaseSchema hbaseSchema = HbaseSchema.builder()
+                    .namespace("prism_c")
+                    .tableName("company_all_count")
+                    .columnFamily("count")
+                    .rowKeyReverse(true)
+                    .build();
+            HbaseOneRow row = new HbaseOneRow(hbaseSchema, shareholderId)
+                    .put("entity_beneficiary_details_count", count);
+            return Collections.singletonList(row);
+        } else {
+            HbaseSchema hbaseSchema = HbaseSchema.builder()
+                    .namespace("prism_c")
+                    .tableName("human_all_count")
+                    .columnFamily("cf")
+                    .rowKeyReverse(false)
+                    .build();
+            HbaseOneRow row = new HbaseOneRow(hbaseSchema, shareholderId)
+                    .put("entity_beneficiary_details_count", count);
+            return Collections.singletonList(row);
+        }
     }
 
     @Override
