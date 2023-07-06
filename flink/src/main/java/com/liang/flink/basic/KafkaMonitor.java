@@ -28,7 +28,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
     }
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(Configuration parameters) {
         ConfigUtils.setConfig(config);
         new Thread(new KafkaLagReporter(offsetMap, timeMap, running)).start();
     }
