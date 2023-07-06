@@ -5,6 +5,7 @@ import com.liang.common.dto.config.KafkaConfig;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.flink.dto.KafkaRecord;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeHint;
@@ -20,10 +21,8 @@ import java.io.Serializable;
 import static org.apache.flink.connector.kafka.source.KafkaSourceOptions.*;
 
 @Slf4j
+@UtilityClass
 public class KafkaSourceFactory {
-    private KafkaSourceFactory() {
-    }
-
     public static <T> KafkaSource<KafkaRecord<T>> create(KafkaRecordValueMapper<T> mapper) {
         Config config = ConfigUtils.getConfig();
         KafkaConfig kafkaConfig = config.getKafkaConfigs().get("kafkaSource");

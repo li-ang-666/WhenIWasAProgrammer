@@ -2,6 +2,7 @@ package com.liang.flink.basic;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -12,12 +13,10 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import static org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION;
 
 @Slf4j
+@UtilityClass
 public class EnvironmentFactory {
     private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 3;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 10;
-
-    private EnvironmentFactory() {
-    }
 
     public static StreamExecutionEnvironment create(String[] args) throws Exception {
         initConfig(args);
