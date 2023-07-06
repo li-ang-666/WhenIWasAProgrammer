@@ -3,15 +3,14 @@ package com.liang.repair.impl;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
-import com.liang.repair.trait.Runner;
+import com.liang.repair.service.ConfigHolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class DorisTemplateTest implements Runner {
-    @Override
-    public void run(String[] args) throws Exception {
+public class DorisTemplateTest extends ConfigHolder {
+    public static void main(String[] args) {
         DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
         dorisTemplate.enableCache();
 

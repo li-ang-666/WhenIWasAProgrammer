@@ -3,13 +3,12 @@ package com.liang.repair.impl;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.template.HbaseTemplate;
-import com.liang.repair.trait.Runner;
+import com.liang.repair.service.ConfigHolder;
 
 import java.util.ArrayList;
 
-public class HbaseTemplateTest implements Runner {
-    @Override
-    public void run(String[] args) throws Exception {
+public class HbaseTemplateTest extends ConfigHolder {
+    public static void main(String[] args) {
         HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
         hbaseTemplate.enableCache();
 

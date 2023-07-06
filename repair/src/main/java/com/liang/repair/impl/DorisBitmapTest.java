@@ -1,15 +1,13 @@
 package com.liang.repair.impl;
 
 import com.liang.common.service.database.template.JdbcTemplate;
-import com.liang.repair.trait.Runner;
+import com.liang.repair.service.ConfigHolder;
 
 import java.util.List;
 import java.util.Map;
 
-public class DorisBitmapTest implements Runner {
-
-    @Override
-    public void run(String[] args) throws Exception {
+public class DorisBitmapTest extends ConfigHolder {
+    public static void main(String[] args) {
         JdbcTemplate doris = new JdbcTemplate("doris");
         doris.update("INSERT INTO bitmap_test VALUES\n" +
                 " (0, bitmap_empty()),\n" +

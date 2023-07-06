@@ -1,17 +1,16 @@
 package com.liang.repair.impl;
 
 import com.liang.common.service.filesystem.ObsWriter;
-import com.liang.repair.trait.Runner;
+import com.liang.repair.service.ConfigHolder;
 import lombok.SneakyThrows;
 
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class ObsWriterTest implements Runner {
+public class ObsWriterTest extends ConfigHolder {
     @SneakyThrows
-    @Override
-    public void run(String[] args) throws Exception {
+    public static void main(String[] args) {
         ObsWriter writer = new ObsWriter("obs://hadoop-obs/flink/tb1/");
         //writer.enableCache();
         ArrayList<String> list = new ArrayList<>();
