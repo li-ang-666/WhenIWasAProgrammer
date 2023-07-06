@@ -48,7 +48,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         running.set(false);
     }
 }
