@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class SubRepairTask extends RepairTask {
-    private final ConcurrentLinkedQueue<SingleCanalBinlog> pendingQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<SingleCanalBinlog> pendingQueue = new ConcurrentLinkedQueue<>();
     private volatile long currentId;
     private long targetId;
 
