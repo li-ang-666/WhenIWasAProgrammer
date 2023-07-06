@@ -1,6 +1,7 @@
 package com.liang.common.service.database.holder;
 
 import com.liang.common.service.database.factory.JedisPoolFactory;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.JedisPool;
 
@@ -30,6 +31,7 @@ public class JedisPoolHolder implements IHolder<JedisPool> {
     }
 
     @Override
+    @SneakyThrows
     public void closeAll() {
         for (Map.Entry<String, JedisPool> entry : pools.entrySet()) {
             JedisPool jedisPool = entry.getValue();

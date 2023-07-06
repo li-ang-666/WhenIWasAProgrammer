@@ -2,6 +2,7 @@ package com.liang.common.service.database.holder;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.liang.common.service.database.factory.DruidFactory;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -30,6 +31,7 @@ public class DruidHolder implements IHolder<DruidDataSource> {
     }
 
     @Override
+    @SneakyThrows
     public void closeAll() {
         for (Map.Entry<String, DruidDataSource> entry : pools.entrySet()) {
             DruidDataSource dataSource = entry.getValue();
