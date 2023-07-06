@@ -1,5 +1,7 @@
 package com.liang.common.util;
 
+import lombok.experimental.UtilityClass;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -7,10 +9,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+@UtilityClass
 public class DateTimeUtils {
-    private DateTimeUtils() {
-    }
-
     /**
      * 返回某一天是星期几
      */

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 @Slf4j
 @SuppressWarnings("unchecked")
+@UtilityClass
 public class JsonUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -24,9 +26,6 @@ public class JsonUtils {
                 .withFeatures(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
                 .withFeatures(JsonReadFeature.ALLOW_JAVA_COMMENTS);
         objectMapper.setConfig(deserializationConfig);
-    }
-
-    private JsonUtils() {
     }
 
     /*----------------------------------解析{XX=XX, XX=XX, XX=XX}----------------------------------*/

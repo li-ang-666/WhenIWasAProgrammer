@@ -1,14 +1,13 @@
 package com.liang.common.util;
 
+import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Random;
 
+@UtilityClass
 public class TableNameUtils {
     private static final ThreadLocal<Random> TL = new ThreadLocal<>();
-
-    private TableNameUtils() {
-    }
 
     public static String humpToUnderLine(String in) {
         if (StringUtils.isBlank(in)) {

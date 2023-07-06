@@ -1,5 +1,6 @@
 package com.liang.common.util;
 
+import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
@@ -7,10 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@UtilityClass
 public class SqlUtils {
-    private SqlUtils() {
-    }
-
     public static String formatField(String filedName) {
         return "`" + filedName.replaceAll("\\.", "`.`") + "`";
     }

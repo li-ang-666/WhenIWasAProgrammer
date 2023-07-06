@@ -1,5 +1,6 @@
 package com.liang.common.util;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 
@@ -8,10 +9,8 @@ import java.util.Map;
 
 @SuppressWarnings("unchecked")
 @Slf4j
+@UtilityClass
 public class YamlUtils {
-    private YamlUtils() {
-    }
-
     public static Map<String, Object> parse(InputStream inputStream) {
         return parse(inputStream, Map.class);
     }

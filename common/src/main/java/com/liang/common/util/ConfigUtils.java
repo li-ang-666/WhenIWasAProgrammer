@@ -4,6 +4,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.service.database.holder.JedisPoolHolder;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
@@ -12,11 +13,9 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 
 @Slf4j
+@UtilityClass
 public class ConfigUtils {
     private static volatile Config config;
-
-    private ConfigUtils() {
-    }
 
     public static Config initConfig(String[] args) throws Exception {
         InputStream resourceStream;
