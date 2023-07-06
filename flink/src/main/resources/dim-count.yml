@@ -18,7 +18,7 @@ repairTasks:
     sourceName: "bdpEquity"
     tableName: "entity_controller_details"
     columns: "*"
-    where: "tyc_unique_entity_id='V0M9EM200ND6FPNUP'"
+    where: "company_id_controlled in (22822,9519792,2354174496,23719700)"
     scanMode: Direct
 
 dbConfigs:
