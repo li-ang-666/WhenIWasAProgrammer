@@ -60,7 +60,7 @@ public class KafkaLagReporter implements Runnable {
         for (Map.Entry<TopicPartition, Long> entry : maxOffsetMap.entrySet()) {
             TopicPartition key = entry.getKey();
             Long lag = entry.getValue() - copyOffsetMap.get(key);
-            if (lag > 1000) {
+            if (lag > 100) {
                 i++;
             }
             copyOffsetMap.put(key, lag);
