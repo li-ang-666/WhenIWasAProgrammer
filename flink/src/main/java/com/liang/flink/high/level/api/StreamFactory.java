@@ -8,6 +8,7 @@ import com.liang.flink.basic.RepairSource;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
+import lombok.experimental.UtilityClass;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -15,10 +16,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 
+@UtilityClass
 public class StreamFactory {
-    private StreamFactory() {
-    }
-
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
         return config.getFlinkConfig().getSourceType() == Kafka ?
