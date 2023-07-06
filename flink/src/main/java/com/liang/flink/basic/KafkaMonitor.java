@@ -14,14 +14,12 @@ import org.apache.kafka.common.TopicPartition;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog> {
     private final Config config;
     private final Map<TopicPartition, Long> offsetMap = new HashMap<>();
     private final Map<TopicPartition, Long> timeMap = new HashMap<>();
-    private final AtomicBoolean running = new AtomicBoolean(true);
 
     public KafkaMonitor(Config config) {
         this.config = config;
@@ -30,7 +28,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
     @Override
     public void open(Configuration parameters) {
         ConfigUtils.setConfig(config);
-        new Thread(new KafkaLagReporter(offsetMap, timeMap, running)).start();
+        new Thread(new KafkaLagReporter(offsetMap, timeMap)).start();
     }
 
     @Override
@@ -45,11 +43,6 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
         for (SingleCanalBinlog singleCanalBinlog : kafkaRecord.getValue().getSingleCanalBinlogs()) {
             out.collect(singleCanalBinlog);
         }
-    }
-
-    @Override
-    public void close() {
-        running.set(false);
     }
 }
 
