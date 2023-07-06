@@ -2,14 +2,13 @@ package com.liang.spark.basic;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.SparkSession;
 
 @Slf4j
+@UtilityClass
 public class SparkSessionFactory {
-    private SparkSessionFactory() {
-    }
-
     public static SparkSession createSpark(String[] args) throws Exception {
         initConfig(args);
         return initSpark();
