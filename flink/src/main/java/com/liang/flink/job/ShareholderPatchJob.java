@@ -139,16 +139,19 @@ public class ShareholderPatchJob {
             resultMap.put("id", id);
             resultMap.put("tyc_unique_entity_id", companyId);
             resultMap.put("tyc_unique_entity_id_beneficiary", shareholderId);
+            //公司名字
             String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", companyId), rs -> rs.getString(1));
             if (companyName == null) {
                 companyName = "";
             }
             resultMap.put("entity_name_valid", companyName);
+            //股东名字
             String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", shareholderId), rs -> rs.getString(1));
             if (shareholderName == null) {
                 shareholderName = "";
             }
             resultMap.put("entity_name_beneficiary", shareholderName);
+            //其它信息
             BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
             resultMap.put("equity_relation_path_cnt", pathNode.getCount());
             resultMap.put("beneficiary_equity_relation_path_detail", pathNode.getPathStr());
@@ -163,7 +166,38 @@ public class ShareholderPatchJob {
         // entity_controller_details
         // unique (tyc_unique_entity_id, company_id_controlled)
         private void parseIntoEntityControllerDetails(SingleCanalBinlog singleCanalBinlog) {
-
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String companyId = String.valueOf(columnMap.get("company_id"));
+            String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
+            String id = String.valueOf(columnMap.get("id"));
+            String investmentRatioTotal = String.valueOf(columnMap.get("investment_ratio_total"));
+            String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
+            HashMap<String, Object> resultMap = new HashMap<>();
+            resultMap.put("id", id);
+            resultMap.put("company_id_controlled", companyId);
+            resultMap.put("tyc_unique_entity_id", shareholderId);
+            //公司名字
+            String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", companyId), rs -> rs.getString(1));
+            if (companyName == null) {
+                companyName = "";
+            }
+            resultMap.put("company_name_controlled", companyName);
+            //股东名字
+            String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", shareholderId), rs -> rs.getString(1));
+            if (shareholderName == null) {
+                shareholderName = "";
+            }
+            resultMap.put("entity_name_valid", shareholderName);
+            //其他信息
+            BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
+            resultMap.put("equity_relation_path_cnt", pathNode.getCount());
+            resultMap.put("beneficiary_equity_relation_path_detail", pathNode.getPathStr());
+            resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
+            resultMap.put("beneficiary_validation_time_year", 2023);
+            resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
+            String replaceSql = String.format("replace into entity_controller_details(%s)values(%s)", insert.f0, insert.f1);
+            jdbcTemplate.update(replaceSql);
         }
 
         private void parseEntity(SingleCanalBinlog singleCanalBinlog) {
