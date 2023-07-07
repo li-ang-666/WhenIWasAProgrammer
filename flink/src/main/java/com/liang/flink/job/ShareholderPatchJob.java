@@ -38,7 +38,7 @@ public class ShareholderPatchJob {
                         String tableName = singleCanalBinlog.getTable();
                         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
                         if ("ratio_path_company".equals(tableName)) {
-                            return String.valueOf(columnMap.get("company_id")) + columnMap.get("shareholder_id");
+                            return columnMap.get("company_id") + "-" + columnMap.get("shareholder_id");
                         } else if ("tyc_entity_main_reference".equals(tableName)) {
                             return String.valueOf(columnMap.get("tyc_unique_entity_id"));
                         }
@@ -96,6 +96,7 @@ public class ShareholderPatchJob {
                 jdbcTemplate.update(deleteSql4);
                 return;
             }
+
             String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
             if ("0".equals(isUltimate)) {
                 String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
