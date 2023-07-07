@@ -200,11 +200,6 @@ public class ShareholderPatchJob {
             jdbcTemplate.update(replaceSql);
         }
 
-
-        // entity_beneficiary_details
-        // unique (tyc_unique_entity_id_beneficiary, tyc_unique_entity_id)
-        // entity_controller_details
-        // unique (tyc_unique_entity_id, company_id_controlled)
         private void parseEntity(SingleCanalBinlog singleCanalBinlog) {
             if (DELETE == singleCanalBinlog.getEventType()) {
                 return;
@@ -212,15 +207,12 @@ public class ShareholderPatchJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String entityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
             String entityName = String.valueOf(columnMap.get("entity_name_valid"));
-            if (StringUtils.isNotBlank(entityName)) {
+            if (StringUtils.isNotBlank(entityName) && !"null".equals(entityName)) {
                 String sql1 = String.format("update entity_beneficiary_details set entity_name_valid = '%s' where tyc_unique_entity_id = '%s'", entityName, entityId);
                 String sql2 = String.format("update entity_beneficiary_details set entity_name_beneficiary = '%s' where tyc_unique_entity_id_beneficiary = '%s'", entityName, entityId);
                 String sql3 = String.format("update entity_controller_details set entity_name_valid = '%s' where tyc_unique_entity_id = '%s'", entityName, entityId);
                 String sql4 = String.format("update entity_controller_details set company_name_controlled = '%s' where company_id_controlled = '%s'", entityName, entityId);
-                jdbcTemplate.update(sql1);
-                jdbcTemplate.update(sql2);
-                jdbcTemplate.update(sql3);
-                jdbcTemplate.update(sql4);
+                jdbcTemplate.update(sql1, sql2, sql3, sql4);
             }
         }
     }
