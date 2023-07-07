@@ -191,9 +191,9 @@ public class ShareholderPatchJob {
             //其他信息
             BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
             resultMap.put("equity_relation_path_cnt", pathNode.getCount());
-            resultMap.put("beneficiary_equity_relation_path_detail", pathNode.getPathStr());
+            resultMap.put("controlling_equity_relation_path_detail", pathNode.getPathStr());
             resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
-            resultMap.put("beneficiary_validation_time_year", 2023);
+            resultMap.put("control_validation_time_year", 2023);
             resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String replaceSql = String.format("replace into entity_controller_details(%s)values(%s)", insert.f0, insert.f1);
