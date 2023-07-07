@@ -54,7 +54,7 @@ public class ShareholderPatchJob {
     public static final class Sink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private JdbcTemplate jdbcTemplate;
-        private JdbcTemplate jdbcTemplateShareholder;
+        //private JdbcTemplate jdbcTemplateShareholder;
 
         public Sink(Config config) {
             this.config = config;
@@ -64,7 +64,7 @@ public class ShareholderPatchJob {
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             jdbcTemplate = new JdbcTemplate("bdpEquity");
-            jdbcTemplateShareholder = new JdbcTemplate("shareholder");
+            //jdbcTemplateShareholder = new JdbcTemplate("shareholder");
         }
 
         @Override
