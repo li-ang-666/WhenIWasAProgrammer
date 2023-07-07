@@ -1,6 +1,5 @@
 package com.liang.flink.job;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -80,22 +79,59 @@ public class ShareholderPatchJob {
 
         private void parseRatioPathCompany(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
-            if (!"1".equals(isUltimate)) {
-                return;
-            }
-            String isDeleted = String.valueOf(columnMap.get("is_deleted"));
-            CanalEntry.EventType eventType = singleCanalBinlog.getEventType();
-            String id = String.valueOf(columnMap.get("id"));
             String companyId = String.valueOf(columnMap.get("company_id"));
             String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-            String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
-            String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
-            jdbcTemplate.update(deleteSql1);
-            jdbcTemplate.update(deleteSql2);
-            if (DELETE == eventType || "1".equals(isDeleted)) {
+            String id = String.valueOf(columnMap.get("id"));
+            String isDeleted = String.valueOf(columnMap.get("is_deleted"));
+            if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
+                String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
+                String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
+
+                String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
+                String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
+
+                jdbcTemplate.update(deleteSql1);
+                jdbcTemplate.update(deleteSql2);
+                jdbcTemplate.update(deleteSql3);
+                jdbcTemplate.update(deleteSql4);
                 return;
             }
+            String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
+            if ("0".equals(isUltimate)) {
+                String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
+                String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
+                jdbcTemplate.update(deleteSql1);
+                jdbcTemplate.update(deleteSql2);
+            } else {
+                String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
+                String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
+                jdbcTemplate.update(deleteSql1);
+                jdbcTemplate.update(deleteSql2);
+                parseIntoEntityBeneficiaryDetails(singleCanalBinlog);
+            }
+
+            String isController = String.valueOf(columnMap.get("is_controller"));
+            if ("0".equals(isController)) {
+                String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
+                String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
+                jdbcTemplate.update(deleteSql3);
+                jdbcTemplate.update(deleteSql4);
+            } else {
+                String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
+                String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
+                jdbcTemplate.update(deleteSql3);
+                jdbcTemplate.update(deleteSql4);
+                parseIntoEntityControllerDetails(singleCanalBinlog);
+            }
+        }
+
+        // entity_beneficiary_details
+        // unique (tyc_unique_entity_id_beneficiary, tyc_unique_entity_id)
+        private void parseIntoEntityBeneficiaryDetails(SingleCanalBinlog singleCanalBinlog) {
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String companyId = String.valueOf(columnMap.get("company_id"));
+            String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
+            String id = String.valueOf(columnMap.get("id"));
             String investmentRatioTotal = String.valueOf(columnMap.get("investment_ratio_total"));
             String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
             HashMap<String, Object> resultMap = new HashMap<>();
@@ -121,6 +157,12 @@ public class ShareholderPatchJob {
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
             jdbcTemplate.update(replaceSql);
+        }
+
+        // entity_controller_details
+        // unique (tyc_unique_entity_id, company_id_controlled)
+        private void parseIntoEntityControllerDetails(SingleCanalBinlog singleCanalBinlog) {
+
         }
 
         private void parseEntity(SingleCanalBinlog singleCanalBinlog) {
