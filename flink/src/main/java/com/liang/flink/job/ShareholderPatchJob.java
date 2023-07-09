@@ -88,15 +88,16 @@ public class ShareholderPatchJob {
             String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
             String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
             jdbcTemplate.update(deleteSql1, deleteSql2, deleteSql3, deleteSql4);
+            //删除
             if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
                 return;
             }
-
+            //写入受益所有人
             String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
             if ("1".equals(isUltimate)) {
                 parseIntoEntityBeneficiaryDetails(singleCanalBinlog);
             }
-
+            //写入实际控制人
             String isController = String.valueOf(columnMap.get("is_controller"));
             if ("1".equals(isController)) {
                 parseIntoEntityControllerDetails(singleCanalBinlog);
