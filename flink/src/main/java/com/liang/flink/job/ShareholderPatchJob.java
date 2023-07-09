@@ -85,14 +85,9 @@ public class ShareholderPatchJob {
             String isDeleted = String.valueOf(columnMap.get("is_deleted"));
             String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
             String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
-
             String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
             String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
-
-            jdbcTemplate.update(deleteSql1);
-            jdbcTemplate.update(deleteSql2);
-            jdbcTemplate.update(deleteSql3);
-            jdbcTemplate.update(deleteSql4);
+            jdbcTemplate.update(deleteSql1, deleteSql2, deleteSql3, deleteSql4);
             if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
                 return;
             }
