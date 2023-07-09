@@ -59,8 +59,9 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
             connection.commit();
             logging.afterExecute("updateBatch", sqls.size() + "条");
         } catch (Exception e) {
-            connection.rollback();
             logging.ifError("updateBatch", sqls, e);
+            connection.rollback();
+            connection.setAutoCommit(true);
             for (String sql : sqls) {
                 TimeUnit.MILLISECONDS.sleep(50);
                 int i = 3;
@@ -68,7 +69,6 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
                     String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
                     logging.beforeExecute();
                     try {
-                        connection.setAutoCommit(true);
                         connection.prepareStatement(sql).executeUpdate();
                         logging.afterExecute("updateSingle", failedLogPrefix + sql);
                         i = 0;
