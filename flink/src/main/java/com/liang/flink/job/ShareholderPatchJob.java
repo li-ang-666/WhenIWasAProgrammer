@@ -83,45 +83,27 @@ public class ShareholderPatchJob {
             String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
             String id = String.valueOf(columnMap.get("id"));
             String isDeleted = String.valueOf(columnMap.get("is_deleted"));
+            String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
+            String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
+
+            String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
+            String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
+
+            jdbcTemplate.update(deleteSql1);
+            jdbcTemplate.update(deleteSql2);
+            jdbcTemplate.update(deleteSql3);
+            jdbcTemplate.update(deleteSql4);
             if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
-                String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
-                String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
-
-                String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
-                String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
-
-                jdbcTemplate.update(deleteSql1);
-                jdbcTemplate.update(deleteSql2);
-                jdbcTemplate.update(deleteSql3);
-                jdbcTemplate.update(deleteSql4);
                 return;
             }
 
             String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
-            if ("0".equals(isUltimate)) {
-                String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
-                String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
-                jdbcTemplate.update(deleteSql1);
-                jdbcTemplate.update(deleteSql2);
-            } else {
-                String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
-                String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
-                jdbcTemplate.update(deleteSql1);
-                jdbcTemplate.update(deleteSql2);
+            if ("1".equals(isUltimate)) {
                 parseIntoEntityBeneficiaryDetails(singleCanalBinlog);
             }
 
             String isController = String.valueOf(columnMap.get("is_controller"));
-            if ("0".equals(isController)) {
-                String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
-                String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
-                jdbcTemplate.update(deleteSql3);
-                jdbcTemplate.update(deleteSql4);
-            } else {
-                String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
-                String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
-                jdbcTemplate.update(deleteSql3);
-                jdbcTemplate.update(deleteSql4);
+            if ("1".equals(isController)) {
                 parseIntoEntityControllerDetails(singleCanalBinlog);
             }
         }

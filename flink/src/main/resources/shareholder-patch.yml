@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "shareholder"
     tableName: "ratio_path_company"
     columns: "*"
-    where: "company_id in (3014405561)"
+    where: "company_id in (2548732599)"
     scanMode: Direct
 #  - taskId: "222"
 #    sourceName: "bdpEquity"
