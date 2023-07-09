@@ -6,6 +6,7 @@ import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.util.DorisBitmapUtils;
+import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +48,8 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
     @SneakyThrows
     protected void updateImmediately(Object ignore, List<String> sqls) {
         logging.beforeExecute();
-        try (DruidPooledConnection connection = pool.getConnection()) {
+        @Cleanup DruidPooledConnection connection = pool.getConnection();
+        try {
             connection.setAutoCommit(false);
             Statement statement = connection.createStatement();
             for (String sql : sqls) {
@@ -57,6 +59,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
             connection.commit();
             logging.afterExecute("updateBatch", sqls.size() + "条");
         } catch (Exception e) {
+            connection.rollback();
             logging.ifError("updateBatch", sqls, e);
             for (String sql : sqls) {
                 TimeUnit.MILLISECONDS.sleep(50);
@@ -64,7 +67,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
                 while (i > 0) {
                     String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
                     logging.beforeExecute();
-                    try (DruidPooledConnection connection = pool.getConnection()) {
+                    try {
                         connection.setAutoCommit(true);
                         connection.prepareStatement(sql).executeUpdate();
                         logging.afterExecute("updateSingle", failedLogPrefix + sql);
