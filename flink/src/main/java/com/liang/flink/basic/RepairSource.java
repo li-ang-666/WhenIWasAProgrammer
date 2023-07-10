@@ -106,7 +106,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             int completedNum = redisTemplate.hScan(JobClassName).size();
             int totalNum = config.getRepairTasks().size();
             if (completedNum == totalNum) {
-                log.info("all repair task complete, go to cancel()");
+                log.info("all repair task complete");
                 cancel();
             }
         }
