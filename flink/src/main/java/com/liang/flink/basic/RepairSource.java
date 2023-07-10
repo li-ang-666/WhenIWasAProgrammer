@@ -68,9 +68,9 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void run(SourceContext<SingleCanalBinlog> ctx) {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (running.get()) {
-            int i = Math.min(1024, queue.size());
-            synchronized (ctx.getCheckpointLock()) {
-                while (i-- > 0) {
+            int i = queue.size();
+            while (i-- > 0) {
+                synchronized (ctx.getCheckpointLock()) {
                     ctx.collect(queue.poll());
                 }
             }
