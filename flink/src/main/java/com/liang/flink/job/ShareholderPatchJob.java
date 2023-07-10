@@ -199,10 +199,5 @@ public class ShareholderPatchJob {
                 }
             }
         }
-
-        @Override
-        public void close() throws Exception {
-            ConfigUtils.closeAll();
-        }
     }
 }

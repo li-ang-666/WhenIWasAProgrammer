@@ -26,6 +26,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @SuppressWarnings("SynchronizeOnNonFinalField")
+/*
+ * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
+ * 部分任务结束后的 Checkpoint
+ */
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
@@ -126,5 +130,11 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void cancel() {
         running.set(false);
         canceled.set(true);
+    }
+
+    @Override
+    public void close() throws Exception {
+        cancel();
+        ConfigUtils.closeAll();
     }
 }
