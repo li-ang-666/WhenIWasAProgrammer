@@ -1,6 +1,7 @@
 package com.liang.flink.high.level.api;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.KafkaMonitor;
 import com.liang.flink.basic.KafkaSourceFactory;
@@ -42,6 +43,7 @@ public class StreamFactory {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
         String JobClassName = traceElement.getClassName();
+        new RedisTemplate("metadata").del(JobClassName);
         return streamEnvironment
                 .addSource(new RepairSource(config, JobClassName))
                 .name("RepairSource")

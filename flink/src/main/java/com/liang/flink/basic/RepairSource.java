@@ -71,7 +71,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void open(Configuration parameters) {
         redisTemplate = new RedisTemplate("metadata");
-        redisTemplate.del(JobClassName);
         new Thread(new RepairDataHandler(task, running)).start();
     }
 
@@ -80,6 +79,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         keepSend(ctx);
         RegisterComplete();
         waitingAllComplete();
+        log.info("??????");
     }
 
     private void keepSend(SourceContext<SingleCanalBinlog> ctx) {
@@ -103,7 +103,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @SneakyThrows
     private void waitingAllComplete() {
         while (running.get()) {
-            TimeUnit.MINUTES.sleep(1);
+            TimeUnit.SECONDS.sleep(20);
             int completedNum = redisTemplate.hScan(JobClassName).size();
             int totalNum = config.getRepairTasks().size();
             if (completedNum == totalNum) {
@@ -125,11 +125,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void cancel() {
-        running.set(false);
-    }
-
-    @Override
-    public void close() {
-        cancel();
+        System.exit(0);
     }
 }
