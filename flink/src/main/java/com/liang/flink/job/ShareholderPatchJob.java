@@ -19,6 +19,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.HashMap;
 import java.util.Map;
+import static com.liang.common.util.SqlUtils.formatValue;
 
 import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.DELETE;
 
@@ -84,9 +85,9 @@ public class ShareholderPatchJob {
             String id = String.valueOf(columnMap.get("id"));
             String isDeleted = String.valueOf(columnMap.get("is_deleted"));
             String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
-            String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = '%s' and tyc_unique_entity_id_beneficiary = '%s'", companyId, shareholderId);
+            String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = %s and tyc_unique_entity_id_beneficiary = %s", formatValue(companyId), formatValue(shareholderId));
             String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
-            String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = '%s' and tyc_unique_entity_id = '%s'", companyId, shareholderId);
+            String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = %s and tyc_unique_entity_id = %s", formatValue(companyId), formatValue(shareholderId));
             jdbcTemplate.update(deleteSql1, deleteSql2, deleteSql3, deleteSql4);
             //删除
             if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
@@ -118,13 +119,13 @@ public class ShareholderPatchJob {
             resultMap.put("tyc_unique_entity_id", companyId);
             resultMap.put("tyc_unique_entity_id_beneficiary", shareholderId);
             //公司名字
-            String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", companyId), rs -> rs.getString(1));
+            String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(companyId)), rs -> rs.getString(1));
             if (companyName == null) {
                 companyName = "";
             }
             resultMap.put("entity_name_valid", companyName);
             //股东名字
-            String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", shareholderId), rs -> rs.getString(1));
+            String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(shareholderId)), rs -> rs.getString(1));
             if (shareholderName == null) {
                 shareholderName = "";
             }

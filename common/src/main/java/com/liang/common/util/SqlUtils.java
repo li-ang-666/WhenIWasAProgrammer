@@ -19,8 +19,8 @@ public class SqlUtils {
             return null;
         } else if (value instanceof Boolean) {
             return (boolean) value ? "1" : "0";
-        } else if (value instanceof Number) {
-            return String.valueOf(value);
+        } else if (value instanceof Number || StringUtils.isNumeric(value.toString())) {
+            return "'" + value + "'";
         } else {
             String valueString = String.valueOf(value);
             return StringUtils.isNumeric(valueString) ?
