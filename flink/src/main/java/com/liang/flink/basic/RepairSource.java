@@ -80,7 +80,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         keepSend(ctx);
         RegisterComplete();
         waitingAllComplete();
-        log.info("??????");
     }
 
     private void keepSend(SourceContext<SingleCanalBinlog> ctx) {
