@@ -8,10 +8,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class RedisTemplate {
@@ -52,6 +49,20 @@ public class RedisTemplate {
             logging.afterExecute("del", key);
         } catch (Exception e) {
             logging.ifError("del", key, e);
+        }
+    }
+
+    public void hSet(String key, String field, String value) {
+        hMSet(key, Collections.singletonMap(field, value));
+    }
+
+    public void hMSet(String key, Map<String, String> map) {
+        logging.beforeExecute();
+        try (Jedis jedis = pool.getResource()) {
+            jedis.hmset(key, map);
+            logging.afterExecute("set", map);
+        } catch (Exception e) {
+            logging.ifError("set", map, e);
         }
     }
 

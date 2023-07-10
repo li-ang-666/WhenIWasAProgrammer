@@ -1,6 +1,7 @@
 package com.liang.flink.basic;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
@@ -30,6 +31,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     private SubRepairTask task;
     private ListState<SubRepairTask> taskState;
+
+    private RedisTemplate redisTemplate;
 
     public RepairSource(Config config, String jobClassName) {
         this.config = config;
@@ -65,6 +68,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void open(Configuration parameters) {
+        redisTemplate = new RedisTemplate("metadata");
         new Thread(new RepairDataHandler(task, running)).start();
     }
 
@@ -79,7 +83,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 }
             }
         }
-
+        redisTemplate
     }
 
     @Override
