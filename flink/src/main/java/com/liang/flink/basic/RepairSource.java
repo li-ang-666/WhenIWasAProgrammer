@@ -26,12 +26,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Config config;
+    private final String JobClassName;
 
     private SubRepairTask task;
     private ListState<SubRepairTask> taskState;
 
-    public RepairSource(Config config) {
+    public RepairSource(Config config, String jobClassName) {
         this.config = config;
+        this.JobClassName = jobClassName;
     }
 
     @Override
@@ -63,13 +65,13 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void open(Configuration parameters) {
-        new Thread(new RepairDataHandler(task)).start();
+        new Thread(new RepairDataHandler(task, running)).start();
     }
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
-        while (running.get()) {
+        while (running.get() || !queue.isEmpty()) {
             int i = queue.size();
             while (i-- > 0) {
                 synchronized (ctx.getCheckpointLock()) {
@@ -77,6 +79,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 }
             }
         }
+
     }
 
     @Override

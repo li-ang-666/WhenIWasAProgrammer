@@ -9,6 +9,7 @@ import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -17,6 +18,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 
 @UtilityClass
+@Slf4j
 public class StreamFactory {
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
@@ -37,8 +39,11 @@ public class StreamFactory {
     private static DataStream<SingleCanalBinlog> createRepairStream(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
         int size = config.getRepairTasks().size();
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
+        String JobClassName = traceElement.getClassName();
         return streamEnvironment
-                .addSource(new RepairSource(config))
+                .addSource(new RepairSource(config, JobClassName))
                 .name("RepairSource")
                 .setParallelism(size);
     }
