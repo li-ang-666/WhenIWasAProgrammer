@@ -7,6 +7,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
 import com.liang.flink.service.RepairDataHandler;
 import com.liang.flink.service.TaskGenerator;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.flink.api.common.state.ListState;
@@ -20,6 +21,7 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
@@ -74,6 +76,12 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
+        keepSend(ctx);
+        RegisterComplete();
+        waitingAllComplete();
+    }
+
+    private void keepSend(SourceContext<SingleCanalBinlog> ctx) {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (running.get() || !queue.isEmpty()) {
             int i = queue.size();
@@ -83,7 +91,25 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 }
             }
         }
-        redisTemplate
+    }
+
+    private void RegisterComplete() {
+        redisTemplate.hSet(JobClassName,
+                task.getTaskId(), String.valueOf(task.getCurrentId()));
+        running.set(true);
+    }
+
+    @SneakyThrows
+    private void waitingAllComplete() {
+        while (running.get()) {
+            TimeUnit.MINUTES.sleep(1);
+            int completedNum = redisTemplate.hScan(JobClassName).size();
+            int totalNum = config.getRepairTasks().size();
+            if (completedNum == totalNum) {
+                log.info("all repair task complete, go to cancel()");
+                cancel();
+            }
+        }
     }
 
     @Override
