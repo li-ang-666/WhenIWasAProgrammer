@@ -19,9 +19,9 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.HashMap;
 import java.util.Map;
-import static com.liang.common.util.SqlUtils.formatValue;
 
 import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.DELETE;
+import static com.liang.common.util.SqlUtils.formatValue;
 
 @Slf4j
 public class ShareholderPatchJob {
@@ -156,13 +156,13 @@ public class ShareholderPatchJob {
             resultMap.put("company_id_controlled", companyId);
             resultMap.put("tyc_unique_entity_id", shareholderId);
             //公司名字
-            String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", companyId), rs -> rs.getString(1));
+            String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(companyId)), rs -> rs.getString(1));
             if (companyName == null) {
                 companyName = "";
             }
             resultMap.put("company_name_controlled", companyName);
             //股东名字
-            String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = '%s'", shareholderId), rs -> rs.getString(1));
+            String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(shareholderId)), rs -> rs.getString(1));
             if (shareholderName == null) {
                 shareholderName = "";
             }
@@ -188,13 +188,13 @@ public class ShareholderPatchJob {
             String entityName = String.valueOf(columnMap.get("entity_name_valid"));
             if (StringUtils.isNotBlank(entityName) && !"null".equals(entityName)) {
                 //股东
-                String sql1 = String.format("update entity_beneficiary_details set entity_name_beneficiary = '%s' where tyc_unique_entity_id_beneficiary = '%s'", entityName, entityId);
-                String sql2 = String.format("update entity_controller_details set entity_name_valid = '%s' where tyc_unique_entity_id = '%s'", entityName, entityId);
+                String sql1 = String.format("update entity_beneficiary_details set entity_name_beneficiary = %s where tyc_unique_entity_id_beneficiary = %s", entityName, entityId);
+                String sql2 = String.format("update entity_controller_details set entity_name_valid = %s where tyc_unique_entity_id = %s", entityName, entityId);
                 jdbcTemplate.update(sql1, sql2);
                 if (StringUtils.isNumeric(entityId)) {
                     //公司
-                    String sql3 = String.format("update entity_beneficiary_details set entity_name_valid = '%s' where tyc_unique_entity_id = '%s'", entityName, entityId);
-                    String sql4 = String.format("update entity_controller_details set company_name_controlled = '%s' where company_id_controlled = '%s'", entityName, entityId);
+                    String sql3 = String.format("update entity_beneficiary_details set entity_name_valid = %s where tyc_unique_entity_id = %s", entityName, entityId);
+                    String sql4 = String.format("update entity_controller_details set company_name_controlled = %s where company_id_controlled = %s", entityName, entityId);
                     jdbcTemplate.update(sql3, sql4);
                 }
             }
