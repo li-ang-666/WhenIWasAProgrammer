@@ -22,10 +22,7 @@ public class SqlUtils {
         } else if (value instanceof Number || StringUtils.isNumeric(value.toString())) {
             return "'" + value + "'";
         } else {
-            String valueString = String.valueOf(value);
-            return StringUtils.isNumeric(valueString) ?
-                    "'" + valueString + "'" :
-                    escapeValue(valueString);
+            return escapeValue(value.toString());
         }
     }
 
