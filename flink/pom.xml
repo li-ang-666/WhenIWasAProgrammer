@@ -11,6 +11,12 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.5.11</version>
+        </dependency>
+
         <!--静虎 和 国旺 的 shareholder-->
         <dependency>
             <groupId>com.alibaba</groupId>

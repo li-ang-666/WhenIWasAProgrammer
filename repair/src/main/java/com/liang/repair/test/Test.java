@@ -14,8 +14,9 @@ public class Test {
         //arg.name=null;
         //arg=null;
     }
-    public static void ff(int i){
-        i=5;
+
+    public static void ff(int i) {
+        i = 5;
     }
 
     @Data
