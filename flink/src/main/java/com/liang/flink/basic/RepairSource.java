@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @SuppressWarnings("SynchronizeOnNonFinalField")
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final AtomicBoolean running = new AtomicBoolean(true);
+    private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
     private final String JobClassName;
 
@@ -97,13 +98,12 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private void RegisterComplete() {
         redisTemplate.hSet(JobClassName,
                 task.getTaskId(), String.valueOf(task.getCurrentId()));
-        running.set(true);
     }
 
     @SneakyThrows
     private void waitingAllComplete() {
-        while (running.get()) {
-            TimeUnit.SECONDS.sleep(20);
+        while (!canceled.get()) {
+            TimeUnit.SECONDS.sleep(30);
             int completedNum = redisTemplate.hScan(JobClassName).size();
             int totalNum = config.getRepairTasks().size();
             if (completedNum == totalNum) {
@@ -125,6 +125,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void cancel() {
-        System.exit(0);
+        running.set(false);
+        canceled.set(true);
     }
 }
