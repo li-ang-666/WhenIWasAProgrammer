@@ -11,6 +11,7 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
+        <!--SQL-->
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
