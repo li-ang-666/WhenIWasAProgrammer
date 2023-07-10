@@ -71,6 +71,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void open(Configuration parameters) {
         redisTemplate = new RedisTemplate("metadata");
+        redisTemplate.del(JobClassName);
         new Thread(new RepairDataHandler(task, running)).start();
     }
 
