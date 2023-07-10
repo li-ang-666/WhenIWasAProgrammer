@@ -51,7 +51,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 continue;
             }
             task = stateTask;
-            // 程序重启, targetId用最新的
+            // 程序重启, targetId用最新的, where条件用最新的
             task.setTargetId(initTask.getTargetId());
             log.warn("task-{} restored from taskState, currentId: {}, targetId: {}, queueSize: {}",
                     task.getTaskId(), task.getCurrentId(), task.getTargetId(), task.getPendingQueue().size());
