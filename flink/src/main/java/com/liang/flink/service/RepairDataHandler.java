@@ -75,9 +75,10 @@ public class RepairDataHandler implements Runnable {
     private void report() {
         long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - lastReportTimeMillis >= REPORT_INTERVAL) {
+            String id = task.getTaskId();
             long currentId = task.getCurrentId();
             long targetId = task.getTargetId();
-            log.info("task.currentId: {}, task.targetId: {}, lag: {}", currentId, targetId, targetId - currentId);
+            log.info("sender report, task-{}: currentId {}, targetId {}, lag {}", currentId, targetId, targetId - currentId);
             lastReportTimeMillis = currentTimeMillis;
         }
     }
