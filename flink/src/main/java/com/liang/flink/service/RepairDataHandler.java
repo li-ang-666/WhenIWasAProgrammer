@@ -19,6 +19,7 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 public class RepairDataHandler implements Runnable {
     private final static int BATCH_SIZE = 1024;
     private final static int MAX_QUEUE_SIZE = 102400;
+    private final static int REPORT_INTERVAL = 1000 * 60;
 
     private final SubRepairTask task;
     private final AtomicBoolean running;
@@ -26,6 +27,7 @@ public class RepairDataHandler implements Runnable {
     private final JdbcTemplate jdbcTemplate;
 
     private volatile long watermark;
+    private long lastReportTimeMillis;
 
     public RepairDataHandler(SubRepairTask task, AtomicBoolean running) {
         this.task = task;
@@ -67,6 +69,17 @@ public class RepairDataHandler implements Runnable {
 
     private void commit() {
         task.setCurrentId(task.getScanMode() == Direct ? 1 : watermark);
+        report();
+    }
+
+    private void report() {
+        long currentTimeMillis = System.currentTimeMillis();
+        if (currentTimeMillis - lastReportTimeMillis >= REPORT_INTERVAL) {
+            long currentId = task.getCurrentId();
+            long targetId = task.getTargetId();
+            log.info("task.currentId: {}, task.targetId: {}, lag: {}", currentId, targetId, targetId - currentId);
+            lastReportTimeMillis = currentTimeMillis;
+        }
     }
 }
 
