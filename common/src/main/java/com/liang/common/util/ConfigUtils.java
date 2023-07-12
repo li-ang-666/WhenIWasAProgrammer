@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 public class ConfigUtils {
     private static volatile Config config;
 
-    public static Config initConfig(String[] args) throws Exception {
+    public static Config initConfig(String[] args) {
         @Cleanup InputStream inputStream = ConfigUtils.class.getClassLoader().getResourceAsStream("default.yml");
         Config defaultConfig = YamlUtils.parse(inputStream, Config.class);
         if (args.length == 0) {
@@ -45,8 +45,9 @@ public class ConfigUtils {
             customConfig.getRedisConfigs().putAll(defaultConfig.getRedisConfigs());
             customConfig.getHbaseDbConfigs().putAll(defaultConfig.getHbaseDbConfigs());
             customConfig.getDorisDbConfigs().putAll(defaultConfig.getDorisDbConfigs());
+            return customConfig;
         }
-        return YamlUtils.parse(resourceStream, Config.class);
+        return defaultConfig;
     }
 
     public static Config getConfig() {
