@@ -42,6 +42,7 @@ public class ConfigUtils {
                 log.error("load {} fail", fileName, ee);
             }
         }
+        // merge two config
         if (customConfig != null) {
             mergeConfig(defaultConfig, customConfig);
             return customConfig;
@@ -78,8 +79,17 @@ public class ConfigUtils {
     }
 
     private static void mergeConfig(Config defaultConfig, Config customConfig) {
-        defaultConfig.getDbConfigs().forEach((name, DBConfig) -> {
-            customConfig.getDbConfigs().putIfAbsent(name, DBConfig);
-        });
+        defaultConfig.getDbConfigs().forEach((name, DBConfig) ->
+                customConfig.getDbConfigs().putIfAbsent(name, DBConfig)
+        );
+        defaultConfig.getRedisConfigs().forEach((name, redisConfig) ->
+                customConfig.getRedisConfigs().putIfAbsent(name, redisConfig)
+        );
+        defaultConfig.getHbaseDbConfigs().forEach((name, hbaseDbConfig) ->
+                customConfig.getHbaseDbConfigs().putIfAbsent(name, hbaseDbConfig)
+        );
+        defaultConfig.getDorisDbConfigs().forEach((name, dorisDbConfig) ->
+                customConfig.getDorisDbConfigs().putIfAbsent(name, dorisDbConfig)
+        );
     }
 }
