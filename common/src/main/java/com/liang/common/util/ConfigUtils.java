@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 public class ConfigUtils {
     private static volatile Config config;
 
-    public static Config initConfig(String[] args) {
+    public static Config initConfig(String[] args) throws Exception {
         // 加载defaultConfig
         @Cleanup InputStream inputStream = ConfigUtils.class.getClassLoader().getResourceAsStream("default.yml");
         Config defaultConfig = YamlUtils.parse(inputStream, Config.class);
