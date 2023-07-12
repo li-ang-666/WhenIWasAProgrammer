@@ -41,11 +41,6 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         return new ArrayList<>();
     }
 
-    @Override
-    public List<SQL> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        return updateWithReturn(singleCanalBinlog);
-    }
-
     // entity_beneficiary_details
     // unique (tyc_unique_entity_id_beneficiary, tyc_unique_entity_id)
     private void parseIntoEntityBeneficiaryDetails(SingleCanalBinlog singleCanalBinlog) {
@@ -102,5 +97,10 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("control_validation_time_year", 2023);
         resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
         dao.replaceInto("entity_controller_details", resultMap);
+    }
+
+    @Override
+    public List<SQL> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
+        return updateWithReturn(singleCanalBinlog);
     }
 }
