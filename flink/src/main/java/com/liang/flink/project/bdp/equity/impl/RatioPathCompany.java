@@ -22,20 +22,20 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         String id = String.valueOf(columnMap.get("id"));
         String companyId = String.valueOf(columnMap.get("company_id"));
         String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
+        //删除
         dao.deleteAll(id, companyId, shareholderId);
         String isDeleted = String.valueOf(columnMap.get("is_deleted"));
-        //删除
         if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
             return new ArrayList<>();
         }
         //写入受益所有人
         String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
-        if ("1".equals(isUltimate)) {
+        if (!"0".equals(isUltimate)) {
             parseIntoEntityBeneficiaryDetails(singleCanalBinlog);
         }
         //写入实际控制人
         String isController = String.valueOf(columnMap.get("is_controller"));
-        if ("1".equals(isController)) {
+        if (!"0".equals(isController)) {
             parseIntoEntityControllerDetails(singleCanalBinlog);
         }
         return new ArrayList<>();
@@ -61,15 +61,9 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("tyc_unique_entity_id_beneficiary", shareholderId);
         //公司名字
         String companyName = dao.getEntityName(companyId);
-        if (companyName == null) {
-            companyName = "";
-        }
         resultMap.put("entity_name_valid", companyName);
         //股东名字
         String shareholderName = dao.getEntityName(shareholderId);
-        if (shareholderName == null) {
-            shareholderName = "";
-        }
         resultMap.put("entity_name_beneficiary", shareholderName);
         //其它信息
         BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
@@ -96,15 +90,9 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("tyc_unique_entity_id", shareholderId);
         //公司名字
         String companyName = dao.getEntityName(companyId);
-        if (companyName == null) {
-            companyName = "";
-        }
         resultMap.put("company_name_controlled", companyName);
         //股东名字
         String shareholderName = dao.getEntityName(shareholderId);
-        if (shareholderName == null) {
-            shareholderName = "";
-        }
         resultMap.put("entity_name_valid", shareholderName);
         //其他信息
         BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);

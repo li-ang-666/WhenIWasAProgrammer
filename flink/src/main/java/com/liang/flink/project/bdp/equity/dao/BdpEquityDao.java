@@ -40,7 +40,8 @@ public class BdpEquityDao {
                 .FROM("tyc_entity_main_reference")
                 .WHERE("tyc_unique_entity_id = " + formatValue(entityId))
                 .toString();
-        return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+        String res = jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+        return res != null ? res : "";
     }
 
     public void replaceInto(String tableName, Map<String, Object> columnMap) {
