@@ -28,13 +28,26 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
             return new ArrayList<>();
         }
-        //写入受益所有人
+        String isBigShareholder = String.valueOf(columnMap.get("is_big_shareholder"));
+        String isControllingShareholder = String.valueOf(columnMap.get("is_controlling_shareholder"));
+        String isController = String.valueOf(columnMap.get("is_controller"));
         String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
+        //如果啥也不是,return
+        if ("0".equals(isBigShareholder) && "0".equals(isControllingShareholder) && "0".equals(isController) && "0".equals(isUltimate)) {
+            return new ArrayList<>();
+        }
+        //名字
+        columnMap.put("company_name", dao.getEntityName(companyId));
+        columnMap.put("shareholder_name", dao.getEntityName(shareholderId));
+        //path_node
+        String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
+        BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
+        columnMap.put("path_node", pathNode);
+        //写入受益所有人
         if (!"0".equals(isUltimate)) {
             parseIntoEntityBeneficiaryDetails(singleCanalBinlog);
         }
         //写入实际控制人
-        String isController = String.valueOf(columnMap.get("is_controller"));
         if (!"0".equals(isController)) {
             parseIntoEntityControllerDetails(singleCanalBinlog);
         }
@@ -47,26 +60,19 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
     // unique (tyc_unique_entity_id_beneficiary, tyc_unique_entity_id)
     private void parseIntoEntityBeneficiaryDetails(SingleCanalBinlog singleCanalBinlog) {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-        String companyId = String.valueOf(columnMap.get("company_id"));
-        String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-        String id = String.valueOf(columnMap.get("id"));
-        String investmentRatioTotal = String.valueOf(columnMap.get("investment_ratio_total"));
-        String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
+        BuildTab3Path.PathNode pathNode = (BuildTab3Path.PathNode) columnMap.get("path_node");
         HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("id", id);
-        resultMap.put("tyc_unique_entity_id", companyId);
-        resultMap.put("tyc_unique_entity_id_beneficiary", shareholderId);
+        resultMap.put("id", String.valueOf(columnMap.get("id")));
+        resultMap.put("tyc_unique_entity_id", String.valueOf(columnMap.get("company_id")));
+        resultMap.put("tyc_unique_entity_id_beneficiary", String.valueOf(columnMap.get("shareholder_id")));
         //公司名字
-        String companyName = dao.getEntityName(companyId);
-        resultMap.put("entity_name_valid", companyName);
+        resultMap.put("entity_name_valid", String.valueOf(columnMap.get("company_name")));
         //股东名字
-        String shareholderName = dao.getEntityName(shareholderId);
-        resultMap.put("entity_name_beneficiary", shareholderName);
+        resultMap.put("entity_name_beneficiary", String.valueOf(columnMap.get("shareholder_name")));
         //其它信息
-        BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
         resultMap.put("equity_relation_path_cnt", pathNode.getCount());
         resultMap.put("beneficiary_equity_relation_path_detail", pathNode.getPathStr());
-        resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
+        resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
         resultMap.put("beneficiary_validation_time_year", 2023);
         resultMap.put("entity_type_id", 1);
         dao.replaceInto("entity_beneficiary_details", resultMap);
@@ -76,26 +82,19 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
     // unique (tyc_unique_entity_id, company_id_controlled)
     private void parseIntoEntityControllerDetails(SingleCanalBinlog singleCanalBinlog) {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-        String companyId = String.valueOf(columnMap.get("company_id"));
-        String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-        String id = String.valueOf(columnMap.get("id"));
-        String investmentRatioTotal = String.valueOf(columnMap.get("investment_ratio_total"));
-        String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
+        BuildTab3Path.PathNode pathNode = (BuildTab3Path.PathNode) columnMap.get("path_node");
         HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("id", id);
-        resultMap.put("company_id_controlled", companyId);
-        resultMap.put("tyc_unique_entity_id", shareholderId);
+        resultMap.put("id", String.valueOf(columnMap.get("id")));
+        resultMap.put("company_id_controlled", String.valueOf(columnMap.get("company_id")));
+        resultMap.put("tyc_unique_entity_id", String.valueOf(columnMap.get("shareholder_id")));
         //公司名字
-        String companyName = dao.getEntityName(companyId);
-        resultMap.put("company_name_controlled", companyName);
+        resultMap.put("company_name_controlled", String.valueOf(columnMap.get("company_name")));
         //股东名字
-        String shareholderName = dao.getEntityName(shareholderId);
-        resultMap.put("entity_name_valid", shareholderName);
+        resultMap.put("entity_name_valid", String.valueOf(columnMap.get("shareholder_name")));
         //其他信息
-        BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
         resultMap.put("equity_relation_path_cnt", pathNode.getCount());
         resultMap.put("controlling_equity_relation_path_detail", pathNode.getPathStr());
-        resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
+        resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
         resultMap.put("control_validation_time_year", 2023);
         resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
         dao.replaceInto("entity_controller_details", resultMap);
@@ -126,9 +125,32 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         if ("1".equals(isUltimate)) {
             identities.add(4);
         }
-        for (Integer identity : identities) {
-
+        //如果啥也不是,return
+        if (identities.isEmpty()) {
+            return;
         }
+        HashMap<String, Object> resultMap = new HashMap<>();
+        // 公司信息
+        resultMap.put("tyc_unique_entity_id", String.valueOf(columnMap.get("company_id")));
+        resultMap.put("entity_type_id", 1);
+        resultMap.put("entity_name_valid", String.valueOf(columnMap.get("company_name")));
+        // 股东信息
+        resultMap.put("entity_type_id_with_shareholder_identity_type", String.valueOf(columnMap.get("shareholder_id")));
+        resultMap.put("tyc_unique_entity_id_with_shareholder_identity_type", String.valueOf(columnMap.get("shareholder_entity_type")));
+        resultMap.put("entity_name_valid_with_shareholder_identity_type", String.valueOf(columnMap.get("shareholder_name")));
+        // 身份信息
+        resultMap.put("shareholder_identity_type", 0);
+        // 其它信息
+        BuildTab3Path.PathNode pathNode = (BuildTab3Path.PathNode) columnMap.get("path_node");
+        resultMap.put("equity_ratio_path_cnt", pathNode.getCount());
+        resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
+        resultMap.put("entity_name_valid_with_shareholder_identity_type", 2023);
+        List<Map<String, Object>> resultMaps = new ArrayList<>();
+        for (Integer identity : identities) {
+            resultMap.put("shareholder_identity_type", identity);
+            resultMaps.add(new HashMap<>(resultMap));
+        }
+        dao.replaceIntoRelation(resultMaps);
     }
 
     @Override

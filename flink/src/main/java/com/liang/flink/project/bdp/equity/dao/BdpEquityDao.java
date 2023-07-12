@@ -5,6 +5,8 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static com.liang.common.util.SqlUtils.formatValue;
@@ -84,5 +86,19 @@ public class BdpEquityDao {
                 .WHERE("company_id_controlled = " + formatValue(companyId))
                 .toString();
         jdbcTemplate.update(update1, update2);
+    }
+
+    public void replaceIntoRelation(List<Map<String, Object>> columnMaps) {
+        List<String> sqls = new ArrayList<>();
+        for (Map<String, Object> columnMap : columnMaps) {
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+            String sql = new SQL()
+                    .REPLACE_INTO("shareholder_identity_type_details")
+                    .INTO_COLUMNS(insert.f0)
+                    .INTO_VALUES(insert.f1)
+                    .toString();
+            sqls.add(sql);
+            jdbcTemplate.update(sqls);
+        }
     }
 }
