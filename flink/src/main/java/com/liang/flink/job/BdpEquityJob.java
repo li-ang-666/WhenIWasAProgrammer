@@ -24,10 +24,10 @@ import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.DELETE;
 import static com.liang.common.util.SqlUtils.formatValue;
 
 @Slf4j
-public class ShareholderPatchJob {
+public class BdpEquityJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            args = new String[]{"shareholder-patch.yml"};
+            args = new String[]{"bdp-equity.yml"};
         }
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
@@ -48,7 +48,7 @@ public class ShareholderPatchJob {
                 })
                 .addSink(new Sink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
-        env.execute("ShareholderPatchJob");
+        env.execute("BdpEquityJob");
     }
 
     @Slf4j
