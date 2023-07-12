@@ -1,8 +1,16 @@
 dbConfigs:
   localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
+  judicialRisk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk" }
+  companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
+  operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk" }
+  bdpEquity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+  shareholder: { host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
+
+  doris: { host: "10.99.202.70",database: "test_db",user: "dba",password: "Tyc@1234" ,port: 6060 }
 
 redisConfigs:
   localhost: { host: "127.0.0.1",password: ~ }
+  metadata: { host: "10.99.205.87",password: "123456" }
 
 hbaseDbConfigs:
   hbaseSink:
