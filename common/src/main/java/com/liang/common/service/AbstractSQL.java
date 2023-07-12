@@ -29,8 +29,8 @@ import java.util.List;
  */
 public abstract class AbstractSQL<T> {
 
-    private static final String AND = ")  AND (";
-    private static final String OR = ")  OR (";
+    private static final String AND = ") AND (";
+    private static final String OR = ") OR (";
 
     private final SQLStatement sql = new SQLStatement();
 
