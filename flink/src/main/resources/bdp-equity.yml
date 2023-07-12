@@ -7,7 +7,7 @@ flinkConfig:
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "shareholder"
+    sourceName: "prismShareholderPath"
     tableName: "ratio_path_company"
     columns: "*"
     where: "company_id in (6295891403)"
@@ -19,5 +19,5 @@ kafkaConfigs:
     topics:
       - "e1d4c.proto.prism_shareholder_path.ratio_path_company"
       - "48e2e.proto.bdp_equity.tyc_entity_main_reference"
-    groupId: "shareholder-patch-job"
+    groupId: "bdp-equity-job"
     startFrom: "2"
