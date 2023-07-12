@@ -12,18 +12,6 @@ repairTasks:
     columns: "*"
     where: "company_id in (6295891403)"
     scanMode: Direct
-#  - taskId: "222"
-#    sourceName: "bdpEquity"
-#    tableName: "tyc_entity_main_reference"
-#    columns: "*"
-#    where: "tyc_unique_entity_id = '4350486116'"
-#    scanMode: Direct
-dbConfigs:
-  bdpEquity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
-  shareholder: { host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
-
-redisConfigs:
-  metadata: { host: "10.99.205.87",password: "123456" }
 
 kafkaConfigs:
   kafkaSource:
