@@ -21,9 +21,6 @@ repairTasks:
     where: "company_id_controlled in ('2318455639')"
     scanMode: Direct
 
-dbConfigs:
-  bdpEquity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity",user: "jdhw_d_data_dml",password: "2s0^tFa4SLrp72" }
-
 kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
@@ -32,7 +29,3 @@ kafkaConfigs:
       - "48e2e.proto.bdp_equity.entity_controller_details"
     groupId: "dim-count-job"
     startFrom: "2"
-
-hbaseDbConfigs:
-  hbaseSink:
-    zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
