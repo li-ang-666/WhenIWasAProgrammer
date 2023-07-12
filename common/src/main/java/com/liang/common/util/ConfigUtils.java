@@ -18,8 +18,10 @@ public class ConfigUtils {
     private static volatile Config config;
 
     public static Config initConfig(String[] args) {
+        // 加载defaultConfig
         @Cleanup InputStream inputStream = ConfigUtils.class.getClassLoader().getResourceAsStream("default.yml");
         Config defaultConfig = YamlUtils.parse(inputStream, Config.class);
+        // 加载customConfig
         if (args.length == 0) {
             log.warn("main(args) 没有传递 config 文件");
             return defaultConfig;
@@ -41,10 +43,7 @@ public class ConfigUtils {
             }
         }
         if (customConfig != null) {
-            customConfig.getDbConfigs().putAll(defaultConfig.getDbConfigs());
-            customConfig.getRedisConfigs().putAll(defaultConfig.getRedisConfigs());
-            customConfig.getHbaseDbConfigs().putAll(defaultConfig.getHbaseDbConfigs());
-            customConfig.getDorisDbConfigs().putAll(defaultConfig.getDorisDbConfigs());
+            mergeConfig(defaultConfig, customConfig);
             return customConfig;
         }
         return defaultConfig;
@@ -76,5 +75,11 @@ public class ConfigUtils {
         new DruidHolder().closeAll();
         new JedisPoolHolder().closeAll();
         new HbaseConnectionHolder().closeAll();
+    }
+
+    private static void mergeConfig(Config defaultConfig, Config customConfig) {
+        defaultConfig.getDbConfigs().forEach((name, DBConfig) -> {
+            customConfig.getDbConfigs().putIfAbsent(name, DBConfig);
+        });
     }
 }
