@@ -38,6 +38,8 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         if (!"0".equals(isController)) {
             parseIntoEntityControllerDetails(singleCanalBinlog);
         }
+        //写入公司股东关系表
+        parseIntoShareholderIdentityTypeDetails(singleCanalBinlog);
         return new ArrayList<>();
     }
 
@@ -97,6 +99,36 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("control_validation_time_year", 2023);
         resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
         dao.replaceInto("entity_controller_details", resultMap);
+    }
+
+    // shareholder_identity_type_details
+    // unique (公司id 股东id 股东身份类型(4种))
+    private void parseIntoShareholderIdentityTypeDetails(SingleCanalBinlog singleCanalBinlog) {
+        Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+        // 1-大股东
+        String isBigShareholder = String.valueOf(columnMap.get("is_big_shareholder"));
+        // 2-控股股东
+        String isControllingShareholder = String.valueOf(columnMap.get("is_controlling_shareholder"));
+        // 3-实控人
+        String isController = String.valueOf(columnMap.get("is_controller"));
+        // 4-受益人
+        String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
+        ArrayList<Integer> identities = new ArrayList<>();
+        if ("1".equals(isBigShareholder)) {
+            identities.add(1);
+        }
+        if ("1".equals(isControllingShareholder)) {
+            identities.add(2);
+        }
+        if ("1".equals(isController)) {
+            identities.add(3);
+        }
+        if ("1".equals(isUltimate)) {
+            identities.add(4);
+        }
+        for (Integer identity : identities) {
+
+        }
     }
 
     @Override
