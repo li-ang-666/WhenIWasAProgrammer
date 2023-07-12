@@ -1,27 +1,21 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.service.SQL;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
-import com.liang.flink.utils.BuildTab3Path;
+import com.liang.flink.service.data.update.DataUpdateContext;
+import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.HashMap;
 import java.util.Map;
-
-import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.DELETE;
-import static com.liang.common.util.SqlUtils.formatValue;
 
 @Slf4j
 public class BdpEquityJob {
@@ -54,7 +48,7 @@ public class BdpEquityJob {
     @Slf4j
     public static final class Sink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
-        private JdbcTemplate jdbcTemplate;
+        private DataUpdateService<SQL> service;
 
         public Sink(Config config) {
             this.config = config;
@@ -63,139 +57,16 @@ public class BdpEquityJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            jdbcTemplate = new JdbcTemplate("bdpEquity");
+            DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<SQL>
+                    ("com.liang.flink.project.bdp.equity.impl")
+                    .addClass("RatioPathCompany")
+                    .addClass("TycEntityMainReference");
+            service = new DataUpdateService<>(dataUpdateContext);
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
-            String tableName = singleCanalBinlog.getTable();
-            if ("ratio_path_company".equals(tableName)) {
-                parseRatioPathCompany(singleCanalBinlog);
-            } else if ("tyc_entity_main_reference".equals(tableName)) {
-                parseEntity(singleCanalBinlog);
-            }
-        }
-
-        private void parseRatioPathCompany(SingleCanalBinlog singleCanalBinlog) {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = String.valueOf(columnMap.get("company_id"));
-            String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-            String id = String.valueOf(columnMap.get("id"));
-            String isDeleted = String.valueOf(columnMap.get("is_deleted"));
-            String deleteSql1 = String.format("delete from entity_beneficiary_details where id = %s", id);
-            String deleteSql2 = String.format("delete from entity_beneficiary_details where tyc_unique_entity_id = %s and tyc_unique_entity_id_beneficiary = %s", formatValue(companyId), formatValue(shareholderId));
-            String deleteSql3 = String.format("delete from entity_controller_details where id = %s", id);
-            String deleteSql4 = String.format("delete from entity_controller_details where company_id_controlled = %s and tyc_unique_entity_id = %s", formatValue(companyId), formatValue(shareholderId));
-            jdbcTemplate.update(deleteSql1, deleteSql2, deleteSql3, deleteSql4);
-            //删除
-            if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
-                return;
-            }
-            //写入受益所有人
-            String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
-            if ("1".equals(isUltimate)) {
-                parseIntoEntityBeneficiaryDetails(singleCanalBinlog);
-            }
-            //写入实际控制人
-            String isController = String.valueOf(columnMap.get("is_controller"));
-            if ("1".equals(isController)) {
-                parseIntoEntityControllerDetails(singleCanalBinlog);
-            }
-        }
-
-        // entity_beneficiary_details
-        // unique (tyc_unique_entity_id_beneficiary, tyc_unique_entity_id)
-        private void parseIntoEntityBeneficiaryDetails(SingleCanalBinlog singleCanalBinlog) {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = String.valueOf(columnMap.get("company_id"));
-            String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-            String id = String.valueOf(columnMap.get("id"));
-            String investmentRatioTotal = String.valueOf(columnMap.get("investment_ratio_total"));
-            String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
-            HashMap<String, Object> resultMap = new HashMap<>();
-            resultMap.put("id", id);
-            resultMap.put("tyc_unique_entity_id", companyId);
-            resultMap.put("tyc_unique_entity_id_beneficiary", shareholderId);
-            //公司名字
-            String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(companyId)), rs -> rs.getString(1));
-            if (companyName == null) {
-                companyName = "";
-            }
-            resultMap.put("entity_name_valid", companyName);
-            //股东名字
-            String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(shareholderId)), rs -> rs.getString(1));
-            if (shareholderName == null) {
-                shareholderName = "";
-            }
-            resultMap.put("entity_name_beneficiary", shareholderName);
-            //其它信息
-            BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
-            resultMap.put("equity_relation_path_cnt", pathNode.getCount());
-            resultMap.put("beneficiary_equity_relation_path_detail", pathNode.getPathStr());
-            resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
-            resultMap.put("beneficiary_validation_time_year", 2023);
-            resultMap.put("entity_type_id", 1);
-            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
-            String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
-            jdbcTemplate.update(replaceSql);
-        }
-
-        // entity_controller_details
-        // unique (tyc_unique_entity_id, company_id_controlled)
-        private void parseIntoEntityControllerDetails(SingleCanalBinlog singleCanalBinlog) {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = String.valueOf(columnMap.get("company_id"));
-            String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-            String id = String.valueOf(columnMap.get("id"));
-            String investmentRatioTotal = String.valueOf(columnMap.get("investment_ratio_total"));
-            String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
-            HashMap<String, Object> resultMap = new HashMap<>();
-            resultMap.put("id", id);
-            resultMap.put("company_id_controlled", companyId);
-            resultMap.put("tyc_unique_entity_id", shareholderId);
-            //公司名字
-            String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(companyId)), rs -> rs.getString(1));
-            if (companyName == null) {
-                companyName = "";
-            }
-            resultMap.put("company_name_controlled", companyName);
-            //股东名字
-            String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(shareholderId)), rs -> rs.getString(1));
-            if (shareholderName == null) {
-                shareholderName = "";
-            }
-            resultMap.put("entity_name_valid", shareholderName);
-            //其他信息
-            BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
-            resultMap.put("equity_relation_path_cnt", pathNode.getCount());
-            resultMap.put("controlling_equity_relation_path_detail", pathNode.getPathStr());
-            resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
-            resultMap.put("control_validation_time_year", 2023);
-            resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
-            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
-            String replaceSql = String.format("replace into entity_controller_details(%s)values(%s)", insert.f0, insert.f1);
-            jdbcTemplate.update(replaceSql);
-        }
-
-        private void parseEntity(SingleCanalBinlog singleCanalBinlog) {
-            if (DELETE == singleCanalBinlog.getEventType()) {
-                return;
-            }
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String entityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
-            String entityName = String.valueOf(columnMap.get("entity_name_valid"));
-            if (StringUtils.isNotBlank(entityName) && !"null".equals(entityName)) {
-                //股东
-                String sql1 = String.format("update entity_beneficiary_details set entity_name_beneficiary = %s where tyc_unique_entity_id_beneficiary = %s", formatValue(entityName), formatValue(entityId));
-                String sql2 = String.format("update entity_controller_details set entity_name_valid = %s where tyc_unique_entity_id = %s", formatValue(entityName), formatValue(entityId));
-                jdbcTemplate.update(sql1, sql2);
-                if (StringUtils.isNumeric(entityId)) {
-                    //公司
-                    String sql3 = String.format("update entity_beneficiary_details set entity_name_valid = %s where tyc_unique_entity_id = %s", formatValue(entityName), formatValue(entityId));
-                    String sql4 = String.format("update entity_controller_details set company_name_controlled = %s where company_id_controlled = %s", formatValue(entityName), formatValue(entityId));
-                    jdbcTemplate.update(sql3, sql4);
-                }
-            }
+            service.invoke(singleCanalBinlog);
         }
     }
 }
