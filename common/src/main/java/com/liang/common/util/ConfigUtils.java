@@ -4,12 +4,12 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.service.database.holder.JedisPoolHolder;
+import lombok.Cleanup;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 
 @Slf4j
@@ -18,18 +18,28 @@ public class ConfigUtils {
     private static volatile Config config;
 
     public static Config initConfig(String[] args) throws Exception {
-        InputStream resourceStream;
+        @Cleanup InputStream inputStream = ConfigUtils.class.getClassLoader().getResourceAsStream("default.yml");
+        Config defaultConfig = YamlUtils.parse(inputStream, Config.class);
         if (args.length == 0) {
             log.warn("main(args) 没有传递 config 文件");
+            return defaultConfig;
         }
         String fileName = args[0];
         log.info("main(args) 传递 config 文件: {}", fileName);
-        try {
+        Config customConfig = null;
+        try (InputStream resourceStream1 = Files.newInputStream(Paths.get(fileName))) {
             log.info("try load {} from cluster ...", fileName);
-            resourceStream = Files.newInputStream(Paths.get(fileName));
-        } catch (NoSuchFileException e) {
+            customConfig = YamlUtils.parse(resourceStream1, Config.class);
+        } catch (Exception e) {
             log.warn("try load {} from package resource ...", fileName);
-            resourceStream = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName);
+            try (InputStream resourceStream2 = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName)) {
+                customConfig = YamlUtils.parse(resourceStream2, Config.class);
+            } catch (Exception ee) {
+                log.error("load {} fail", fileName, ee);
+            }
+        }
+        if (customConfig != null) {
+
         }
         return YamlUtils.parse(resourceStream, Config.class);
     }
