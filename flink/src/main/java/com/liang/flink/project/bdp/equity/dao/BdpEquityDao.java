@@ -1,9 +1,9 @@
 package com.liang.flink.project.bdp.equity.dao;
 
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.ibatis.jdbc.SQL;
 
 import java.util.Map;
 
@@ -45,8 +45,10 @@ public class BdpEquityDao {
 
     public void replaceInto(String tableName, Map<String, Object> columnMap) {
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        String sql = new SQL()
-        String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
-        jdbcTemplate.update(replaceSql);
+        String sql = new SQL().REPLACE_INTO(tableName)
+                .INTO_COLUMNS(insert.f0)
+                .INTO_VALUES(insert.f1)
+                .toString();
+        jdbcTemplate.update(sql);
     }
 }

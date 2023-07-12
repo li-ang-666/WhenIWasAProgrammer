@@ -1,12 +1,10 @@
 package com.liang.flink.project.bdp.equity.impl;
 
-import com.liang.common.util.SqlUtils;
+import com.liang.common.service.SQL;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.bdp.equity.dao.BdpEquityDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
 import com.liang.flink.utils.BuildTab3Path;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.ibatis.jdbc.SQL;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.DELETE;
-import static com.liang.common.util.SqlUtils.formatValue;
 
 public class RatioPathCompany extends AbstractDataUpdate<SQL> {
     private final BdpEquityDao dao = new BdpEquityDao();
@@ -81,9 +78,7 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
         resultMap.put("beneficiary_validation_time_year", 2023);
         resultMap.put("entity_type_id", 1);
-        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
-        String replaceSql = String.format("replace into entity_beneficiary_details(%s)values(%s)", insert.f0, insert.f1);
-        jdbcTemplate.update(replaceSql);
+        dao.replaceInto("entity_beneficiary_details", resultMap);
     }
 
     // entity_controller_details
@@ -100,13 +95,13 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("company_id_controlled", companyId);
         resultMap.put("tyc_unique_entity_id", shareholderId);
         //公司名字
-        String companyName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(companyId)), rs -> rs.getString(1));
+        String companyName = dao.getEntityName(companyId);
         if (companyName == null) {
             companyName = "";
         }
         resultMap.put("company_name_controlled", companyName);
         //股东名字
-        String shareholderName = jdbcTemplate.queryForObject(String.format("select entity_name_valid from tyc_entity_main_reference where tyc_unique_entity_id = %s", formatValue(shareholderId)), rs -> rs.getString(1));
+        String shareholderName = dao.getEntityName(shareholderId);
         if (shareholderName == null) {
             shareholderName = "";
         }
@@ -118,8 +113,6 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("estimated_equity_ratio_total", investmentRatioTotal);
         resultMap.put("control_validation_time_year", 2023);
         resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
-        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
-        String replaceSql = String.format("replace into entity_controller_details(%s)values(%s)", insert.f0, insert.f1);
-        jdbcTemplate.update(replaceSql);
+        dao.replaceInto("entity_controller_details", resultMap);
     }
 }

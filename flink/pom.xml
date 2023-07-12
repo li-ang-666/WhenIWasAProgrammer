@@ -11,12 +11,6 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
-        <!--SQL-->
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>3.5.13</version>
-        </dependency>
 
         <!--静虎 和 国旺 的 shareholder-->
         <dependency>

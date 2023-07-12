@@ -13,9 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.liang.common;
-
-import com.liang.common.service.AbstractSQL;
+package com.liang.common.service;
 
 /**
  * @author Clinton Begin
