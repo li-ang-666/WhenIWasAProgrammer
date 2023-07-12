@@ -27,19 +27,24 @@ public class ConfigUtils {
         String fileName = args[0];
         log.info("main(args) 传递 config 文件: {}", fileName);
         Config customConfig = null;
-        try (InputStream resourceStream1 = Files.newInputStream(Paths.get(fileName))) {
-            log.info("try load {} from cluster ...", fileName);
+        log.info("try load {} from cluster ...", fileName);
+        try {
+            @Cleanup InputStream resourceStream1 = Files.newInputStream(Paths.get(fileName));
             customConfig = YamlUtils.parse(resourceStream1, Config.class);
         } catch (Exception e) {
             log.warn("try load {} from package resource ...", fileName);
-            try (InputStream resourceStream2 = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName)) {
+            try {
+                @Cleanup InputStream resourceStream2 = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName)
                 customConfig = YamlUtils.parse(resourceStream2, Config.class);
             } catch (Exception ee) {
                 log.error("load {} fail", fileName, ee);
             }
         }
         if (customConfig != null) {
-
+            customConfig.getDbConfigs().putAll(defaultConfig.getDbConfigs());
+            customConfig.getRedisConfigs().putAll(defaultConfig.getRedisConfigs());
+            customConfig.getHbaseDbConfigs().putAll(defaultConfig.getHbaseDbConfigs());
+            customConfig.getDorisDbConfigs().putAll(defaultConfig.getDorisDbConfigs());
         }
         return YamlUtils.parse(resourceStream, Config.class);
     }
