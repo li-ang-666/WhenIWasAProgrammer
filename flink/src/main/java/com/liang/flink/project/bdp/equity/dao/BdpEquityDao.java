@@ -15,6 +15,7 @@ public class BdpEquityDao {
     private final JdbcTemplate jdbcTemplate = new JdbcTemplate("bdpEquity");
 
     public void deleteAll(String id, String companyId, String shareholderId) {
+        //删除受益人
         String delete1 = new SQL()
                 .DELETE_FROM("entity_beneficiary_details")
                 .WHERE("id = " + formatValue(id))
@@ -24,6 +25,7 @@ public class BdpEquityDao {
                 .WHERE("tyc_unique_entity_id = " + formatValue(companyId))
                 .WHERE("tyc_unique_entity_id_beneficiary = " + formatValue(shareholderId))
                 .toString();
+        //删除控制人
         String delete3 = new SQL()
                 .DELETE_FROM("entity_controller_details")
                 .WHERE("id = " + formatValue(id))
@@ -33,6 +35,7 @@ public class BdpEquityDao {
                 .WHERE("company_id_controlled = " + formatValue(companyId))
                 .WHERE("tyc_unique_entity_id = " + formatValue(shareholderId))
                 .toString();
+        //删除身份关系
         String delete5 = new SQL()
                 .DELETE_FROM("shareholder_identity_type_details")
                 .WHERE("tyc_unique_entity_id = " + formatValue(companyId))
