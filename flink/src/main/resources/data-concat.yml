@@ -56,24 +56,7 @@ repairTasks:
     where: "1=1"
     scanMode: Direct
 
-dbConfigs:
-#  judicialRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-#  companyBase: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-#  operatingRisk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-
 kafkaConfigs:
-  #  kafkaSource:
-  #    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
-  #    topics:
-  #      - "9349c.proto.judicial_risk.restrict_consumption_split_index"
-  #      - "9349c.proto.judicial_risk.judicial_assistance_index"
-  #      - "9349c.proto.judicial_risk.restricted_outbound_index"
-  #      - "9349c.proto.operating_risk.equity_pledge_reinvest"
-  #      - "9349c.proto.operating_risk.equity_pledge_detail"
-  #      - "9349c.proto.company_base.company_branch"
-  #    groupId: "leon"
-  #    startFrom: "2"
-
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
