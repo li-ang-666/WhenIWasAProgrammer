@@ -34,7 +34,7 @@ public class ConfigUtils {
         } catch (Exception e) {
             log.warn("try load {} from package resource ...", fileName);
             try {
-                @Cleanup InputStream resourceStream2 = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName)
+                @Cleanup InputStream resourceStream2 = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName);
                 customConfig = YamlUtils.parse(resourceStream2, Config.class);
             } catch (Exception ee) {
                 log.error("load {} fail", fileName, ee);
