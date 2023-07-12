@@ -481,44 +481,6 @@ public abstract class AbstractSQL<T> {
 
     private static class SQLStatement {
 
-        public enum StatementType {
-            DELETE, INSERT, SELECT, UPDATE, REPLACE, IGNORE
-        }
-
-        private enum LimitingRowsStrategy {
-            NOP {
-                @Override
-                protected void appendClause(SafeAppendable builder, String offset, String limit) {
-                    // NOP
-                }
-            },
-            ISO {
-                @Override
-                protected void appendClause(SafeAppendable builder, String offset, String limit) {
-                    if (offset != null) {
-                        builder.append(" OFFSET ").append(offset).append(" ROWS");
-                    }
-                    if (limit != null) {
-                        builder.append(" FETCH FIRST ").append(limit).append(" ROWS ONLY");
-                    }
-                }
-            },
-            OFFSET_LIMIT {
-                @Override
-                protected void appendClause(SafeAppendable builder, String offset, String limit) {
-                    if (limit != null) {
-                        builder.append(" LIMIT ").append(limit);
-                    }
-                    if (offset != null) {
-                        builder.append(" OFFSET ").append(offset);
-                    }
-                }
-            };
-
-            protected abstract void appendClause(SafeAppendable builder, String offset, String limit);
-
-        }
-
         StatementType statementType;
         List<String> sets = new ArrayList<>();
         List<String> select = new ArrayList<>();
@@ -539,7 +501,6 @@ public abstract class AbstractSQL<T> {
         String offset;
         String limit;
         LimitingRowsStrategy limitingRowsStrategy = LimitingRowsStrategy.NOP;
-
         public SQLStatement() {
             // Prevent Synthetic Access
             valuesList.add(new ArrayList<>());
@@ -673,6 +634,44 @@ public abstract class AbstractSQL<T> {
             }
 
             return answer;
+        }
+
+        public enum StatementType {
+            DELETE, INSERT, SELECT, UPDATE, REPLACE, IGNORE
+        }
+
+        private enum LimitingRowsStrategy {
+            NOP {
+                @Override
+                protected void appendClause(SafeAppendable builder, String offset, String limit) {
+                    // NOP
+                }
+            },
+            ISO {
+                @Override
+                protected void appendClause(SafeAppendable builder, String offset, String limit) {
+                    if (offset != null) {
+                        builder.append(" OFFSET ").append(offset).append(" ROWS");
+                    }
+                    if (limit != null) {
+                        builder.append(" FETCH FIRST ").append(limit).append(" ROWS ONLY");
+                    }
+                }
+            },
+            OFFSET_LIMIT {
+                @Override
+                protected void appendClause(SafeAppendable builder, String offset, String limit) {
+                    if (limit != null) {
+                        builder.append(" LIMIT ").append(limit);
+                    }
+                    if (offset != null) {
+                        builder.append(" OFFSET ").append(offset);
+                    }
+                }
+            };
+
+            protected abstract void appendClause(SafeAppendable builder, String offset, String limit);
+
         }
     }
 }

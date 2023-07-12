@@ -20,7 +20,7 @@ public class TycEntityMainReference extends AbstractDataUpdate<SQL> {
         String entityName = String.valueOf(columnMap.get("entity_name_valid"));
         //股东
         if (StringUtils.isNotBlank(entityName) && !"null".equals(entityName)) {
-            dao.updateShareholderName(entityId, entityName)
+            dao.updateShareholderName(entityId, entityName);
             //公司
             if (StringUtils.isNumeric(entityId)) {
                 dao.updateCompanyName(entityId, entityName);
