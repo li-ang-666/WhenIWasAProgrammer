@@ -5,19 +5,22 @@ import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.service.database.holder.JedisPoolHolder;
 import lombok.Cleanup;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 @Slf4j
 @UtilityClass
 public class ConfigUtils {
     private static volatile Config config;
 
-    public static Config initConfig(String[] args) throws Exception {
+    @SneakyThrows
+    public static Config initConfig(String[] args) {
         // 加载defaultConfig
         @Cleanup InputStream inputStream = ConfigUtils.class.getClassLoader().getResourceAsStream("default.yml");
         Config defaultConfig = YamlUtils.parse(inputStream, Config.class);
@@ -79,17 +82,41 @@ public class ConfigUtils {
     }
 
     private static void mergeConfig(Config defaultConfig, Config customConfig) {
-        defaultConfig.getDbConfigs().forEach((name, DBConfig) ->
-                customConfig.getDbConfigs().putIfAbsent(name, DBConfig)
-        );
-        defaultConfig.getRedisConfigs().forEach((name, redisConfig) ->
-                customConfig.getRedisConfigs().putIfAbsent(name, redisConfig)
-        );
-        defaultConfig.getHbaseDbConfigs().forEach((name, hbaseDbConfig) ->
-                customConfig.getHbaseDbConfigs().putIfAbsent(name, hbaseDbConfig)
-        );
-        defaultConfig.getDorisDbConfigs().forEach((name, dorisDbConfig) ->
-                customConfig.getDorisDbConfigs().putIfAbsent(name, dorisDbConfig)
-        );
+        // jdbc
+        if (customConfig.getDbConfigs() == null) {
+            customConfig.setDbConfigs(new HashMap<>());
+        }
+        if (defaultConfig.getDbConfigs() != null) {
+            defaultConfig.getDbConfigs().forEach((name, DBConfig) ->
+                    customConfig.getDbConfigs().putIfAbsent(name, DBConfig)
+            );
+        }
+        // redis
+        if (customConfig.getRedisConfigs() == null) {
+            customConfig.setRedisConfigs(new HashMap<>());
+        }
+        if (defaultConfig.getRedisConfigs() != null) {
+            defaultConfig.getRedisConfigs().forEach((name, redisConfig) ->
+                    customConfig.getRedisConfigs().putIfAbsent(name, redisConfig)
+            );
+        }
+        // hbase
+        if (customConfig.getHbaseDbConfigs() == null) {
+            customConfig.setHbaseDbConfigs(new HashMap<>());
+        }
+        if (defaultConfig.getHbaseDbConfigs() != null) {
+            defaultConfig.getHbaseDbConfigs().forEach((name, hbaseDbConfig) ->
+                    customConfig.getHbaseDbConfigs().putIfAbsent(name, hbaseDbConfig)
+            );
+        }
+        // doris
+        if (customConfig.getDorisDbConfigs() == null) {
+            customConfig.setDorisDbConfigs(new HashMap<>());
+        }
+        if (defaultConfig.getDorisDbConfigs() != null) {
+            defaultConfig.getDorisDbConfigs().forEach((name, dorisDbConfig) ->
+                    customConfig.getDorisDbConfigs().putIfAbsent(name, dorisDbConfig)
+            );
+        }
     }
 }

@@ -14,7 +14,7 @@ public class SparkSessionFactory {
         return initSpark();
     }
 
-    private static void initConfig(String[] args) throws Exception {
+    private static void initConfig(String[] args) {
         Config config = ConfigUtils.initConfig(args);
         ConfigUtils.setConfig(config);
     }

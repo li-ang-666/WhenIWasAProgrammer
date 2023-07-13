@@ -25,7 +25,7 @@ public class EnvironmentFactory {
         return env;
     }
 
-    private static void initConfig(String[] args) throws Exception {
+    private static void initConfig(String[] args) {
         Config config = ConfigUtils.initConfig(args);
         ConfigUtils.setConfig(config);
     }
