@@ -61,5 +61,10 @@ public class DimCountJob {
             List<HbaseOneRow> hbaseRows = service.invoke(singleCanalBinlog);
             hbaseTemplate.update(hbaseRows);
         }
+
+        @Override
+        public void finish() throws Exception {
+            hbaseTemplate.flush();
+        }
     }
 }
