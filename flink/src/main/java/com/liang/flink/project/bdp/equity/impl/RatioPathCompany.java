@@ -150,7 +150,7 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
             resultMap.put("shareholder_identity_type", identity);
             resultMaps.add(new HashMap<>(resultMap));
         }
-        dao.replaceIntoRelation(resultMaps);
+        dao.replaceIntoShareholderTypeDetail(resultMaps);
     }
 
     @Override

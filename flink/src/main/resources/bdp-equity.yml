@@ -13,6 +13,13 @@ repairTasks:
     where: "company_id in (2318455639)"
     scanMode: Direct
 
+#  - taskId: "222"
+#    sourceName: "bdpEquity"
+#    tableName: "tyc_entity_main_reference"
+#    columns: "*"
+#    where: "tyc_unique_entity_id in ('V0M9EM200ND6FPNUP')"
+#    scanMode: Direct
+
 kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
