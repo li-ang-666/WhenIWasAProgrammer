@@ -39,7 +39,6 @@ public class StreamFactory {
 
     private static DataStream<SingleCanalBinlog> createRepairStream(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
-        int size = config.getRepairTasks().size();
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
         String JobClassName = traceElement.getClassName();
@@ -47,6 +46,6 @@ public class StreamFactory {
         return streamEnvironment
                 .addSource(new RepairSource(config, JobClassName))
                 .name("RepairSource")
-                .setParallelism(size);
+                .setParallelism(config.getRepairTasks().size());
     }
 }
