@@ -135,8 +135,8 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("entity_type_id", 1);
         resultMap.put("entity_name_valid", String.valueOf(columnMap.get("company_name")));
         // 股东信息
-        resultMap.put("entity_type_id_with_shareholder_identity_type", String.valueOf(columnMap.get("shareholder_id")));
-        resultMap.put("tyc_unique_entity_id_with_shareholder_identity_type", String.valueOf(columnMap.get("shareholder_entity_type")));
+        resultMap.put("entity_type_id_with_shareholder_identity_type", String.valueOf(columnMap.get("shareholder_entity_type")));
+        resultMap.put("tyc_unique_entity_id_with_shareholder_identity_type", String.valueOf(columnMap.get("shareholder_id")));
         resultMap.put("entity_name_valid_with_shareholder_identity_type", String.valueOf(columnMap.get("shareholder_name")));
         // 身份信息
         resultMap.put("shareholder_identity_type", 0);
@@ -144,7 +144,7 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         BuildTab3Path.PathNode pathNode = (BuildTab3Path.PathNode) columnMap.get("path_node");
         resultMap.put("equity_ratio_path_cnt", pathNode.getCount());
         resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
-        resultMap.put("entity_name_valid_with_shareholder_identity_type", 2023);
+        resultMap.put("shareholder_validation_time_year", 2023);
         List<Map<String, Object>> resultMaps = new ArrayList<>();
         for (Integer identity : identities) {
             resultMap.put("shareholder_identity_type", identity);
