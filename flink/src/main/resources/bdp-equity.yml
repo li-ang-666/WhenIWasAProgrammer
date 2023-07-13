@@ -10,15 +10,8 @@ repairTasks:
     sourceName: "prismShareholderPath"
     tableName: "ratio_path_company"
     columns: "*"
-    where: "company_id in (2318455639)"
+    where: "company_id in (6297878650,399121580,265257701,4973553551,3294859797)"
     scanMode: Direct
-
-#  - taskId: "222"
-#    sourceName: "bdpEquity"
-#    tableName: "tyc_entity_main_reference"
-#    columns: "*"
-#    where: "tyc_unique_entity_id in ('V0M9EM200ND6FPNUP')"
-#    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
