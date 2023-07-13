@@ -11,6 +11,11 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
+        <!--apollo-->
+        <dependency>
+            <groupId>com.ctrip.framework.apollo</groupId>
+            <artifactId>apollo-client</artifactId>
+        </dependency>
 
         <!--静虎 和 国旺 的 shareholder-->
         <dependency>
