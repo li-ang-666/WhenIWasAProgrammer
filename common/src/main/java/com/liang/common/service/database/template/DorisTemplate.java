@@ -4,7 +4,6 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisDbConfig;
 import com.liang.common.service.AbstractCache;
-import com.liang.common.service.Logging;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.Synchronized;
@@ -52,7 +51,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new RedirectStrategy());
-    private final Logging logging;
     private final List<String> fe;
     private final String auth;
     private final Random random = new Random();
@@ -60,7 +58,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     public DorisTemplate(String name) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
-        logging = new Logging(this.getClass().getSimpleName(), name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
     }
@@ -68,7 +65,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     @Override
     @Synchronized
     protected void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
-        logging.beforeExecute();
         String uuid = UUID.randomUUID().toString();
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             // url
@@ -105,13 +101,13 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 String loadResult = EntityUtils.toString(httpEntity);
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
-                    logging.afterExecute("stream load", uuid);
+                    log.info("stream load success, loadResult: {}", loadResult);
                 } else {
-                    throw new RuntimeException(String.format("statusCode: %s, loadResult: %s", statusCode, loadResult));
+                    throw new RuntimeException(String.format("loadResult: %s", loadResult));
                 }
             }
         } catch (Exception e) {
-            logging.ifError("stream load", uuid, e);
+            log.error("stream load fail", e);
         }
     }
 
