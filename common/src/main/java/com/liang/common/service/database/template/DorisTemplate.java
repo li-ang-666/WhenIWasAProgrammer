@@ -103,7 +103,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
                     log.info("stream load success, loadResult: {}", loadResult);
                 } else {
-                    throw new RuntimeException(String.format("loadResult: %s", loadResult));
+                    log.error("stream load fail, loadResult: {}", loadResult);
                 }
             }
         } catch (Exception e) {

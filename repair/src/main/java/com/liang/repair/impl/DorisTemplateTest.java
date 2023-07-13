@@ -18,7 +18,7 @@ public class DorisTemplateTest extends ConfigHolder {
                 .database("test_db")
                 .tableName("stream_load_test")
                 .uniqueDeleteOn("__DORIS_DELETE_SIGN__ = 1")
-                .uniqueOrderBy("__DORIS_SEQUENCE_COL__")
+                .uniqueOrderBy("__DORIS_SEQUENCE_COL_")
                 .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ',name)"))
                 .build();
 
