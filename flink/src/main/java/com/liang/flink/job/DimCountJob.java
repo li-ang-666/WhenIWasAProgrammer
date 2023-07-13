@@ -26,7 +26,9 @@ public class DimCountJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
         Config config = ConfigUtils.getConfig();
-        sourceStream.addSink(new DimCountSink(config))
+        sourceStream
+                .rebalance()
+                .addSink(new DimCountSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("HbaseSink");
         env.execute("DimCountJob");
@@ -51,6 +53,7 @@ public class DimCountJob {
                     .addClass("EntityControllerDetails");
             service = new DataUpdateService<>(context);
             hbaseTemplate = new HbaseTemplate("hbaseSink");
+            hbaseTemplate.enableCache();
         }
 
         @Override
