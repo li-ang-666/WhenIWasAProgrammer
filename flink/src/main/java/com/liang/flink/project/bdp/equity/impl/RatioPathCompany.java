@@ -22,7 +22,7 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         String id = String.valueOf(columnMap.get("id"));
         String companyId = String.valueOf(columnMap.get("company_id"));
         String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-        //删除
+        //删除三张表的相关内容
         dao.deleteAll(id, companyId, shareholderId);
         String isDeleted = String.valueOf(columnMap.get("is_deleted"));
         if (singleCanalBinlog.getEventType() == DELETE || "1".equals(isDeleted)) {
@@ -104,27 +104,16 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
     // unique (公司id 股东id 股东身份类型(4种))
     private void parseIntoShareholderIdentityTypeDetails(SingleCanalBinlog singleCanalBinlog) {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-        // 1-大股东
-        String isBigShareholder = String.valueOf(columnMap.get("is_big_shareholder"));
-        // 2-控股股东
-        String isControllingShareholder = String.valueOf(columnMap.get("is_controlling_shareholder"));
-        // 3-实控人
-        String isController = String.valueOf(columnMap.get("is_controller"));
-        // 4-受益人
-        String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
+        // 1-大股东 2-控股股东 3-实控人 4-受益人
         ArrayList<Integer> identities = new ArrayList<>();
-        if ("1".equals(isBigShareholder)) {
+        if ("1".equals(String.valueOf(columnMap.get("is_big_shareholder"))))
             identities.add(1);
-        }
-        if ("1".equals(isControllingShareholder)) {
+        if ("1".equals(String.valueOf(columnMap.get("is_controlling_shareholder"))))
             identities.add(2);
-        }
-        if ("1".equals(isController)) {
+        if ("1".equals(String.valueOf(columnMap.get("is_controller"))))
             identities.add(3);
-        }
-        if ("1".equals(isUltimate)) {
+        if ("1".equals(String.valueOf(columnMap.get("is_ultimate"))))
             identities.add(4);
-        }
         //如果啥也不是,return
         if (identities.isEmpty()) {
             return;
