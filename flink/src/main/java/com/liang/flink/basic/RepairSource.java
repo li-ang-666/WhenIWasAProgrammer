@@ -82,7 +82,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
         keepSend(ctx);
-        RegisterComplete();
+        registerComplete();
         waitingAllComplete();
     }
 
@@ -98,9 +98,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         }
     }
 
-    private void RegisterComplete() {
-        redisTemplate.hSet(JobClassName,
-                task.getTaskId(), String.valueOf(task.getCurrentId()));
+    private void registerComplete() {
+        redisTemplate.hSet(JobClassName, task.getTaskId(), String.valueOf(task.getCurrentId()));
     }
 
     @SneakyThrows
