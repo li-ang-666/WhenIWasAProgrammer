@@ -65,7 +65,8 @@ public class ObsWriter extends AbstractCache<Object, String> {
             request.setInput(new ByteArrayInputStream(bytes));
             request.setPosition(position.getAndAdd(bytes.length));
             client.modifyObject(request);
-            logging.afterExecute("write", objectKeyName);
+            Object methodArg = rows.size() > 100 ? objectKeyName + "(" + rows.size() + "条)" : rows;
+            logging.afterExecute("write", methodArg);
         } catch (Exception e) {
             logging.ifError("write", objectKeyName, e);
         }
