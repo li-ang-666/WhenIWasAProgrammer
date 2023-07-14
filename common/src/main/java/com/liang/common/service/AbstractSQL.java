@@ -501,6 +501,7 @@ public abstract class AbstractSQL<T> {
         String offset;
         String limit;
         LimitingRowsStrategy limitingRowsStrategy = LimitingRowsStrategy.NOP;
+
         public SQLStatement() {
             // Prevent Synthetic Access
             valuesList.add(new ArrayList<>());
