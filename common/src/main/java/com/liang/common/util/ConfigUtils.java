@@ -42,7 +42,7 @@ public class ConfigUtils {
                 @Cleanup InputStream resourceStream2 = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName);
                 customConfig = YamlUtils.parse(resourceStream2, Config.class);
             } catch (Exception ee) {
-                log.error("load {} fail", fileName, ee);
+                log.error("load {} failed", fileName, ee);
             }
         }
         if (customConfig == null) {

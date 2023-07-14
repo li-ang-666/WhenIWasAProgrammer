@@ -107,7 +107,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 }
             }
         } catch (Exception e) {
-            log.error("stream load fail", e);
+            log.error("stream load failed", e);
         }
     }
 

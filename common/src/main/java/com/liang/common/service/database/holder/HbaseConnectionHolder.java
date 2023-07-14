@@ -19,7 +19,7 @@ public class HbaseConnectionHolder implements IHolder<Connection> {
             Connection callback = pools.putIfAbsent(name, connection);
             //说明这次put已经有值了
             if (callback != null) {
-                log.warn("putIfAbsent() fail, delete redundant hbaseConnection: {}", name);
+                log.warn("putIfAbsent() failed, delete redundant hbaseConnection: {}", name);
                 try {
                     connection.close();
                 } catch (Exception ignore) {

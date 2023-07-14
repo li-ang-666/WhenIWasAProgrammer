@@ -19,7 +19,7 @@ public class JedisPoolHolder implements IHolder<JedisPool> {
             JedisPool callback = pools.putIfAbsent(name, jedisPool);
             //说明这次put已经有值了
             if (callback != null) {
-                log.warn("putIfAbsent() fail, delete redundant jedisPool: {}", name);
+                log.warn("putIfAbsent() failed, delete redundant jedisPool: {}", name);
                 try {
                     jedisPool.close();
                 } catch (Exception ignore) {

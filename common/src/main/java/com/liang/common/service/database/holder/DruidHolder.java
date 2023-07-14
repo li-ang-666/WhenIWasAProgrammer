@@ -19,7 +19,7 @@ public class DruidHolder implements IHolder<DruidDataSource> {
             DruidDataSource callback = pools.putIfAbsent(name, druidDataSource);
             //说明这次put已经有值了
             if (callback != null) {
-                log.warn("putIfAbsent() fail, delete redundant druid: {}", name);
+                log.warn("putIfAbsent() failed, delete redundant druid: {}", name);
                 try {
                     druidDataSource.close();
                 } catch (Exception ignore) {
