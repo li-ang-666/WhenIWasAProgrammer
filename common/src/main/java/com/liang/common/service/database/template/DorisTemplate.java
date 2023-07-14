@@ -21,7 +21,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +68,8 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     @Override
     @Synchronized
     protected void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
-        String uuid = UUID.randomUUID().toString();
+        List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
+        String contentString = JsonUtils.toString(contentObject);
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             // url
             String target = fe.get(random.nextInt(fe.size()));
@@ -73,7 +77,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             // init put
             // common
             HttpPut put = new HttpPut(url);
-            put.setHeader("label", uuid);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
             put.setHeader("format", "json");
@@ -89,11 +92,9 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 }
             }
             // for content
-            List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
             List<String> keys = new ArrayList<>(contentObject.get(0).keySet());
             put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
             put.setHeader("jsonpaths", parseJsonPaths(keys));
-            String contentString = JsonUtils.toString(contentObject);
             put.setEntity(new StringEntity(contentString, StandardCharsets.UTF_8));
             // execute
             try (CloseableHttpResponse response = client.execute(put)) {
@@ -107,7 +108,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 }
             }
         } catch (Exception e) {
-            log.error("stream load failed", e);
+            log.error("stream load failed without loadResult, content: {}", contentString, e);
         }
     }
 
