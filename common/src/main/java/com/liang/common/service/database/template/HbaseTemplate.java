@@ -73,7 +73,8 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
             }
             // todo: 源码调用了table.batch()方法,好像可以同时包含put和delete
             table.put(puts);
-            logging.afterExecute("upsert", hbaseOneRows);
+            Object methodArg = hbaseOneRows.size() > 100 ? hbaseOneRows.size() + "条" : hbaseOneRows;
+            logging.afterExecute("upsert", methodArg);
         } catch (Exception e) {
             logging.ifError("upsert", hbaseOneRows, e);
         }
