@@ -45,12 +45,12 @@ public class ConfigUtils {
                 log.error("load {} fail", fileName, ee);
             }
         }
-        // merge two config
-        if (customConfig != null) {
-            mergeConfig(defaultConfig, customConfig);
-            return customConfig;
+        if (customConfig == null) {
+            return defaultConfig;
         }
-        return defaultConfig;
+        // merge two config
+        mergeConfig(defaultConfig, customConfig);
+        return customConfig;
     }
 
     public static Config getConfig() {
