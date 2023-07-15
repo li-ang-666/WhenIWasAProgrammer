@@ -8,7 +8,7 @@ public abstract class AbstractCache<K, V> {
     protected final KeySelector<K, V> keySelector;
     protected int cacheMilliseconds;
     protected int cacheRecords;
-    protected boolean enableCache = false;
+    protected volatile boolean enableCache = false;
 
     protected AbstractCache(int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
         this.cacheMilliseconds = cacheMilliseconds;
