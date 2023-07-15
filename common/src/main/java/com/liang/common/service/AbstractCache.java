@@ -77,6 +77,7 @@ public abstract class AbstractCache<K, V> {
                         copyCache.put(key, value);
                     }
                 }
+                // remove非最后一个entry的时候, 会ConcurrentModificationException
                 cache.entrySet().removeIf(entry -> copyCache.containsKey(entry.getKey()));
             }
         }
