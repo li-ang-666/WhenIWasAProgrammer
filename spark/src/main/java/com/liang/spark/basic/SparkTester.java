@@ -15,7 +15,7 @@ public class SparkTester {
         consumer.consume(spark);
     }
 
-    public static Dataset<Row> getCSVTable(SparkSession spark, String fileName) {
+    public static Dataset<Row> csv(SparkSession spark, String fileName) {
         return spark.read()
                 .option("header", "true")
                 .option("inferSchema", "true")
