@@ -75,9 +75,9 @@ public abstract class AbstractCache<K, V> {
                     List<V> value = entry.getValue();
                     if (value.size() >= cacheRecords) {
                         copyCache.put(key, value);
-                        cache.remove(key);
                     }
                 }
+                cache.entrySet().removeIf(entry -> copyCache.containsKey(entry.getKey()));
             }
         }
         for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {

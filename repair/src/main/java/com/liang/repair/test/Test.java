@@ -13,13 +13,13 @@ import java.util.Map;
 
 public class Test {
     public static void main(String[] args) throws Exception {
-        Map<String, Object> map = JsonUtils.parseJsonObj("{\"id\":1.1000000000000000000000,\"name\":\"tom\"}");
-        map.forEach((k,v)->{
-            System.out.println(k+" -> "+v);
-            System.out.println(k.getClass());
-            System.out.println(v.getClass());
-        });
-
-        System.out.println(JsonUtils.toString(new BigDecimal("3E10")));
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("1",1);
+        map.put("2",2);
+        map.put("3",3);
+        map.put("4",4);
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            map.remove(entry.getKey());
+        }
     }
 }
