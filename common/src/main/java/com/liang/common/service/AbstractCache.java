@@ -67,8 +67,7 @@ public abstract class AbstractCache<K, V> {
             for (V value : values) {
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ArrayList<>());
-                List<V> list = cache.get(key);
-                list.add(value);
+                cache.get(key).add(value);
             }
             if (enableCache) {
                 for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
