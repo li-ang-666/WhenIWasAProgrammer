@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 
@@ -36,7 +37,7 @@ public class ConfigUtils {
         try {
             @Cleanup InputStream resourceStream1 = Files.newInputStream(Paths.get(fileName));
             customConfig = YamlUtils.parse(resourceStream1, Config.class);
-        } catch (Exception e) {
+        } catch (NoSuchFileException e) {
             log.info("try load {} from package resource ...", fileName);
             try {
                 @Cleanup InputStream resourceStream2 = ConfigUtils.class.getClassLoader().getResourceAsStream(fileName);
