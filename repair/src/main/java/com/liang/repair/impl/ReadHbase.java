@@ -3,6 +3,7 @@ package com.liang.repair.impl;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.template.HbaseTemplate;
+import com.liang.common.util.JsonUtils;
 import com.liang.repair.service.ConfigHolder;
 
 public class ReadHbase extends ConfigHolder {
@@ -15,6 +16,6 @@ public class ReadHbase extends ConfigHolder {
                 .columnFamily("cf1")
                 .build();
         HbaseOneRow row = hbaseTemplate.getRow(new HbaseOneRow(hbaseSchema, "111"));
-        System.out.println(row);
+        log.info("row: {}", JsonUtils.toString(row));
     }
 }
