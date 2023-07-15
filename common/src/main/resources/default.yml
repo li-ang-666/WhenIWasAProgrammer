@@ -9,7 +9,6 @@ dbConfigs:
   prism1: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1" }
   dataListedCompany: { host: "7d89cf1613024a3d9b0511a21743806ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company" }
   graphData: { host: "1ae09b20e4504ae2a39b6d209b49f269in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "graph_data" }
-
   doris: { host: "10.99.202.70",database: "test_db",user: "dba",password: "Tyc@1234" ,port: 6060 }
 
 redisConfigs:

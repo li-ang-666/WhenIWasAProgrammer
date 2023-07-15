@@ -26,7 +26,7 @@ public class ConfigUtils {
         @Cleanup InputStream inputStream = ConfigUtils.class.getClassLoader().getResourceAsStream("default.yml");
         Config defaultConfig = YamlUtils.parse(inputStream, Config.class);
         // 加载customConfig
-        if (args.length == 0) {
+        if (args == null || args.length == 0) {
             log.warn("main(args) 没有传递 config 文件");
             return defaultConfig;
         }
