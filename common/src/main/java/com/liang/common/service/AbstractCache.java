@@ -1,7 +1,5 @@
 package com.liang.common.service;
 
-import org.apache.flink.api.java.tuple.Tuple2;
-
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -64,23 +62,31 @@ public abstract class AbstractCache<K, V> {
         if (values == null || values.isEmpty()) {
             return;
         }
-        for (V value : values) {
-            Tuple2<K, List<V>> kv = null;
-            synchronized (cache) {
+        Map<K, List<V>> copyCache = new HashMap<>();
+        synchronized (cache) {
+            for (V value : values) {
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ArrayList<>());
                 List<V> list = cache.get(key);
                 list.add(value);
-                if (enableCache && list.size() >= cacheRecords) {
-                    kv = Tuple2.of(key, list);
-                    cache.remove(key);
+            }
+            if (enableCache) {
+                for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
+                    K key = entry.getKey();
+                    List<V> value = entry.getValue();
+                    if (value.size() >= cacheRecords) {
+                        copyCache.put(key, value);
+                        cache.remove(key);
+                    }
                 }
             }
-            if (kv != null) {
-                updateImmediately(kv.f0, kv.f1);
-            }
         }
-        if (!enableCache && !cache.isEmpty()) {
+        for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
+            K key = entry.getKey();
+            List<V> value = entry.getValue();
+            updateImmediately(key, value);
+        }
+        if (!enableCache) {
             for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
                 updateImmediately(entry.getKey(), entry.getValue());
             }
