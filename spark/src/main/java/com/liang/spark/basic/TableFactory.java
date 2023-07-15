@@ -26,7 +26,7 @@ public class TableFactory {
                 rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
         long minId = minAndMax.f0;
         long maxId = minAndMax.f1;
-        DruidDataSource dataSource = new DruidHolder().getPool(tableName);
+        DruidDataSource dataSource = new DruidHolder().getPool(sourceName);
         String url = dataSource.getUrl();
         String user = dataSource.getUsername();
         String password = dataSource.getPassword();
