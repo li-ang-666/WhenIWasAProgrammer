@@ -5,10 +5,8 @@ import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
-import com.liang.common.util.DateTimeUtils;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
@@ -80,25 +78,25 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
         }
     }
 
-    public List<Tuple4<String, String, String, String>> getRow(HbaseOneRow hbaseOneRow) {
+    public HbaseOneRow getRow(HbaseOneRow hbaseOneRow) {
         logging.beforeExecute();
-        List<Tuple4<String, String, String, String>> resultList = new ArrayList<>();
-        try (Table table = getTable(hbaseOneRow.getSchema())) {
-            Get get = new Get(Bytes.toBytes(hbaseOneRow.getRowKey()));
+        HbaseSchema schema = hbaseOneRow.getSchema();
+        String rowKey = hbaseOneRow.getRowKey();
+        HbaseOneRow resultOneRow = new HbaseOneRow(schema, rowKey);
+        try (Table table = getTable(schema)) {
+            Get get = new Get(Bytes.toBytes(rowKey));
             Result result = table.get(get);
             for (Cell cell : result.listCells()) {
-                resultList.add(Tuple4.of(
-                        Bytes.toString(CellUtil.cloneFamily(cell)),
-                        Bytes.toString(CellUtil.cloneQualifier(cell)),
-                        Bytes.toString(CellUtil.cloneValue(cell)),
-                        DateTimeUtils.fromUnixTime(cell.getTimestamp() / 1000, "yyyy-MM-dd HH:mm:ss")
-                ));
+                String columnFamily = Bytes.toString(CellUtil.cloneFamily(cell));
+                if (columnFamily.equals(schema.getColumnFamily())) {
+                    resultOneRow.put(Bytes.toString(CellUtil.cloneQualifier(cell)), Bytes.toString(CellUtil.cloneValue(cell)));
+                }
             }
             logging.afterExecute("getRow", hbaseOneRow);
-            return resultList;
+            return resultOneRow;
         } catch (Exception e) {
             logging.ifError("getRow", hbaseOneRow, e);
-            return resultList;
+            return resultOneRow;
         }
     }
 
