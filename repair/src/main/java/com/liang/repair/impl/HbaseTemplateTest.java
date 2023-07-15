@@ -28,11 +28,11 @@ public class HbaseTemplateTest extends ConfigHolder {
 
         HbaseOneRow row1 = new HbaseOneRow(schema1, "111")
                 .put("id", 1)
-                .put("name", "aaa");
+                .put("name", "tom");
 
         HbaseOneRow row2 = new HbaseOneRow(schema2, "111")
-                .put("id", 2)
-                .put("name", "bbb");
+                .put("id", 1)
+                .put("name", "jerry");
 
         ArrayList<HbaseOneRow> hbaseOneRows = new ArrayList<>();
         for (int i = 1; i <= 1024; i++) {
