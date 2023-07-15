@@ -18,7 +18,7 @@ public class EnvironmentFactory {
     private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 3;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 10;
 
-    public static StreamExecutionEnvironment create(String[] args) throws Exception {
+    public static StreamExecutionEnvironment create(String[] args) {
         initConfig(args);
         StreamExecutionEnvironment env = initEnv();
         configEnv(env);

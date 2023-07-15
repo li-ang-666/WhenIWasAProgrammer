@@ -9,7 +9,7 @@ import org.apache.spark.sql.SparkSession;
 @Slf4j
 @UtilityClass
 public class SparkSessionFactory {
-    public static SparkSession createSpark(String[] args) throws Exception {
+    public static SparkSession createSpark(String[] args) {
         initConfig(args);
         return initSpark();
     }
@@ -20,9 +20,17 @@ public class SparkSessionFactory {
     }
 
     private static SparkSession initSpark() {
-        return SparkSession
-                .builder()
-                .config("spark.debug.maxToStringFields", "200")
-                .enableHiveSupport().getOrCreate();
+        try {
+            return SparkSession
+                    .builder()
+                    .config("spark.debug.maxToStringFields", "200")
+                    .enableHiveSupport()
+                    .getOrCreate();
+        } catch (Exception e) {
+            return SparkSession.builder()
+                    .config("spark.debug.maxToStringFields", "200")
+                    .master("local[*]")
+                    .getOrCreate();
+        }
     }
 }
