@@ -3,14 +3,13 @@ package com.liang.flink.service;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.flink.dto.SubRepairTask;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 @Slf4j
+@UtilityClass
 public class TaskGenerator {
-    private TaskGenerator() {
-    }
-
     public static SubRepairTask generateFrom(RepairTask task) {
         if (task.getScanMode() == RepairTask.ScanMode.Direct) {
             SubRepairTask subTask = new SubRepairTask(task);
