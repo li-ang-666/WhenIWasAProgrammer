@@ -6,7 +6,6 @@ import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.util.DorisBitmapUtils;
-import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,6 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
 
     @Override
     @Synchronized
-    @SneakyThrows
     protected void updateImmediately(Object ignore, List<String> sqls) {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
@@ -62,23 +60,28 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
             logging.ifError("updateBatch", sqls, e);
             try (DruidPooledConnection connection = pool.getConnection()) {
                 connection.setAutoCommit(true);
-
-            }
-            connection.rollback();
-            for (String sql : sqls) {
-                TimeUnit.MILLISECONDS.sleep(50);
-                int i = 3;
-                while (i > 0) {
-                    String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
-                    logging.beforeExecute();
+                for (String sql : sqls) {
                     try {
-                        connection.prepareStatement(sql).executeUpdate();
-                        logging.afterExecute("updateSingle", failedLogPrefix + sql);
-                        i = 0;
-                    } catch (Exception ee) {
-                        logging.ifError("updateSingle", failedLogPrefix + sql, ee);
-                        i--;
                         TimeUnit.MILLISECONDS.sleep(50);
+                    } catch (Exception ignored) {
+                    }
+
+                    int i = 3;
+                    while (i > 0) {
+                        String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
+                        logging.beforeExecute();
+                        try {
+                            connection.prepareStatement(sql).executeUpdate();
+                            logging.afterExecute("updateSingle", failedLogPrefix + sql);
+                            i = 0;
+                        } catch (Exception ee) {
+                            logging.ifError("updateSingle", failedLogPrefix + sql, ee);
+                            i--;
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(50);
+                            } catch (Exception ignored) {
+                            }
+                        }
                     }
                 }
             }
