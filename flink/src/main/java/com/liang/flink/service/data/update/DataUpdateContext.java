@@ -16,11 +16,30 @@ public class DataUpdateContext<OUT> {
     }
 
     @SuppressWarnings("unchecked")
-    public DataUpdateContext<OUT> addImpl(String implName) throws Exception {
+    public DataUpdateContext(Class<?> clz) {
+        projectName = null;
+        for (Class<? extends IDataUpdate<?>> impl : clz.getAnnotation(DataUpdateImpl.class).value()) {
+            try {
+                String implName = impl.getSimpleName();
+                String tableName = TableNameUtils.humpToUnderLine(implName);
+                map.put(tableName, (IDataUpdate<OUT>) impl.newInstance());
+                log.info("加载表处理类: {} -> {}", tableName, impl.getName());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public DataUpdateContext<OUT> addImpl(String implName) {
         String fullClassName = String.format("com.liang.flink.project.%s.impl.%s", projectName, implName);
         String tableName = TableNameUtils.humpToUnderLine(implName);
-        map.put(tableName, (IDataUpdate<OUT>) Class.forName(fullClassName).newInstance());
-        log.info("加载表处理类: {} -> {}", tableName, fullClassName);
+        try {
+            map.put(tableName, (IDataUpdate<OUT>) Class.forName(fullClassName).newInstance());
+            log.info("加载表处理类: {} -> {}", tableName, fullClassName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return this;
     }
 

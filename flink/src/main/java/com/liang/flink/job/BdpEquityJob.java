@@ -6,7 +6,10 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.project.bdp.equity.impl.RatioPathCompany;
+import com.liang.flink.project.bdp.equity.impl.TycEntityMainReference;
 import com.liang.flink.service.data.update.DataUpdateContext;
+import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -46,6 +49,7 @@ public class BdpEquityJob {
     }
 
     @Slf4j
+    @DataUpdateImpl({RatioPathCompany.class, TycEntityMainReference.class})
     public static final class Sink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DataUpdateService<SQL> service;
@@ -55,17 +59,14 @@ public class BdpEquityJob {
         }
 
         @Override
-        public void open(Configuration parameters) throws Exception {
+        public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<SQL>
-                    ("bdp.equity")
-                    .addImpl("RatioPathCompany")
-                    .addImpl("TycEntityMainReference");
+            DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<>(this.getClass());
             service = new DataUpdateService<>(dataUpdateContext);
         }
 
         @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             service.invoke(singleCanalBinlog);
         }
     }
