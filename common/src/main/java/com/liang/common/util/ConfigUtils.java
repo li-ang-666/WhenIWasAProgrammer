@@ -17,7 +17,6 @@ import java.util.HashMap;
 public class ConfigUtils {
     private static volatile Config config;
 
-    //@SneakyThrows
     public static Config initConfig(String[] args) {
         Config defaultConfig = initDefaultConfig();
         if (args == null || args.length == 0) {
