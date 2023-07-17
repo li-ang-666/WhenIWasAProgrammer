@@ -102,7 +102,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         redisTemplate.hSet(JobClassName, task.getTaskId(), String.valueOf(task.getCurrentId()));
     }
 
-    @SneakyThrows // sleep()
+    @SneakyThrows(InterruptedException.class)
     private void waitingAllComplete() {
         while (!canceled.get()) {
             TimeUnit.SECONDS.sleep(30);
@@ -132,7 +132,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         cancel();
         ConfigUtils.closeAll();
     }

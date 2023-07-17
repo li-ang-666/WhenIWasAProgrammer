@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.JedisPool;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,7 +32,7 @@ public class JedisPoolHolder implements IHolder<JedisPool> {
     }
 
     @Override
-    @SneakyThrows // close()
+    @SneakyThrows(IOException.class)
     public void closeAll() {
         for (Map.Entry<String, JedisPool> entry : pools.entrySet()) {
             JedisPool jedisPool = entry.getValue();

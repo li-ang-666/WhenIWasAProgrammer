@@ -5,6 +5,7 @@ import com.liang.common.service.database.factory.DruidFactory;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,7 +32,7 @@ public class DruidHolder implements IHolder<DruidDataSource> {
     }
 
     @Override
-    @SneakyThrows // close()
+    @SneakyThrows(IOException.class)
     public void closeAll() {
         for (Map.Entry<String, DruidDataSource> entry : pools.entrySet()) {
             DruidDataSource dataSource = entry.getValue();

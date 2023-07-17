@@ -35,7 +35,7 @@ public class KafkaLagReporter implements Runnable {
 
     @Override
     @SuppressWarnings("InfiniteLoopStatement")
-    @SneakyThrows // sleep()
+    @SneakyThrows(InterruptedException.class)
     public void run() {
         while (true) {
             print();
