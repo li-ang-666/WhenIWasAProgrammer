@@ -58,30 +58,21 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
         } catch (Exception e) {
             // 归还的时候, DruidDataSource.recycle 会自动 rollback 一次
             logging.ifError("updateBatch", sqls, e);
-            try (DruidPooledConnection connection = pool.getConnection()) {
-                connection.setAutoCommit(true);
-                for (String sql : sqls) {
-                    try {
+            for (String sql : sqls) {
+                TimeUnit.MILLISECONDS.sleep(50);
+                int i = 3;
+                while (i > 0) {
+                    String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
+                    logging.beforeExecute();
+                    try (DruidPooledConnection connection = pool.getConnection()) {
+                        connection.setAutoCommit(true);
+                        connection.prepareStatement(sql).executeUpdate();
+                        logging.afterExecute("updateSingle", failedLogPrefix + sql);
+                        i = 0;
+                    } catch (Exception ee) {
+                        logging.ifError("updateSingle", failedLogPrefix + sql, ee);
+                        i--;
                         TimeUnit.MILLISECONDS.sleep(50);
-                    } catch (Exception ignored) {
-                    }
-
-                    int i = 3;
-                    while (i > 0) {
-                        String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
-                        logging.beforeExecute();
-                        try {
-                            connection.prepareStatement(sql).executeUpdate();
-                            logging.afterExecute("updateSingle", failedLogPrefix + sql);
-                            i = 0;
-                        } catch (Exception ee) {
-                            logging.ifError("updateSingle", failedLogPrefix + sql, ee);
-                            i--;
-                            try {
-                                TimeUnit.MILLISECONDS.sleep(50);
-                            } catch (Exception ignored) {
-                            }
-                        }
                     }
                 }
             }
