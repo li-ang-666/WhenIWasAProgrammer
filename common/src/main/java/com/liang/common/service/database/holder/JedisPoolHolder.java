@@ -1,11 +1,9 @@
 package com.liang.common.service.database.holder;
 
 import com.liang.common.service.database.factory.JedisPoolFactory;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.JedisPool;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
