@@ -1,7 +1,6 @@
 package com.liang.flink.project.data.concat.dao;
 
 import com.liang.common.service.database.template.JdbcTemplate;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple3;
 
@@ -23,7 +22,6 @@ public class EquityPledgeReinvestDao {
         return 10000L * queryResult;
     }
 
-    @SneakyThrows
     public Tuple3<String, String, String> queryMaxTargetCompany(String companyId, boolean isHistory) {
         String sql = sqlHolder.maxTargetCompanySql(companyId, isHistory);
         Tuple3<String, String, String> result = jdbcTemplate.queryForObject(sql, rs -> {

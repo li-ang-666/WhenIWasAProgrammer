@@ -34,7 +34,6 @@ public class AdsJob {
         }
 
         @Override
-        @SneakyThrows
         public void call(Iterator<Row> rowIterator) throws Exception {
             ConfigUtils.setConfig(config);
             DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
@@ -55,7 +54,7 @@ public class AdsJob {
                 DorisOneRow dorisOneRow = new DorisOneRow(dorisSchema, columnMap);
                 dorisTemplate.update(dorisOneRow);
             }
-            TimeUnit.SECONDS.sleep(10);
+            dorisTemplate.flush();
         }
     }
 }

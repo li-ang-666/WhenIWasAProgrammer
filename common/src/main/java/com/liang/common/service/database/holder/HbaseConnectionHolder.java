@@ -31,7 +31,7 @@ public class HbaseConnectionHolder implements IHolder<Connection> {
     }
 
     @Override
-    @SneakyThrows
+    @SneakyThrows // close()
     public void closeAll() {
         for (Map.Entry<String, Connection> entry : pools.entrySet()) {
             Connection connection = entry.getValue();

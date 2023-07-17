@@ -17,7 +17,7 @@ public class SubRepairTask extends RepairTask {
     private volatile long currentId;
     private long targetId;
 
-    @SneakyThrows
+    @SneakyThrows // BeanUtils.copyProperties()
     public SubRepairTask(RepairTask repairTask) {
         BeanUtils.copyProperties(this, repairTask);
     }
