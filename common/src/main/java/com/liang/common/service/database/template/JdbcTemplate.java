@@ -6,7 +6,6 @@ import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.util.DorisBitmapUtils;
-import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
@@ -48,8 +47,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
     @SneakyThrows
     protected void updateImmediately(Object ignore, List<String> sqls) {
         logging.beforeExecute();
-        @Cleanup DruidPooledConnection connection = pool.getConnection();
-        try {
+        try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
             Statement statement = connection.createStatement();
             for (String sql : sqls) {
@@ -60,9 +58,13 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
             Object methodArg = sqls.size() > 100 ? sqls.size() + "条" : sqls;
             logging.afterExecute("updateBatch", methodArg);
         } catch (Exception e) {
+            // 归还的时候, DruidDataSource.recycle 会自动 rollback 一次
             logging.ifError("updateBatch", sqls, e);
+            try (DruidPooledConnection connection = pool.getConnection()) {
+                connection.setAutoCommit(true);
+
+            }
             connection.rollback();
-            connection.setAutoCommit(true);
             for (String sql : sqls) {
                 TimeUnit.MILLISECONDS.sleep(50);
                 int i = 3;
