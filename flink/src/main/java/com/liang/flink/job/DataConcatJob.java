@@ -49,13 +49,13 @@ public class DataConcatJob {
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             DataUpdateContext<HbaseOneRow> dataUpdateContext = new DataUpdateContext<HbaseOneRow>
-                    ("com.liang.flink.project.data.concat.impl")
-                    .addClass("RestrictConsumptionSplitIndex")
-                    .addClass("JudicialAssistanceIndex")
-                    .addClass("RestrictedOutboundIndex")
-                    .addClass("EquityPledgeReinvest")
-                    .addClass("EquityPledgeDetail")
-                    .addClass("CompanyBranch");
+                    ("data.concat")
+                    .addImpl("RestrictConsumptionSplitIndex")
+                    .addImpl("JudicialAssistanceIndex")
+                    .addImpl("RestrictedOutboundIndex")
+                    .addImpl("EquityPledgeReinvest")
+                    .addImpl("EquityPledgeDetail")
+                    .addImpl("CompanyBranch");
             service = new DataUpdateService<>(dataUpdateContext);
             hbase = new HbaseTemplate("hbaseSink");
             hbase.enableCache();

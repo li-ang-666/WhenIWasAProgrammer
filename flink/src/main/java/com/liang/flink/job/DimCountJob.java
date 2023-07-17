@@ -48,9 +48,9 @@ public class DimCountJob {
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             DataUpdateContext<HbaseOneRow> context = new DataUpdateContext<HbaseOneRow>
-                    ("com.liang.flink.project.dim.count.impl")
-                    .addClass("EntityBeneficiaryDetails")
-                    .addClass("EntityControllerDetails");
+                    ("dim.count")
+                    .addImpl("EntityBeneficiaryDetails")
+                    .addImpl("EntityControllerDetails");
             service = new DataUpdateService<>(context);
             hbaseTemplate = new HbaseTemplate("hbaseSink");
             hbaseTemplate.enableCache();

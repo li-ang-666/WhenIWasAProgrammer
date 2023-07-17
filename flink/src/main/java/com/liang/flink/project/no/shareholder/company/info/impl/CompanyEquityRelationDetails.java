@@ -1,7 +1,7 @@
-package com.liang.flink.project.no.thareholder.company.info.impl;
+package com.liang.flink.project.no.shareholder.company.info.impl;
 
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.project.no.thareholder.company.info.dao.NoShareholderDao;
+import com.liang.flink.project.no.shareholder.company.info.dao.NoShareholderDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
 
 import java.util.ArrayList;

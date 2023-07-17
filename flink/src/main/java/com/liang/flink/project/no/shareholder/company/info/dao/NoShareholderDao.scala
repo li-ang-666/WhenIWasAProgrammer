@@ -1,4 +1,4 @@
-package com.liang.flink.project.no.thareholder.company.info.dao
+package com.liang.flink.project.no.shareholder.company.info.dao
 
 import com.liang.common.service.database.template.JdbcTemplate
 import org.apache.commons.lang3.StringUtils

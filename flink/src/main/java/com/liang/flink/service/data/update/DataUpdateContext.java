@@ -9,16 +9,16 @@ import java.util.Map;
 @Slf4j
 public class DataUpdateContext<OUT> {
     private final Map<String, AbstractDataUpdate<OUT>> map = new HashMap<>();
-    private final String fullPackageName;
+    private final String projectName;
 
-    public DataUpdateContext(String fullPackageName) {
-        this.fullPackageName = fullPackageName;
+    public DataUpdateContext(String projectName) {
+        this.projectName = projectName;
     }
 
     @SuppressWarnings("unchecked")
-    public DataUpdateContext<OUT> addClass(String shortClassName) throws Exception {
-        String fullClassName = fullPackageName + "." + shortClassName;
-        String tableName = TableNameUtils.humpToUnderLine(shortClassName);
+    public DataUpdateContext<OUT> addImpl(String implName) throws Exception {
+        String fullClassName = String.format("com.liang.flink.project.%s.impl.%s", projectName, implName);
+        String tableName = TableNameUtils.humpToUnderLine(implName);
         map.put(tableName, (AbstractDataUpdate<OUT>) Class.forName(fullClassName).newInstance());
         log.info("加载表处理类: {} -> {}", tableName, fullClassName);
         return this;

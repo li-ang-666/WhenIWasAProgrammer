@@ -1,8 +1,8 @@
 # sourceType: Kafka or Repair
 flinkConfig:
   sourceType: Repair
-  sourceParallel: 5
-  otherParallel: 10
+  sourceParallel: 1
+  otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "prismShareholderPath"
     tableName: "ratio_path_company"
     columns: "*"
-    where: "company_id in (6297878650,399121580,265257701,4973553551,3294859797)"
+    where: "company_id in (2318455639)"
     scanMode: Direct
 
 kafkaConfigs:

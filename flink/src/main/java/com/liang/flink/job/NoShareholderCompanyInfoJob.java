@@ -47,12 +47,13 @@ public class NoShareholderCompanyInfoJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            DataUpdateContext<Map<String, Object>> context = new DataUpdateContext<Map<String, Object>>("com.liang.flink.project.no.thareholder.company.info.impl")
-                    .addClass("CompanyIndex")
-                    .addClass("StockActualController")
-                    .addClass("CompanyLegalPerson")
-                    .addClass("CompanyBondPlates")
-                    .addClass("CompanyEquityRelationDetails");
+            DataUpdateContext<Map<String, Object>> context = new DataUpdateContext<Map<String, Object>>
+                    ("no.shareholder.company.info")
+                    .addImpl("CompanyIndex")
+                    .addImpl("StockActualController")
+                    .addImpl("CompanyLegalPerson")
+                    .addImpl("CompanyBondPlates")
+                    .addImpl("CompanyEquityRelationDetails");
             service = new DataUpdateService<>(context);
             jdbcTemplate = new JdbcTemplate("sink");
             jdbcTemplate.enableCache();

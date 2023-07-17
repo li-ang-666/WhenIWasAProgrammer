@@ -58,9 +58,9 @@ public class BdpEquityJob {
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<SQL>
-                    ("com.liang.flink.project.bdp.equity.impl")
-                    .addClass("RatioPathCompany")
-                    .addClass("TycEntityMainReference");
+                    ("bdp.equity")
+                    .addImpl("RatioPathCompany")
+                    .addImpl("TycEntityMainReference");
             service = new DataUpdateService<>(dataUpdateContext);
         }
 
