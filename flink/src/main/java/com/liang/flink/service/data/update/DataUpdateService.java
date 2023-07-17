@@ -16,7 +16,7 @@ public class DataUpdateService<OUT> {
     }
 
     public List<OUT> invoke(SingleCanalBinlog singleCanalBinlog) {
-        AbstractDataUpdate<OUT> impl = dataUpdateContext.getClass(singleCanalBinlog.getTable());
+        IDataUpdate<OUT> impl = dataUpdateContext.getClass(singleCanalBinlog.getTable());
         if (impl == null) {
             log.warn("该表无处理类: {}", singleCanalBinlog.getTable());
             return new ArrayList<>();
