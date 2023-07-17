@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import lombok.ToString;
 import org.apache.commons.beanutils.BeanUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Data
@@ -17,7 +18,7 @@ public class SubRepairTask extends RepairTask {
     private volatile long currentId;
     private long targetId;
 
-    @SneakyThrows // BeanUtils.copyProperties()
+    @SneakyThrows({IllegalAccessException.class, InvocationTargetException.class})
     public SubRepairTask(RepairTask repairTask) {
         BeanUtils.copyProperties(this, repairTask);
     }
