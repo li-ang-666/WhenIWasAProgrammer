@@ -32,7 +32,6 @@ public class JedisPoolHolder implements IHolder<JedisPool> {
     }
 
     @Override
-    @SneakyThrows(IOException.class)
     public void closeAll() {
         for (Map.Entry<String, JedisPool> entry : pools.entrySet()) {
             JedisPool jedisPool = entry.getValue();

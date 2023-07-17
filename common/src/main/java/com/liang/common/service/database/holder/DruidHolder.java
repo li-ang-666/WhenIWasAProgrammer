@@ -32,7 +32,6 @@ public class DruidHolder implements IHolder<DruidDataSource> {
     }
 
     @Override
-    @SneakyThrows(IOException.class)
     public void closeAll() {
         for (Map.Entry<String, DruidDataSource> entry : pools.entrySet()) {
             DruidDataSource dataSource = entry.getValue();
