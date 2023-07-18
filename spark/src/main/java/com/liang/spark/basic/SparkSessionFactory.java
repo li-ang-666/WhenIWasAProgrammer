@@ -10,12 +10,13 @@ import org.apache.spark.sql.SparkSession;
 @UtilityClass
 public class SparkSessionFactory {
     public static SparkSession createSpark(String[] args) {
-        initConfig(args);
+        String file = (args != null && args.length > 0) ? args[0] : null;
+        initConfig(file);
         return initSpark();
     }
 
-    private static void initConfig(String[] args) {
-        Config config = ConfigUtils.initConfig(args);
+    private static void initConfig(String file) {
+        Config config = ConfigUtils.initConfig(file);
         ConfigUtils.setConfig(config);
     }
 
