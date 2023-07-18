@@ -48,7 +48,10 @@ public class BdpEquityJob {
     }
 
     @Slf4j
-    @DataUpdateImpl({RatioPathCompany.class, TycEntityMainReference.class})
+    @DataUpdateImpl({
+            RatioPathCompany.class,
+            TycEntityMainReference.class
+    })
     public static final class Sink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DataUpdateService<SQL> service;
