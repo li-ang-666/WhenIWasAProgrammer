@@ -16,12 +16,13 @@ import java.util.HashMap;
 @Slf4j
 @UtilityClass
 public class ConfigUtils {
+    private final static String SUFFIX = ".yml";
     private static volatile Config config;
 
     public static Config initConfig(String file) {
         Config defaultConfig = initDefaultConfig();
-        if (StringUtils.endsWith(file, ".yml")) {
-            log.warn("no *.yml file for customConfig, return defaultConfig");
+        if (StringUtils.endsWith(file, SUFFIX)) {
+            log.warn("no *{} file for customConfig, return defaultConfig", SUFFIX);
             return defaultConfig;
         }
         Config customConfig = initCustomConfig(file);
