@@ -1,5 +1,7 @@
 package com.liang.common.service;
 
+import lombok.SneakyThrows;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -24,25 +26,26 @@ public abstract class AbstractCache<K, V> {
         if (!enableCache) {
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
-            new Thread(() -> {
-                while (true) {
-                    try {
+            new Thread(new Runnable() {
+                @SneakyThrows(InterruptedException.class)
+                @Override
+                public void run() {
+                    while (true) {
                         TimeUnit.MILLISECONDS.sleep(cacheMilliseconds);
-                    } catch (Exception ignore) {
-                    }
-                    if (cache.isEmpty()) {
-                        continue;
-                    }
-                    Map<K, List<V>> copyCache;
-                    synchronized (cache) {
                         if (cache.isEmpty()) {
                             continue;
                         }
-                        copyCache = new HashMap<>(cache);
-                        cache.clear();
-                    }
-                    for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
-                        updateImmediately(entry.getKey(), entry.getValue());
+                        Map<K, List<V>> copyCache;
+                        synchronized (cache) {
+                            if (cache.isEmpty()) {
+                                continue;
+                            }
+                            copyCache = new HashMap<>(cache);
+                            cache.clear();
+                        }
+                        for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
+                            updateImmediately(entry.getKey(), entry.getValue());
+                        }
                     }
                 }
             }).start();

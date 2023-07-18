@@ -11,6 +11,7 @@ import com.liang.flink.basic.RepairSource;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
@@ -53,15 +54,13 @@ public class StreamFactory {
             private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
 
             @Override
+            @SneakyThrows(InterruptedException.class)
             public void run() {
                 while (true) {
+                    TimeUnit.MILLISECONDS.sleep(1000 * 60 * 3);
                     Map<String, String> reportMap = redisTemplate.hScan(repairId);
                     String reportContent = JsonUtils.toString(reportMap);
                     log.info("repair report: {}", reportContent);
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(1000 * 60 * 3);
-                    } catch (Exception ignore) {
-                    }
                 }
             }
         }).start();
