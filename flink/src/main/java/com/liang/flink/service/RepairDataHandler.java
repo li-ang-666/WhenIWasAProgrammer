@@ -84,6 +84,7 @@ public class RepairDataHandler implements Runnable {
             redisTemplate.hSet(repairId, task.getTaskId(),
                     JsonUtils.toString(task)
             );
+            lastReportTimeMillis = currentTimeMillis;
         }
     }
 }
