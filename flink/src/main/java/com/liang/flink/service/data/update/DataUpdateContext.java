@@ -25,7 +25,6 @@ public class DataUpdateContext<OUT> {
             String tableName = TableNameUtils.humpToUnderLine(implName);
             map.put(tableName, (IDataUpdate<OUT>) impl.newInstance());
             log.info("加载表处理类: {} -> {}", tableName, impl.getName());
-
         }
     }
 

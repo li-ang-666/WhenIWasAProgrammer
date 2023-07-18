@@ -4,6 +4,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
+import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.project.bdp.equity.impl.RatioPathCompany;
@@ -21,11 +22,9 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.Map;
 
 @Slf4j
+@LocalConfigFile("bdp-equity.yml")
 public class BdpEquityJob {
     public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            args = new String[]{"bdp-equity.yml"};
-        }
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
