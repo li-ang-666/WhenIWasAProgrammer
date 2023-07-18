@@ -10,8 +10,6 @@ import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import java.lang.reflect.Method;
-
 import static org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION;
 
 @Slf4j
@@ -20,7 +18,7 @@ public class EnvironmentFactory {
     private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 3;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 10;
 
-    public static StreamExecutionEnvironment create(String[] args) {
+    public static StreamExecutionEnvironment create(String[] args) throws ClassNotFoundException {
         String file;
         if (args != null && args.length > 0) {
             file = args[0];
@@ -29,7 +27,7 @@ public class EnvironmentFactory {
             // 栈底元素, main方法
             StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
             String jobClassName = traceElement.getClassName();
-            Class.forName(jobClassName)
+            file = Class.forName(jobClassName).getAnnotation(LocalConfigFile.class).value();
         }
         initConfig(args);
         StreamExecutionEnvironment env = initEnv();

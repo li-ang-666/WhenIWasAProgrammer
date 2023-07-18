@@ -17,13 +17,13 @@ import java.util.HashMap;
 public class ConfigUtils {
     private static volatile Config config;
 
-    public static Config initConfig(String[] args) {
+    public static Config initConfig(String file) {
         Config defaultConfig = initDefaultConfig();
-        if (args == null || args.length == 0) {
+        if (!String.valueOf(file).matches(".*?\\.yml")) {
             log.warn("no file for customConfig, return defaultConfig");
             return defaultConfig;
         }
-        Config customConfig = initCustomConfig(args[0]);
+        Config customConfig = initCustomConfig(file);
         if (customConfig == null) {
             return defaultConfig;
         }
