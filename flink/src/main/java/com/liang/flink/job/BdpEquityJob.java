@@ -31,6 +31,7 @@ public class BdpEquityJob {
         Config config = ConfigUtils.getConfig();
         // 黑名单
         new Thread(() -> {
+            log.info("执行黑名单...");
             String sql = new SQL()
                     .UPDATE("ratio_path_company")
                     .SET("is_controller = 0")
