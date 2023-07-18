@@ -27,16 +27,21 @@ public class EnvironmentFactory {
             // 栈底元素, main方法
             StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
             String jobClassName = traceElement.getClassName();
-            file = Class.forName(jobClassName).getAnnotation(LocalConfigFile.class).value();
+            Class<?> jobClass = Class.forName(jobClassName);
+            if (jobClass.isAnnotationPresent(LocalConfigFile.class)) {
+                file = jobClass.getAnnotation(LocalConfigFile.class).value();
+            } else {
+                file = null;
+            }
         }
-        initConfig(args);
+        initConfig(file);
         StreamExecutionEnvironment env = initEnv();
         configEnv(env);
         return env;
     }
 
-    private static void initConfig(String[] args) {
-        Config config = ConfigUtils.initConfig(args);
+    private static void initConfig(String file) {
+        Config config = ConfigUtils.initConfig(file);
         ConfigUtils.setConfig(config);
     }
 
