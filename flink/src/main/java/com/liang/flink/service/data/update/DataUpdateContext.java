@@ -1,5 +1,6 @@
 package com.liang.flink.service.data.update;
 
+import com.liang.common.util.StackUtils;
 import com.liang.common.util.TableNameUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
