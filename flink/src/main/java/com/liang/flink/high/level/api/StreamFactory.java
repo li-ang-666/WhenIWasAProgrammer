@@ -3,6 +3,7 @@ package com.liang.flink.high.level.api;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.StackUtils;
 import com.liang.flink.basic.KafkaMonitor;
 import com.liang.flink.basic.KafkaSourceFactory;
 import com.liang.flink.basic.RepairSource;
@@ -39,10 +40,7 @@ public class StreamFactory {
 
     private static DataStream<SingleCanalBinlog> createRepairStream(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        // 栈底元素, main方法
-        StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
-        String jobClassName = traceElement.getClassName();
+        String jobClassName = StackUtils.getMainFrame().getClassName();
         new RedisTemplate("metadata").del(jobClassName);
         return streamEnvironment
                 .addSource(new RepairSource(config, jobClassName))

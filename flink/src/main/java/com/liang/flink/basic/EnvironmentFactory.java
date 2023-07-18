@@ -2,6 +2,7 @@ package com.liang.flink.basic;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.StackUtils;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +26,7 @@ public class EnvironmentFactory {
         if (args != null && args.length > 0) {
             file = args[0];
         } else {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            // 栈底元素, main方法
-            StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
-            String jobClassName = traceElement.getClassName();
+            String jobClassName = StackUtils.getMainFrame().getClassName();
             Class<?> jobClass = Class.forName(jobClassName);
             if (jobClass.isAnnotationPresent(LocalConfigFile.class)) {
                 file = jobClass.getAnnotation(LocalConfigFile.class).value();
