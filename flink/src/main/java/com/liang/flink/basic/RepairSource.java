@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 部分任务结束后的 Checkpoint
  */
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
+    private final static int CHECK_INTERVAL = 1000 * 30;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
@@ -108,7 +109,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @SneakyThrows(InterruptedException.class)
     private void waitingAllComplete() {
         while (!canceled.get()) {
-            TimeUnit.SECONDS.sleep(30);
+            TimeUnit.MILLISECONDS.sleep(CHECK_INTERVAL);
             Map<String, String> reportMap = redisTemplate.hScan(repairId);
             long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[completed]")).count();
             long totalNum = config.getRepairTasks().size();

@@ -28,6 +28,8 @@ import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 @UtilityClass
 @Slf4j
 public class StreamFactory {
+    private final static int REPORT_INTERVAL = 1000 * 60 * 3;
+
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
         return config.getFlinkConfig().getSourceType() == Kafka ?
@@ -57,7 +59,7 @@ public class StreamFactory {
             @SneakyThrows(InterruptedException.class)
             public void run() {
                 while (true) {
-                    TimeUnit.MILLISECONDS.sleep(1000 * 60 * 3);
+                    TimeUnit.MILLISECONDS.sleep(REPORT_INTERVAL);
                     Map<String, String> reportMap = redisTemplate.hScan(repairId);
                     String reportContent = JsonUtils.toString(reportMap);
                     log.info("repair report: {}", reportContent);
