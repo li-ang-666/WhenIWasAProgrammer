@@ -20,6 +20,7 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -108,8 +109,9 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private void waitingAllComplete() {
         while (!canceled.get()) {
             TimeUnit.SECONDS.sleep(30);
-            int completedNum = redisTemplate.hScan(repairId).size();
-            int totalNum = config.getRepairTasks().size();
+            Map<String, String> reportMap = redisTemplate.hScan(repairId);
+            long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[done]")).count();
+            long totalNum = config.getRepairTasks().size();
             if (completedNum == totalNum) {
                 log.info("all repair task complete, waiting next checkpoint");
                 cancel();
