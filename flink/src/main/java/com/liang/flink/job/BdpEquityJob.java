@@ -2,6 +2,7 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
@@ -20,6 +21,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @LocalConfigFile("bdp-equity.yml")
@@ -27,6 +29,20 @@ public class BdpEquityJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
+        // 黑名单
+        new Thread(() -> {
+            String sql = new SQL()
+                    .UPDATE("ratio_path_company")
+                    .SET("is_controller = 0")
+                    .SET("is_controlling_shareholder = 0")
+                    .WHERE("company_id = 2338203553")
+                    .toString();
+            new JdbcTemplate("prismShareholderPath").update(sql);
+            try {
+                TimeUnit.SECONDS.sleep(30);
+            } catch (Exception ignore) {
+            }
+        }).start();
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
         sourceStream
                 .keyBy(new KeySelector<SingleCanalBinlog, String>() {
