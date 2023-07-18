@@ -34,16 +34,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
-    private final String JobClassName;
+    private final String repairId;
 
     private SubRepairTask task;
     private ListState<SubRepairTask> taskState;
 
     private RedisTemplate redisTemplate;
 
-    public RepairSource(Config config, String jobClassName) {
+    public RepairSource(Config config, String repairId) {
         this.config = config;
-        this.JobClassName = jobClassName;
+        this.repairId = repairId;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void open(Configuration parameters) {
         redisTemplate = new RedisTemplate("metadata");
-        new Thread(new RepairDataHandler(task, running)).start();
+        new Thread(new RepairDataHandler(task, running, repairId)).start();
     }
 
     @Override
@@ -99,14 +99,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     private void registerComplete() {
-        redisTemplate.hSet(JobClassName, task.getTaskId(), String.valueOf(task.getCurrentId()));
+        redisTemplate.hSet(repairId, task.getTaskId(),
+                "[done]" + task.getCurrentId()
+        );
     }
 
     @SneakyThrows(InterruptedException.class)
     private void waitingAllComplete() {
         while (!canceled.get()) {
             TimeUnit.SECONDS.sleep(30);
-            int completedNum = redisTemplate.hScan(JobClassName).size();
+            int completedNum = redisTemplate.hScan(repairId).size();
             int totalNum = config.getRepairTasks().size();
             if (completedNum == totalNum) {
                 log.info("all repair task complete, waiting next checkpoint");

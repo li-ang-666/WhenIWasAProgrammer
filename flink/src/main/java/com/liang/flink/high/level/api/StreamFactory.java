@@ -3,6 +3,7 @@ package com.liang.flink.high.level.api;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.common.util.StackUtils;
 import com.liang.flink.basic.KafkaMonitor;
 import com.liang.flink.basic.KafkaSourceFactory;
@@ -16,6 +17,10 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 
@@ -41,9 +46,27 @@ public class StreamFactory {
     private static DataStream<SingleCanalBinlog> createRepairStream(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
         String jobClassName = StackUtils.getMainFrame().getClassName();
-        new RedisTemplate("metadata").del(jobClassName);
+        String[] split = jobClassName.split("\\.");
+        String simpleName = split[split.length - 1];
+        String repairId = simpleName + "-" + UUID.randomUUID();
+        new Thread(new Runnable() {
+            private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
+
+            @Override
+            public void run() {
+                while (true) {
+                    Map<String, String> reportMap = redisTemplate.hScan(repairId);
+                    String reportContent = JsonUtils.toString(reportMap);
+                    log.info("repair report: {}", reportContent);
+                    try {
+                        TimeUnit.SECONDS.sleep(5);
+                    } catch (Exception ignore) {
+                    }
+                }
+            }
+        }).start();
         return streamEnvironment
-                .addSource(new RepairSource(config, jobClassName))
+                .addSource(new RepairSource(config, repairId))
                 .name("RepairSource")
                 .setParallelism(config.getRepairTasks().size());
     }

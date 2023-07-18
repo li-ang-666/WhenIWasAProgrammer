@@ -2,6 +2,8 @@ package com.liang.flink.service;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.service.database.template.RedisTemplate;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
 import lombok.extern.slf4j.Slf4j;
@@ -23,18 +25,22 @@ public class RepairDataHandler implements Runnable {
 
     private final SubRepairTask task;
     private final AtomicBoolean running;
+    private final String repairId;
     private final String baseSql;
     private final JdbcTemplate jdbcTemplate;
+    private final RedisTemplate redisTemplate;
 
     private volatile long watermark;
     private long lastReportTimeMillis;
 
-    public RepairDataHandler(SubRepairTask task, AtomicBoolean running) {
+    public RepairDataHandler(SubRepairTask task, AtomicBoolean running, String repairId) {
         this.task = task;
         this.running = running;
+        this.repairId = repairId;
         baseSql = String.format("select %s from %s where %s ",
                 task.getColumns(), task.getTableName(), task.getWhere());
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
+        redisTemplate = new RedisTemplate("metadata");
     }
 
     @Override
@@ -75,11 +81,9 @@ public class RepairDataHandler implements Runnable {
     private void report() {
         long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - lastReportTimeMillis >= REPORT_INTERVAL) {
-            String id = task.getTaskId();
-            long currentId = task.getCurrentId();
-            long targetId = task.getTargetId();
-            log.info("sender report, task-{}: currentId {}, targetId {}, lag {}", id, currentId, targetId, targetId - currentId);
-            lastReportTimeMillis = currentTimeMillis;
+            redisTemplate.hSet(repairId, task.getTaskId(),
+                    JsonUtils.toString(task)
+            );
         }
     }
 }

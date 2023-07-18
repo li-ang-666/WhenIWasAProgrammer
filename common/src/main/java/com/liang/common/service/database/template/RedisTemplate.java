@@ -60,9 +60,9 @@ public class RedisTemplate {
         logging.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             jedis.hmset(key, map);
-            logging.afterExecute("set", map);
+            logging.afterExecute("hMSet", key + " -> " + map);
         } catch (Exception e) {
-            logging.ifError("set", map, e);
+            logging.ifError("hMSet", key + " -> " + map, e);
         }
     }
 
