@@ -59,7 +59,7 @@ public class StreamFactory {
                     String reportContent = JsonUtils.toString(reportMap);
                     log.info("repair report: {}", reportContent);
                     try {
-                        TimeUnit.MILLISECONDS.sleep(1000 * 10);
+                        TimeUnit.MILLISECONDS.sleep(1000 * 60 * 3);
                     } catch (Exception ignore) {
                     }
                 }
