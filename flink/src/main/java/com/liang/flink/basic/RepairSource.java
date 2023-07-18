@@ -131,6 +131,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void cancel() {
+        redisTemplate.del(repairId);
         running.set(false);
         canceled.set(true);
     }
