@@ -3,7 +3,6 @@ package com.liang.flink.service;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
-import com.liang.common.util.JsonUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
 import lombok.extern.slf4j.Slf4j;
@@ -81,8 +80,11 @@ public class RepairDataHandler implements Runnable {
     private void report() {
         long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - lastReportTimeMillis >= REPORT_INTERVAL) {
+            long currentId = task.getCurrentId();
+            long targetId = task.getTargetId();
+            long lag = targetId - currentId;
             redisTemplate.hSet(repairId, task.getTaskId(),
-                    JsonUtils.toString(task)
+                    String.format("[running]currentId: %s, targetId: %s, lag: %s", currentId, targetId, lag)
             );
             lastReportTimeMillis = currentTimeMillis;
         }

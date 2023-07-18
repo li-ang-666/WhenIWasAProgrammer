@@ -101,7 +101,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     private void registerComplete() {
         redisTemplate.hSet(repairId, task.getTaskId(),
-                "[done]" + task.getCurrentId()
+                String.format("[completed]currentId: %s", task.getCurrentId())
         );
     }
 
@@ -110,7 +110,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         while (!canceled.get()) {
             TimeUnit.SECONDS.sleep(30);
             Map<String, String> reportMap = redisTemplate.hScan(repairId);
-            long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[done]")).count();
+            long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[completed]")).count();
             long totalNum = config.getRepairTasks().size();
             if (completedNum == totalNum) {
                 log.info("all repair task complete, waiting next checkpoint");
