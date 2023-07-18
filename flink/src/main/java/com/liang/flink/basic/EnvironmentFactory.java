@@ -26,9 +26,6 @@ public class EnvironmentFactory {
             file = args[0];
         } else {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            for (StackTraceElement e : stackTrace) {
-                log.info("{} {} {}",e.getClassName(),e.getMethodName(),e.getLineNumber());
-            }
             // 栈底元素, main方法
             StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
             String jobClassName = traceElement.getClassName();
