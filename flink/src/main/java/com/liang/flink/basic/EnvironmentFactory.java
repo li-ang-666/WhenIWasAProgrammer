@@ -2,9 +2,9 @@ package com.liang.flink.basic;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
@@ -19,7 +19,8 @@ public class EnvironmentFactory {
     private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 3;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 10;
 
-    public static StreamExecutionEnvironment create(String[] args) throws ClassNotFoundException {
+    @SneakyThrows(ClassNotFoundException.class)
+    public static StreamExecutionEnvironment create(String[] args) {
         String file;
         if (args != null && args.length > 0) {
             file = args[0];
