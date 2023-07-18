@@ -40,11 +40,12 @@ public class StreamFactory {
     private static DataStream<SingleCanalBinlog> createRepairStream(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        // 栈底元素, main方法
         StackTraceElement traceElement = stackTrace[stackTrace.length - 1];
-        String JobClassName = traceElement.getClassName();
-        new RedisTemplate("metadata").del(JobClassName);
+        String jobClassName = traceElement.getClassName();
+        new RedisTemplate("metadata").del(jobClassName);
         return streamEnvironment
-                .addSource(new RepairSource(config, JobClassName))
+                .addSource(new RepairSource(config, jobClassName))
                 .name("RepairSource")
                 .setParallelism(config.getRepairTasks().size());
     }
