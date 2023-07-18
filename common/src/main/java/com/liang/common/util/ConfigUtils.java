@@ -6,6 +6,7 @@ import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import com.liang.common.service.database.holder.JedisPoolHolder;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -19,7 +20,7 @@ public class ConfigUtils {
 
     public static Config initConfig(String file) {
         Config defaultConfig = initDefaultConfig();
-        if (!String.valueOf(file).matches(".*?\\.yml")) {
+        if (StringUtils.endsWith(file, ".yml")) {
             log.warn("no *.yml file for customConfig, return defaultConfig");
             return defaultConfig;
         }
