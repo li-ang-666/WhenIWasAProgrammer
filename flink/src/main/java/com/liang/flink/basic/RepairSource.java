@@ -101,7 +101,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     private void registerComplete() {
         redisTemplate.hSet(repairId, task.getTaskId(),
-                String.format("[completed]currentId: %s", task.getCurrentId())
+                String.format("[completed] currentId: %s", task.getCurrentId())
         );
     }
 
