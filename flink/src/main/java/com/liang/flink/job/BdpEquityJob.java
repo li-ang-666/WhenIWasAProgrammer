@@ -31,17 +31,19 @@ public class BdpEquityJob {
         Config config = ConfigUtils.getConfig();
         // 黑名单
         new Thread(() -> {
-            log.info("执行黑名单...");
-            String sql = new SQL()
-                    .UPDATE("ratio_path_company")
-                    .SET("is_controller = 0")
-                    .SET("is_controlling_shareholder = 0")
-                    .WHERE("company_id = 2338203553")
-                    .toString();
-            new JdbcTemplate("prismShareholderPath").update(sql);
-            try {
-                TimeUnit.SECONDS.sleep(30);
-            } catch (Exception ignore) {
+            while (true) {
+                log.info("执行黑名单...");
+                String sql = new SQL()
+                        .UPDATE("ratio_path_company")
+                        .SET("is_controller = 0")
+                        .SET("is_controlling_shareholder = 0")
+                        .WHERE("company_id = 2338203553")
+                        .toString();
+                new JdbcTemplate("prismShareholderPath").update(sql);
+                try {
+                    TimeUnit.SECONDS.sleep(30);
+                } catch (Exception ignore) {
+                }
             }
         }).start();
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
