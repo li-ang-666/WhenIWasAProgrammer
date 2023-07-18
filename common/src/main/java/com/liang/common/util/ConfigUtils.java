@@ -20,7 +20,7 @@ public class ConfigUtils {
     public static Config initConfig(String file) {
         Config defaultConfig = initDefaultConfig();
         if (!String.valueOf(file).matches(".*?\\.yml")) {
-            log.warn("no file for customConfig, return defaultConfig");
+            log.warn("no *.yml file for customConfig, return defaultConfig");
             return defaultConfig;
         }
         Config customConfig = initCustomConfig(file);
