@@ -5,9 +5,13 @@ import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
+import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.project.dim.count.impl.EntityBeneficiaryDetails;
+import com.liang.flink.project.dim.count.impl.EntityControllerDetails;
 import com.liang.flink.service.data.update.DataUpdateContext;
+import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
@@ -18,11 +22,9 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.List;
 
 @Slf4j
+@LocalConfigFile("dim-count.yml")
 public class DimCountJob {
     public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            args = new String[]{"dim-count.yml"};
-        }
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         DataStream<SingleCanalBinlog> sourceStream = StreamFactory.create(env);
         Config config = ConfigUtils.getConfig();
@@ -35,6 +37,10 @@ public class DimCountJob {
     }
 
     @Slf4j
+    @DataUpdateImpl({
+            EntityBeneficiaryDetails.class,
+            EntityControllerDetails.class
+    })
     private final static class DimCountSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DataUpdateService<HbaseOneRow> service;
@@ -47,10 +53,7 @@ public class DimCountJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            DataUpdateContext<HbaseOneRow> context = new DataUpdateContext<HbaseOneRow>
-                    ("dim.count")
-                    .addImpl("EntityBeneficiaryDetails")
-                    .addImpl("EntityControllerDetails");
+            DataUpdateContext<HbaseOneRow> context = new DataUpdateContext<>(DimCountSink.class);
             service = new DataUpdateService<>(context);
             hbaseTemplate = new HbaseTemplate("hbaseSink");
             hbaseTemplate.enableCache();
