@@ -14,10 +14,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-import org.junit.Test;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 @LocalConfigFile("demo.yml")
 public class DemoJob {
@@ -56,10 +52,5 @@ public class DemoJob {
                 //i2 = 1;
             }
         }
-    }
-    @Test
-    public void test(){
-        byte[] bytes = {16, 1, 24, 7, 42};
-        System.out.println(new String(bytes));
     }
 }

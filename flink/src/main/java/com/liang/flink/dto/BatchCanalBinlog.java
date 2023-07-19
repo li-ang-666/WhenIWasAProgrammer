@@ -23,14 +23,12 @@ public class BatchCanalBinlog implements Serializable {
     private final List<SingleCanalBinlog> singleCanalBinlogs = new ArrayList<>();
 
     public BatchCanalBinlog(byte[] kafkaRecordValue) {
-        for (byte b : kafkaRecordValue) {
-            if ((byte) '{' == b) {
-                parseJsonMessage(kafkaRecordValue);
-                return;
-            } else if (!Character.isWhitespace((char) b)) {
-                parseProtobufMessage(kafkaRecordValue);
-                return;
-            }
+        if (kafkaRecordValue.length == 0) return;
+        byte b = kafkaRecordValue[0];
+        if (b == 123) {
+            parseJsonMessage(kafkaRecordValue);
+        } else if (b == 16) {
+            parseProtobufMessage(kafkaRecordValue);
         }
     }
 
