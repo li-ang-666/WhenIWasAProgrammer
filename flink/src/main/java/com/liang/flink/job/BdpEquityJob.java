@@ -71,7 +71,7 @@ public class BdpEquityJob {
             if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
                 // 黑名单
                 new Thread(new Runnable() {
-                    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("prismShareholderPath").update(sql);
+                    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("prismShareholderPath");
 
                     @Override
                     @SneakyThrows(InterruptedException.class)
