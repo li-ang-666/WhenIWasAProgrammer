@@ -18,7 +18,7 @@ taskmanager.memory.framework.off-heap.size: 128m
 # 内存 用户 堆外
 taskmanager.memory.task.off-heap.size: 0m
 # 内存 DirectMemory (框架堆外 + 用户堆外 + 网络)
-taskmanager.memory.network.fraction: 0.2
+taskmanager.memory.network.fraction: 0.15
 # 内存 RocksDB
 taskmanager.memory.managed.size: 0m
 # 内存 jvm开销
