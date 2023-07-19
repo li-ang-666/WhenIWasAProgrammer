@@ -13,6 +13,7 @@ import com.liang.flink.project.bdp.equity.impl.TycEntityMainReference;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
@@ -69,16 +70,18 @@ public class BdpEquityJob {
             service = new DataUpdateService<>(dataUpdateContext);
             if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
                 // 黑名单
-                new Thread(() -> {
-                    while (true) {
-                        log.info("执行黑名单...");
-                        String sql = new SQL().UPDATE("ratio_path_company")
-                                .SET("is_controller = 0").SET("is_controlling_shareholder = 0")
-                                .WHERE("company_id = 2338203553").toString();
-                        new JdbcTemplate("prismShareholderPath").update(sql);
-                        try {
+                new Thread(new Runnable() {
+                    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("prismShareholderPath").update(sql);
+
+                    @Override
+                    @SneakyThrows(InterruptedException.class)
+                    public void run() {
+                        while (true) {
+                            String sql = new SQL().UPDATE("ratio_path_company")
+                                    .SET("is_controller = 0").SET("is_controlling_shareholder = 0")
+                                    .WHERE("company_id = 2338203553").toString();
+                            jdbcTemplate.update(sql);
                             TimeUnit.SECONDS.sleep(30);
-                        } catch (Exception ignore) {
                         }
                     }
                 }).start();
