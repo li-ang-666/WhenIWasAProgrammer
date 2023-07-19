@@ -81,6 +81,7 @@ public class BdpEquityJob {
                                     .SET("is_controller = 0").SET("is_controlling_shareholder = 0")
                                     .WHERE("company_id = 2338203553").toString();
                             jdbcTemplate.update(sql);
+                            log.info("处理黑名单...");
                             TimeUnit.SECONDS.sleep(30);
                         }
                     }
