@@ -17,6 +17,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "0bb01.proto.prism.company_abnormal_info"
+      - "b27de.json.operating_risk.administration_punish"
     groupId: "demo"
     startFrom: "2"

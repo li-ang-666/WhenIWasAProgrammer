@@ -31,8 +31,6 @@ public class DemoJob {
     @RequiredArgsConstructor
     private static class DemoSink extends RichSinkFunction<KafkaRecord<Tuple2<byte[], String>>> {
         private final Config config;
-        private int i1 = 0;
-        private int i2 = 0;
 
         @Override
         public void open(Configuration parameters) throws Exception {
@@ -42,15 +40,7 @@ public class DemoJob {
         @Override
         public void invoke(KafkaRecord<Tuple2<byte[], String>> input, Context context) throws Exception {
             Tuple2<byte[], String> value = input.getValue();
-            String content = new String(value.f0);
-            if (i1 == 0 && content.startsWith("{")) {
-                log.info("binlog: {}", value);
-                i1 = 1;
-            }
-            if (i2 == 0 && !content.startsWith("{")) {
-                log.info("binlog: {}", value.f0);
-                //i2 = 1;
-            }
+            log.info("binlog: {}", value.f0);
         }
     }
 }
