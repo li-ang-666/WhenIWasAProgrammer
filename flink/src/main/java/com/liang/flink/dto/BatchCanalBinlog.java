@@ -84,8 +84,8 @@ public class BatchCanalBinlog implements Serializable {
             try {
                 rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
             } catch (Exception e) {
-                log.error("解析 entry 失败, entry: {}", entry, e);
-                return;
+                log.error("解析 entry 失败, message: {}, entry: {}", message, entry, e);
+                continue;
             }
             CanalEntry.EventType eventType = rowChange.getEventType();
             boolean isDdl = rowChange.getIsDdl();
