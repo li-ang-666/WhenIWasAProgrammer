@@ -6,7 +6,7 @@ classloader.parent-first-patterns.additional: org.apache.kafka.
 # jvm参数
 env.java.opts.all: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
 env.java.opts.jobmanager: -XX:+PrintGCDetails -XX:+PrintGCDateStamps
-env.java.opts.taskmanager: -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCDateStamps
+env.java.opts.taskmanager: -XX:+PrintGCDetails -XX:+PrintGCDateStamps
 
 # checkpoint参数
 state.backend.type: hashmap
