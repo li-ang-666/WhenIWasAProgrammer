@@ -67,8 +67,7 @@ public class BdpEquityJob {
             ConfigUtils.setConfig(config);
             DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<>(this.getClass());
             service = new DataUpdateService<>(dataUpdateContext);
-            int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
-            if (indexOfThisSubtask == 0) {
+            if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
                 // 黑名单
                 new Thread(() -> {
                     while (true) {
