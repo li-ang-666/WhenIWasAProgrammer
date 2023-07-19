@@ -2,6 +2,7 @@ package com.liang.flink.high.level.api;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.StackUtils;
 import com.liang.flink.basic.KafkaMonitor;
 import com.liang.flink.basic.KafkaSourceFactory;
@@ -16,8 +17,6 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import java.util.UUID;
 
 import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 
@@ -45,7 +44,7 @@ public class StreamFactory {
         String jobClassName = StackUtils.getMainFrame().getClassName();
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
-        String repairId = simpleName + "-" + UUID.randomUUID();
+        String repairId = simpleName + "___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
         new Thread(new RepairDataReporter(repairId)).start();
         return streamEnvironment
                 .addSource(new RepairSource(config, repairId))
