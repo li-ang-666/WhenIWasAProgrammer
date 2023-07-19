@@ -25,9 +25,9 @@ public class BatchCanalBinlog implements Serializable {
     public BatchCanalBinlog(byte[] kafkaRecordValue) {
         if (kafkaRecordValue.length == 0) return;
         byte b = kafkaRecordValue[0];
-        if (b == 123) {
+        if (b == (byte) '{'/* ascii = 123 */) {
             parseJsonMessage(kafkaRecordValue);
-        } else if (b == 16) {
+        } else {
             parseProtobufMessage(kafkaRecordValue);
         }
     }
