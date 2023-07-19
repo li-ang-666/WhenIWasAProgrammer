@@ -10,12 +10,12 @@ public class ReadHbase extends ConfigHolder {
     public static void main(String[] args) {
         HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
         HbaseSchema hbaseSchema = HbaseSchema.builder()
-                .namespace("test")
-                .tableName("data_concat")
-                .rowKeyReverse(true)
-                .columnFamily("cf1")
+                .namespace("prism_c")
+                .tableName("human_all_count")
+                .columnFamily("cf")
+                .rowKeyReverse(false)
                 .build();
-        HbaseOneRow row = hbaseTemplate.getRow(new HbaseOneRow(hbaseSchema, "111"));
+        HbaseOneRow row = hbaseTemplate.getRow(new HbaseOneRow(hbaseSchema, "J0FL2MH02Q9Z6BCV6"));
         log.info("row: {}", JsonUtils.toString(row));
     }
 }

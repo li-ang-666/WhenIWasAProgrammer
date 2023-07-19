@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -85,18 +86,48 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
         HbaseOneRow resultOneRow = new HbaseOneRow(schema, rowKey);
         try (Table table = getTable(schema)) {
             Get get = new Get(Bytes.toBytes(rowKey));
+            get.addFamily(Bytes.toBytes(schema.getColumnFamily()));
             // 每个result是一行
             Result result = table.get(get);
             for (Cell cell : result.listCells()) {
-                String columnFamily = Bytes.toString(CellUtil.cloneFamily(cell));
-                if (columnFamily.equals(schema.getColumnFamily())) {
-                    resultOneRow.put(Bytes.toString(CellUtil.cloneQualifier(cell)), Bytes.toString(CellUtil.cloneValue(cell)));
-                }
+                String column = Bytes.toString(CellUtil.cloneQualifier(cell));
+                String value = Bytes.toString(CellUtil.cloneValue(cell));
+                resultOneRow.put(column, value);
             }
             logging.afterExecute("getRow", hbaseOneRow);
             return resultOneRow;
         } catch (Exception e) {
             logging.ifError("getRow", hbaseOneRow, e);
+            return resultOneRow;
+        }
+    }
+
+    public HbaseOneRow scan(HbaseOneRow hbaseOneRow) {
+        logging.beforeExecute();
+        HbaseSchema schema = hbaseOneRow.getSchema();
+        String rowKey = hbaseOneRow.getRowKey();
+        HbaseOneRow resultOneRow = new HbaseOneRow(schema, rowKey);
+        try (Table table = getTable(schema)) {
+            ResultScanner scanner = table.getScanner(Bytes.toBytes(schema.getColumnFamily()));
+            Iterator<Result> iterator = scanner.iterator();
+            while (iterator.hasNext()) {
+                Result result = iterator.next();
+
+            }
+
+
+            Get get = new Get(Bytes.toBytes(rowKey));
+            // 每个result是一行
+            Result result = table.get(get);
+            for (Cell cell : result.listCells()) {
+                String column = Bytes.toString(CellUtil.cloneQualifier(cell));
+                String value = Bytes.toString(CellUtil.cloneValue(cell));
+                resultOneRow.put(column, value);
+            }
+            logging.afterExecute("scan", hbaseOneRow);
+            return resultOneRow;
+        } catch (Exception e) {
+            logging.ifError("scan", hbaseOneRow, e);
             return resultOneRow;
         }
     }
