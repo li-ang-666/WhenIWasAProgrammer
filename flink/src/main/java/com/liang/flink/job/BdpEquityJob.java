@@ -72,12 +72,9 @@ public class BdpEquityJob {
                 new Thread(() -> {
                     while (true) {
                         log.info("执行黑名单...");
-                        String sql = new SQL()
-                                .UPDATE("ratio_path_company")
-                                .SET("is_controller = 0")
-                                .SET("is_controlling_shareholder = 0")
-                                .WHERE("company_id = 2338203553")
-                                .toString();
+                        String sql = new SQL().UPDATE("ratio_path_company")
+                                .SET("is_controller = 0").SET("is_controlling_shareholder = 0")
+                                .WHERE("company_id = 2338203553").toString();
                         new JdbcTemplate("prismShareholderPath").update(sql);
                         try {
                             TimeUnit.SECONDS.sleep(30);
