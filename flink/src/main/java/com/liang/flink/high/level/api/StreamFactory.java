@@ -40,12 +40,14 @@ public class StreamFactory {
     }
 
     private static DataStream<SingleCanalBinlog> createRepairStream(StreamExecutionEnvironment streamEnvironment) {
-        Config config = ConfigUtils.getConfig();
+        // 在JobManager启动汇报线程
         String jobClassName = StackUtils.getMainFrame().getClassName();
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
         String repairId = simpleName + "___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
         new Thread(new RepairDataReporter(repairId)).start();
+        // 填装RepairSource
+        Config config = ConfigUtils.getConfig();
         return streamEnvironment
                 .addSource(new RepairSource(config, repairId))
                 .name("RepairSource")
