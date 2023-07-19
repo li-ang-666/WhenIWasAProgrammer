@@ -11,6 +11,5 @@ public class Test {
         byte[] bytes = "{\"id\":\"1\",\"name\":\"tom\"}".getBytes(StandardCharsets.UTF_8);
         System.out.println(Arrays.toString(bytes));
         System.out.println(JsonUtils.parseJsonObj("{\"id\":\"1\",\"name\":\"tom\"}"));
-
     }
 }
