@@ -85,6 +85,7 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
         HbaseOneRow resultOneRow = new HbaseOneRow(schema, rowKey);
         try (Table table = getTable(schema)) {
             Get get = new Get(Bytes.toBytes(rowKey));
+            // 每个result是一行
             Result result = table.get(get);
             for (Cell cell : result.listCells()) {
                 String columnFamily = Bytes.toString(CellUtil.cloneFamily(cell));
