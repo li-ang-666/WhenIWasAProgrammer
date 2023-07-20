@@ -1,5 +1,6 @@
 dbConfigs:
   localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
+  test: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "test",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
   judicialRisk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk" }
   companyBase: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
   operatingRisk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk" }
