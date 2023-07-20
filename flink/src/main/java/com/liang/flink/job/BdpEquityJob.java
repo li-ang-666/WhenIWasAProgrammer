@@ -68,8 +68,8 @@ public class BdpEquityJob {
             ConfigUtils.setConfig(config);
             DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<>(this.getClass());
             service = new DataUpdateService<>(dataUpdateContext);
+            // 黑名单
             if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
-                // 黑名单
                 new Thread(new Runnable() {
                     private final JdbcTemplate jdbcTemplate = new JdbcTemplate("prismShareholderPath");
 
