@@ -97,6 +97,10 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
         resultMap.put("control_validation_time_year", 2023);
         resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
+        // 区分实际控制人 or 实际控制权
+        if ("2".equals(String.valueOf(columnMap.get("shareholder_entity_type")))) {
+            resultMap.put("is_controller_tyc_unique_entity_id", 0);
+        }
         dao.replaceInto("entity_controller_details", resultMap);
     }
 
