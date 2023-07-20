@@ -65,8 +65,6 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
             } else {
                 logging.ifError("updateBatch", sqls, e);
             }
-
-            logging.ifError("updateBatch", sqls, e);
             for (String sql : sqls) {
                 TimeUnit.MILLISECONDS.sleep(50);
                 int i = 3;
