@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +62,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
         } catch (Exception e) {
             // 归还的时候, DruidDataSource.recycle 会自动 rollback 一次
             if (DEAD_LOCK_MESSAGE.equals(e.getMessage())) {
-                logging.ifError("Deadlock when updateBatch", sqls, null);
+                logging.ifError("updateBatch", sqls, new SQLException(DEAD_LOCK_MESSAGE));
             } else {
                 logging.ifError("updateBatch", sqls, e);
             }
