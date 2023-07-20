@@ -45,7 +45,7 @@ public class BdpEquityJob {
                         return "";
                     }
                 })
-                .addSink(new Sink(config))
+                .addSink(new BdpEquitySink(config)).name("BdpEquitySink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("BdpEquityJob");
     }
@@ -55,11 +55,11 @@ public class BdpEquityJob {
             RatioPathCompany.class,
             TycEntityMainReference.class
     })
-    public static final class Sink extends RichSinkFunction<SingleCanalBinlog> {
+    public static final class BdpEquitySink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DataUpdateService<SQL> service;
 
-        public Sink(Config config) {
+        public BdpEquitySink(Config config) {
             this.config = config;
         }
 
