@@ -61,7 +61,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
         } catch (Exception e) {
             // 归还的时候, DruidDataSource.recycle 会自动 rollback 一次
             if (DEAD_LOCK_MESSAGE.equals(e.getMessage())) {
-                logging.ifError("updateBatch", sqls, null);
+                logging.ifError("[Deadlock] while updateBatch", sqls, null);
             } else {
                 logging.ifError("updateBatch", sqls, e);
             }
