@@ -12,25 +12,18 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 public class HbaseSchema implements Serializable {
-    private String namespace;
-    private String tableName;
-    private String columnFamily;
-    private boolean rowKeyReverse;
-
     public static final HbaseSchema HUMAN_ALL_COUNT = HbaseSchema.builder()
             .namespace("prism_c")
             .tableName("human_all_count")
             .columnFamily("cf")
             .rowKeyReverse(false)
             .build();
-
     public static final HbaseSchema COMPANY_ALL_COUNT = HbaseSchema.builder()
             .namespace("prism_c")
             .tableName("company_all_count")
             .columnFamily("count")
             .rowKeyReverse(true)
             .build();
-
     // 公司背景
     public static final HbaseSchema COMPANY_BASE_SPLICE = HbaseSchema.builder()
             .namespace("prism_c")
@@ -38,7 +31,6 @@ public class HbaseSchema implements Serializable {
             .columnFamily("ds")
             .rowKeyReverse(true)
             .build();
-
     // 司法风险
     public static final HbaseSchema JUDICIAL_RISK_SPLICE = HbaseSchema.builder()
             .namespace("prism_c")
@@ -46,7 +38,6 @@ public class HbaseSchema implements Serializable {
             .columnFamily("ds")
             .rowKeyReverse(true)
             .build();
-
     // 经营风险
     public static final HbaseSchema OPERATING_RISK_SPLICE = HbaseSchema.builder()
             .namespace("prism_c")
@@ -54,7 +45,6 @@ public class HbaseSchema implements Serializable {
             .columnFamily("ds")
             .rowKeyReverse(true)
             .build();
-
     // 经营状况
     public static final HbaseSchema OPERATING_INFO_SPLICE = HbaseSchema.builder()
             .namespace("prism_c")
@@ -62,7 +52,6 @@ public class HbaseSchema implements Serializable {
             .columnFamily("ds")
             .rowKeyReverse(true)
             .build();
-
     // 知识产权
     public static final HbaseSchema INTELLECTUAL_PROPERTY_SPLICE = HbaseSchema.builder()
             .namespace("prism_c")
@@ -70,7 +59,6 @@ public class HbaseSchema implements Serializable {
             .columnFamily("ds")
             .rowKeyReverse(true)
             .build();
-
     // 历史信息
     public static final HbaseSchema HISTORICAL_INFO_SPLICE = HbaseSchema.builder()
             .namespace("prism_c")
@@ -78,4 +66,8 @@ public class HbaseSchema implements Serializable {
             .columnFamily("ds")
             .rowKeyReverse(true)
             .build();
+    private String namespace;
+    private String tableName;
+    private String columnFamily;
+    private boolean rowKeyReverse;
 }

@@ -3,7 +3,6 @@ package com.liang.repair.impl;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.template.HbaseTemplate;
-import com.liang.common.util.JsonUtils;
 import com.liang.repair.service.ConfigHolder;
 
 public class ReadHbase extends ConfigHolder {
