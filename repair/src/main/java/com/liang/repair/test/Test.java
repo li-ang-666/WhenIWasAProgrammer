@@ -1,9 +1,9 @@
 package com.liang.repair.test;
 
-import java.math.BigDecimal;
+import com.liang.repair.service.ConfigHolder;
 
-public class Test {
+public class Test extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        System.out.println(new BigDecimal("99.99%").toPlainString());
+        log.error("abc", (Throwable) null);
     }
 }

@@ -26,6 +26,7 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 500;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final static String BITMAP_COLUMN_NAME = "bitmap";
+    private final static String DEAD_LOCK_MESSAGE = "Deadlock found when trying to get lock; try restarting transaction";
     private final DruidDataSource pool;
     private final Logging logging;
 
@@ -59,6 +60,12 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
             logging.afterExecute("updateBatch", methodArg);
         } catch (Exception e) {
             // 归还的时候, DruidDataSource.recycle 会自动 rollback 一次
+            if (DEAD_LOCK_MESSAGE.equals(e.getMessage())) {
+                logging.ifError("updateBatch", sqls, null);
+            } else {
+                logging.ifError("updateBatch", sqls, e);
+            }
+
             logging.ifError("updateBatch", sqls, e);
             for (String sql : sqls) {
                 TimeUnit.MILLISECONDS.sleep(50);
