@@ -134,7 +134,7 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
     }
 
     @FunctionalInterface
-    public static interface HbaseOneRowConsumer {
+    public interface HbaseOneRowConsumer {
         void consume(HbaseOneRow hbaseOneRow);
     }
 }
