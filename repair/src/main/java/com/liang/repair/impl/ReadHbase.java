@@ -11,6 +11,6 @@ public class ReadHbase extends ConfigHolder {
         HbaseOneRow queryRow = new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, "J0FL2MH02Q9Z6BCV6");
         /*HbaseOneRow row = hbaseTemplate.getRow(queryRow);
         log.info("row: {}", JsonUtils.toString(row));*/
-        hbaseTemplate.scan(queryRow);
+        hbaseTemplate.scan(queryRow, e -> log.info("row: {}", e));
     }
 }
