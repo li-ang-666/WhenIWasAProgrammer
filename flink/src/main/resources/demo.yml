@@ -7,8 +7,8 @@ flinkConfig:
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "bigdataOnline"
-    tableName: "itch_point_secondary_dims_uv_count"
+    sourceName: "xxxxx"
+    tableName: "xxxxx"
     columns: "*"
     where: "1=1"
     scanMode: Direct
@@ -17,6 +17,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "b27de.json.operating_risk.administration_punish"
+      - ""
     groupId: "demo"
     startFrom: "2"
