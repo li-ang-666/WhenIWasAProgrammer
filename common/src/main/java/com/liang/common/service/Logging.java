@@ -9,8 +9,8 @@ public class Logging {
     private final String afterLog;
 
     public Logging(String classShortName, String instanceName) {
-        String commonLog = String.format("[%s %s].", classShortName, instanceName);
-        errorLog = commonLog + "{}({}) error";
+        String commonLog = String.format("[%s %s]", classShortName, instanceName);
+        errorLog = commonLog + "{}({})";
         afterLog = commonLog + "{}({}) {}ms";
     }
 
