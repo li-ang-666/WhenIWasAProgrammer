@@ -1,6 +1,5 @@
 package com.liang.repair.impl;
 
-import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.service.filesystem.ObsWriter;
@@ -12,7 +11,6 @@ public class ScanHbase extends ConfigHolder {
         HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
         ObsWriter obsWriter = new ObsWriter("obs://hadoop-obs/flink/hbase/");
         obsWriter.enableCache();
-        HbaseOneRow queryRow = new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, "J0FL2MH02Q9Z6BCV6");
-        hbaseTemplate.scan(queryRow, row -> obsWriter.update(JsonUtils.toString(row)));
+        hbaseTemplate.scan(HbaseSchema.HUMAN_ALL_COUNT, row -> obsWriter.update(JsonUtils.toString(row)));
     }
 }

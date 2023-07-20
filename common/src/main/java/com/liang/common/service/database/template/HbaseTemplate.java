@@ -103,9 +103,8 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
         }
     }
 
-    public void scan(HbaseOneRow hbaseOneRow, HbaseOneRowConsumer consumer) {
+    public void scan(HbaseSchema schema, HbaseOneRowConsumer consumer) {
         logging.beforeExecute();
-        HbaseSchema schema = hbaseOneRow.getSchema();
         try (Table table = getTable(schema);
              ResultScanner scanner = table.getScanner(new Scan()
                      .addFamily(Bytes.toBytes(schema.getColumnFamily()))
@@ -121,9 +120,9 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
                 }
                 consumer.consume(resultOneRow);
             }
-            logging.afterExecute("scan", hbaseOneRow);
+            logging.afterExecute("scan", schema);
         } catch (Exception e) {
-            logging.ifError("scan", hbaseOneRow, e);
+            logging.ifError("scan", schema, e);
         }
     }
 
