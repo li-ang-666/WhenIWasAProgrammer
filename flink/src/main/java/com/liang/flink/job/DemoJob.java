@@ -10,7 +10,6 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
@@ -21,8 +20,9 @@ public class DemoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        env.addSource(new DemoSource(config))
-                .addSink(new DemoSink(config));
+        env
+                .addSource(new DemoSource(config))
+                .addSink(new DemoSink(config)).setParallelism(5);
         env.execute("DemoJob");
     }
 
@@ -53,17 +53,18 @@ public class DemoJob {
     @RequiredArgsConstructor
     private static class DemoSink extends RichSinkFunction<String> {
         private final Config config;
-        private final ObsWriter obsWriter;
+        private ObsWriter obsWriter;
 
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
+            obsWriter = new ObsWriter("obs://hadoop-obs/flink/hbase/");
+            obsWriter.enableCache();
         }
 
         @Override
         public void invoke(String input, Context context) throws Exception {
-            Tuple2<byte[], String> value = input.getValue();
-            log.info("binlog: {}", value.f0);
+            obsWriter.update(input);
         }
     }
 }
