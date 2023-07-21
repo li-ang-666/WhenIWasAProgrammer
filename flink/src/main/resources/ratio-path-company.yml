@@ -1,23 +1,22 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Repair
-  sourceParallel: 1
-  otherParallel: 1
+  sourceType: Kafka
+  sourceParallel: 2
+  otherParallel: 2
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
     sourceName: "prismShareholderPath"
-    tableName: "ratio_path_company"
+    tableName: "investment_relation"
     columns: "*"
-    where: "company_id in (27877396)"
+    where: "company_id_invested = 2318455639"
     scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "e1d4c.proto.prism_shareholder_path.ratio_path_company"
-      - "48e2e.proto.bdp_equity.tyc_entity_main_reference"
-    groupId: "bdp-equity-job"
+      - "e1d4c.proto.prism_shareholder_path.investment_relation"
+    groupId: "ratio-path-company-job"
     startFrom: "2"

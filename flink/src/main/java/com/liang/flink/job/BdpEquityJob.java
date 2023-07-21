@@ -24,6 +24,10 @@ import java.util.Map;
 
 @Slf4j
 @LocalConfigFile("bdp-equity.yml")
+@DataUpdateImpl({
+        RatioPathCompany.class,
+        TycEntityMainReference.class
+})
 public class BdpEquityJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -40,7 +44,8 @@ public class BdpEquityJob {
         return new Distributor()
                 .with("ratio_path_company", e -> {
                     Map<String, Object> columnMap = e.getColumnMap();
-                    return columnMap.get("company_id") + "-" + columnMap.get("shareholder_id");
+                    //return columnMap.get("company_id") + "-" + columnMap.get("shareholder_id");
+                    return String.valueOf(columnMap.get("id"));
                 })
                 .with("tyc_entity_main_reference", e -> {
                     Map<String, Object> columnMap = e.getColumnMap();
@@ -49,10 +54,6 @@ public class BdpEquityJob {
     }
 
     @Slf4j
-    @DataUpdateImpl({
-            RatioPathCompany.class,
-            TycEntityMainReference.class
-    })
     public static final class BdpEquitySink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DataUpdateService<SQL> service;
@@ -64,7 +65,7 @@ public class BdpEquityJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<>(BdpEquitySink.class);
+            DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<>(BdpEquityJob.class);
             service = new DataUpdateService<>(dataUpdateContext);
             // 黑名单
             if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
