@@ -101,7 +101,11 @@ public class RatioPathCompanyJob {
 
         @Override
         public void invoke(Set<Long> companyIds, Context context) throws Exception {
-            ratioPathCompanyTrigger.trigger(companyIds);
+            try {
+                ratioPathCompanyTrigger.trigger(companyIds);
+            } catch (Exception e) {
+                log.error("RatioPathCompanySink invoke({})", companyIds);
+            }
         }
     }
 }
