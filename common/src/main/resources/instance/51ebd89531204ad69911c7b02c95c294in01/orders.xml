@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <properties>
+        <!--需要修改的地方，其余不要动-->
+        <property name="url_name" value="rds050-hw0-prod-C后端-交易订单"/>
+        <property name="url"
+                  value="51ebd89531204ad69911c7b02c95c294in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com"/>
+        <property name="schema" value="orders"/>
+        <property name="username" value="jdhw_d_data_dml"/>
+        <property name="password" value="2s0^tFa4SLrp72"/>
+        <!--需要修改的地方，其余不要动-->
+
+
+        <property name="driver" value="com.mysql.jdbc.Driver"/>
+        <property name="dataSourceType" value="com.org.tyc.mybatis.config.MybatisDruidDatasource"/>
+
+    </properties>
+
+    <environments default="jdbc_mysql">
+        <environment id="jdbc_mysql">
+            <transactionManager type="JDBC"/>
+            <dataSource type="${dataSourceType}">
+                <property name="driver" value="${driver}"/>
+                <property name="url_name" value="${url_name}"/>
+                <property name="schema" value="${schema}"/>
+                <property name="url" value="jdbc:mysql://${url}:3306/${schema}"/>
+                <property name="username" value="${username}"/>
+                <property name="password" value="${password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+</configuration>

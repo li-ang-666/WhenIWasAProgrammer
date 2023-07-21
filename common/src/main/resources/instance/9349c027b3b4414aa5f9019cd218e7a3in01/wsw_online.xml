@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <properties>
+        <!--需要修改的地方，其余不要动-->
+        <property name="url_name" value="rds427-hw2-test-D大数据-公共"/>
+        <property name="url"
+                  value="9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com"/>
+        <property name="schema" value="wsw_online"/>
+        <property name="username" value="jdtest_d_data_ddl"/>
+        <property name="password" value="dwjIFAmM39Y2O98cKu"/>
+        <!--需要修改的地方，其余不要动-->
+
+
+        <property name="driver" value="com.mysql.jdbc.Driver"/>
+        <property name="dataSourceType" value="com.org.tyc.mybatis.config.MybatisDruidDatasource"/>
+
+    </properties>
+
+    <environments default="jdbc_mysql">
+        <environment id="jdbc_mysql">
+            <transactionManager type="JDBC"/>
+            <dataSource type="${dataSourceType}">
+                <property name="driver" value="${driver}"/>
+                <property name="url_name" value="${url_name}"/>
+                <property name="schema" value="${schema}"/>
+                <property name="url" value="jdbc:mysql://${url}:3306/${schema}"/>
+                <property name="username" value="${username}"/>
+                <property name="password" value="${password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+</configuration>
