@@ -64,7 +64,7 @@ public class BdpEquityJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<>(this.getClass());
+            DataUpdateContext<SQL> dataUpdateContext = new DataUpdateContext<>(BdpEquitySink.class);
             service = new DataUpdateService<>(dataUpdateContext);
             // 黑名单
             if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
