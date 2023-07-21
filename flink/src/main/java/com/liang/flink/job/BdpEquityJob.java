@@ -2,18 +2,17 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
-import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.project.bdp.equity.black.BdpEquityCleaner;
 import com.liang.flink.project.bdp.equity.impl.RatioPathCompany;
 import com.liang.flink.project.bdp.equity.impl.TycEntityMainReference;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
@@ -22,7 +21,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @LocalConfigFile("bdp-equity.yml")
@@ -70,22 +68,7 @@ public class BdpEquityJob {
             service = new DataUpdateService<>(dataUpdateContext);
             // 黑名单
             if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
-                new Thread(new Runnable() {
-                    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("prismShareholderPath");
-
-                    @Override
-                    @SneakyThrows(InterruptedException.class)
-                    public void run() {
-                        while (true) {
-                            String sql = new SQL().UPDATE("ratio_path_company")
-                                    .SET("is_controller = 0").SET("is_controlling_shareholder = 0")
-                                    .WHERE("company_id = 2338203553").toString();
-                            jdbcTemplate.update(sql);
-                            log.info("处理黑名单...");
-                            TimeUnit.SECONDS.sleep(30);
-                        }
-                    }
-                }).start();
+                new Thread(new BdpEquityCleaner()).start();
             }
         }
 

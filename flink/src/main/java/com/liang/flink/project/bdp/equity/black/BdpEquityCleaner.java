@@ -11,14 +11,6 @@ import java.util.concurrent.TimeUnit;
 public class BdpEquityCleaner implements Runnable {
     private final JdbcTemplate jdbcTemplate = new JdbcTemplate("prismShareholderPath");
 
-    /**
-     * delete from entity_beneficiary_details where tyc_unique_entity_id in ('','0');
-     * delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary in ('','0');
-     * delete from entity_controller_details where tyc_unique_entity_id in ('','0');
-     * delete from entity_controller_details where company_id_controlled in ('','0');
-     * delete from shareholder_identity_type_details where tyc_unique_entity_id in ('','0');
-     * delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type in ('','0');
-     */
     @Override
     @SneakyThrows(InterruptedException.class)
     public void run() {
