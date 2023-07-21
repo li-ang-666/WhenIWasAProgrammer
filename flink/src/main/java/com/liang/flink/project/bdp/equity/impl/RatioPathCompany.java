@@ -4,7 +4,7 @@ import com.liang.common.service.SQL;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.bdp.equity.dao.BdpEquityDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
-import com.liang.flink.utils.BuildTab3Path;
+import org.tyc.bdpequity.BuildTab3Path;
 
 import java.util.ArrayList;
 import java.util.HashMap;

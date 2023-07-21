@@ -17,13 +17,6 @@
             <artifactId>apollo-client</artifactId>
         </dependency>
 
-        <!--静虎 和 国旺 的 shareholder-->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.61</version>
-        </dependency>
-
         <!--hadoop(flink需要)-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>

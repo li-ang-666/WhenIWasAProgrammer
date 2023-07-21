@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class BuildTab3Path implements Serializable {
 
@@ -20,6 +22,14 @@ public class BuildTab3Path implements Serializable {
         String formattedPercentage = percentage.replace("%", "");
         double result = Double.parseDouble(formattedPercentage) / 100.0;
         return result;
+    }
+
+    public static String convertPercentageToDouble2(String percentage) {
+        String num = percentage.replaceAll("%", "");
+        return new BigDecimal(num)
+                .divide(new BigDecimal(100), 6, RoundingMode.DOWN)
+                .setScale(6, RoundingMode.DOWN)
+                .toPlainString();
     }
 
     /**
@@ -70,7 +80,7 @@ public class BuildTab3Path implements Serializable {
         edge.put("endNode", nextPointNode.getString("id"));
 
         JSONObject properties = new JSONObject();
-        properties.put("equity_ratio", convertPercentageToDouble(percent));
+        properties.put("equity_ratio", convertPercentageToDouble2(percent));
         edge.put("properties", properties);
         return edge;
     }
