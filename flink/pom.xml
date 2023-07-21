@@ -11,6 +11,13 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
+        <!--mybatis-->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.5.6</version>
+        </dependency>
+
         <!--apollo-->
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>
