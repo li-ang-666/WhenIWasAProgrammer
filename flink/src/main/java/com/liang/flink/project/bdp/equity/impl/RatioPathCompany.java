@@ -32,6 +32,10 @@ public class RatioPathCompany extends AbstractDataUpdate<SQL> {
         String isControllingShareholder = String.valueOf(columnMap.get("is_controlling_shareholder"));
         String isController = String.valueOf(columnMap.get("is_controller"));
         String isUltimate = String.valueOf(columnMap.get("is_ultimate"));
+        //如果id是无效的,return
+        if ("0".equals(companyId) || "".equals(companyId) || "0".equals(shareholderId) || "".equals(shareholderId)) {
+            return new ArrayList<>();
+        }
         //如果啥也不是,return
         if ("0".equals(isBigShareholder) && "0".equals(isControllingShareholder) && "0".equals(isController) && "0".equals(isUltimate)) {
             return new ArrayList<>();
