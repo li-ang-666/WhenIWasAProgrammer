@@ -3,10 +3,12 @@ package com.liang.flink.basic;
 import com.liang.flink.dto.SingleCanalBinlog;
 import org.apache.flink.api.java.functions.KeySelector;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Distributor implements KeySelector<SingleCanalBinlog, String> {
-    private final HashMap<String, Mapper> map = new HashMap<>();
+    private final Map<String, Mapper> map = new HashMap<>();
 
     public Distributor with(String tableName, Mapper mapper) {
         map.put(tableName, mapper);
@@ -24,7 +26,7 @@ public class Distributor implements KeySelector<SingleCanalBinlog, String> {
     }
 
     @FunctionalInterface
-    public interface Mapper {
+    public interface Mapper extends Serializable {
         String map(SingleCanalBinlog singleCanalBinlog);
     }
 }
