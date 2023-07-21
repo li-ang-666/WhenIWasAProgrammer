@@ -13,9 +13,8 @@ import org.tyc.mybatis.runner.JDBCRunner;
 import org.tyc.utils.InvestUtil;
 import org.tyc.utils.PathFormatter;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
 
 @Slf4j
 public class RatioPathCompanyTrigger {
@@ -25,14 +24,14 @@ public class RatioPathCompanyTrigger {
     private final RatioPathCompanyMapper ratioPathCompanyMapper = JDBCRunner.getMapper(RatioPathCompanyMapper.class, "e1d4c0a1d8d1456ba4b461ab8b9f293din01/prism_shareholder_path.xml");
 
     public static void main(String[] args) {
-        RatioPathCompanyTrigger trigger = new RatioPathCompanyTrigger();
-        trigger.trigger(Arrays.asList(2318455639L));
+        HashSet<Long> set = new HashSet<>();
+        set.add(0L);
+        new RatioPathCompanyTrigger().trigger(set);
     }
 
-    public void trigger(List<Long> companyIds) {
-        HashSet<Long> set = new HashSet<>(companyIds);
+    public void trigger(Set<Long> companyIds) {
+        Set<Long> needDeleted = new HashSet<>(companyIds);
         companyIds.stream()
-                .distinct()
                 .map(companyId -> {
                     try {
                         return QueryAllShareHolderFromCompanyIdObj.queryAllShareHolderFromCompanyId(companyId, 10000, investmentRelationMapper, personnelEmploymentHistoryMapper, companyLegalPersonMapper);
@@ -67,9 +66,9 @@ public class RatioPathCompanyTrigger {
                     RatioPathCompany ratioPathCompany = tuple2.f0;
                     JSONArray path = tuple2.f1;
                     Long companyId = ratioPathCompany.getCompanyId();
-                    if (set.contains(companyId)) {
-                        set.remove(companyId);
+                    if (needDeleted.contains(companyId)) {
                         ratioPathCompanyMapper.deleteByCompanyIdLimit200(companyId);
+                        needDeleted.remove(companyId);
                     }
                     ratioPathCompanyMapper.insertRatioPathCompanyWithNewPathString(
                             companyId,
@@ -85,6 +84,6 @@ public class RatioPathCompanyTrigger {
                             ratioPathCompany.getIsDeleted()
                     );
                 });
-        set.forEach(ratioPathCompanyMapper::deleteByCompanyIdLimit200);
+        needDeleted.forEach(ratioPathCompanyMapper::deleteByCompanyIdLimit200);
     }
 }

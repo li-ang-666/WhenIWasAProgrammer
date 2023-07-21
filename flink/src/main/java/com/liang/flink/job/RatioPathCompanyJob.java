@@ -19,7 +19,9 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 import org.tyc.RatioPathCompanyTrigger;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @LocalConfigFile("ratio-path-company.yml")
@@ -37,7 +39,7 @@ public class RatioPathCompanyJob {
 
     @Slf4j
     @RequiredArgsConstructor
-    private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, List<Long>> {
+    private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, Set<Long>> {
         private final static long INTERVAL = 1000 * 60L;
         private final static long SIZE = 1024;
         private final Set<Long> companyIds = new HashSet<>();
@@ -51,7 +53,7 @@ public class RatioPathCompanyJob {
         }
 
         @Override
-        public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<List<Long>> out) throws Exception {
+        public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Set<Long>> out) throws Exception {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyId = String.valueOf(columnMap.get("company_id_invested"));
             if (StringUtils.isNumeric(companyId)) {
@@ -73,7 +75,7 @@ public class RatioPathCompanyJob {
                                     DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
                                     companyIds.size());
                             synchronized (companyIds) {
-                                out.collect(new ArrayList<>(companyIds));
+                                out.collect(new HashSet<>(companyIds));
                                 lastSendTime = currentTime;
                                 companyIds.clear();
                             }
@@ -87,19 +89,19 @@ public class RatioPathCompanyJob {
 
     @Slf4j
     @RequiredArgsConstructor
-    private final static class RatioPathCompanySink extends RichSinkFunction<List<Long>> {
+    private final static class RatioPathCompanySink extends RichSinkFunction<Set<Long>> {
         private final Config config;
-        private RatioPathCompanyTrigger trigger;
+        private RatioPathCompanyTrigger ratioPathCompanyTrigger;
 
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            trigger = new RatioPathCompanyTrigger();
+            ratioPathCompanyTrigger = new RatioPathCompanyTrigger();
         }
 
         @Override
-        public void invoke(List<Long> companyIds, Context context) throws Exception {
-            //log.info("-------------{}", companyIds);
+        public void invoke(Set<Long> companyIds, Context context) throws Exception {
+            ratioPathCompanyTrigger.trigger(companyIds);
         }
     }
 }
