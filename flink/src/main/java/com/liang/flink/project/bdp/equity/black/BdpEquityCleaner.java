@@ -40,7 +40,7 @@ public class BdpEquityCleaner implements Runnable {
                     .WHERE("tyc_unique_entity_id_with_shareholder_identity_type in ('','0')").toString();
             jdbcTemplate.update(sql0, sql1, sql2, sql3, sql4, sql5, sql6);
             log.info("处理黑名单...");
-            TimeUnit.SECONDS.sleep(30);
+            TimeUnit.MINUTES.sleep(3);
         }
     }
 }
