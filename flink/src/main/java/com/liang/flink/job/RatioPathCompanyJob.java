@@ -30,12 +30,8 @@ public class RatioPathCompanyJob {
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
                 .keyBy(new Distributor().with("investment_relation", e -> String.valueOf(e.getColumnMap().get("company_id_invested"))))
-                .flatMap(new RatioPathCompanyFlatMap(config))
-                .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .name("RatioPathCompanyFlatMap")
-                .addSink(new RatioPathCompanySink(config))
-                .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .name("RatioPathCompanySink");
+                .flatMap(new RatioPathCompanyFlatMap(config)).name("RatioPathCompanyFlatMap").setParallelism(config.getFlinkConfig().getOtherParallel())
+                .addSink(new RatioPathCompanySink(config)).name("RatioPathCompanySink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("RatioPathCompanyJob");
     }
 
