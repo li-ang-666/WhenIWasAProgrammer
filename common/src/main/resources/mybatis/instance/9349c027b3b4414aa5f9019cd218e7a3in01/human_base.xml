@@ -15,7 +15,7 @@
 
 
         <property name="driver" value="com.mysql.jdbc.Driver"/>
-        <property name="dataSourceType" value="com.org.tyc.mybatis.config.MybatisDruidDatasource"/>
+        <property name="dataSourceType" value="org.tyc.mybatis.config.MybatisDruidDatasource"/>
 
     </properties>
 
