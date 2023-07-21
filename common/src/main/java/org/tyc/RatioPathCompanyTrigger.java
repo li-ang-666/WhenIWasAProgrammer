@@ -49,6 +49,7 @@ public class RatioPathCompanyTrigger {
                     try {
                         jsonArray = PathFormatter.formatInvestmentRelationToPath(investmentRelation);
                     } catch (Exception e) {
+                        log.error("formatInvestmentRelationToPath({}) error", investmentRelation);
                         jsonArray = new JSONArray();
                     }
                     return Tuple2.of(ratioPathCompany, jsonArray);
