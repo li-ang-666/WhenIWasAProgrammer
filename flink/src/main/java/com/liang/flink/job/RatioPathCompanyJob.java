@@ -48,7 +48,6 @@ public class RatioPathCompanyJob {
     private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, Set<Long>> {
         private final static long INTERVAL = 1000 * 60L;
         private final static long SIZE = 128L;
-        //private final Set<Long> companyIds = new HashSet<>();
         private final ValueStateDescriptor<Set<Long>> CompanyIdsDescriptor = new ValueStateDescriptor<>("companyIds", TypeInformation.of(new TypeHint<Set<Long>>() {
         }));
         private final Config config;
