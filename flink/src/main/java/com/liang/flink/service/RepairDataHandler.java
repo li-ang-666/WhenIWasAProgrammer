@@ -29,7 +29,7 @@ public class RepairDataHandler implements Runnable {
     private final JdbcTemplate jdbcTemplate;
     private final RedisTemplate redisTemplate;
 
-    private volatile long watermark;
+    private long watermark;
     private long lastReportTimeMillis;
 
     public RepairDataHandler(SubRepairTask task, AtomicBoolean running, String repairId) {

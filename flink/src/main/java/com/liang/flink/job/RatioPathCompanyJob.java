@@ -48,24 +48,25 @@ public class RatioPathCompanyJob {
     private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, Set<Long>> {
         private final static long INTERVAL = 1000 * 60L;
         private final static long SIZE = 128L;
-        private final ValueStateDescriptor<Set<Long>> companyIdsDescriptor = new ValueStateDescriptor<>("companyIds", TypeInformation.of(new TypeHint<Set<Long>>() {
+        private final ValueStateDescriptor<HashSet<Long>> companyIdsDescriptor = new ValueStateDescriptor<>("companyIds", TypeInformation.of(new TypeHint<HashSet<Long>>() {
         }));
         private final Config config;
-        private ValueState<Set<Long>> companyIds;
-        private volatile long lastSendTime;
+        private ValueState<HashSet<Long>> companyIds;
+        private long lastSendTime;
         private Thread sendThread;
 
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             companyIds = getRuntimeContext().getState(companyIdsDescriptor);
-            if (companyIds.value() == null) {
-                companyIds.update(new HashSet<>());
-            }
         }
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Set<Long>> out) throws Exception {
+            if (companyIds.value() == null) {
+                companyIds.update(new HashSet<>());
+                log.error("--------------{}", companyIds.value());
+            }
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyId = String.valueOf(columnMap.get("company_id_invested"));
             if (StringUtils.isNumeric(companyId)) {
@@ -98,6 +99,7 @@ public class RatioPathCompanyJob {
             });
             sendThread.start();
         }
+
     }
 
     @Slf4j
@@ -115,7 +117,7 @@ public class RatioPathCompanyJob {
         @Override
         public void invoke(Set<Long> companyIds, Context context) throws Exception {
             try {
-                ratioPathCompanyTrigger.trigger(companyIds);
+                //ratioPathCompanyTrigger.trigger(companyIds);
             } catch (Exception e) {
                 log.error("RatioPathCompanySink invoke({})", companyIds);
             }
