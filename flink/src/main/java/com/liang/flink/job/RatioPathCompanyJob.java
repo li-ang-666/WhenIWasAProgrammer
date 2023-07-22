@@ -41,10 +41,10 @@ public class RatioPathCompanyJob {
     @RequiredArgsConstructor
     private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, Set<Long>> {
         private final static long INTERVAL = 1000 * 60L;
-        private final static long SIZE = 1024;
+        private final static long SIZE = 128L;
         private final Set<Long> companyIds = new HashSet<>();
         private final Config config;
-        private volatile long lastSendTime = 0;
+        private volatile long lastSendTime;
         private Thread sendThread;
 
         @Override
@@ -70,11 +70,11 @@ public class RatioPathCompanyJob {
                     while (true) {
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
-                            log.info("window trigger, currentTime: {}, lastTime: {}, size: {}",
-                                    DateTimeUtils.fromUnixTime(currentTime / 1000, "yyyy-MM-dd HH:mm:ss"),
-                                    DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
-                                    companyIds.size());
                             synchronized (companyIds) {
+                                log.info("window trigger, currentTime: {}, lastTime: {}, size: {}",
+                                        DateTimeUtils.fromUnixTime(currentTime / 1000, "yyyy-MM-dd HH:mm:ss"),
+                                        DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
+                                        companyIds.size());
                                 out.collect(new HashSet<>(companyIds));
                                 lastSendTime = currentTime;
                                 companyIds.clear();
@@ -84,6 +84,7 @@ public class RatioPathCompanyJob {
                 }
             });
             sendThread.start();
+
         }
     }
 
