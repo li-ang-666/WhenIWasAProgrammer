@@ -25,7 +25,7 @@ public class RatioPathCompanyTrigger {
 
     public static void main(String[] args) {
         HashSet<Long> set = new HashSet<>();
-        set.add(0L);
+        //set.add(0L);
         new RatioPathCompanyTrigger().trigger(set);
     }
 
