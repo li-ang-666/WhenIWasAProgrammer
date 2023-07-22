@@ -48,7 +48,7 @@ public class RatioPathCompanyJob {
     private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, Set<Long>> {
         private final static long INTERVAL = 1000 * 60L;
         private final static long SIZE = 128L;
-        private final ValueStateDescriptor<Set<Long>> CompanyIdsDescriptor = new ValueStateDescriptor<>("companyIds", TypeInformation.of(new TypeHint<Set<Long>>() {
+        private final ValueStateDescriptor<Set<Long>> companyIdsDescriptor = new ValueStateDescriptor<>("companyIds", TypeInformation.of(new TypeHint<Set<Long>>() {
         }));
         private final Config config;
         private ValueState<Set<Long>> companyIds;
@@ -58,7 +58,7 @@ public class RatioPathCompanyJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            companyIds = getRuntimeContext().getState(CompanyIdsDescriptor);
+            companyIds = getRuntimeContext().getState(companyIdsDescriptor);
             if (companyIds.value() == null) {
                 companyIds.update(new HashSet<>());
             }
@@ -69,7 +69,7 @@ public class RatioPathCompanyJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyId = String.valueOf(columnMap.get("company_id_invested"));
             if (StringUtils.isNumeric(companyId)) {
-                synchronized (CompanyIdsDescriptor) {
+                synchronized (companyIdsDescriptor) {
                     companyIds.value().add(Long.parseLong(companyId));
                 }
             }
@@ -83,7 +83,7 @@ public class RatioPathCompanyJob {
                     while (true) {
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - lastSendTime >= INTERVAL || companyIds.value().size() >= SIZE) {
-                            synchronized (CompanyIdsDescriptor) {
+                            synchronized (companyIdsDescriptor) {
                                 log.info("window trigger, currentTime: {}, lastTime: {}, size: {}",
                                         DateTimeUtils.fromUnixTime(currentTime / 1000, "yyyy-MM-dd HH:mm:ss"),
                                         DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
