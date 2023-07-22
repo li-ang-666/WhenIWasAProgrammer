@@ -84,7 +84,6 @@ public class RatioPathCompanyJob {
                 }
             });
             sendThread.start();
-
         }
     }
 
