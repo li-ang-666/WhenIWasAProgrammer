@@ -9,9 +9,14 @@ import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -19,6 +24,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 import org.tyc.RatioPathCompanyTrigger;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -42,14 +48,21 @@ public class RatioPathCompanyJob {
     private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, Set<Long>> {
         private final static long INTERVAL = 1000 * 60L;
         private final static long SIZE = 128L;
-        private final Set<Long> companyIds = new HashSet<>();
+        //private final Set<Long> companyIds = new HashSet<>();
+        private final ValueStateDescriptor<Set<Long>> CompanyIdsDescriptor = new ValueStateDescriptor<>("companyIds", TypeInformation.of(new TypeHint<Set<Long>>() {
+        }));
         private final Config config;
+        private ValueState<Set<Long>> companyIds;
         private volatile long lastSendTime;
         private Thread sendThread;
 
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
+            companyIds = getRuntimeContext().getState(CompanyIdsDescriptor);
+            if (companyIds.value() == null) {
+                companyIds.update(new HashSet<>());
+            }
         }
 
         @Override
@@ -57,8 +70,8 @@ public class RatioPathCompanyJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyId = String.valueOf(columnMap.get("company_id_invested"));
             if (StringUtils.isNumeric(companyId)) {
-                synchronized (companyIds) {
-                    companyIds.add(Long.parseLong(companyId));
+                synchronized (CompanyIdsDescriptor) {
+                    companyIds.value().add(Long.parseLong(companyId));
                 }
             }
             if (sendThread != null) {
@@ -66,18 +79,19 @@ public class RatioPathCompanyJob {
             }
             sendThread = new Thread(new Runnable() {
                 @Override
+                @SneakyThrows(IOException.class)
                 public void run() {
                     while (true) {
                         long currentTime = System.currentTimeMillis();
-                        if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
-                            synchronized (companyIds) {
+                        if (currentTime - lastSendTime >= INTERVAL || companyIds.value().size() >= SIZE) {
+                            synchronized (CompanyIdsDescriptor) {
                                 log.info("window trigger, currentTime: {}, lastTime: {}, size: {}",
                                         DateTimeUtils.fromUnixTime(currentTime / 1000, "yyyy-MM-dd HH:mm:ss"),
                                         DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
-                                        companyIds.size());
-                                out.collect(new HashSet<>(companyIds));
+                                        companyIds.value().size());
+                                out.collect(new HashSet<>(companyIds.value()));
                                 lastSendTime = currentTime;
-                                companyIds.clear();
+                                companyIds.update(new HashSet<>());
                             }
                         }
                     }
