@@ -18,33 +18,41 @@ public abstract class AbstractCache<K, V> {
         this.keySelector = keySelector;
     }
 
-    public void enableCache() {
+    public final void enableCache() {
         enableCache(cacheMilliseconds, cacheRecords);
     }
 
-    public void enableCache(int cacheMilliseconds, int cacheRecords) {
+    public final void enableCache(int cacheMilliseconds, int cacheRecords) {
         if (!enableCache) {
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
             new Thread(new Runnable() {
-                @SneakyThrows(InterruptedException.class)
+                private long lastSendTime;
+
                 @Override
+                @SneakyThrows(InterruptedException.class)
                 public void run() {
                     while (true) {
-                        TimeUnit.MILLISECONDS.sleep(cacheMilliseconds);
-                        if (cache.isEmpty()) {
+                        TimeUnit.MILLISECONDS.sleep(100);
+                        // 时间触发
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - lastSendTime >= cacheMilliseconds && !cache.isEmpty()) {
+                            synchronized (cache) {
+                                cache.forEach((key, list) -> updateImmediately(key, list));
+                                cache.clear();
+                            }
+                            lastSendTime = currentTime;
+                            // 时间触发的当轮,不判断大小
                             continue;
                         }
-                        Map<K, List<V>> copyCache;
-                        synchronized (cache) {
-                            if (cache.isEmpty()) {
-                                continue;
+                        // 大小触发
+                        if (!cache.isEmpty()) {
+                            synchronized (cache) {
+                                cache.forEach((key, list) -> {
+                                    if (list.size() >= cacheRecords) updateImmediately(key, list);
+                                });
+                                cache.entrySet().removeIf(entry -> entry.getValue().size() >= cacheRecords);
                             }
-                            copyCache = new HashMap<>(cache);
-                            cache.clear();
-                        }
-                        for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
-                            updateImmediately(entry.getKey(), entry.getValue());
                         }
                     }
                 }
@@ -65,50 +73,26 @@ public abstract class AbstractCache<K, V> {
         if (values == null || values.isEmpty()) {
             return;
         }
-        Map<K, List<V>> copyCache = new HashMap<>();
+        // 同一批次的写入,不拆开
         synchronized (cache) {
             for (V value : values) {
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ArrayList<>());
                 cache.get(key).add(value);
             }
-            if (enableCache) {
-                for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
-                    K key = entry.getKey();
-                    List<V> value = entry.getValue();
-                    if (value.size() >= cacheRecords) {
-                        copyCache.put(key, value);
-                    }
-                }
-                // remove非最后一个entry的时候, 会ConcurrentModificationException
-                cache.entrySet().removeIf(entry -> copyCache.containsKey(entry.getKey()));
-            }
-        }
-        for (Map.Entry<K, List<V>> entry : copyCache.entrySet()) {
-            K key = entry.getKey();
-            List<V> value = entry.getValue();
-            updateImmediately(key, value);
         }
         if (!enableCache) {
-            for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
-                updateImmediately(entry.getKey(), entry.getValue());
-            }
+            cache.forEach(this::updateImmediately);
             cache.clear();
         }
     }
 
     public final void flush() {
-        if (cache.isEmpty()) {
-            return;
-        }
-        synchronized (cache) {
-            if (cache.isEmpty()) {
-                return;
+        if (!cache.isEmpty()) {
+            synchronized (cache) {
+                cache.forEach(this::updateImmediately);
+                cache.clear();
             }
-            for (Map.Entry<K, List<V>> entry : cache.entrySet()) {
-                updateImmediately(entry.getKey(), entry.getValue());
-            }
-            cache.clear();
         }
     }
 
