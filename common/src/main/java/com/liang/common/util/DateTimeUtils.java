@@ -21,10 +21,18 @@ public class DateTimeUtils {
                 .getValue();
     }
 
+    public static String fromUnixTime(long seconds) {
+        return fromUnixTime(seconds, "yyyy-MM-dd HH:mm:ss");
+    }
+
     public static String fromUnixTime(long seconds, String format) {
         return LocalDateTime
                 .ofEpochSecond(seconds, 0, ZoneOffset.of("+8"))
                 .format(DateTimeFormatter.ofPattern(format));
+    }
+
+    public static long unixTimestamp(String datetime) {
+        return unixTimestamp(datetime, "yyyy-MM-dd HH:mm:ss");
     }
 
     public static long unixTimestamp(String datetime, String format) {

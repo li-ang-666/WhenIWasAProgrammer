@@ -63,10 +63,7 @@ public class RatioPathCompanyJob {
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
                             synchronized (companyIds) {
-                                log.info("window trigger, currentTime: {}, lastTime: {}, size: {}",
-                                        DateTimeUtils.fromUnixTime(currentTime / 1000, "yyyy-MM-dd HH:mm:ss"),
-                                        DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
-                                        companyIds.size());
+                                log.info("window trigger, currentTime: {}, lastTime: {}, size: {}", DateTimeUtils.fromUnixTime(currentTime / 1000), DateTimeUtils.fromUnixTime(lastSendTime / 1000), companyIds.size());
                                 ratioPathCompanyTrigger.trigger(companyIds);
                                 companyIds.clear();
                             }
