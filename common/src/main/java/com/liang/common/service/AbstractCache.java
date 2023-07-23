@@ -27,7 +27,7 @@ public abstract class AbstractCache<K, V> {
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
             new Thread(new Runnable() {
-                private long lastSendTime;
+                private long lastSendTime = System.currentTimeMillis();
 
                 @Override
                 @SneakyThrows(InterruptedException.class)

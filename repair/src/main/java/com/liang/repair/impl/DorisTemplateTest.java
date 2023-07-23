@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class DorisTemplateTest extends ConfigHolder {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
         dorisTemplate.enableCache();
 

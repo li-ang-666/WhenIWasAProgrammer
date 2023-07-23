@@ -41,7 +41,7 @@ import java.util.Map;
  */
 @Slf4j
 public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
-    private final static int DEFAULT_CACHE_MILLISECONDS = 500;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 1000;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final Connection pool;
     private final Logging logging;

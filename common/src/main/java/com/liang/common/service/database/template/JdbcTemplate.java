@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcTemplate extends AbstractCache<Object, String> {
-    private final static int DEFAULT_CACHE_MILLISECONDS = 500;
+    private final static int DEFAULT_CACHE_MILLISECONDS = 1000;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final static String BITMAP_COLUMN_NAME = "bitmap";
     private final static String DEAD_LOCK_MESSAGE = "Deadlock found when trying to get lock; try restarting transaction";
