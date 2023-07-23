@@ -5,7 +5,6 @@ import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
-import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -53,7 +52,6 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
     }
 
     @Override
-    @Synchronized
     protected void updateImmediately(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
         logging.beforeExecute();
         try (Table table = getTable(schema)) {

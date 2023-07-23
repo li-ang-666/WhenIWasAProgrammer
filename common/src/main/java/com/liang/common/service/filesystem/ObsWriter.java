@@ -5,7 +5,6 @@ import com.liang.common.service.Logging;
 import com.liang.common.util.DateTimeUtils;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ModifyObjectRequest;
-import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
@@ -42,7 +41,6 @@ public class ObsWriter extends AbstractCache<Object, String> {
     }
 
     @Override
-    @Synchronized
     protected void updateImmediately(Object ignore, List<String> rows) {
         logging.beforeExecute();
         String objectKeyName = String.format("%s.%s.%s", DateTimeUtils.currentDate(), uuid, "txt");

@@ -7,7 +7,6 @@ import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.util.DorisBitmapUtils;
 import lombok.SneakyThrows;
-import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,7 +43,6 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
     }
 
     @Override
-    @Synchronized
     @SneakyThrows(InterruptedException.class)
     protected void updateImmediately(Object ignore, List<String> sqls) {
         logging.beforeExecute();
