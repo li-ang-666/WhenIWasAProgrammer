@@ -1,4 +1,4 @@
-package com.liang.repair.impl;
+package com.liang.repair.impl.cache;
 
 import com.liang.common.service.database.template.MemJdbcTemplate;
 import com.liang.repair.service.ConfigHolder;

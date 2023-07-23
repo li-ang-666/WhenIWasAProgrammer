@@ -1,4 +1,4 @@
-package com.liang.repair.impl;
+package com.liang.repair.impl.cache;
 
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class HbaseTemplateTest extends ConfigHolder {
     public static void main(String[] args) {
         HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
-        hbaseTemplate.enableCache();
+        hbaseTemplate.enableCache(5000, 1024);
 
         HbaseSchema schema1 = HbaseSchema.builder()
                 .namespace("test")
