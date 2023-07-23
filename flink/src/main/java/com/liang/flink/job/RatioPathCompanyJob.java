@@ -9,22 +9,17 @@ import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
-import org.apache.flink.api.common.typeinfo.TypeHint;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.FunctionInitializationContext;
+import org.apache.flink.runtime.state.FunctionSnapshotContext;
+import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-import org.apache.flink.util.Collector;
 import org.tyc.RatioPathCompanyTrigger;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,88 +33,79 @@ public class RatioPathCompanyJob {
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
                 .keyBy(new Distributor().with("investment_relation", e -> String.valueOf(e.getColumnMap().get("company_id_invested"))))
-                .flatMap(new RatioPathCompanyFlatMap(config)).name("RatioPathCompanyFlatMap").setParallelism(config.getFlinkConfig().getOtherParallel())
                 .addSink(new RatioPathCompanySink(config)).name("RatioPathCompanySink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("RatioPathCompanyJob");
     }
 
     @Slf4j
     @RequiredArgsConstructor
-    private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, Set<Long>> {
+    private final static class RatioPathCompanySink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final static long INTERVAL = 1000 * 60L;
         private final static long SIZE = 128L;
-        private final ValueStateDescriptor<HashSet<Long>> companyIdsDescriptor = new ValueStateDescriptor<>("companyIds", TypeInformation.of(new TypeHint<HashSet<Long>>() {
-        }));
-        private final Config config;
-        private ValueState<HashSet<Long>> companyIds;
-        private long lastSendTime;
-        private Thread sendThread;
-
-        @Override
-        public void open(Configuration parameters) throws Exception {
-            ConfigUtils.setConfig(config);
-            companyIds = getRuntimeContext().getState(companyIdsDescriptor);
-        }
-
-        @Override
-        public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Set<Long>> out) throws Exception {
-            if (companyIds.value() == null) {
-                companyIds.update(new HashSet<>());
-                log.error("--------------{}", companyIds.value());
-            }
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = String.valueOf(columnMap.get("company_id_invested"));
-            if (StringUtils.isNumeric(companyId)) {
-                synchronized (companyIdsDescriptor) {
-                    companyIds.value().add(Long.parseLong(companyId));
-                }
-            }
-            if (sendThread != null) {
-                return;
-            }
-            sendThread = new Thread(new Runnable() {
-                @Override
-                @SneakyThrows(IOException.class)
-                public void run() {
-                    while (true) {
-                        long currentTime = System.currentTimeMillis();
-                        if (currentTime - lastSendTime >= INTERVAL || companyIds.value().size() >= SIZE) {
-                            synchronized (companyIdsDescriptor) {
-                                log.info("window trigger, currentTime: {}, lastTime: {}, size: {}",
-                                        DateTimeUtils.fromUnixTime(currentTime / 1000, "yyyy-MM-dd HH:mm:ss"),
-                                        DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
-                                        companyIds.value().size());
-                                out.collect(new HashSet<>(companyIds.value()));
-                                lastSendTime = currentTime;
-                                companyIds.update(new HashSet<>());
-                            }
-                        }
-                    }
-                }
-            });
-            sendThread.start();
-        }
-
-    }
-
-    @Slf4j
-    @RequiredArgsConstructor
-    private final static class RatioPathCompanySink extends RichSinkFunction<Set<Long>> {
+        private final static long MAX_SIZE = 1024L;
+        private final Set<Long> companyIds = new HashSet<>();
         private final Config config;
         private RatioPathCompanyTrigger ratioPathCompanyTrigger;
+
+        @Override
+        public void initializeState(FunctionInitializationContext context) throws Exception {
+
+        }
 
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             ratioPathCompanyTrigger = new RatioPathCompanyTrigger();
+            new Thread(new Runnable() {
+                private long lastSendTime;
+
+                @Override
+                public void run() {
+                    while (true) {
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
+                            synchronized (companyIds) {
+                                log.info("window trigger, currentTime: {}, lastTime: {}, size: {}",
+                                        DateTimeUtils.fromUnixTime(currentTime / 1000, "yyyy-MM-dd HH:mm:ss"),
+                                        DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
+                                        companyIds.size());
+                                ratioPathCompanyTrigger.trigger(companyIds);
+                                lastSendTime = currentTime;
+                                companyIds.clear();
+                            }
+                        }
+                    }
+                }
+            }).start();
         }
 
         @Override
-        public void invoke(Set<Long> companyIds, Context context) throws Exception {
-            try {
-                //ratioPathCompanyTrigger.trigger(companyIds);
-            } catch (Exception e) {
-                log.error("RatioPathCompanySink invoke({})", companyIds);
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String companyId = String.valueOf(columnMap.get("company_id_invested"));
+            if (StringUtils.isNumeric(companyId)) {
+                while (true) {
+                    if (companyIds.size() <= MAX_SIZE) {
+                        break;
+                    }
+                }
+                synchronized (companyIds) {
+                    companyIds.add(Long.parseLong(companyId));
+                }
+            }
+        }
+
+        @Override
+        public void snapshotState(FunctionSnapshotContext context) throws Exception {
+            synchronized (companyIds) {
+                ratioPathCompanyTrigger.trigger(companyIds);
+            }
+        }
+
+        @Override
+        public void close() throws Exception {
+            synchronized (companyIds) {
+                ratioPathCompanyTrigger.trigger(companyIds);
             }
         }
     }

@@ -30,60 +30,67 @@ public class RatioPathCompanyTrigger {
     }
 
     public void trigger(Set<Long> companyIds) {
-        Set<Long> needDeleted = new HashSet<>(companyIds);
-        companyIds.stream()
-                .map(companyId -> {
-                    try {
-                        return QueryAllShareHolderFromCompanyIdObj.queryAllShareHolderFromCompanyId(companyId, 10000, investmentRelationMapper, personnelEmploymentHistoryMapper, companyLegalPersonMapper);
-                    } catch (Exception e) {
-                        log.error("queryAllShareHolderFromCompanyId({}) error", companyId);
-                        return null;
-                    }
-                })
-                .filter(map -> map != null && !map.isEmpty())
-                .flatMap(map -> map.values().stream())
-                .map(investmentRelation -> {
-                    RatioPathCompany ratioPathCompany = InvestUtil.convertInvestmentRelationToRatioPathCompany(investmentRelation);
-                    JSONArray jsonArray;
-                    try {
-                        jsonArray = PathFormatter.formatInvestmentRelationToPath(investmentRelation);
-                    } catch (Exception e) {
-                        log.error("formatInvestmentRelationToPath({}) error", investmentRelation);
-                        jsonArray = new JSONArray();
-                    }
-                    return Tuple2.of(ratioPathCompany, jsonArray);
-                })
-                .filter(tuple2 -> {
-                    RatioPathCompany ratioPathCompany = tuple2.f0;
-                    Long companyId = ratioPathCompany.getCompanyId();
-                    Integer shareholderEntityType = ratioPathCompany.getShareholderEntityType();
-                    String shareholderId = ratioPathCompany.getShareholderId();
-                    return companyId != null
-                            && (shareholderEntityType == 1 || shareholderEntityType == 2)
-                            && StringUtils.isNotBlank(shareholderId);
-                })
-                .forEach(tuple2 -> {
-                    RatioPathCompany ratioPathCompany = tuple2.f0;
-                    JSONArray path = tuple2.f1;
-                    Long companyId = ratioPathCompany.getCompanyId();
-                    if (needDeleted.contains(companyId)) {
-                        ratioPathCompanyMapper.deleteByCompanyIdLimit200(companyId);
-                        needDeleted.remove(companyId);
-                    }
-                    ratioPathCompanyMapper.insertRatioPathCompanyWithNewPathString(
-                            companyId,
-                            ratioPathCompany.getShareholderId(),
-                            ratioPathCompany.getShareholderEntityType(),
-                            ratioPathCompany.getShareholderNameId(),
-                            ratioPathCompany.getInvestmentRatioTotal(),
-                            ratioPathCompany.getIsController(),
-                            ratioPathCompany.getIsUltimate(),
-                            ratioPathCompany.getIsBigShareholder(),
-                            ratioPathCompany.getIsControllingShareholder(),
-                            path.toString(),
-                            ratioPathCompany.getIsDeleted()
-                    );
-                });
-        needDeleted.forEach(ratioPathCompanyMapper::deleteByCompanyIdLimit200);
+        if (companyIds.isEmpty()) {
+            return;
+        }
+        try {
+            Set<Long> needDeleted = new HashSet<>(companyIds);
+            companyIds.stream()
+                    .map(companyId -> {
+                        try {
+                            return QueryAllShareHolderFromCompanyIdObj.queryAllShareHolderFromCompanyId(companyId, 10000, investmentRelationMapper, personnelEmploymentHistoryMapper, companyLegalPersonMapper);
+                        } catch (Exception e) {
+                            log.error("queryAllShareHolderFromCompanyId({}) error", companyId);
+                            return null;
+                        }
+                    })
+                    .filter(map -> map != null && !map.isEmpty())
+                    .flatMap(map -> map.values().stream())
+                    .map(investmentRelation -> {
+                        RatioPathCompany ratioPathCompany = InvestUtil.convertInvestmentRelationToRatioPathCompany(investmentRelation);
+                        JSONArray jsonArray;
+                        try {
+                            jsonArray = PathFormatter.formatInvestmentRelationToPath(investmentRelation);
+                        } catch (Exception e) {
+                            log.error("formatInvestmentRelationToPath({}) error", investmentRelation);
+                            jsonArray = new JSONArray();
+                        }
+                        return Tuple2.of(ratioPathCompany, jsonArray);
+                    })
+                    .filter(tuple2 -> {
+                        RatioPathCompany ratioPathCompany = tuple2.f0;
+                        Long companyId = ratioPathCompany.getCompanyId();
+                        Integer shareholderEntityType = ratioPathCompany.getShareholderEntityType();
+                        String shareholderId = ratioPathCompany.getShareholderId();
+                        return companyId != null
+                                && (shareholderEntityType == 1 || shareholderEntityType == 2)
+                                && StringUtils.isNotBlank(shareholderId);
+                    })
+                    .forEach(tuple2 -> {
+                        RatioPathCompany ratioPathCompany = tuple2.f0;
+                        JSONArray path = tuple2.f1;
+                        Long companyId = ratioPathCompany.getCompanyId();
+                        if (needDeleted.contains(companyId)) {
+                            ratioPathCompanyMapper.deleteByCompanyIdLimit200(companyId);
+                            needDeleted.remove(companyId);
+                        }
+                        ratioPathCompanyMapper.insertRatioPathCompanyWithNewPathString(
+                                companyId,
+                                ratioPathCompany.getShareholderId(),
+                                ratioPathCompany.getShareholderEntityType(),
+                                ratioPathCompany.getShareholderNameId(),
+                                ratioPathCompany.getInvestmentRatioTotal(),
+                                ratioPathCompany.getIsController(),
+                                ratioPathCompany.getIsUltimate(),
+                                ratioPathCompany.getIsBigShareholder(),
+                                ratioPathCompany.getIsControllingShareholder(),
+                                path.toString(),
+                                ratioPathCompany.getIsDeleted()
+                        );
+                    });
+            needDeleted.forEach(ratioPathCompanyMapper::deleteByCompanyIdLimit200);
+        } catch (Exception e) {
+            log.error("trigger({}) error", companyIds);
+        }
     }
 }
