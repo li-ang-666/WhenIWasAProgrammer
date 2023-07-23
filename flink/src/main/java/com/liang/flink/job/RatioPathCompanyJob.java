@@ -49,7 +49,6 @@ public class RatioPathCompanyJob {
 
         @Override
         public void initializeState(FunctionInitializationContext context) throws Exception {
-
         }
 
         @Override
@@ -82,30 +81,33 @@ public class RatioPathCompanyJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = String.valueOf(columnMap.get("company_id_invested"));
-            if (StringUtils.isNumeric(companyId)) {
-                while (true) {
-                    if (companyIds.size() <= MAX_SIZE) {
-                        break;
-                    }
+            String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
+            if (!StringUtils.isNumeric(companyIdString)) {
+                return;
+            }
+            Long companyId = Long.parseLong(companyIdString);
+            if (companyIds.contains(companyId)) {
+                return;
+            }
+            while (true) {
+                if (companyIds.size() <= MAX_SIZE) {
+                    break;
                 }
-                synchronized (companyIds) {
-                    companyIds.add(Long.parseLong(companyId));
-                }
+            }
+            synchronized (companyIds) {
+                companyIds.add(companyId);
             }
         }
 
+        /**
+         * 不背压的时候,改一改kafka的位点,随便重启
+         * 背压的时候,需要从checkpoint恢复,保证每次checkpoint的时候,自定义的缓冲区里没有数据
+         */
         @Override
         public void snapshotState(FunctionSnapshotContext context) throws Exception {
             synchronized (companyIds) {
                 ratioPathCompanyTrigger.trigger(companyIds);
-            }
-        }
-
-        @Override
-        public void close() throws Exception {
-            synchronized (companyIds) {
-                ratioPathCompanyTrigger.trigger(companyIds);
+                companyIds.clear();
             }
         }
     }

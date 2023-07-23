@@ -15,6 +15,9 @@ import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.FunctionInitializationContext;
+import org.apache.flink.runtime.state.FunctionSnapshotContext;
+import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
@@ -41,13 +44,17 @@ public class DimCountJob {
             EntityBeneficiaryDetails.class,
             EntityControllerDetails.class
     })
-    private final static class DimCountSink extends RichSinkFunction<SingleCanalBinlog> {
+    private final static class DimCountSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
         private DataUpdateService<HbaseOneRow> service;
         private HbaseTemplate hbaseTemplate;
 
         public DimCountSink(Config config) {
             this.config = config;
+        }
+
+        @Override
+        public void initializeState(FunctionInitializationContext context) throws Exception {
         }
 
         @Override
@@ -66,7 +73,7 @@ public class DimCountJob {
         }
 
         @Override
-        public void finish() throws Exception {
+        public void snapshotState(FunctionSnapshotContext context) throws Exception {
             hbaseTemplate.flush();
         }
     }
