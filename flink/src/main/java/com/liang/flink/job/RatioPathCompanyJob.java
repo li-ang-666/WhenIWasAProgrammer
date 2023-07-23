@@ -42,7 +42,6 @@ public class RatioPathCompanyJob {
     private final static class RatioPathCompanySink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final static long INTERVAL = 1000 * 60L;
         private final static long SIZE = 128L;
-        private final static long MAX_SIZE = 1024L;
         private final Set<Long> companyIds = new HashSet<>();
         private final Config config;
         private RatioPathCompanyTrigger ratioPathCompanyTrigger;
@@ -56,7 +55,7 @@ public class RatioPathCompanyJob {
             ConfigUtils.setConfig(config);
             ratioPathCompanyTrigger = new RatioPathCompanyTrigger();
             new Thread(new Runnable() {
-                private long lastSendTime;
+                private long lastSendTime = System.currentTimeMillis();
 
                 @Override
                 public void run() {
@@ -69,9 +68,9 @@ public class RatioPathCompanyJob {
                                         DateTimeUtils.fromUnixTime(lastSendTime / 1000, "yyyy-MM-dd HH:mm:ss"),
                                         companyIds.size());
                                 ratioPathCompanyTrigger.trigger(companyIds);
-                                lastSendTime = currentTime;
                                 companyIds.clear();
                             }
+                            lastSendTime = currentTime;
                         }
                     }
                 }
@@ -88,11 +87,6 @@ public class RatioPathCompanyJob {
             Long companyId = Long.parseLong(companyIdString);
             if (companyIds.contains(companyId)) {
                 return;
-            }
-            while (true) {
-                if (companyIds.size() <= MAX_SIZE) {
-                    break;
-                }
             }
             synchronized (companyIds) {
                 companyIds.add(companyId);
