@@ -49,9 +49,8 @@ public class KafkaLagReporter implements Runnable {
             log.warn("本轮周期内 kafka 无数据流入");
             return;
         }
-        Map<TopicPartition, Long> copyOffsetMap;
+        Map<TopicPartition, Long> copyOffsetMap = new TreeMap<>(mapKeyComparator);
         synchronized (offsetMap) {
-            copyOffsetMap = new TreeMap<>(mapKeyComparator);
             copyOffsetMap.putAll(offsetMap);
             offsetMap.clear();
         }
@@ -70,9 +69,8 @@ public class KafkaLagReporter implements Runnable {
             return;
         }
         log.warn("offset lag: {}", JsonUtils.toString(copyOffsetMap));
-        Map<TopicPartition, Object> copyTimeMap;
+        Map<TopicPartition, Object> copyTimeMap = new TreeMap<>(mapKeyComparator);
         synchronized (timeMap) {
-            copyTimeMap = new TreeMap<>(mapKeyComparator);
             copyTimeMap.putAll(timeMap);
             timeMap.clear();
         }
