@@ -4,12 +4,12 @@ import cn.hutool.core.lang.Snowflake;
 import com.liang.common.service.database.template.RedisTemplate;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
-import lombok.experimental.UtilityClass;
+import org.junit.Test;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-@UtilityClass
+//@UtilityClass
 public class SnowflakeUtils {
     private static volatile Snowflake SNOWFLAKE;
 
@@ -25,10 +25,18 @@ public class SnowflakeUtils {
                     Long incr = redisTemplate.incr(INCR_KEY);
                     redisTemplate.unlock(LOCK_KEY);
                     final long ID = (incr - 1) % 32;
-                    SNOWFLAKE = new Snowflake(new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000), ID, ID, false);
+                    SNOWFLAKE = new Snowflake(
+                            // 2023-01-01 00:00:00
+                            new Date(1672502400L * 1000),
+                            ID, ID, false);
                 }
             }
         }
+    }
+
+    @Test
+    public void test() {
+        System.out.println(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00"));
     }
 
     @Synchronized
