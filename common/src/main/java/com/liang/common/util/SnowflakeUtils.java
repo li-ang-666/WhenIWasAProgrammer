@@ -5,6 +5,8 @@ import com.liang.common.service.database.template.RedisTemplate;
 import lombok.Synchronized;
 import lombok.experimental.UtilityClass;
 
+import java.util.Date;
+
 @UtilityClass
 public class SnowflakeUtils {
     private static volatile Snowflake SNOWFLAKE;
@@ -21,7 +23,7 @@ public class SnowflakeUtils {
                     Long incr = redisTemplate.incr(INCR_KEY);
                     redisTemplate.unlock(LOCK_KEY);
                     final long ID = (incr - 1) % 32;
-                    SNOWFLAKE = new Snowflake(ID, ID);
+                    SNOWFLAKE = new Snowflake(new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000), ID, ID, true);
                 }
             }
         }
