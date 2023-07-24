@@ -2,7 +2,6 @@ package com.liang.flink.project.ratio.path.company;
 
 import com.alibaba.fastjson.JSONArray;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.tyc.QueryAllShareHolderFromCompanyIdObj;
 import org.tyc.bdpequity.BuildTab3Path;
@@ -58,14 +57,17 @@ public class RatioPathCompanyService {
                         Long companyId = ratioPathCompany.getCompanyId();
                         Integer shareholderEntityType = ratioPathCompany.getShareholderEntityType();
                         String shareholderId = ratioPathCompany.getShareholderId();
-                        return companyId != null
+                        Integer isDeleted = ratioPathCompany.getIsDeleted();
+                        return companyId != null && companyId != 0
                                 && (shareholderEntityType == 1 || shareholderEntityType == 2)
-                                && StringUtils.isNotBlank(shareholderId);
+                                && !"".equals(shareholderId) && !"0".equals(shareholderId)
+                                && isDeleted == 0;
                     })
                     .forEach(tuple2 -> {
                         RatioPathCompany ratioPathCompany = tuple2.f0;
                         JSONArray path = tuple2.f1;
                         Long companyId = ratioPathCompany.getCompanyId();
+                        String shareholderId = ratioPathCompany.getShareholderId();
                         if (needDeleted.contains(companyId)) {
                             dao.deleteAll(companyId);
                             needDeleted.remove(companyId);
@@ -73,7 +75,7 @@ public class RatioPathCompanyService {
                         Map<String, Object> columnMap = new HashMap<>();
                         columnMap.put("id", System.currentTimeMillis());
                         columnMap.put("company_id", companyId);
-                        columnMap.put("shareholder_id", ratioPathCompany.getShareholderId());
+                        columnMap.put("shareholder_id", shareholderId);
                         columnMap.put("shareholder_entity_type", ratioPathCompany.getShareholderEntityType());
                         columnMap.put("shareholder_name_id", ratioPathCompany.getShareholderNameId());
                         columnMap.put("investment_ratio_total", ratioPathCompany.getInvestmentRatioTotal());
