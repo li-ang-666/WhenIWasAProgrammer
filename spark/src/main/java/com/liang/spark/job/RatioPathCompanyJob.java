@@ -36,23 +36,15 @@ public class RatioPathCompanyJob {
                 String json = iterator.next().json();
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(json);
                 String companyIdInvested = String.valueOf(columnMap.get("company_id_invested"));
-                if (StringUtils.isNumeric(companyIdInvested)) {
+                if (StringUtils.isNumeric(companyIdInvested) && !"0".equals(companyIdInvested)) {
                     set.add(Long.parseLong(companyIdInvested));
                 }
                 if (set.size() >= 1024) {
-                    try {
-                        service.invoke(set);
-                    } catch (Exception e) {
-                        log.error("trigger({})", set);
-                    }
+                    service.invoke(set);
                     set.clear();
                 }
             }
-            try {
-                service.invoke(set);
-            } catch (Exception e) {
-                log.error("trigger({})", set);
-            }
+            service.invoke(set);
         }
     }
 }

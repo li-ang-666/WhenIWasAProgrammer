@@ -31,6 +31,7 @@ public class RatioPathCompanyService {
         try {
             Set<Long> needDeleted = new HashSet<>(companyIds);
             companyIds.stream()
+                    .filter(e -> e != 0)
                     .map(companyId -> {
                         try {
                             return QueryAllShareHolderFromCompanyIdObj.queryAllShareHolderFromCompanyId(companyId, 10000, investmentRelationMapper, personnelEmploymentHistoryMapper, companyLegalPersonMapper);

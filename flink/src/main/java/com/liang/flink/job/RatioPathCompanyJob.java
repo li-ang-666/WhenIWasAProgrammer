@@ -78,7 +78,7 @@ public class RatioPathCompanyJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
-            if (!StringUtils.isNumeric(companyIdString)) {
+            if (!StringUtils.isNumeric(companyIdString) || "0".equals(companyIdString)) {
                 return;
             }
             Long companyId = Long.parseLong(companyIdString);
@@ -87,6 +87,7 @@ public class RatioPathCompanyJob {
             }
             synchronized (companyIds) {
                 companyIds.add(companyId);
+                log.info("{}", companyIds);
             }
         }
 
