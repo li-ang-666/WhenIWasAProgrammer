@@ -17,6 +17,27 @@
     </modules>
     <dependencyManagement>
         <dependencies>
+            <!--mybatis-->
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>3.5.6</version>
+            </dependency>
+
+            <!--fastjson: 静虎 和 国旺 的 shareholder-->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.61</version>
+            </dependency>
+
+            <!--hutool-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>5.8.20</version>
+            </dependency>
+
             <!--apollo-->
             <dependency>
                 <groupId>com.ctrip.framework.apollo</groupId>
