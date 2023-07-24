@@ -45,6 +45,13 @@
             <version>1.0</version>
         </dependency>
 
+        <!--liang flink-->
+        <dependency>
+            <groupId>com.liang</groupId>
+            <artifactId>flink</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!--spark-->
         <dependency>
             <groupId>org.apache.spark</groupId>

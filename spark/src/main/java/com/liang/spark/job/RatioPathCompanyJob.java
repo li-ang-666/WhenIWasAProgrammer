@@ -1,6 +1,7 @@
 package com.liang.spark.job;
 
 import com.liang.common.util.JsonUtils;
+import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
 import com.liang.spark.basic.SparkSessionFactory;
 import com.liang.spark.basic.TableFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.tyc.RatioPathCompanyTrigger;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,7 +30,7 @@ public class RatioPathCompanyJob {
 
         @Override
         public void call(Iterator<Row> iterator) throws Exception {
-            RatioPathCompanyTrigger ratioPathCompanyTrigger = new RatioPathCompanyTrigger();
+            RatioPathCompanyService service = new RatioPathCompanyService();
             Set<Long> set = new HashSet<>();
             while (iterator.hasNext()) {
                 String json = iterator.next().json();
@@ -41,7 +41,7 @@ public class RatioPathCompanyJob {
                 }
                 if (set.size() >= 1024) {
                     try {
-                        ratioPathCompanyTrigger.trigger(set);
+                        service.invoke(set);
                     } catch (Exception e) {
                         log.error("trigger({})", set);
                     }
@@ -49,7 +49,7 @@ public class RatioPathCompanyJob {
                 }
             }
             try {
-                ratioPathCompanyTrigger.trigger(set);
+                service.invoke(set);
             } catch (Exception e) {
                 log.error("trigger({})", set);
             }
