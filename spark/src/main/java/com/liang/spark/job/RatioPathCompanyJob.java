@@ -3,6 +3,7 @@ package com.liang.spark.job;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
+import com.liang.common.util.SnowflakeUtils;
 import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
 import com.liang.spark.basic.SparkSessionFactory;
 import com.liang.spark.basic.TableFactory;
@@ -36,6 +37,7 @@ public class RatioPathCompanyJob {
         @Override
         public void call(Iterator<Row> iterator) throws Exception {
             ConfigUtils.setConfig(config);
+            SnowflakeUtils.init(RatioPathCompanyJob.class.getSimpleName());
             RatioPathCompanyService service = new RatioPathCompanyService();
             Set<Long> set = new HashSet<>();
             while (iterator.hasNext()) {

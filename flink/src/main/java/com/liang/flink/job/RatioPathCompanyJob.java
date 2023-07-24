@@ -54,7 +54,7 @@ public class RatioPathCompanyJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            SnowflakeUtils.init("RatioPathCompanyJob");
+            SnowflakeUtils.init(RatioPathCompanyJob.class.getSimpleName());
             service = new RatioPathCompanyService();
             new Thread(new Runnable() {
                 private long lastSendTime = System.currentTimeMillis();
