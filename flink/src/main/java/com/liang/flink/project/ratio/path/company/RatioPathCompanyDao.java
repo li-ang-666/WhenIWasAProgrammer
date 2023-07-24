@@ -41,7 +41,7 @@ public class RatioPathCompanyDao {
 
     public void replaceIntoRatioPathCompany(Map<String, Object> columnMap) {
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        String sql = new SQL().REPLACE_INTO("ratio_path_company")
+        String sql = new SQL().INSERT_INTO("ratio_path_company")
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
@@ -60,7 +60,7 @@ public class RatioPathCompanyDao {
 
     public String replaceInto(String tableName, Map<String, Object> columnMap) {
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        return new SQL().REPLACE_INTO(tableName)
+        return new SQL().INSERT_INTO(tableName)
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
@@ -71,7 +71,7 @@ public class RatioPathCompanyDao {
         for (Map<String, Object> columnMap : columnMaps) {
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             String sql = new SQL()
-                    .REPLACE_INTO("shareholder_identity_type_details")
+                    .INSERT_INTO("shareholder_identity_type_details")
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1)
                     .toString();

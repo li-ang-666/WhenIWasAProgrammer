@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "prismShareholderPath"
     tableName: "investment_relation"
     columns: "*"
-    where: "company_id_invested = 2318455639"
+    where: "company_id_invested = 6334001526"
     scanMode: Direct
 
 kafkaConfigs:

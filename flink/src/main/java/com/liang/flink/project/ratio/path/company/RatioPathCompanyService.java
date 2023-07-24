@@ -19,19 +19,20 @@ import java.util.*;
 
 @Slf4j
 public class RatioPathCompanyService {
+    // 每个jvm一个
+    private static final Snowflake snowflake = new Snowflake();
     private final InvestmentRelationMapper investmentRelationMapper = JDBCRunner.getMapper(InvestmentRelationMapper.class, "e1d4c0a1d8d1456ba4b461ab8b9f293din01/prism_shareholder_path.xml");
     private final PersonnelEmploymentHistoryMapper personnelEmploymentHistoryMapper = JDBCRunner.getMapper(PersonnelEmploymentHistoryMapper.class, "36c607bfd9174d4e81512aa73375f0fain01/human_base.xml");
     private final CompanyLegalPersonMapper companyLegalPersonMapper = JDBCRunner.getMapper(CompanyLegalPersonMapper.class, "ee59dd05fc0f4bb9a2497c8d9146a53cin01/company_base.xml");
     private final RatioPathCompanyDao dao = new RatioPathCompanyDao();
-    private final Snowflake snowflake = new Snowflake();
 
     public void invoke(Set<Long> companyIds) {
         if (companyIds.isEmpty()) {
             return;
         }
-        List<String> sqls = new ArrayList<>();
         try {
-            Set<Long> needDeleted = new HashSet<>(companyIds);
+            companyIds.forEach(dao::deleteAll);
+            List<String> sqls = new ArrayList<>();
             companyIds.stream()
                     .filter(e -> e != 0)
                     .map(companyId -> {
@@ -71,10 +72,6 @@ public class RatioPathCompanyService {
                         JSONArray path = tuple2.f1;
                         Long companyId = ratioPathCompany.getCompanyId();
                         String shareholderId = ratioPathCompany.getShareholderId();
-                        if (needDeleted.contains(companyId)) {
-                            dao.deleteAll(companyId);
-                            needDeleted.remove(companyId);
-                        }
                         Map<String, Object> columnMap = new HashMap<>();
                         columnMap.put("id", snowflake.nextId());
                         columnMap.put("company_id", companyId);
@@ -91,11 +88,9 @@ public class RatioPathCompanyService {
                         dao.replaceIntoRatioPathCompany(columnMap);
                         sqls.addAll(updateWithReturn(columnMap));
                     });
-            needDeleted.forEach(dao::deleteAll);
             dao.updateAll(sqls);
         } catch (Exception e) {
             log.error("invoke({}) error", companyIds);
-            companyIds.forEach(dao::deleteAll);
         }
     }
 
