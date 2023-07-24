@@ -2,10 +2,12 @@ package com.liang.common.util;
 
 import cn.hutool.core.lang.Snowflake;
 import com.liang.common.service.database.template.RedisTemplate;
+import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.experimental.UtilityClass;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @UtilityClass
 public class SnowflakeUtils {
@@ -30,7 +32,9 @@ public class SnowflakeUtils {
     }
 
     @Synchronized
+    @SneakyThrows(InterruptedException.class)
     public static Long nextId() {
+        TimeUnit.MILLISECONDS.sleep(1);
         return SNOWFLAKE.nextId();
     }
 }
