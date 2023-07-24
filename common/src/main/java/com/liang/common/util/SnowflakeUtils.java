@@ -2,13 +2,12 @@ package com.liang.common.util;
 
 import cn.hutool.core.lang.Snowflake;
 import com.liang.common.service.database.template.RedisTemplate;
-import lombok.SneakyThrows;
-import lombok.Synchronized;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @UtilityClass
 public class SnowflakeUtils {
     private static volatile Snowflake SNOWFLAKE;
@@ -22,22 +21,20 @@ public class SnowflakeUtils {
                     RedisTemplate redisTemplate = new RedisTemplate("metadata");
                     while (!redisTemplate.tryLock(LOCK_KEY)) {
                     }
-                    Long incr = redisTemplate.incr(INCR_KEY);
+                    long incr = (redisTemplate.incr(INCR_KEY) - 1) % (32 * 32);
+                    long dataCenterId = incr / 32;
+                    long workerId = incr % 32;
                     redisTemplate.unlock(LOCK_KEY);
-                    final long ID = (incr - 1) % 32;
+                    log.info("Snowflake init, dataCenterId: {}, workerId: {}", dataCenterId, workerId);
                     SNOWFLAKE = new Snowflake(
-                            // 2023-01-01 00:00:00
-                            new Date(1672502400L * 1000),
-                            ID, ID, false);
+                            new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000L),
+                            workerId, dataCenterId, true);
                 }
             }
         }
     }
 
-    @Synchronized
-    @SneakyThrows(InterruptedException.class)
     public static Long nextId() {
-        TimeUnit.MILLISECONDS.sleep(1);
         return SNOWFLAKE.nextId();
     }
 }

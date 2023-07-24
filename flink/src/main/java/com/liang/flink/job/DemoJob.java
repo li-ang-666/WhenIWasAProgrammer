@@ -1,11 +1,9 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.dto.HbaseSchema;
-import com.liang.common.service.database.template.HbaseTemplate;
-import com.liang.common.service.filesystem.ObsWriter;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
+import com.liang.common.util.SnowflakeUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
@@ -22,26 +20,27 @@ public class DemoJob {
         Config config = ConfigUtils.getConfig();
         env
                 .addSource(new DemoSource(config))
-                .addSink(new DemoSink(config)).setParallelism(5);
+                .addSink(new DemoSink(config)).setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("DemoJob");
     }
 
     @Slf4j
     @RequiredArgsConstructor
-    private static class DemoSource extends RichSourceFunction<String> {
+    private static class DemoSource extends RichSourceFunction<Integer> {
         private final Config config;
-        private HbaseTemplate hbaseTemplate;
 
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            hbaseTemplate = new HbaseTemplate("hbaseSink");
         }
 
         @Override
-        public void run(SourceContext<String> ctx) throws Exception {
-            hbaseTemplate.scan(HbaseSchema.HUMAN_ALL_COUNT,
-                    hbaseOneRow -> ctx.collect(JsonUtils.toString(hbaseOneRow)));
+        public void run(SourceContext<Integer> ctx) throws Exception {
+            while (true) {
+                for (int i = 1; i <= 1024 * 1024; i++) {
+                    ctx.collect(i);
+                }
+            }
         }
 
         @Override
@@ -51,20 +50,20 @@ public class DemoJob {
 
     @Slf4j
     @RequiredArgsConstructor
-    private static class DemoSink extends RichSinkFunction<String> {
+    private static class DemoSink extends RichSinkFunction<Integer> {
         private final Config config;
-        private ObsWriter obsWriter;
+        private JdbcTemplate jdbcTemplate;
 
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            obsWriter = new ObsWriter("obs://hadoop-obs/flink/hbase/");
-            obsWriter.enableCache();
+            SnowflakeUtils.init(DemoJob.class.getSimpleName());
+            jdbcTemplate = new JdbcTemplate("test");
         }
 
         @Override
-        public void invoke(String input, Context context) throws Exception {
-            obsWriter.update(input);
+        public void invoke(Integer input, Context context) throws Exception {
+            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
         }
     }
 }
