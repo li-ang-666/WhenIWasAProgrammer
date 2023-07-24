@@ -1,7 +1,6 @@
 package com.liang.flink.project.ratio.path.company;
 
 import com.alibaba.fastjson.JSONArray;
-import com.liang.common.util.SnowflakeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.tyc.QueryAllShareHolderFromCompanyIdObj;
@@ -71,7 +70,6 @@ public class RatioPathCompanyService {
                         Long companyId = ratioPathCompany.getCompanyId();
                         String shareholderId = ratioPathCompany.getShareholderId();
                         Map<String, Object> columnMap = new HashMap<>();
-                        columnMap.put("id", SnowflakeUtils.nextId());
                         columnMap.put("company_id", companyId);
                         columnMap.put("shareholder_id", shareholderId);
                         columnMap.put("shareholder_entity_type", ratioPathCompany.getShareholderEntityType());
@@ -134,7 +132,6 @@ public class RatioPathCompanyService {
     private String parseIntoEntityBeneficiaryDetails(Map<String, Object> columnMap) {
         BuildTab3Path.PathNode pathNode = (BuildTab3Path.PathNode) columnMap.get("path_node");
         HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("id", String.valueOf(columnMap.get("id")));
         resultMap.put("tyc_unique_entity_id", String.valueOf(columnMap.get("company_id")));
         resultMap.put("tyc_unique_entity_id_beneficiary", String.valueOf(columnMap.get("shareholder_id")));
         //公司名字
@@ -155,7 +152,6 @@ public class RatioPathCompanyService {
     private String parseIntoEntityControllerDetails(Map<String, Object> columnMap) {
         BuildTab3Path.PathNode pathNode = (BuildTab3Path.PathNode) columnMap.get("path_node");
         HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("id", String.valueOf(columnMap.get("id")));
         resultMap.put("company_id_controlled", String.valueOf(columnMap.get("company_id")));
         resultMap.put("tyc_unique_entity_id", String.valueOf(columnMap.get("shareholder_id")));
         //公司名字

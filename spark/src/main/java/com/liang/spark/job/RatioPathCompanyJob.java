@@ -37,7 +37,6 @@ public class RatioPathCompanyJob {
         @Override
         public void call(Iterator<Row> iterator) throws Exception {
             ConfigUtils.setConfig(config);
-            SnowflakeUtils.init(RatioPathCompanyJob.class.getSimpleName());
             RatioPathCompanyService service = new RatioPathCompanyService();
             Set<Long> set = new HashSet<>();
             while (iterator.hasNext()) {
