@@ -19,7 +19,8 @@ public class SnowflakeUtils {
                     }
                     Long incr = redisTemplate.incr(INCR_KEY);
                     redisTemplate.unlock(LOCK_KEY);
-                    SNOWFLAKE = new Snowflake((incr - 1) % 32);
+                    final long ID = (incr - 1) % 32;
+                    SNOWFLAKE = new Snowflake(ID, ID);
                 }
             }
         }
