@@ -9,8 +9,8 @@ public class SnowflakeUtils {
     private static volatile Snowflake SNOWFLAKE;
 
     public static void init(String JobName) {
-        final String LOCK_KEY = JobName + "LOCK";
-        final String INCR_KEY = JobName + "INCR";
+        final String LOCK_KEY = JobName + "Lock";
+        final String INCR_KEY = JobName + "Incr";
         if (SNOWFLAKE == null) {
             synchronized (SnowflakeUtils.class) {
                 if (SNOWFLAKE == null) {
