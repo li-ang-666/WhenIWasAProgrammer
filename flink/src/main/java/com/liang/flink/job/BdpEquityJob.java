@@ -9,7 +9,6 @@ import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.project.bdp.equity.black.BdpEquityCleaner;
-import com.liang.flink.project.bdp.equity.impl.RatioPathCompany;
 import com.liang.flink.project.bdp.equity.impl.TycEntityMainReference;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateImpl;
@@ -25,7 +24,6 @@ import java.util.Map;
 @Slf4j
 @LocalConfigFile("bdp-equity.yml")
 @DataUpdateImpl({
-        RatioPathCompany.class,
         TycEntityMainReference.class
 })
 public class BdpEquityJob {
@@ -42,11 +40,6 @@ public class BdpEquityJob {
 
     private static Distributor getDistributor() {
         return new Distributor()
-                .with("ratio_path_company", e -> {
-                    Map<String, Object> columnMap = e.getColumnMap();
-                    //return columnMap.get("company_id") + "-" + columnMap.get("shareholder_id");
-                    return String.valueOf(columnMap.get("id"));
-                })
                 .with("tyc_entity_main_reference", e -> {
                     Map<String, Object> columnMap = e.getColumnMap();
                     return String.valueOf(columnMap.get("tyc_unique_entity_id"));
