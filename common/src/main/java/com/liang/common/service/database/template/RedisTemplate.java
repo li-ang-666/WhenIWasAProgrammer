@@ -20,6 +20,18 @@ public class RedisTemplate {
         logging = new Logging(this.getClass().getSimpleName(), name);
     }
 
+    public Long incr(String key) {
+        logging.beforeExecute();
+        try (Jedis jedis = pool.getResource()) {
+            Long res = jedis.incr(key);
+            logging.afterExecute("incr", key);
+            return res;
+        } catch (Exception e) {
+            logging.ifError("incr", key, e);
+            return null;
+        }
+    }
+
     public String get(String key) {
         logging.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
