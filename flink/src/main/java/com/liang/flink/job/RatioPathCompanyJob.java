@@ -87,7 +87,6 @@ public class RatioPathCompanyJob {
             }
             synchronized (companyIds) {
                 companyIds.add(companyId);
-                log.info("{}", companyIds);
             }
         }
 
