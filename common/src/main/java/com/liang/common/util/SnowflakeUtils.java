@@ -2,6 +2,7 @@ package com.liang.common.util;
 
 import cn.hutool.core.lang.Snowflake;
 import com.liang.common.service.database.template.RedisTemplate;
+import lombok.Synchronized;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -26,6 +27,7 @@ public class SnowflakeUtils {
         }
     }
 
+    @Synchronized
     public static Long nextId() {
         return SNOWFLAKE.nextId();
     }
