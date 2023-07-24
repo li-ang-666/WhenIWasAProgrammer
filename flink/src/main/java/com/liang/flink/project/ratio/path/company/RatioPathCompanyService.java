@@ -1,8 +1,7 @@
 package com.liang.flink.project.ratio.path.company;
 
-import cn.hutool.core.lang.Snowflake;
 import com.alibaba.fastjson.JSONArray;
-import com.liang.common.service.database.template.RedisTemplate;
+import com.liang.common.util.SnowflakeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.tyc.QueryAllShareHolderFromCompanyIdObj;
@@ -20,28 +19,12 @@ import java.util.*;
 
 @Slf4j
 public class RatioPathCompanyService {
-    private final static String LOCK_KEY = "RatioPathCompanyServiceLock";
-    private final static String INCR_KEY = "RatioPathCompanyServiceIncr";
-    // 每个jvm一个
-    private static volatile Snowflake SNOW_FLAKE;
     private final InvestmentRelationMapper investmentRelationMapper = JDBCRunner.getMapper(InvestmentRelationMapper.class, "e1d4c0a1d8d1456ba4b461ab8b9f293din01/prism_shareholder_path.xml");
     private final PersonnelEmploymentHistoryMapper personnelEmploymentHistoryMapper = JDBCRunner.getMapper(PersonnelEmploymentHistoryMapper.class, "36c607bfd9174d4e81512aa73375f0fain01/human_base.xml");
     private final CompanyLegalPersonMapper companyLegalPersonMapper = JDBCRunner.getMapper(CompanyLegalPersonMapper.class, "ee59dd05fc0f4bb9a2497c8d9146a53cin01/company_base.xml");
     private final RatioPathCompanyDao dao = new RatioPathCompanyDao();
 
     public void invoke(Set<Long> companyIds) {
-        if (SNOW_FLAKE == null) {
-            synchronized (RatioPathCompanyService.class) {
-                if (SNOW_FLAKE == null) {
-                    RedisTemplate redisTemplate = new RedisTemplate("metadata");
-                    while (!redisTemplate.tryLock(LOCK_KEY)) {
-                    }
-                    Long incr = redisTemplate.incr(INCR_KEY);
-                    redisTemplate.unlock(LOCK_KEY);
-                    SNOW_FLAKE = new Snowflake((incr - 1) % 32);
-                }
-            }
-        }
         if (companyIds.isEmpty()) {
             return;
         }
@@ -88,7 +71,7 @@ public class RatioPathCompanyService {
                         Long companyId = ratioPathCompany.getCompanyId();
                         String shareholderId = ratioPathCompany.getShareholderId();
                         Map<String, Object> columnMap = new HashMap<>();
-                        columnMap.put("id", SNOW_FLAKE.nextId());
+                        columnMap.put("id", SnowflakeUtils.nextId());
                         columnMap.put("company_id", companyId);
                         columnMap.put("shareholder_id", shareholderId);
                         columnMap.put("shareholder_entity_type", ratioPathCompany.getShareholderEntityType());
