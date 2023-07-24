@@ -3,7 +3,6 @@ package com.liang.flink.job;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
-import com.liang.common.util.SnowflakeUtils;
 import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
