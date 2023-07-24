@@ -45,7 +45,7 @@ public class RatioPathCompanyJob {
                 if (StringUtils.isNumeric(companyIdInvested) && !"0".equals(companyIdInvested)) {
                     set.add(Long.parseLong(companyIdInvested));
                 }
-                if (set.size() >= 1024) {
+                if (set.size() >= 128) {
                     service.invoke(set);
                     set.clear();
                 }
