@@ -1,0 +1,86 @@
+package com.liang.flink.project.ratio.path.company;
+
+import com.liang.common.service.SQL;
+import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.util.SqlUtils;
+import org.apache.flink.api.java.tuple.Tuple2;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.liang.common.util.SqlUtils.formatValue;
+
+public class RatioPathCompanyDao {
+    private final JdbcTemplate prismShareholderPath = new JdbcTemplate("prismShareholderPath");
+    private final JdbcTemplate bdpEquity = new JdbcTemplate("bdpEquity");
+
+    public void deleteAll(Long companyId) {
+        //删除ratio_path_company
+        String sql0 = new SQL().DELETE_FROM("ratio_path_company")
+                .WHERE("company_id = " + formatValue(companyId))
+                .toString();
+        //删除受益人
+        String sql1 = new SQL()
+                .DELETE_FROM("entity_beneficiary_details")
+                .WHERE("tyc_unique_entity_id = " + formatValue(companyId))
+                .toString();
+        //删除控制人
+        String sql2 = new SQL()
+                .DELETE_FROM("entity_controller_details")
+                .WHERE("company_id_controlled = " + formatValue(companyId))
+                .toString();
+        //删除身份关系
+        String sql3 = new SQL()
+                .DELETE_FROM("shareholder_identity_type_details")
+                .WHERE("tyc_unique_entity_id = " + formatValue(companyId))
+                .toString();
+        prismShareholderPath.update(sql0);
+        bdpEquity.update(sql1, sql2, sql3);
+    }
+
+    public void replaceIntoRatioPathCompany(Map<String, Object> columnMap) {
+        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+        String sql = new SQL().REPLACE_INTO("ratio_path_company")
+                .INTO_COLUMNS(insert.f0)
+                .INTO_VALUES(insert.f1)
+                .toString();
+        prismShareholderPath.update(sql);
+    }
+
+    public String getEntityName(String entityId) {
+        String sql = new SQL()
+                .SELECT("entity_name_valid")
+                .FROM("tyc_entity_main_reference")
+                .WHERE("tyc_unique_entity_id = " + formatValue(entityId))
+                .toString();
+        String res = bdpEquity.queryForObject(sql, rs -> rs.getString(1));
+        return res != null ? res : "";
+    }
+
+    public String replaceInto(String tableName, Map<String, Object> columnMap) {
+        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+        return new SQL().REPLACE_INTO(tableName)
+                .INTO_COLUMNS(insert.f0)
+                .INTO_VALUES(insert.f1)
+                .toString();
+    }
+
+    public List<String> replaceIntoShareholderTypeDetail(List<Map<String, Object>> columnMaps) {
+        List<String> sqls = new ArrayList<>();
+        for (Map<String, Object> columnMap : columnMaps) {
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+            String sql = new SQL()
+                    .REPLACE_INTO("shareholder_identity_type_details")
+                    .INTO_COLUMNS(insert.f0)
+                    .INTO_VALUES(insert.f1)
+                    .toString();
+            sqls.add(sql);
+        }
+        return sqls;
+    }
+
+    public void updateAll(List<String> sqls) {
+        bdpEquity.update(sqls);
+    }
+}

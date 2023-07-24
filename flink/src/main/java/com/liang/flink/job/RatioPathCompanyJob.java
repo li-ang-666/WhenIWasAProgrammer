@@ -8,6 +8,7 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -18,11 +19,10 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-import org.tyc.RatioPathCompanyTrigger;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @LocalConfigFile("ratio-path-company.yml")
@@ -40,11 +40,11 @@ public class RatioPathCompanyJob {
     @Slf4j
     @RequiredArgsConstructor
     private final static class RatioPathCompanySink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
-        private final static long INTERVAL = 1000 * 60L;
-        private final static long SIZE = 128L;
-        private final Set<Long> companyIds = new HashSet<>();
+        private final static int INTERVAL = 1000 * 60;
+        private final static int SIZE = 128;
+        private final Set<Long> companyIds = ConcurrentHashMap.newKeySet();
         private final Config config;
-        private RatioPathCompanyTrigger ratioPathCompanyTrigger;
+        private RatioPathCompanyService service;
 
         @Override
         public void initializeState(FunctionInitializationContext context) throws Exception {
@@ -53,7 +53,7 @@ public class RatioPathCompanyJob {
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            ratioPathCompanyTrigger = new RatioPathCompanyTrigger();
+            service = new RatioPathCompanyService();
             new Thread(new Runnable() {
                 private long lastSendTime = System.currentTimeMillis();
 
@@ -64,7 +64,7 @@ public class RatioPathCompanyJob {
                         if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
                             synchronized (companyIds) {
                                 log.info("window trigger, currentTime: {}, lastTime: {}, size: {}", DateTimeUtils.fromUnixTime(currentTime / 1000), DateTimeUtils.fromUnixTime(lastSendTime / 1000), companyIds.size());
-                                ratioPathCompanyTrigger.trigger(companyIds);
+                                service.invoke(companyIds);
                                 companyIds.clear();
                             }
                             lastSendTime = currentTime;
@@ -87,6 +87,7 @@ public class RatioPathCompanyJob {
             }
             synchronized (companyIds) {
                 companyIds.add(companyId);
+                log.info("add");
             }
         }
 
@@ -97,7 +98,7 @@ public class RatioPathCompanyJob {
         @Override
         public void snapshotState(FunctionSnapshotContext context) throws Exception {
             synchronized (companyIds) {
-                ratioPathCompanyTrigger.trigger(companyIds);
+                service.invoke(companyIds);
                 companyIds.clear();
             }
         }

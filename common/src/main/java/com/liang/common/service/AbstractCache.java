@@ -2,11 +2,16 @@ package com.liang.common.service;
 
 import lombok.SneakyThrows;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractCache<K, V> {
-    protected final Map<K, List<V>> cache = new HashMap<>();
+    protected final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
     protected final KeySelector<K, V> keySelector;
     protected int cacheMilliseconds;
     protected int cacheRecords;
@@ -38,7 +43,7 @@ public abstract class AbstractCache<K, V> {
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - lastSendTime >= cacheMilliseconds && !cache.isEmpty()) {
                             synchronized (cache) {
-                                cache.forEach((key, list) -> updateImmediately(key, list));
+                                cache.forEach((key, queue) -> updateImmediately(key, queue));
                                 cache.clear();
                             }
                             lastSendTime = currentTime;
@@ -48,8 +53,8 @@ public abstract class AbstractCache<K, V> {
                         // 大小触发
                         if (!cache.isEmpty()) {
                             synchronized (cache) {
-                                cache.forEach((key, list) -> {
-                                    if (list.size() >= cacheRecords) updateImmediately(key, list);
+                                cache.forEach((key, queue) -> {
+                                    if (queue.size() >= cacheRecords) updateImmediately(key, queue);
                                 });
                                 cache.entrySet().removeIf(entry -> entry.getValue().size() >= cacheRecords);
                             }
@@ -77,7 +82,7 @@ public abstract class AbstractCache<K, V> {
         synchronized (cache) {
             for (V value : values) {
                 K key = keySelector.selectKey(value);
-                cache.putIfAbsent(key, new ArrayList<>());
+                cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
                 cache.get(key).add(value);
             }
         }
@@ -96,7 +101,7 @@ public abstract class AbstractCache<K, V> {
         }
     }
 
-    protected abstract void updateImmediately(K key, List<V> values);
+    protected abstract void updateImmediately(K key, Queue<V> values);
 
     @FunctionalInterface
     protected interface KeySelector<K, V> {

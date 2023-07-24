@@ -20,10 +20,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +62,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     @Override
-    protected void updateImmediately(DorisSchema schema, List<DorisOneRow> dorisOneRows) {
+    protected void updateImmediately(DorisSchema schema, Queue<DorisOneRow> dorisOneRows) {
         List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
         String contentString = JsonUtils.toString(contentObject);
         try (CloseableHttpClient client = httpClientBuilder.build()) {

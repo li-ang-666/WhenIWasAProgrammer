@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 /**
  * 列出所有表:
@@ -52,7 +53,7 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
     }
 
     @Override
-    protected void updateImmediately(HbaseSchema schema, List<HbaseOneRow> hbaseOneRows) {
+    protected void updateImmediately(HbaseSchema schema, Queue<HbaseOneRow> hbaseOneRows) {
         logging.beforeExecute();
         try (Table table = getTable(schema)) {
             List<Put> puts = new ArrayList<>();

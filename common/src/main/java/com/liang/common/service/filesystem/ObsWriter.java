@@ -10,13 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
-public class ObsWriter extends AbstractCache<Object, String> {
+public class ObsWriter extends AbstractCache<String, String> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
     private final static int DEFAULT_CACHE_RECORDS = 10240;
     private final static String ACCESS_KEY = "NT5EWZ4FRH54R2R2CB8G";
@@ -31,7 +31,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     private final Logging logging;
 
     public ObsWriter(String folder) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> null);
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> "");
         String[] formatFolder = folder
                 .replaceAll("obs://(.*?)/(.*)", "$1\001$2")
                 .split("\001");
@@ -41,7 +41,7 @@ public class ObsWriter extends AbstractCache<Object, String> {
     }
 
     @Override
-    protected void updateImmediately(Object ignore, List<String> rows) {
+    protected void updateImmediately(String ignore, Queue<String> rows) {
         logging.beforeExecute();
         String objectKeyName = String.format("%s.%s.%s", DateTimeUtils.currentDate(), uuid, "txt");
         try {

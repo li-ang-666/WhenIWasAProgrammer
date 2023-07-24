@@ -14,14 +14,11 @@ import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class JdbcTemplate extends AbstractCache<Object, String> {
+public class JdbcTemplate extends AbstractCache<String, String> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 1000;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final static String BITMAP_COLUMN_NAME = "bitmap";
@@ -30,21 +27,21 @@ public class JdbcTemplate extends AbstractCache<Object, String> {
     private final Logging logging;
 
     public JdbcTemplate(String name) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> null);
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> "");
         pool = new DruidHolder().getPool(name);
         logging = new Logging(this.getClass().getSimpleName(), name);
     }
 
     // just for MemJdbcTemplate
     protected JdbcTemplate(DruidDataSource pool, Logging logging) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> null);
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> "");
         this.pool = pool;
         this.logging = logging;
     }
 
     @Override
     @SneakyThrows(InterruptedException.class)
-    protected void updateImmediately(Object ignore, List<String> sqls) {
+    protected void updateImmediately(String ignore, Queue<String> sqls) {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
