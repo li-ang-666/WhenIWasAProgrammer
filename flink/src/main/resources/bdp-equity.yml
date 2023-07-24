@@ -4,15 +4,6 @@ flinkConfig:
   sourceParallel: 1
   otherParallel: 1
 
-# scanMode: Direct or TumblingWindow
-repairTasks:
-  - taskId: "111"
-    sourceName: "prismShareholderPath"
-    tableName: "ratio_path_company"
-    columns: "*"
-    where: "company_id in (5624793166)"
-    scanMode: Direct
-
 kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
