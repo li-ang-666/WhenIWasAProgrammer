@@ -24,7 +24,7 @@ public class RatioPathCompanyJob {
         TableFactory.jdbc(spark, "prismShareholderPath", "investment_relation")
                 .createOrReplaceTempView("t");
         spark.sql("select distinct company_id_invested from t")
-                .repartition(1200)
+                .repartition(1800)
                 .foreachPartition(new RatioPathCompanyForeach(ConfigUtils.getConfig()));
     }
 
