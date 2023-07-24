@@ -12,6 +12,13 @@
 
     <artifactId>common</artifactId>
     <dependencies>
+        <!--hutool-->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.20</version>
+        </dependency>
+
         <!--mybatis-->
         <dependency>
             <groupId>org.mybatis</groupId>

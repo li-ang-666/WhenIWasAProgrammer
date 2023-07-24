@@ -1,5 +1,6 @@
 package com.liang.flink.project.ratio.path.company;
 
+import cn.hutool.core.lang.Snowflake;
 import com.alibaba.fastjson.JSONArray;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -21,6 +22,7 @@ public class RatioPathCompanyService {
     private final PersonnelEmploymentHistoryMapper personnelEmploymentHistoryMapper = JDBCRunner.getMapper(PersonnelEmploymentHistoryMapper.class, "36c607bfd9174d4e81512aa73375f0fain01/human_base.xml");
     private final CompanyLegalPersonMapper companyLegalPersonMapper = JDBCRunner.getMapper(CompanyLegalPersonMapper.class, "ee59dd05fc0f4bb9a2497c8d9146a53cin01/company_base.xml");
     private final RatioPathCompanyDao dao = new RatioPathCompanyDao();
+    private final Snowflake snowflake = new Snowflake();
 
     public void invoke(Set<Long> companyIds) {
         if (companyIds.isEmpty()) {
@@ -73,7 +75,7 @@ public class RatioPathCompanyService {
                             needDeleted.remove(companyId);
                         }
                         Map<String, Object> columnMap = new HashMap<>();
-                        columnMap.put("id", System.currentTimeMillis());
+                        columnMap.put("id", snowflake.nextId());
                         columnMap.put("company_id", companyId);
                         columnMap.put("shareholder_id", shareholderId);
                         columnMap.put("shareholder_entity_type", ratioPathCompany.getShareholderEntityType());
