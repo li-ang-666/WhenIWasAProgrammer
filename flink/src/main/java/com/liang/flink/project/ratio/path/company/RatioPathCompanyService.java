@@ -14,6 +14,7 @@ import org.tyc.mybatis.runner.JDBCRunner;
 import org.tyc.utils.InvestUtil;
 import org.tyc.utils.PathFormatter;
 
+import java.math.RoundingMode;
 import java.util.*;
 
 @Slf4j
@@ -80,7 +81,7 @@ public class RatioPathCompanyService {
                         columnMap.put("shareholder_id", shareholderId);
                         columnMap.put("shareholder_entity_type", ratioPathCompany.getShareholderEntityType());
                         columnMap.put("shareholder_name_id", ratioPathCompany.getShareholderNameId());
-                        columnMap.put("investment_ratio_total", ratioPathCompany.getInvestmentRatioTotal());
+                        columnMap.put("investment_ratio_total", ratioPathCompany.getInvestmentRatioTotal().setScale(12, RoundingMode.DOWN).toPlainString());
                         columnMap.put("is_controller", ratioPathCompany.getIsController());
                         columnMap.put("is_ultimate", ratioPathCompany.getIsUltimate());
                         columnMap.put("is_big_shareholder", ratioPathCompany.getIsBigShareholder());
