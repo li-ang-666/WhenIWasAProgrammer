@@ -165,7 +165,7 @@ public class RatioPathCompanyService {
         resultMap.put("control_validation_time_year", 2023);
         resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
         // 区分实际控制人 or 实际控制权
-        if ("2".equals(String.valueOf(columnMap.get("shareholder_entity_type")))) {
+        if ("2".equals(String.valueOf(columnMap.get("is_controller")))) {
             resultMap.put("is_controller_tyc_unique_entity_id", 0);
         }
         return dao.replaceInto("entity_controller_details", resultMap);
