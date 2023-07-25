@@ -52,8 +52,7 @@ public class SnowflakeUtils {
     }
 
     /**
-     * 锁、休眠
-     * 叠满buff,不重复最重要
+     * 又是锁, 又是休眠, 叠满buff, 不重复最重要
      */
     @Synchronized
     @SneakyThrows(InterruptedException.class)

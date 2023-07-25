@@ -98,7 +98,7 @@ public class QueryAllShareHolderFromCompanyIdObj {
         fixPositions(resultMap, root, personnelEmploymentHistoryMapper);
         fixIsController(resultMap, root);
         fixIsUltimate(resultMap, root, companyLegalPersonMapper, personnelEmploymentHistoryMapper);
-        f(resultMap);
+        //f(resultMap);
         return resultMap;
     }
 

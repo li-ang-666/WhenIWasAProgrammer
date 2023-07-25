@@ -41,7 +41,7 @@ public class RatioPathCompanyJob {
     @RequiredArgsConstructor
     private final static class RatioPathCompanySink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final static int INTERVAL = 1000 * 60;
-        private final static int SIZE = 128;
+        private final static int SIZE = 1;
         private final Set<Long> companyIds = ConcurrentHashMap.newKeySet();
         private final Config config;
         private RatioPathCompanyService service;
