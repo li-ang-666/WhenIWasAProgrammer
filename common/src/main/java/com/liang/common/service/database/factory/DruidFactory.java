@@ -37,7 +37,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 //useSSL
                 "&useSSL=false" +
                 //连接策略
-                "&socketTimeout=30000" +
+                "&socketTimeout=60000" +
                 "&connectTimeout=5000" +
                 "&autoReconnect=true" +
                 "&maxReconnects=3" +
