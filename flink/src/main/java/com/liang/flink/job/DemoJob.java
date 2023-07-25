@@ -64,6 +64,10 @@ public class DemoJob {
         @Override
         public void invoke(Integer input, Context context) throws Exception {
             jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
+            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
+            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
+            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
+            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
         }
     }
 }
