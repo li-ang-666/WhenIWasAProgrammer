@@ -142,4 +142,29 @@ public class SqlUtils {
         }
         return stringBuilder.append("'").toString();
     }
+
+    public static boolean isCompanyId(String companyId) {
+        return StringUtils.isNumeric(companyId) && !"0".equals(companyId);
+    }
+
+    public static boolean isShareholderId(String shareholderId) {
+        if (isCompanyId(shareholderId)) {
+            return true;
+        }
+        if (shareholderId == null || shareholderId.length() < 17) {
+            return false;
+        }
+        int upper = 0;
+        int digit = 0;
+        for (char c : shareholderId.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                upper++;
+            } else if (Character.isDigit(c)) {
+                digit++;
+            } else {
+                return false;
+            }
+        }
+        return upper > 0 && digit > 0;
+    }
 }
