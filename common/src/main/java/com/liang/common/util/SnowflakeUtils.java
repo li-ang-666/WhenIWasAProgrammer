@@ -19,7 +19,7 @@ public class SnowflakeUtils {
     private final static int MAX_DATA_CENTER_NUM = 32;
     // 每个机房最多 2^31 个机器
     private final static int MAX_WORKER_NUM = 32;
-    // 是否使用第三方类包来代替System.currentTimeMillis(), 可以避免操作系统时间回退
+    // 使用第三方类包来代替System.currentTimeMillis(), 可以避免操作系统时间回退
     private final static boolean USE_THIRD_CLOCK = true;
     // 单例
     private static volatile Snowflake SNOWFLAKE;
