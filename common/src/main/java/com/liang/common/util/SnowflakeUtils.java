@@ -32,7 +32,7 @@ public class SnowflakeUtils {
                     long workerId = incr % 32;
                     redisTemplate.unlock(lockKey);
                     log.info("Snowflake init, dataCenterId: {}, workerId: {}", dataCenterId, workerId);
-                    // 使用时钟类,避免操作系统时间回退
+                    // 使用自定义时钟类,避免操作系统时间回退
                     SNOWFLAKE = new Snowflake(
                             new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000L),
                             workerId, dataCenterId, true);
@@ -48,8 +48,7 @@ public class SnowflakeUtils {
     @Synchronized
     @SneakyThrows(InterruptedException.class)
     public static Long nextId() {
-        // 睡半毫秒
-        TimeUnit.MICROSECONDS.sleep(500);
+        TimeUnit.MILLISECONDS.sleep(1);
         return SNOWFLAKE.nextId();
     }
 }
