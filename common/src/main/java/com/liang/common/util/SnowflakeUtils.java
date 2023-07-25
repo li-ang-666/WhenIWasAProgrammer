@@ -13,6 +13,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @UtilityClass
 public class SnowflakeUtils {
+    private final static Date EPOCH_DATE = new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000L);
+    private final static int MAX_WORKER_ID = 32;
+    private final static int MAX_DATA_CENTER_ID = 32;
+    private final static boolean USE_THIRD_CLOCK = true;
     private static volatile Snowflake SNOWFLAKE;
 
     /**
@@ -27,15 +31,14 @@ public class SnowflakeUtils {
                     RedisTemplate redisTemplate = new RedisTemplate("metadata");
                     while (!redisTemplate.tryLock(lockKey)) {
                     }
-                    long incr = (redisTemplate.incr(incrKey) - 1) % (32 * 32);
-                    long dataCenterId = incr / 32;
-                    long workerId = incr % 32;
+                    long incr = (redisTemplate.incr(incrKey) - 1) % (MAX_WORKER_ID * MAX_DATA_CENTER_ID);
+                    long dataCenterId = incr / MAX_DATA_CENTER_ID;
+                    long workerId = incr % MAX_WORKER_ID;
                     redisTemplate.unlock(lockKey);
                     log.info("Snowflake init, dataCenterId: {}, workerId: {}", dataCenterId, workerId);
                     // 使用自定义时钟类,避免操作系统时间回退
-                    SNOWFLAKE = new Snowflake(
-                            new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000L),
-                            workerId, dataCenterId, true);
+                    SNOWFLAKE = new Snowflake(EPOCH_DATE,
+                            workerId, dataCenterId, USE_THIRD_CLOCK);
                 }
             }
         }
