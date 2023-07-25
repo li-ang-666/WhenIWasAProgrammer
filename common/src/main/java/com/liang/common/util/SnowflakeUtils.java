@@ -15,6 +15,9 @@ import java.util.concurrent.TimeUnit;
 public class SnowflakeUtils {
     private static volatile Snowflake SNOWFLAKE;
 
+    /**
+     * 需要 Redis 支持
+     */
     public static void init(String JobName) {
         if (SNOWFLAKE == null) {
             synchronized (SnowflakeUtils.class) {
