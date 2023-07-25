@@ -43,7 +43,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&maxReconnects=3" +
                 "&failOverReadOnly=false" +
                 //性能优化
-                "&maxAllowedPacket=67108864" + //64mb
+                "&maxAllowedPacket=67108864" + // 64mb
                 "&rewriteBatchedStatements=true";
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setUrl(url);
