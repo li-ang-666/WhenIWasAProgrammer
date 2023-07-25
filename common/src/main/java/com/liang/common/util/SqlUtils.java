@@ -154,17 +154,11 @@ public class SqlUtils {
         if (shareholderId == null || shareholderId.length() < 17) {
             return false;
         }
-        int upper = 0;
-        int digit = 0;
         for (char c : shareholderId.toCharArray()) {
-            if (Character.isUpperCase(c)) {
-                upper++;
-            } else if (Character.isDigit(c)) {
-                digit++;
-            } else {
+            if (!Character.isLetterOrDigit(c)) {
                 return false;
             }
         }
-        return upper > 0 && digit > 0;
+        return true;
     }
 }
