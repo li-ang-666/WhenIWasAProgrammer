@@ -13,10 +13,15 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @UtilityClass
 public class SnowflakeUtils {
-    private final static Date EPOCH_DATE = new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000L);
-    private final static int MAX_WORKER_ID = 32;
-    private final static int MAX_DATA_CENTER_ID = 32;
+    // 从即日起,可以使用(2^41 / 1000 / 3600 / 24 / 365)大概70年
+    private final static Date START_DATE = new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000L);
+    // 最多 2^31 个机房
+    private final static int MAX_DATA_CENTER_NUM = 32;
+    // 每个机房最多 2^31 个机器
+    private final static int MAX_WORKER_NUM = 32;
+    // 是否使用第三方类包来代替System.currentTimeMillis(), 可以避免操作系统时间回退
     private final static boolean USE_THIRD_CLOCK = true;
+    // 单例
     private static volatile Snowflake SNOWFLAKE;
 
     /**
@@ -31,13 +36,12 @@ public class SnowflakeUtils {
                     RedisTemplate redisTemplate = new RedisTemplate("metadata");
                     while (!redisTemplate.tryLock(lockKey)) {
                     }
-                    long incr = (redisTemplate.incr(incrKey) - 1) % (MAX_WORKER_ID * MAX_DATA_CENTER_ID);
-                    long dataCenterId = incr / MAX_DATA_CENTER_ID;
-                    long workerId = incr % MAX_WORKER_ID;
+                    long incr = (redisTemplate.incr(incrKey) - 1) % (MAX_WORKER_NUM * MAX_DATA_CENTER_NUM);
+                    long dataCenterId = incr / MAX_DATA_CENTER_NUM;
+                    long workerId = incr % MAX_WORKER_NUM;
                     redisTemplate.unlock(lockKey);
                     log.info("Snowflake init, dataCenterId: {}, workerId: {}", dataCenterId, workerId);
-                    // 使用自定义时钟类,避免操作系统时间回退
-                    SNOWFLAKE = new Snowflake(EPOCH_DATE,
+                    SNOWFLAKE = new Snowflake(START_DATE,
                             workerId, dataCenterId, USE_THIRD_CLOCK);
                 }
             }
