@@ -16,15 +16,15 @@ public class SnowflakeUtils {
         if (SNOWFLAKE == null) {
             synchronized (SnowflakeUtils.class) {
                 if (SNOWFLAKE == null) {
-                    final String LOCK_KEY = JobName + "Lock";
-                    final String INCR_KEY = JobName + "Incr";
+                    String lockKey = JobName + "Lock";
+                    String incrKey = JobName + "Incr";
                     RedisTemplate redisTemplate = new RedisTemplate("metadata");
-                    while (!redisTemplate.tryLock(LOCK_KEY)) {
+                    while (!redisTemplate.tryLock(lockKey)) {
                     }
-                    long incr = (redisTemplate.incr(INCR_KEY) - 1) % (32 * 32);
+                    long incr = (redisTemplate.incr(incrKey) - 1) % (32 * 32);
                     long dataCenterId = incr / 32;
                     long workerId = incr % 32;
-                    redisTemplate.unlock(LOCK_KEY);
+                    redisTemplate.unlock(lockKey);
                     log.info("Snowflake init, dataCenterId: {}, workerId: {}", dataCenterId, workerId);
                     SNOWFLAKE = new Snowflake(
                             new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000L),
