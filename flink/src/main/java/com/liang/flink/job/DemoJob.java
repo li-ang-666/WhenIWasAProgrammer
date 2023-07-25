@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SnowflakeUtils;
@@ -12,6 +13,8 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
+
+import java.util.ArrayList;
 
 @LocalConfigFile("demo.yml")
 public class DemoJob {
@@ -63,11 +66,15 @@ public class DemoJob {
 
         @Override
         public void invoke(Integer input, Context context) throws Exception {
-            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
-            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
-            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
-            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
-            jdbcTemplate.update(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
+            ArrayList<String> list = new ArrayList<>();
+            for (int i = 1; i <= 10; i++) {
+                String sql = new SQL().INSERT_INTO("id_test")
+                        .INTO_COLUMNS("id")
+                        .INTO_VALUES(String.valueOf(SnowflakeUtils.nextId()))
+                        .toString();
+                list.add(sql);
+            }
+            jdbcTemplate.update(list);
         }
     }
 }
