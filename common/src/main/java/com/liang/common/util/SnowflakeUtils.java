@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @UtilityClass
 public class SnowflakeUtils {
-    // 从即日起,可以使用(2^41 / 1000 / 3600 / 24 / 365)大概70年
+    // 从即日起,可以使用(2^41 / 1000 / 3600 / 24 / 365)大概69年
     private final static Date START_DATE = new Date(DateTimeUtils.unixTimestamp("2023-01-01 00:00:00") * 1000L);
     // 最多 2^31 个机房
     private final static int MAX_DATA_CENTER_NUM = 32;
