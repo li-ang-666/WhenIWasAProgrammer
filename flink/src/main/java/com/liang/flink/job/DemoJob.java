@@ -1,7 +1,6 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SnowflakeUtils;
@@ -67,12 +66,8 @@ public class DemoJob {
         @Override
         public void invoke(Integer input, Context context) throws Exception {
             ArrayList<String> list = new ArrayList<>();
-            for (int i = 1; i <= 10; i++) {
-                String sql = new SQL().INSERT_INTO("id_test")
-                        .INTO_COLUMNS("id")
-                        .INTO_VALUES(String.valueOf(SnowflakeUtils.nextId()))
-                        .toString();
-                list.add(sql);
+            for (int i = 1; i <= 100; i++) {
+                list.add(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
             }
             jdbcTemplate.update(list);
         }
