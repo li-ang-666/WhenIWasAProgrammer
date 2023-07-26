@@ -75,7 +75,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
         druidDataSource.setTestWhileIdle(true);
-        // 保持minIdle
+        // 管理minIdle
         druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 60);
         druidDataSource.setMinEvictableIdleTimeMillis(1000 * 60 * 5);
         druidDataSource.setMaxEvictableIdleTimeMillis(1000 * 60 * 10);
