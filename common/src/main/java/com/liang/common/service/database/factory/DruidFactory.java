@@ -26,23 +26,23 @@ public class DruidFactory implements IFactory<DruidDataSource> {
     private DruidDataSource createNormal(String name) {
         DBConfig dbConfig = ConfigUtils.getConfig().getDbConfigs().get(name);
         String url = "jdbc:mysql://" + dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
-                //时区
+                // 时区
                 "?serverTimezone=GMT%2B8" +
-                //时间字段处理
+                // 时间字段处理
                 "&zeroDateTimeBehavior=convertToNull" +
-                //编码
+                // 编码
                 "&useUnicode=true" +
                 "&characterEncoding=UTF-8" +
                 "&characterSetResults=UTF-8" +
-                //useSSL
+                // useSSL
                 "&useSSL=false" +
-                //连接策略
+                // 连接策略
                 "&socketTimeout=60000" +
                 "&connectTimeout=5000" +
                 "&autoReconnect=true" +
                 "&maxReconnects=3" +
                 "&failOverReadOnly=false" +
-                //性能优化
+                // 性能优化
                 "&maxAllowedPacket=67108864" + // 64mb
                 "&rewriteBatchedStatements=true";
         DruidDataSource druidDataSource = new DruidDataSource();
@@ -75,16 +75,14 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
         druidDataSource.setTestWhileIdle(true);
-        //超时的视为idle连接,如果数量大于minIdle,下次清除线程会将其清除
+        // 清理minIdle以外
+        druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 60);
         druidDataSource.setMinEvictableIdleTimeMillis(1000 * 60 * 5);
-        //超时的视为idle连接,不管minIdle,下次清除线程都会将其清除
         druidDataSource.setMaxEvictableIdleTimeMillis(1000 * 60 * 10);
-        //清除线程运行间隔
-        druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 30);
-        //定期对idle线程进行探活
+        // minIdle以内保持活跃
         druidDataSource.setKeepAlive(true);
-        druidDataSource.setKeepAliveBetweenTimeMillis(1000 * 60);
         druidDataSource.setValidationQuery("select 1");
+        // 其它
         druidDataSource.setPoolPreparedStatements(true);
         druidDataSource.setMaxOpenPreparedStatements(100);
         druidDataSource.setUsePingMethod(false);
