@@ -80,7 +80,6 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         // 管理minIdle
         druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 60);
         druidDataSource.setMinEvictableIdleTimeMillis(1000 * 60 * 5);
-        druidDataSource.setMaxEvictableIdleTimeMillis(1000 * 60 * 10);
         // minIdle以内保持活跃
         druidDataSource.setKeepAlive(true);
         druidDataSource.setValidationQuery("select 1");
