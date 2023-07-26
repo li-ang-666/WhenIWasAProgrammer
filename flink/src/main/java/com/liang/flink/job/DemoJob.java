@@ -14,6 +14,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 @LocalConfigFile("demo.yml")
 public class DemoJob {
@@ -39,9 +40,7 @@ public class DemoJob {
         @Override
         public void run(SourceContext<Integer> ctx) throws Exception {
             while (true) {
-                for (int i = 1; i <= 1024 * 1024; i++) {
-                    ctx.collect(i);
-                }
+                ctx.collect(new Random().nextInt(1024));
             }
         }
 
@@ -66,7 +65,7 @@ public class DemoJob {
         @Override
         public void invoke(Integer input, Context context) throws Exception {
             ArrayList<String> list = new ArrayList<>();
-            for (int i = 1; i <= 100; i++) {
+            for (int i = 1; i <= 1; i++) {
                 list.add(String.format("insert into id_test values(%s)", SnowflakeUtils.nextId()));
             }
             jdbcTemplate.update(list);

@@ -57,7 +57,8 @@ public class SnowflakeUtils {
     @Synchronized
     @SneakyThrows(InterruptedException.class)
     public static Long nextId() {
-        TimeUnit.MILLISECONDS.sleep(1);
+        // 1毫秒允许产生1000条Id
+        TimeUnit.MICROSECONDS.sleep(1);
         return SNOWFLAKE.nextId();
     }
 }

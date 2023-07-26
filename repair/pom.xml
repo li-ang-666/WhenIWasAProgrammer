@@ -11,6 +11,12 @@
 
     <artifactId>repair</artifactId>
     <dependencies>
+        <!--hutool-->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+        </dependency>
+
         <!--common-->
         <dependency>
             <groupId>com.liang</groupId>
