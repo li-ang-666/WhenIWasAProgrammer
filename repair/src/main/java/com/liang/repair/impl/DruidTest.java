@@ -11,14 +11,6 @@ public class DruidTest extends ConfigHolder {
             JdbcTemplate jdbcTemplate1 = new JdbcTemplate("test");
             jdbcTemplate1.queryForObject("select sleep(100)", rs -> rs.getString(1));
         }).start();
-        new Thread(() -> {
-            JdbcTemplate jdbcTemplate2 = new JdbcTemplate("test");
-            jdbcTemplate2.queryForObject("select sleep(100)", rs -> rs.getString(1));
-        }).start();
-        new Thread(() -> {
-            JdbcTemplate jdbcTemplate3 = new JdbcTemplate("test");
-            jdbcTemplate3.queryForObject("select sleep(100)", rs -> rs.getString(1));
-        }).start();
         TimeUnit.MINUTES.sleep(2);
     }
 }

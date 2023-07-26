@@ -30,7 +30,7 @@ public class JedisPoolFactory implements IFactory<JedisPool> {
             jedisPoolConfig.setNumTestsPerEvictionRun(1);
 
             log.info("jedisPool 加载: {}", redisConfig);
-            return new JedisPool(jedisPoolConfig, host, port, 5000, password);
+            return new JedisPool(jedisPoolConfig, host, port, 1000 * 30, password);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

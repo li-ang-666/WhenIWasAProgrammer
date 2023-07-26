@@ -40,6 +40,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&socketTimeout=60000" +
                 "&connectTimeout=5000" +
                 "&autoReconnect=true" +
+                "&&initialTimeout=5" +
                 "&maxReconnects=3" +
                 "&failOverReadOnly=false" +
                 // 性能优化
@@ -71,7 +72,8 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setInitialSize(1);
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(10);
-        druidDataSource.setMaxWait(5000);
+        // jdbc-url配置, 5秒超时, 每次重试间隔5秒, 总重试3次
+        druidDataSource.setMaxWait(1000 * 30);
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
         druidDataSource.setTestWhileIdle(true);
