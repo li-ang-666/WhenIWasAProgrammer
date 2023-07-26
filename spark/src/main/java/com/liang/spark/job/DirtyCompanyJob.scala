@@ -8,12 +8,12 @@ object DirtyCompanyJob {
     val spark = SparkSessionFactory.createSpark(args)
     spark.udf.register("get_sub_names", getSubNames _)
     spark.sql(
-      """
-        |select name,sub_name
-        |from ods.ods_prism1_company_df t1
-        |lateral view explode(split(get_sub_names(name),'#@#')) t2 as sub_name
-        |where t1.pt='20230629' and t1.name is not null and t1.name <> ''
-        |""".stripMargin)
+        """
+          |select name,sub_name
+          |from ods.ods_prism1_company_df t1
+          |lateral view explode(split(get_sub_names(name),'#@#')) t2 as sub_name
+          |where t1.pt='20230629' and t1.name is not null and t1.name <> ''
+          |""".stripMargin)
       .createOrReplaceTempView("t1")
 
     val frame: DataFrame = spark.sql(

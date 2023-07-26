@@ -62,13 +62,13 @@ object BidJob {
 
   private def createFinalView(spark: SparkSession): Unit = {
     spark.sql(
-      """
-        |
-        |select concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
-        |from union_table
-        |group by mid
-        |
-        |""".stripMargin)
+        """
+          |
+          |select concat('{', mid, ',', concat_ws(',',collect_list(js)), '}') js
+          |from union_table
+          |group by mid
+          |
+          |""".stripMargin)
       .persist(StorageLevel.DISK_ONLY)
       .createOrReplaceTempView("final_table")
 
@@ -92,9 +92,9 @@ object BidJob {
       }
     }
     spark.sql(
-      """
-        |select js from final_table
-        |""".stripMargin)
+        """
+          |select js from final_table
+          |""".stripMargin)
       .repartition(1200)
       .foreachPartition(new Sink)
   }
