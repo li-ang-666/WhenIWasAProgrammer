@@ -1,8 +1,8 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.util.ConfigUtils;
 import com.liang.common.service.DaemonExecutor;
+import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
