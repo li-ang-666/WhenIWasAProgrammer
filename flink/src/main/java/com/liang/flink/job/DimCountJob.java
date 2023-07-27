@@ -54,11 +54,11 @@ public class DimCountJob {
         }
 
         @Override
-        public void initializeState(FunctionInitializationContext context) throws Exception {
+        public void initializeState(FunctionInitializationContext context) {
         }
 
         @Override
-        public void open(Configuration parameters) throws Exception {
+        public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             DataUpdateContext<HbaseOneRow> context = new DataUpdateContext<>(DimCountSink.class);
             service = new DataUpdateService<>(context);
@@ -67,13 +67,23 @@ public class DimCountJob {
         }
 
         @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             List<HbaseOneRow> hbaseRows = service.invoke(singleCanalBinlog);
             hbaseTemplate.update(hbaseRows);
         }
 
         @Override
-        public void snapshotState(FunctionSnapshotContext context) throws Exception {
+        public void snapshotState(FunctionSnapshotContext context) {
+            hbaseTemplate.flush();
+        }
+
+        @Override
+        public void finish() {
+            hbaseTemplate.flush();
+        }
+
+        @Override
+        public void close() {
             hbaseTemplate.flush();
         }
     }
