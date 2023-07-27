@@ -65,13 +65,13 @@ public class EnvironmentFactory {
     private static void configEnv(StreamExecutionEnvironment env) {
         //统一checkpoint管理
         CheckpointConfig checkpointConfig = env.getCheckpointConfig();
-        //每5分钟开启一次
+        //运行周期
         checkpointConfig.setCheckpointInterval(CHECKPOINT_INTERVAL);
         //两次checkpoint之间最少间隔时间
         checkpointConfig.setMinPauseBetweenCheckpoints(CHECKPOINT_INTERVAL);
         //模式是Exactly-Once
         checkpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-        //每次checkpoint超时是30分钟
+        //超时
         checkpointConfig.setCheckpointTimeout(CHECKPOINT_TIMEOUT);
         //可以容忍的连续checkpoint次数,次数超过后任务自动停止
         env.getCheckpointConfig().setTolerableCheckpointFailureNumber(3);
