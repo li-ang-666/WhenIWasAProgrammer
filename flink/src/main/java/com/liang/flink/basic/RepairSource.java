@@ -115,7 +115,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[completed]")).count();
             long totalNum = config.getRepairTasks().size();
             if (completedNum == totalNum) {
-                log.info("all repair task complete, waiting next checkpoint");
+                log.info("Detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
                 cancel();
             }
         }
