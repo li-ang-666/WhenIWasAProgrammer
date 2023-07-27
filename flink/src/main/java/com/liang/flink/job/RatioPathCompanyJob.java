@@ -2,6 +2,7 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DaemonExecutor;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
@@ -41,7 +42,7 @@ public class RatioPathCompanyJob {
     @RequiredArgsConstructor
     private final static class RatioPathCompanySink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final static int INTERVAL = 1000 * 60;
-        private final static int SIZE = 64;
+        private final static int SIZE = 1;
         private final Set<Long> companyIds = ConcurrentHashMap.newKeySet();
         private final Config config;
         private RatioPathCompanyService service;
@@ -54,7 +55,7 @@ public class RatioPathCompanyJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             service = new RatioPathCompanyService();
-            new Thread(new Runnable() {
+            DaemonExecutor.launch("RatioPathCompanyServiceThread", new Runnable() {
                 private long lastSendTime = System.currentTimeMillis();
 
                 @Override
@@ -75,7 +76,7 @@ public class RatioPathCompanyJob {
                         }
                     }
                 }
-            }).start();
+            });
         }
 
         @Override
