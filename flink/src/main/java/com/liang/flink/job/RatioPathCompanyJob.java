@@ -119,10 +119,8 @@ public class RatioPathCompanyJob {
             log.info("{}(), size: {}", method, companyIds.size());
             if (!companyIds.isEmpty()) {
                 synchronized (companyIds) {
-                    if (!companyIds.isEmpty()) {
-                        service.invoke(companyIds);
-                        companyIds.clear();
-                    }
+                    service.invoke(companyIds);
+                    companyIds.clear();
                 }
             }
         }
