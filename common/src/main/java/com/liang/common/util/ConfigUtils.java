@@ -12,12 +12,14 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @UtilityClass
 public class ConfigUtils {
     private final static String SUFFIX = ".yml";
     private static volatile Config config;
+    private static volatile AtomicInteger threadNum;
 
     public static Config initConfig(String file) {
         Config defaultConfig = initDefaultConfig();
@@ -121,10 +123,22 @@ public class ConfigUtils {
         }
     }
 
-    public static void closeAll() {
-        ConfigUtils.config = null;
-        new DruidHolder().closeAll();
-        new JedisPoolHolder().closeAll();
-        new HbaseConnectionHolder().closeAll();
+    public static void unloadAll() {
+        if (threadNum == null) {
+            synchronized (ConfigUtils.class) {
+                if (threadNum == null) {
+                    if (config == null || config.getFlinkConfig() == null) {
+                        threadNum = new AtomicInteger(1);
+                    } else {
+                        threadNum = new AtomicInteger(config.getFlinkConfig().getOtherParallel());
+                    }
+                }
+            }
+        }
+        if (threadNum.decrementAndGet() == 0) {
+            new DruidHolder().closeAll();
+            new JedisPoolHolder().closeAll();
+            new HbaseConnectionHolder().closeAll();
+        }
     }
 }

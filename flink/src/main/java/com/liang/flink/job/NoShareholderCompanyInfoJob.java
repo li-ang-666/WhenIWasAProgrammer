@@ -71,7 +71,7 @@ public class NoShareholderCompanyInfoJob {
 
         @Override
         public void close() throws Exception {
-            ConfigUtils.closeAll();
+            ConfigUtils.unloadAll();
         }
     }
 }

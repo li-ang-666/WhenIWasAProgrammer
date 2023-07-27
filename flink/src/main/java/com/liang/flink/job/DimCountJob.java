@@ -85,6 +85,7 @@ public class DimCountJob {
         @Override
         public void close() {
             hbaseTemplate.flush();
+            ConfigUtils.unloadAll();
         }
     }
 }
