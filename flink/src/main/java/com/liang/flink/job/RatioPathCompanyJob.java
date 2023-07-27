@@ -31,9 +31,7 @@ public class RatioPathCompanyJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
-        stream
-                .keyBy(new Distributor().with("investment_relation", e -> String.valueOf(e.getColumnMap().get("company_id_invested"))))
-                .addSink(new RatioPathCompanySink(config)).name("RatioPathCompanySink").setParallelism(config.getFlinkConfig().getOtherParallel());
+        stream.keyBy(new Distributor().with("investment_relation", e -> String.valueOf(e.getColumnMap().get("company_id_invested")))).addSink(new RatioPathCompanySink(config)).name("RatioPathCompanySink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("RatioPathCompanyJob");
     }
 
@@ -100,6 +98,14 @@ public class RatioPathCompanyJob {
          */
         @Override
         public void snapshotState(FunctionSnapshotContext context) throws Exception {
+            synchronized (companyIds) {
+                service.invoke(companyIds);
+                companyIds.clear();
+            }
+        }
+
+        @Override
+        public void finish() throws Exception {
             synchronized (companyIds) {
                 service.invoke(companyIds);
                 companyIds.clear();
