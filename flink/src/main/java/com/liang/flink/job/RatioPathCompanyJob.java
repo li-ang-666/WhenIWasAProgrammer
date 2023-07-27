@@ -31,7 +31,9 @@ public class RatioPathCompanyJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
-        stream.keyBy(new Distributor().with("investment_relation", e -> String.valueOf(e.getColumnMap().get("company_id_invested")))).addSink(new RatioPathCompanySink(config)).name("RatioPathCompanySink").setParallelism(config.getFlinkConfig().getOtherParallel());
+        stream
+                .keyBy(new Distributor().with("investment_relation", e -> String.valueOf(e.getColumnMap().get("company_id_invested"))))
+                .addSink(new RatioPathCompanySink(config)).name("RatioPathCompanySink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("RatioPathCompanyJob");
     }
 
@@ -45,11 +47,11 @@ public class RatioPathCompanyJob {
         private RatioPathCompanyService service;
 
         @Override
-        public void initializeState(FunctionInitializationContext context) throws Exception {
+        public void initializeState(FunctionInitializationContext context) {
         }
 
         @Override
-        public void open(Configuration parameters) throws Exception {
+        public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             service = new RatioPathCompanyService();
             new Thread(new Runnable() {
@@ -62,7 +64,7 @@ public class RatioPathCompanyJob {
                         if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
                             synchronized (companyIds) {
                                 if (!companyIds.isEmpty()) {
-                                    log.info("window trigger, currentTime: {}, lastTime: {}, size: {}, companyIds: {}", DateTimeUtils.fromUnixTime(currentTime / 1000), DateTimeUtils.fromUnixTime(lastSendTime / 1000), companyIds.size(), companyIds);
+                                    log.info("window trigger, currentTime: {}, lastTime: {}, size: {}, companyIds: " + "{}", DateTimeUtils.fromUnixTime(currentTime / 1000), DateTimeUtils.fromUnixTime(lastSendTime / 1000), companyIds.size(), companyIds);
                                 } else {
                                     log.info("window trigger, currentTime: {}, lastTime: {}, empty", DateTimeUtils.fromUnixTime(currentTime / 1000), DateTimeUtils.fromUnixTime(lastSendTime / 1000));
                                 }
@@ -77,7 +79,7 @@ public class RatioPathCompanyJob {
         }
 
         @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
             if (!StringUtils.isNumeric(companyIdString) || "0".equals(companyIdString)) {
@@ -97,18 +99,29 @@ public class RatioPathCompanyJob {
          * 背压的时候,需要从checkpoint恢复,保证每次checkpoint的时候,自定义的缓冲区里没有数据
          */
         @Override
-        public void snapshotState(FunctionSnapshotContext context) throws Exception {
-            synchronized (companyIds) {
-                service.invoke(companyIds);
-                companyIds.clear();
-            }
+        public void snapshotState(FunctionSnapshotContext context) {
+            flush("snapshotState");
         }
 
         @Override
-        public void finish() throws Exception {
-            synchronized (companyIds) {
-                service.invoke(companyIds);
-                companyIds.clear();
+        public void finish() {
+            flush("finish");
+        }
+
+        @Override
+        public void close() throws Exception {
+            flush("close");
+        }
+
+        private void flush(String method) {
+            log.info("{}(), size: {}", method, companyIds.size());
+            if (!companyIds.isEmpty()) {
+                synchronized (companyIds) {
+                    if (!companyIds.isEmpty()) {
+                        service.invoke(companyIds);
+                        companyIds.clear();
+                    }
+                }
             }
         }
     }
