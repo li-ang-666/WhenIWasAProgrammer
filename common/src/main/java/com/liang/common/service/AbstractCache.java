@@ -43,6 +43,7 @@ public abstract class AbstractCache<K, V> {
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - lastSendTime >= cacheMilliseconds && !cache.isEmpty()) {
                             synchronized (cache) {
+                                // 遍历, 清空
                                 cache.forEach((key, queue) -> updateImmediately(key, queue));
                                 cache.clear();
                             }
@@ -53,6 +54,7 @@ public abstract class AbstractCache<K, V> {
                         // 大小触发
                         if (!cache.isEmpty()) {
                             synchronized (cache) {
+                                // 遍历, 剔除
                                 cache.forEach((key, queue) -> {
                                     if (queue.size() >= cacheRecords) updateImmediately(key, queue);
                                 });
@@ -87,6 +89,7 @@ public abstract class AbstractCache<K, V> {
             }
         }
         if (!enableCache) {
+            // 遍历, 清空
             cache.forEach(this::updateImmediately);
             cache.clear();
         }
@@ -95,6 +98,7 @@ public abstract class AbstractCache<K, V> {
     public final void flush() {
         if (!cache.isEmpty()) {
             synchronized (cache) {
+                // 遍历, 清空
                 cache.forEach(this::updateImmediately);
                 cache.clear();
             }
