@@ -3,7 +3,7 @@ package com.liang.common.service;
 import lombok.SneakyThrows;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,7 +74,7 @@ public abstract class AbstractCache<K, V> {
         update(Arrays.asList(values));
     }
 
-    public final void update(List<V> values) {
+    public final void update(Collection<V> values) {
         if (values == null || values.isEmpty()) {
             return;
         }
