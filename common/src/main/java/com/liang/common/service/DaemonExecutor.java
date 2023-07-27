@@ -1,4 +1,4 @@
-package com.liang.common.util;
+package com.liang.common.service;
 
 import lombok.experimental.UtilityClass;
 

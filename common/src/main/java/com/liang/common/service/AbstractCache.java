@@ -31,7 +31,7 @@ public abstract class AbstractCache<K, V> {
         if (!enableCache) {
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
-            new Thread(new Runnable() {
+            DaemonExecutor.launch("AbstractCacheThread", new Runnable() {
                 private long lastSendTime = System.currentTimeMillis();
 
                 @Override
@@ -61,7 +61,7 @@ public abstract class AbstractCache<K, V> {
                         }
                     }
                 }
-            }).start();
+            });
             enableCache = true;
         }
     }
