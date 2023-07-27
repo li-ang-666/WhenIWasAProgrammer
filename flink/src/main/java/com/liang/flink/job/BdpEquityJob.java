@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.DaemonExecutor;
 import com.liang.common.service.SQL;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.Distributor;
@@ -62,7 +63,7 @@ public class BdpEquityJob {
             service = new DataUpdateService<>(dataUpdateContext);
             // 黑名单
             if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
-                new Thread(new BdpEquityCleaner()).start();
+                DaemonExecutor.launch("BdpEquityCleaner", new BdpEquityCleaner());
             }
         }
 

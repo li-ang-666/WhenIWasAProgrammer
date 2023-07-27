@@ -1,6 +1,7 @@
 package com.liang.flink.basic;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.DaemonExecutor;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
@@ -28,7 +29,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
     @Override
     public void open(Configuration parameters) {
         ConfigUtils.setConfig(config);
-        new Thread(new KafkaLagReporter(offsetMap, timeMap)).start();
+        DaemonExecutor.launch("KafkaLagReporter", new KafkaLagReporter(offsetMap, timeMap));
     }
 
     @Override

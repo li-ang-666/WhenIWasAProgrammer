@@ -1,6 +1,7 @@
 package com.liang.flink.high.level.api;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.DaemonExecutor;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.StackUtils;
@@ -45,7 +46,7 @@ public class StreamFactory {
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
         String repairId = simpleName + "___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
-        new Thread(new RepairDataReporter(repairId)).start();
+        DaemonExecutor.launch("RepairDataReporter", new RepairDataReporter(repairId));
         // 填装RepairSource
         Config config = ConfigUtils.getConfig();
         return streamEnvironment

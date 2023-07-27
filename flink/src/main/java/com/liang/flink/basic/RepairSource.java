@@ -1,6 +1,7 @@
 package com.liang.flink.basic;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.DaemonExecutor;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -78,7 +79,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void open(Configuration parameters) {
         redisTemplate = new RedisTemplate("metadata");
-        new Thread(new RepairDataHandler(task, running, repairId)).start();
+        DaemonExecutor.launch("RepairDataHandler", new RepairDataHandler(task, running, repairId));
     }
 
     @Override
