@@ -45,12 +45,12 @@ public class StreamFactory {
         String jobClassName = StackUtils.getMainFrame().getClassName();
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
-        String repairId = simpleName + "___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
-        DaemonExecutor.launch("RepairDataReporter", new RepairDataReporter(repairId));
+        String repairKey = simpleName + "___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
+        DaemonExecutor.launch("RepairDataReporter", new RepairDataReporter(repairKey));
         // 填装RepairSource
         Config config = ConfigUtils.getConfig();
         return streamEnvironment
-                .addSource(new RepairSource(config, repairId))
+                .addSource(new RepairSource(config, repairKey))
                 .name("RepairSource")
                 .setParallelism(config.getRepairTasks().size());
     }

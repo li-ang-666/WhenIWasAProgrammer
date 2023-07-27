@@ -24,7 +24,7 @@ public class RepairDataHandler implements Runnable {
 
     private final SubRepairTask task;
     private final AtomicBoolean running;
-    private final String repairId;
+    private final String repairKey;
     private final String baseSql;
     private final JdbcTemplate jdbcTemplate;
     private final RedisTemplate redisTemplate;
@@ -32,10 +32,10 @@ public class RepairDataHandler implements Runnable {
     private long watermark;
     private long lastReportTimeMillis;
 
-    public RepairDataHandler(SubRepairTask task, AtomicBoolean running, String repairId) {
+    public RepairDataHandler(SubRepairTask task, AtomicBoolean running, String repairKey) {
         this.task = task;
         this.running = running;
-        this.repairId = repairId;
+        this.repairKey = repairKey;
         baseSql = String.format("select %s from %s where %s ",
                 task.getColumns(), task.getTableName(), task.getWhere());
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
@@ -83,7 +83,7 @@ public class RepairDataHandler implements Runnable {
             long currentId = task.getCurrentId();
             long targetId = task.getTargetId();
             long lag = targetId - currentId;
-            redisTemplate.hSet(repairId, task.getTaskId(),
+            redisTemplate.hSet(repairKey, task.getTaskId(),
                     String.format("[running] currentId: %s, targetId: %s, lag: %s", currentId, targetId, lag)
             );
             lastReportTimeMillis = currentTimeMillis;

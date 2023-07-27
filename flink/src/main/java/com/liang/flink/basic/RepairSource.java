@@ -37,16 +37,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
-    private final String repairId;
+    private final String repairKey;
 
     private SubRepairTask task;
     private ListState<SubRepairTask> taskState;
 
     private RedisTemplate redisTemplate;
 
-    public RepairSource(Config config, String repairId) {
+    public RepairSource(Config config, String repairKey) {
         this.config = config;
-        this.repairId = repairId;
+        this.repairKey = repairKey;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void open(Configuration parameters) {
         redisTemplate = new RedisTemplate("metadata");
-        DaemonExecutor.launch("RepairDataHandler", new RepairDataHandler(task, running, repairId));
+        DaemonExecutor.launch("RepairDataHandler", new RepairDataHandler(task, running, repairKey));
     }
 
     @Override
@@ -102,7 +102,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     private void registerComplete() {
-        redisTemplate.hSet(repairId, task.getTaskId(),
+        redisTemplate.hSet(repairKey, task.getTaskId(),
                 String.format("[completed] currentId: %s", task.getCurrentId())
         );
     }
@@ -111,7 +111,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private void waitingAllComplete() {
         while (!canceled.get()) {
             TimeUnit.MILLISECONDS.sleep(CHECK_INTERVAL);
-            Map<String, String> reportMap = redisTemplate.hScan(repairId);
+            Map<String, String> reportMap = redisTemplate.hScan(repairKey);
             long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[completed]")).count();
             long totalNum = config.getRepairTasks().size();
             if (completedNum == totalNum) {
@@ -133,7 +133,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void cancel() {
-        redisTemplate.del(repairId);
+        redisTemplate.del(repairKey);
         running.set(false);
         canceled.set(true);
     }
