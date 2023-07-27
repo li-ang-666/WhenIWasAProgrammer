@@ -112,6 +112,7 @@ public class RatioPathCompanyJob {
         @Override
         public void close() {
             flush("close");
+            ConfigUtils.unloadAll();
         }
 
         private void flush(String method) {
