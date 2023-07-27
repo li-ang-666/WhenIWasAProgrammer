@@ -138,9 +138,12 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         canceled.set(true);
     }
 
+    /**
+     * 任务结束的时候, 是从Source开始执行close()
+     * 为了不影响下游算子, 在Source端不释放连接池资源
+     */
     @Override
     public void close() {
         cancel();
-        //ConfigUtils.closeAll();
     }
 }
