@@ -2,7 +2,7 @@
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 20
+  otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "prismShareholderPath"
     tableName: "investment_relation"
     columns: "*"
-    where: "company_id_invested in ('2318455639')"
+    where: "company_id_invested in ('2951638650')"
     scanMode: Direct
 
 kafkaConfigs:
