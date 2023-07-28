@@ -84,6 +84,7 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
         HbaseOneRow resultOneRow = new HbaseOneRow(schema, rowKey);
         try (Table table = getTable(schema)) {
             Get get = new Get(Bytes.toBytes(rowKey))
+                    .setCacheBlocks(false)
                     .addFamily(Bytes.toBytes(schema.getColumnFamily()));
             // 每个result是一行
             Result result = table.get(get);

@@ -9,7 +9,7 @@ import com.liang.repair.service.ConfigHolder;
 public class ReadHbase extends ConfigHolder {
     public static void main(String[] args) {
         HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
-        HbaseOneRow queryRow = new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, "J0FL2MH02Q9Z6BCV6");
+        HbaseOneRow queryRow = new HbaseOneRow(HbaseSchema.JUDICIAL_RISK_SPLICE, "22822");
         HbaseOneRow row = hbaseTemplate.getRow(queryRow);
         log.info("row: {}", JsonUtils.toString(row));
     }
