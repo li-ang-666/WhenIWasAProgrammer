@@ -22,7 +22,7 @@ import java.util.Queue;
  * list
  * <p>
  * 列出某个namespace下的表:
- * list_namespace_tables ${namespace}"'
+ * list_namespace_tables '${namespace}'
  * <p>
  * 建表:
  * create '${namespace}:${tableName}','${family}'
