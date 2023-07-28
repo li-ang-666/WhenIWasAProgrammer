@@ -11,4 +11,4 @@ repairTasks:
     tableName: "ratio_path_company"
     columns: "company_id"
     where: "1=1"
-    scanMode: Direct
+    scanMode: TumblingWindow
