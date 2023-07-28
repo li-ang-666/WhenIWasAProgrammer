@@ -66,7 +66,7 @@ public class RatioPathCompanyJob {
                             synchronized (companyIds) {
                                 String lastSendTimeString = DateTimeUtils.fromUnixTime(lastSendTime / 1000);
                                 if (!companyIds.isEmpty()) {
-                                    log.info("window trigger, lastTime: {}, size: {}, companyIds: " + "{}", lastSendTimeString, companyIds.size(), companyIds);
+                                    log.info("window trigger, lastTime: {}, size: {}, companyIds: {}", lastSendTimeString, companyIds.size(), companyIds);
                                 } else {
                                     log.info("window trigger, lastTime: {}, empty", lastSendTimeString);
                                 }
