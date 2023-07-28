@@ -64,10 +64,11 @@ public class RatioPathCompanyJob {
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
                             synchronized (companyIds) {
+                                String lastSendTimeString = DateTimeUtils.fromUnixTime(lastSendTime / 1000);
                                 if (!companyIds.isEmpty()) {
-                                    log.info("window trigger, currentTime: {}, lastTime: {}, size: {}, companyIds: " + "{}", DateTimeUtils.fromUnixTime(currentTime / 1000), DateTimeUtils.fromUnixTime(lastSendTime / 1000), companyIds.size(), companyIds);
+                                    log.info("window trigger, lastTime: {}, size: {}, companyIds: " + "{}", lastSendTimeString, companyIds.size(), companyIds);
                                 } else {
-                                    log.info("window trigger, currentTime: {}, lastTime: {}, empty", DateTimeUtils.fromUnixTime(currentTime / 1000), DateTimeUtils.fromUnixTime(lastSendTime / 1000));
+                                    log.info("window trigger, lastTime: {}, empty", lastSendTimeString);
                                 }
                                 service.invoke(companyIds);
                                 companyIds.clear();
