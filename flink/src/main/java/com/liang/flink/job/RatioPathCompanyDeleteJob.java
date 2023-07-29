@@ -28,7 +28,7 @@ public class RatioPathCompanyDeleteJob {
         stream
                 .keyBy(new Distributor().with("ratio_path_company", e -> String.valueOf(e.getColumnMap().get("company_id"))))
                 .addSink(new RatioPathCompanyDeleteSink(config)).name("RatioPathCompanyDeleteSink").setParallelism(config.getFlinkConfig().getOtherParallel());
-        env.execute("RatioPathCompanyJob");
+        env.execute("RatioPathCompanyDeleteJob");
     }
 
     @Slf4j
