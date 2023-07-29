@@ -106,6 +106,7 @@ public class RatioPathCompanyDeleteJob {
                     }
                 }
             }
+            ConfigUtils.unloadAll();
         }
     }
 }
