@@ -61,43 +61,27 @@ public class RatioPathCompanyDeleteJob {
             String companyIdString = String.valueOf(columnMap.get("company_id"));
             companyIds.add(Long.parseLong(companyIdString));
             if (companyIds.size() >= 1024) {
-                synchronized (companyIds) {
-                    for (Long companyId : companyIds) {
-                        String res = jdbcTemplate.queryForObject("select 1 from investment_relation where company_id_invested = " + companyId, rs -> rs.getString(1));
-                        if (res == null) {
-                            dao.deleteAll(companyId);
-                        }
-                    }
-                }
+                sync();
             }
         }
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) throws Exception {
-            synchronized (companyIds) {
-                for (Long companyId : companyIds) {
-                    String res = jdbcTemplate.queryForObject("select 1 from investment_relation where company_id_invested = " + companyId, rs -> rs.getString(1));
-                    if (res == null) {
-                        dao.deleteAll(companyId);
-                    }
-                }
-            }
+            sync();
         }
 
         @Override
         public void finish() throws Exception {
-            synchronized (companyIds) {
-                for (Long companyId : companyIds) {
-                    String res = jdbcTemplate.queryForObject("select 1 from investment_relation where company_id_invested = " + companyId, rs -> rs.getString(1));
-                    if (res == null) {
-                        dao.deleteAll(companyId);
-                    }
-                }
-            }
+            sync();
         }
 
         @Override
         public void close() throws Exception {
+            sync();
+            ConfigUtils.unloadAll();
+        }
+
+        private void sync() {
             synchronized (companyIds) {
                 for (Long companyId : companyIds) {
                     String res = jdbcTemplate.queryForObject("select 1 from investment_relation where company_id_invested = " + companyId, rs -> rs.getString(1));
@@ -106,7 +90,6 @@ public class RatioPathCompanyDeleteJob {
                     }
                 }
             }
-            ConfigUtils.unloadAll();
         }
     }
 }
