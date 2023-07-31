@@ -1,12 +1,12 @@
 #忽略所有target目录
-target
+target/
 #忽略所有.idea目录
-.idea
+.idea/
 #忽略所有.iml .DS_store文件
 *.iml
 *.DS_Store
 #忽略所有 spark-warehouse 目录
-spark-warehouse
+spark-warehouse/
 
 
 ## git rm -r --cached .
