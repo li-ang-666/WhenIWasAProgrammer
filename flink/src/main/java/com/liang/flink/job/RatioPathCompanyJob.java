@@ -42,7 +42,7 @@ public class RatioPathCompanyJob {
     @RequiredArgsConstructor
     private final static class RatioPathCompanySink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final static int INTERVAL = 1000 * 60;
-        private final static int SIZE = 1;
+        private final static int SIZE = 64;
         private final Set<Long> companyIds = ConcurrentHashMap.newKeySet();
         private final Config config;
         private RatioPathCompanyService service;
@@ -117,12 +117,14 @@ public class RatioPathCompanyJob {
         }
 
         private void flush(String method) {
-            log.info("{}(), size: {}", method, companyIds.size());
-            if (!companyIds.isEmpty()) {
-                synchronized (companyIds) {
-                    service.invoke(companyIds);
-                    companyIds.clear();
+            synchronized (companyIds) {
+                if (!companyIds.isEmpty()) {
+                    log.info("window trigger for {}, size: {}, companyIds: {}", method, companyIds.size(), companyIds);
+                } else {
+                    log.info("window trigger for {}, empty", method);
                 }
+                service.invoke(companyIds);
+                companyIds.clear();
             }
         }
     }
