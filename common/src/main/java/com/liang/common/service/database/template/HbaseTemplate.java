@@ -6,6 +6,7 @@ import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.HbaseConnectionHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
@@ -81,7 +82,7 @@ public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
         logging.beforeExecute();
         HbaseSchema schema = hbaseOneRow.getSchema();
         String rowKey = hbaseOneRow.getRowKey();
-        HbaseOneRow resultOneRow = new HbaseOneRow(schema, rowKey);
+        HbaseOneRow resultOneRow = SerializationUtils.clone(hbaseOneRow);
         try (Table table = getTable(schema)) {
             Get get = new Get(Bytes.toBytes(rowKey))
                     .setCacheBlocks(false)

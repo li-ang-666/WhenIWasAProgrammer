@@ -12,7 +12,7 @@ public class ReadHbase extends ConfigHolder {
         // 连接
         HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
         // 条件
-        HbaseOneRow queryRow = new HbaseOneRow(HbaseSchema.JUDICIAL_RISK_SPLICE, "22822");
+        HbaseOneRow queryRow = new HbaseOneRow(HbaseSchema.HISTORICAL_INFO_SPLICE, "3481084136");
         // 查询
         HbaseOneRow resultRow = hbaseTemplate.getRow(queryRow);
         // 打印
@@ -23,6 +23,6 @@ public class ReadHbase extends ConfigHolder {
         }
         log.info("row: {}", JsonUtils.toString(resultRow));
         // 更正并写入
-        //hbaseTemplate.update(resultRow.put("lawsuit_num_times_frequent_year","2022"));
+        hbaseTemplate.update(resultRow.put("history_court_announcement_defendant_subject_cnt", "11"));
     }
 }
