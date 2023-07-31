@@ -17,22 +17,22 @@ public class RatioPathCompanyDao {
 
     public void deleteAll(Long companyId) {
         //删除ratio_path_company
-        String sql0 = new SQL().DELETE_FROM("ratio_path_company_v2")
+        String sql0 = new SQL().DELETE_FROM("ratio_path_company")
                 .WHERE("company_id = " + formatValue(companyId))
                 .toString();
         //删除受益人
         String sql1 = new SQL()
-                .DELETE_FROM("entity_beneficiary_details_v2")
+                .DELETE_FROM("entity_beneficiary_details")
                 .WHERE("tyc_unique_entity_id = " + formatValue(companyId))
                 .toString();
         //删除控制人
         String sql2 = new SQL()
-                .DELETE_FROM("entity_controller_details_v2")
+                .DELETE_FROM("entity_controller_details")
                 .WHERE("company_id_controlled = " + formatValue(companyId))
                 .toString();
         //删除身份关系
         String sql3 = new SQL()
-                .DELETE_FROM("shareholder_identity_type_details_v2")
+                .DELETE_FROM("shareholder_identity_type_details")
                 .WHERE("tyc_unique_entity_id = " + formatValue(companyId))
                 .toString();
         prismShareholderPath.update(sql0);
@@ -41,7 +41,7 @@ public class RatioPathCompanyDao {
 
     public void replaceIntoRatioPathCompany(Map<String, Object> columnMap) {
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        String sql = new SQL().INSERT_INTO("ratio_path_company_v2")
+        String sql = new SQL().INSERT_INTO("ratio_path_company")
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
@@ -60,7 +60,7 @@ public class RatioPathCompanyDao {
 
     public String replaceInto(String tableName, Map<String, Object> columnMap) {
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        return new SQL().INSERT_INTO(tableName + "_v2")
+        return new SQL().INSERT_INTO(tableName)
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
@@ -71,7 +71,7 @@ public class RatioPathCompanyDao {
         for (Map<String, Object> columnMap : columnMaps) {
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             String sql = new SQL()
-                    .INSERT_INTO("shareholder_identity_type_details_v2")
+                    .INSERT_INTO("shareholder_identity_type_details")
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1)
                     .toString();
