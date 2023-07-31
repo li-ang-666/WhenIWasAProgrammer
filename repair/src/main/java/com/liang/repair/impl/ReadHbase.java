@@ -8,21 +8,32 @@ import com.liang.common.util.JsonUtils;
 import com.liang.repair.service.ConfigHolder;
 
 public class ReadHbase extends ConfigHolder {
+    private final static HbaseTemplate HBASE_TEMPLATE;
+
+    static {
+        HBASE_TEMPLATE = new HbaseTemplate("hbaseSink");
+    }
+
     public static void main(String[] args) {
-        // 连接
-        HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
-        // 条件
-        HbaseOneRow queryRow = new HbaseOneRow(HbaseSchema.HISTORICAL_INFO_SPLICE, "3311231192");
+
+        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.HISTORICAL_INFO_SPLICE, "3311231192");
+        HbaseOneRow queryResult = query(hbaseOneRow);
+        queryResult.put("history_court_announcement_defendant_subject_cnt", "19");
+        update(queryResult);
+    }
+
+    private static HbaseOneRow query(HbaseOneRow hbaseOneRow) {
         // 查询
-        HbaseOneRow resultRow = hbaseTemplate.getRow(queryRow);
+        HbaseOneRow resultRow = HBASE_TEMPLATE.getRow(hbaseOneRow);
         // 打印
-        if (String.valueOf(ConfigUtils.getConfig().getHbaseDbConfigs().get("hbaseSink")).split(",").length == 1) {
-            log.warn("\n\n醒目: 目前是测试Hbase\n");
-        } else {
-            log.warn("\n\n醒目: 目前是生产Hbase\n");
-        }
+        int hbaseSinkConfigLength = String.valueOf(ConfigUtils.getConfig().getHbaseDbConfigs().get("hbaseSink")).split(",").length;
+        if (hbaseSinkConfigLength == 1) log.warn("\n\n醒目: 目前是测试Hbase\n");
+        else log.warn("\n\n醒目: 目前是生产Hbase\n");
         log.info("row: {}", JsonUtils.toString(resultRow));
-        // 更正并写入
-        hbaseTemplate.update(resultRow.put("history_court_announcement_defendant_subject_cnt", "24"));
+        return resultRow;
+    }
+
+    private static void update(HbaseOneRow hbaseOneRow) {
+        HBASE_TEMPLATE.update(hbaseOneRow);
     }
 }
