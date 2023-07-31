@@ -15,7 +15,6 @@ public class ReadHbase extends ConfigHolder {
     }
 
     public static void main(String[] args) {
-
         HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.HISTORICAL_INFO_SPLICE, "3311231192");
         HbaseOneRow queryResult = query(hbaseOneRow);
         queryResult.put("history_court_announcement_defendant_subject_cnt", "19");
@@ -23,9 +22,7 @@ public class ReadHbase extends ConfigHolder {
     }
 
     private static HbaseOneRow query(HbaseOneRow hbaseOneRow) {
-        // 查询
         HbaseOneRow resultRow = HBASE_TEMPLATE.getRow(hbaseOneRow);
-        // 打印
         int hbaseSinkConfigLength = String.valueOf(ConfigUtils.getConfig().getHbaseDbConfigs().get("hbaseSink")).split(",").length;
         if (hbaseSinkConfigLength == 1) log.warn("\n\n醒目: 目前是测试Hbase\n");
         else log.warn("\n\n醒目: 目前是生产Hbase\n");
