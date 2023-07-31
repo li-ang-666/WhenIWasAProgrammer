@@ -119,9 +119,9 @@ public class RatioPathCompanyJob {
         private void flush(String method) {
             synchronized (companyIds) {
                 if (!companyIds.isEmpty()) {
-                    log.info("window trigger for {}, size: {}, companyIds: {}", method, companyIds.size(), companyIds);
+                    log.info("{}, size: {}, companyIds: {}", method, companyIds.size(), companyIds);
                 } else {
-                    log.info("window trigger for {}, empty", method);
+                    log.info("{}, empty", method);
                 }
                 service.invoke(companyIds);
                 companyIds.clear();
