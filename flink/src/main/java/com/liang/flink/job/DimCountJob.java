@@ -12,6 +12,7 @@ import com.liang.flink.project.dim.count.impl.RatioPathCompany;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
@@ -39,6 +40,7 @@ public class DimCountJob {
     }
 
     @Slf4j
+    @RequiredArgsConstructor
     @DataUpdateImpl({
             RatioPathCompany.class
     })
@@ -46,10 +48,6 @@ public class DimCountJob {
         private final Config config;
         private DataUpdateService<HbaseOneRow> service;
         private HbaseTemplate hbaseTemplate;
-
-        public DimCountSink(Config config) {
-            this.config = config;
-        }
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
