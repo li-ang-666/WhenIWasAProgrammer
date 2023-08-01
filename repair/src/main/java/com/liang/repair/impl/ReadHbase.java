@@ -18,7 +18,7 @@ public class ReadHbase extends ConfigHolder {
         HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.HISTORICAL_INFO_SPLICE, "3311231192");
         HbaseOneRow queryResult = query(hbaseOneRow);
         queryResult.put("history_court_announcement_defendant_subject_cnt", "19");
-        update(queryResult);
+        //update(queryResult);
     }
 
     private static HbaseOneRow query(HbaseOneRow hbaseOneRow) {
