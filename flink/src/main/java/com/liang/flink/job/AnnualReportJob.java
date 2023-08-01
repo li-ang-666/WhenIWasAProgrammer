@@ -15,6 +15,7 @@ import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -22,6 +23,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
 
+@Slf4j
 @LocalConfigFile("annual-report.yml")
 public class AnnualReportJob {
     public static void main(String[] args) throws Exception {
@@ -34,6 +36,7 @@ public class AnnualReportJob {
         env.execute("AnnualReportJob");
     }
 
+    @Slf4j
     @RequiredArgsConstructor
     @DataUpdateImpl({
             ReportEquityChangeInfo.class,
