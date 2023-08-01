@@ -1,0 +1,25 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 1
+  otherParallel: 1
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - taskId: "111"
+    sourceName: "116prism"
+    tableName: "report_equity_change_info"
+    columns: "*"
+    where: "1=1"
+    scanMode: Direct
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "0bb01.proto.prism.report_equity_change_info"
+      - "0bb01.proto.prism.report_shareholder"
+      - "0bb01.proto.prism.report_outbound_investment"
+      - "0bb01.json.prism.report_webinfo"
+    groupId: "annual-report-job"
+    startFrom: "1"
