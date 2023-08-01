@@ -2,30 +2,21 @@
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 10
+  otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  # 受益所有人
   - taskId: "111"
-    sourceName: "bdpEquity"
-    tableName: "entity_beneficiary_details"
+    sourceName: "prismShareholderPath"
+    tableName: "ratio_path_company"
     columns: "*"
-    where: "tyc_unique_entity_id in ('2318455639')"
-    scanMode: Direct
-  # 实际控制人
-  - taskId: "222"
-    sourceName: "bdpEquity"
-    tableName: "entity_controller_details"
-    columns: "*"
-    where: "company_id_controlled in ('2318455639')"
+    where: "id = 93532862"
     scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "48e2e.proto.bdp_equity.entity_beneficiary_details"
-      - "48e2e.proto.bdp_equity.entity_controller_details"
+      - "e1d4c.proto.prism_shareholder_path.ratio_path_company"
     groupId: "dim-count-job"
     startFrom: "2"

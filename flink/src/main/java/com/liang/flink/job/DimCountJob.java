@@ -8,8 +8,7 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
-import com.liang.flink.project.dim.count.impl.EntityBeneficiaryDetails;
-import com.liang.flink.project.dim.count.impl.EntityControllerDetails;
+import com.liang.flink.project.dim.count.impl.RatioPathCompany;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
@@ -35,14 +34,13 @@ public class DimCountJob {
                 .rebalance()
                 .addSink(new DimCountSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .name("HbaseSink");
+                .name("DimCountSink");
         env.execute("DimCountJob");
     }
 
     @Slf4j
     @DataUpdateImpl({
-            EntityBeneficiaryDetails.class,
-            EntityControllerDetails.class
+            RatioPathCompany.class
     })
     private final static class DimCountSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
