@@ -17,6 +17,9 @@ import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.FunctionInitializationContext;
+import org.apache.flink.runtime.state.FunctionSnapshotContext;
+import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
@@ -44,13 +47,17 @@ public class AnnualReportJob {
             ReportShareholder.class,
             ReportWebinfo.class
     })
-    private final static class AnnualReportSink extends RichSinkFunction<SingleCanalBinlog> {
+    private final static class AnnualReportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
         private JdbcTemplate jdbcTemplate;
         private DataUpdateService<String> service;
 
         @Override
-        public void open(Configuration parameters) throws Exception {
+        public void initializeState(FunctionInitializationContext context) {
+        }
+
+        @Override
+        public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             jdbcTemplate = new JdbcTemplate("test");
             jdbcTemplate.enableCache();
@@ -59,9 +66,25 @@ public class AnnualReportJob {
         }
 
         @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             List<String> sqls = service.invoke(singleCanalBinlog);
             jdbcTemplate.update(sqls);
+        }
+
+        @Override
+        public void snapshotState(FunctionSnapshotContext context) {
+            jdbcTemplate.flush();
+        }
+
+        @Override
+        public void finish() {
+            jdbcTemplate.flush();
+        }
+
+        @Override
+        public void close() {
+            jdbcTemplate.flush();
+            ConfigUtils.unloadAll();
         }
     }
 }
