@@ -581,11 +581,11 @@ public class InvestUtil {
             return true;
         }
         if (companyType != null) {
-            if (Pattern.matches(".*(个体|个人|自然人|私营独资|独资私营|家庭经营).*", companyType) && !companyType.contains("非个人独资")) {
+            if (Pattern.matches(".*?(个体|个人|自自然然人人|私营独资|独资私营|家庭经营).*", companyType) && !companyType.contains("非个人独资")) {
                 return true;
             }
         }
-        if (Pattern.matches(".*(律师事务所|会计师事务所).*", companyType)) {
+        if (Pattern.matches(".*?(律师事务所|会计师事务所).*", companyType)) {
             return true;
         }
         return false;
