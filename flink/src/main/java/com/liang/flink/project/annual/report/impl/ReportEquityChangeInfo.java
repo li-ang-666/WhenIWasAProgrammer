@@ -1,6 +1,7 @@
 package com.liang.flink.project.annual.report.impl;
 
 import com.liang.common.service.SQL;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
@@ -8,6 +9,8 @@ import com.liang.flink.service.data.update.AbstractDataUpdate;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -38,9 +41,9 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
         resultMap.put("annual_report_entity_type_id_shareholder", -1);
         //
-        resultMap.put("annual_report_equity_ratio_before_change", ratioBefore.endsWith("%") ? ratioBefore : ratioBefore + "%");
-        resultMap.put("annual_report_equity_ratio_after_change", ratioAfter.endsWith("%") ? ratioAfter : ratioAfter + "%");
-        resultMap.put("annual_report_equity_ratio_change_time", changeTime.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$") ? changeTime : null);
+        resultMap.put("annual_report_equity_ratio_before_change", parse(ratioBefore));
+        resultMap.put("annual_report_equity_ratio_after_change", parse(ratioAfter));
+        resultMap.put("annual_report_equity_ratio_change_time", DateTimeUtils.isDateTime(changeTime) ? changeTime : null);
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL()
                 .REPLACE_INTO("entity_annual_report_shareholder_equity_change_details")
@@ -52,7 +55,18 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
 
     @Override
     public List<String> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-        return Collections.singletonList(dao.delete("entity_annual_report_shareholder_equity_change_details", columnMap.get("id")));
+        String sql = new SQL().DELETE_FROM("entity_annual_report_shareholder_equity_change_details")
+                .WHERE("id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
+                .toString();
+        return Collections.singletonList(sql);
+    }
+
+    private String parse(String number) {
+        String replaced = number.replaceAll("%", "");
+        try {
+            return new BigDecimal(replaced).setScale(12, RoundingMode.DOWN).toPlainString();
+        } catch (Exception e) {
+            return new BigDecimal("0").setScale(12, RoundingMode.DOWN).toPlainString();
+        }
     }
 }
