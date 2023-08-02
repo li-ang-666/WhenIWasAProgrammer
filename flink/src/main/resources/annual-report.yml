@@ -24,6 +24,13 @@ repairTasks:
     sourceName: "116prism"
     tableName: "report_outbound_investment"
     columns: "*"
+    where: "1=2"
+    scanMode: TumblingWindow
+
+  - taskId: "444"
+    sourceName: "116prism"
+    tableName: "report_webinfo"
+    columns: "*"
     where: "1=1"
     scanMode: TumblingWindow
 

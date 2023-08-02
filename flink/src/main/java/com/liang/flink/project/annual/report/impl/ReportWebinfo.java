@@ -21,7 +21,7 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String id = String.valueOf(columnMap.get("id"));
-        String reportId = String.valueOf(columnMap.get("annual_report_id"));
+        String reportId = String.valueOf(columnMap.get("annualreport_id"));
         String webType = String.valueOf(columnMap.get("web_type"));
         String name = String.valueOf(columnMap.get("name"));
         String website = String.valueOf(columnMap.get("website"));
