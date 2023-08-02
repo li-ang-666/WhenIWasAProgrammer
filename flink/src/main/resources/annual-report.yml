@@ -10,21 +10,21 @@ repairTasks:
     sourceName: "116prism"
     tableName: "report_equity_change_info"
     columns: "*"
-    where: "1=2"
+    where: "1=1"
     scanMode: TumblingWindow
 
   - taskId: "222"
     sourceName: "116prism"
     tableName: "report_shareholder"
     columns: "*"
-    where: "1=2"
+    where: "1=1"
     scanMode: TumblingWindow
 
   - taskId: "333"
     sourceName: "116prism"
     tableName: "report_outbound_investment"
     columns: "*"
-    where: "1=2"
+    where: "1=1"
     scanMode: TumblingWindow
 
   - taskId: "444"
