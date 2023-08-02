@@ -26,12 +26,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Slf4j
-@SuppressWarnings("SynchronizeOnNonFinalField")
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
  * 部分任务结束后的 Checkpoint
  */
+@Slf4j
+@SuppressWarnings("SynchronizeOnNonFinalField")
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final static int CHECK_INTERVAL = 1000 * 30;
     private final AtomicBoolean running = new AtomicBoolean(true);
