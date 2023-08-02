@@ -43,8 +43,8 @@ public class AnnualReportJob {
     @RequiredArgsConstructor
     @DataUpdateImpl({
             ReportEquityChangeInfo.class,
-            ReportOutboundInvestment.class,
             ReportShareholder.class,
+            ReportOutboundInvestment.class,
             ReportWebinfo.class
     })
     private final static class AnnualReportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
