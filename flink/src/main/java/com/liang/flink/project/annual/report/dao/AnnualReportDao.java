@@ -9,12 +9,6 @@ import static com.liang.common.util.SqlUtils.formatValue;
 public class AnnualReportDao {
     private final JdbcTemplate jdbcTemplate = new JdbcTemplate("116prism");
 
-    public String delete(String tableName, Object id) {
-        return new SQL().DELETE_FROM(tableName)
-                .WHERE("id = " + formatValue(id))
-                .toString();
-    }
-
     public Tuple3<String, String, String> getInfoAndNameByReportId(String reportId) {
         String sql = new SQL().SELECT("t2.graph_id", "t1.company_name", "t1.report_year")
                 .FROM("annual_report t1")
