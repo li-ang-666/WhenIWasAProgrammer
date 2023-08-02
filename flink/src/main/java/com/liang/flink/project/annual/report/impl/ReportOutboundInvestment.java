@@ -1,21 +1,52 @@
 package com.liang.flink.project.annual.report.impl;
 
+import com.liang.common.service.SQL;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
     private final AnnualReportDao dao = new AnnualReportDao();
 
     @Override
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        return null;
+        Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+        String id = String.valueOf(columnMap.get("id"));
+        String reportId = String.valueOf(columnMap.get("annual_report_id"));
+        String outCompanyName = String.valueOf(columnMap.get("outcompany_name"));
+
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("id", id);
+        Tuple3<String, String, String> info = dao.getInfoAndNameByReportId(reportId);
+        //
+        resultMap.put("tyc_unique_entity_id", info.f0);
+        resultMap.put("entity_name_valid", info.f1);
+        resultMap.put("entity_type_id", 1);
+        //
+        resultMap.put("annual_report_year", info.f2);
+        resultMap.put("annual_report_company_id_invested", -1);
+        resultMap.put("annual_report_company_name_invested", outCompanyName);
+        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
+        String sql = new SQL().REPLACE_INTO("entity_annual_report_investment_details")
+                .INTO_COLUMNS(insert.f0)
+                .INTO_VALUES(insert.f1)
+                .toString();
+        return Collections.singletonList(sql);
     }
 
     @Override
     public List<String> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        return null;
+        String sql = new SQL().DELETE_FROM("entity_annual_report_investment_details")
+                .WHERE("id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
+                .toString();
+        return Collections.singletonList(sql);
     }
 }
