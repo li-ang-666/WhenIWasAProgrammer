@@ -52,7 +52,7 @@ public abstract class AbstractCache<K, V> {
                             continue;
                         }
                         // 大小触发
-                        long count = cache.entrySet().stream().filter(entry -> entry.getValue().size() >= cacheRecords).count();
+                        long count = cache.values().stream().filter(queue -> queue.size() >= cacheRecords).count();
                         if (count > 0) {
                             synchronized (cache) {
                                 // 遍历, 剔除
