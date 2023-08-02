@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
+    private final static String TABLE_NAME = "entity_annual_report_shareholder_equity_change_details";
     private final AnnualReportDao dao = new AnnualReportDao();
 
     @Override
@@ -46,7 +47,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         resultMap.put("annual_report_equity_ratio_change_time", DateTimeUtils.isDateTime(changeTime) ? changeTime : null);
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL()
-                .REPLACE_INTO("entity_annual_report_shareholder_equity_change_details")
+                .REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
@@ -55,7 +56,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
 
     @Override
     public List<String> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        String sql = new SQL().DELETE_FROM("entity_annual_report_shareholder_equity_change_details")
+        String sql = new SQL().DELETE_FROM(TABLE_NAME)
                 .WHERE("id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
                 .toString();
         return Collections.singletonList(sql);

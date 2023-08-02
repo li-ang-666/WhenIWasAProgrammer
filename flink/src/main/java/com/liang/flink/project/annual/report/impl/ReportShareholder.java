@@ -14,11 +14,16 @@ import java.math.RoundingMode;
 import java.util.*;
 
 public class ReportShareholder extends AbstractDataUpdate<String> {
+    private final static String TABLE_NAME = "entity_annual_report_shareholder_equity_details";
     private final AnnualReportDao dao = new AnnualReportDao();
 
     @Override
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
         List<String> result = new ArrayList<>();
+        String sql = new SQL().DELETE_FROM(TABLE_NAME)
+                .WHERE("business_id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
+                .toString();
+        result.add(sql);
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String id = String.valueOf(columnMap.get("id"));
         String reportId = String.valueOf(columnMap.get("annual_report_id"));
@@ -49,7 +54,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         resultMap1.put("annual_report_shareholder_equity_valid_date", DateTimeUtils.isDateTime(subscribeTime) ? subscribeTime : null);
         resultMap1.put("annual_report_shareholder_equity_submission_method", subscribeType);
         Tuple2<String, String> insert1 = SqlUtils.columnMap2Insert(resultMap1);
-        String sql1 = new SQL().REPLACE_INTO("entity_annual_report_shareholder_equity_details")
+        String sql1 = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert1.f0)
                 .INTO_VALUES(insert1.f1)
                 .toString();
@@ -62,7 +67,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         resultMap2.put("annual_report_shareholder_equity_valid_date", DateTimeUtils.isDateTime(paidTime) ? paidTime : null);
         resultMap2.put("annual_report_shareholder_equity_submission_method", paidType);
         Tuple2<String, String> insert2 = SqlUtils.columnMap2Insert(resultMap2);
-        String sql2 = new SQL().REPLACE_INTO("entity_annual_report_shareholder_equity_details")
+        String sql2 = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert2.f0)
                 .INTO_VALUES(insert2.f1)
                 .toString();
@@ -72,7 +77,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
 
     @Override
     public List<String> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        String sql = new SQL().DELETE_FROM("entity_annual_report_shareholder_equity_details")
+        String sql = new SQL().DELETE_FROM(TABLE_NAME)
                 .WHERE("business_id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
                 .toString();
         return Collections.singletonList(sql);
