@@ -23,10 +23,14 @@ public class DataUpdateService<OUT> {
         }
         List<OUT> out = new ArrayList<>();
         CanalEntry.EventType eventType = singleCanalBinlog.getEventType();
-        if (eventType == CanalEntry.EventType.INSERT || eventType == CanalEntry.EventType.UPDATE) {
-            out.addAll(impl.updateWithReturn(singleCanalBinlog));
-        } else if (eventType == CanalEntry.EventType.DELETE) {
-            out.addAll(impl.deleteWithReturn(singleCanalBinlog));
+        try {
+            if (eventType == CanalEntry.EventType.INSERT || eventType == CanalEntry.EventType.UPDATE) {
+                out.addAll(impl.updateWithReturn(singleCanalBinlog));
+            } else if (eventType == CanalEntry.EventType.DELETE) {
+                out.addAll(impl.deleteWithReturn(singleCanalBinlog));
+            }
+        } catch (Exception e) {
+            log.error("DataUpdateService error, singleCanalBinlog: {}, impl: {}", singleCanalBinlog, impl, e);
         }
         return out;
     }
