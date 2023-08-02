@@ -19,11 +19,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
 
     @Override
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        List<String> result = new ArrayList<>();
-        String sql = new SQL().DELETE_FROM(TABLE_NAME)
-                .WHERE("business_id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
-                .toString();
-        result.add(sql);
+        List<String> result = new ArrayList<>(deleteWithReturn(singleCanalBinlog));
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String id = String.valueOf(columnMap.get("id"));
         String reportId = String.valueOf(columnMap.get("annual_report_id"));
@@ -38,6 +34,10 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("business_id", id);
         Tuple3<String, String, String> info = dao.getInfoAndNameByReportId(reportId);
+        if (info == null) {
+            info = Tuple3.of("-1", "", null);
+            resultMap.put("delete_status", 2);
+        }
         //
         resultMap.put("tyc_unique_entity_id", info.f0);
         resultMap.put("entity_name_valid", info.f1);

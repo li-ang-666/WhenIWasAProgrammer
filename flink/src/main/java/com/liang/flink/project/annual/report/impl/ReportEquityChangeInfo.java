@@ -32,6 +32,10 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         String changeTime = String.valueOf(columnMap.get("change_time"));
 
         Tuple3<String, String, String> info = dao.getInfoAndNameByReportId(reportId);
+        if (info == null) {
+            info = Tuple3.of("-1", "", null);
+            resultMap.put("delete_status", 2);
+        }
         resultMap.put("id", id);
         //
         resultMap.put("tyc_unique_entity_id", info.f0);
