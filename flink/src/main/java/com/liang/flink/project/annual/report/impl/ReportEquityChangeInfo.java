@@ -29,13 +29,15 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
 
         Tuple3<String, String, String> info = dao.getInfoAndNameByReportId(reportId);
         resultMap.put("id", id);
+        //
         resultMap.put("tyc_unique_entity_id", info.f0);
         resultMap.put("entity_name_valid", info.f1);
         resultMap.put("entity_type_id", 1);
+        //
         resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
         resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
         resultMap.put("annual_report_entity_type_id_shareholder", 0);
-
+        //
         resultMap.put("annual_report_equity_ratio_before_change", ratioBefore.endsWith("%") ? ratioBefore : ratioBefore + "%");
         resultMap.put("annual_report_equity_ratio_after_change", ratioAfter.endsWith("%") ? ratioAfter : ratioAfter + "%");
         resultMap.put("annual_report_equity_ratio_change_time", changeTime.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$") ? changeTime : null);
