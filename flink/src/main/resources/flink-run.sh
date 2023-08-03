@@ -11,10 +11,11 @@ export configName=config.yml
 # 以下除了 memory 和 slot, 其余不用改
 export folderName=$(echo ${className} | sed -E 's/([A-Z])/-\1/g' | sed -E 's/^-//g' | tr 'A-Z' 'a-z')
 export jobName=$(
-if [[ ${configName} == config* ]]; then
-    echo ${className}
-  else
-    echo ${className}RepairTest
+if [[ ${configName} == config* ]];
+then
+  echo ${className}
+else
+  echo ${className}RepairTest
 fi)
 /data/liang/flink-1.17.1/bin/flink run-application -t yarn-application \
   -D jobmanager.memory.process.size=2048mb \
