@@ -12,12 +12,14 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 public class HbaseSchema implements Serializable {
+    // 人count
     public static final HbaseSchema HUMAN_ALL_COUNT = HbaseSchema.builder()
             .namespace("prism_c")
             .tableName("human_all_count")
             .columnFamily("cf")
             .rowKeyReverse(false)
             .build();
+    // 公司count
     public static final HbaseSchema COMPANY_ALL_COUNT = HbaseSchema.builder()
             .namespace("prism_c")
             .tableName("company_all_count")
