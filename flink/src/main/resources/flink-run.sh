@@ -11,7 +11,7 @@ export configName=config.yml
 # 以下除了 memory 和 slot, 其余不用改
 export folderName=$(echo ${className} | sed -E 's/([A-Z])/-\1/g' | sed -E 's/^-//g' | tr 'A-Z' 'a-z')
 export jobName=$(
-if [[ ${configName} == config* ]];
+if [[ ${configName} == config* ]]
 then
   echo ${className}
 else
