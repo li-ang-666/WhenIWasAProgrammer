@@ -33,7 +33,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
 
         Tuple3<String, String, String> info = dao.getInfoAndNameByReportId(reportId);
         if (info == null) {
-            info = Tuple3.of("-1", "", null);
+            info = Tuple3.of("-1", String.format("reportId%s异常", reportId), null);
             resultMap.put("delete_status", 2);
         }
         resultMap.put("id", id);
