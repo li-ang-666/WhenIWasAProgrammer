@@ -34,10 +34,6 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("business_id", id);
         Tuple3<String, String, String> info = dao.getInfoAndNameByReportId(reportId, resultMap);
-        if (info == null) {
-            info = Tuple3.of("-1", String.format("reportId%s异常", reportId), null);
-            resultMap.put("delete_status", 2);
-        }
         //
         resultMap.put("tyc_unique_entity_id", info.f0);
         resultMap.put("entity_name_valid", info.f1);
