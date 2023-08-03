@@ -24,7 +24,7 @@ public class AnnualReportDao {
                 rs -> Tuple3.of(rs.getString(1), rs.getString(2), rs.getString(3)));
         if (tuple3 == null) {
             columnMap.put("delete_status", 2);
-            return Tuple3.of("-1", "缺少有效company_gid", null);
+            return Tuple3.of("-1", "缺少有效report_id或company_gid", null);
         }
         if (SqlUtils.isCompanyId(tuple3.f0)) {
             sql = new SQL().SELECT("entity_name_valid")
