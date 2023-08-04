@@ -65,9 +65,14 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
     private String parse(String number) {
         String replaced = number.replaceAll("%", "");
         try {
-            return new BigDecimal(replaced).setScale(12, RoundingMode.DOWN).toPlainString();
+            return new BigDecimal(replaced)
+                    .divide(new BigDecimal(100), RoundingMode.DOWN)
+                    .setScale(12, RoundingMode.DOWN)
+                    .toPlainString();
         } catch (Exception e) {
-            return new BigDecimal("0").setScale(12, RoundingMode.DOWN).toPlainString();
+            return new BigDecimal("0")
+                    .setScale(12, RoundingMode.DOWN)
+                    .toPlainString();
         }
     }
 }
