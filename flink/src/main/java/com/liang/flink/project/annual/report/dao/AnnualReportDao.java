@@ -23,7 +23,7 @@ public class AnnualReportDao {
         Tuple2<String, String> companyCidAndReportYear = prism116.queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
         if (companyCidAndReportYear == null) {
             columnMap.put("delete_status", 2);
-            return Tuple3.of("-1", String.format("查询report表,id = %s异常", reportId), null);
+            return Tuple3.of("-1", String.format("invalid report_id %s", reportId), null);
         }
         // 查询enterprise表
         sql = new SQL().SELECT("graph_id,name")
@@ -34,7 +34,7 @@ public class AnnualReportDao {
         Tuple2<String, String> companyGidAndName = prism464.queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
         if (companyGidAndName == null) {
             columnMap.put("delete_status", 2);
-            return Tuple3.of("-1", String.format("查询enterprise表,id = %s异常", companyCidAndReportYear.f0), null);
+            return Tuple3.of("-1", String.format("invalid company_cid %s", companyCidAndReportYear.f0), null);
         }
         return Tuple3.of(companyGidAndName.f0, companyGidAndName.f1, companyCidAndReportYear.f1);
     }
