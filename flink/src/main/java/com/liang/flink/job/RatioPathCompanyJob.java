@@ -62,7 +62,7 @@ public class RatioPathCompanyJob {
                 public void run() {
                     while (true) {
                         long currentTime = System.currentTimeMillis();
-                        if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= 1) {
+                        if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
                             synchronized (companyIds) {
                                 String lastSendTimeString = DateTimeUtils.fromUnixTime(lastSendTime / 1000);
                                 if (!companyIds.isEmpty()) {
