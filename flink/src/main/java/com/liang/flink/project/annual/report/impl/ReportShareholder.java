@@ -39,6 +39,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         resultMap.put("entity_name_valid", info.f1);
         resultMap.put("entity_type_id", 1);
         //
+        resultMap.put("annual_report_year", info.f2);
         resultMap.put("annual_report_tyc_unique_entity_id_shareholder", -1);
         resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
         resultMap.put("annual_report_entity_type_id_shareholder", -1);

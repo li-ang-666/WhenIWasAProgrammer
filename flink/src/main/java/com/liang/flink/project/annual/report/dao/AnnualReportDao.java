@@ -14,17 +14,18 @@ public class AnnualReportDao {
     private final JdbcTemplate prism464 = new JdbcTemplate("464prism");
 
     public Tuple3<String, String, String> getCompanyInfoAndReportYearByReportId(String reportId, Map<String, Object> columnMap) {
+        // 查询report表
         String sql = new SQL()
                 .SELECT("company_id,report_year")
                 .FROM("annual_report")
                 .WHERE("id = " + formatValue(reportId))
                 .toString();
         Tuple2<String, String> companyCidAndReportYear = prism116.queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        // 查询report表后做一次判空
         if (companyCidAndReportYear == null) {
             columnMap.put("delete_status", 2);
             return Tuple3.of("-1", String.format("查询report表,id = %s异常", reportId), null);
         }
+        // 查询enterprise表
         sql = new SQL().SELECT("graph_id,name")
                 .FROM("enterprise")
                 .WHERE("deleted = 0")
