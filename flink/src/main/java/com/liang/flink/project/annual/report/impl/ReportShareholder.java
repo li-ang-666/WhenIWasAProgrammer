@@ -87,9 +87,13 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
             }
         }
         try {
-            return new BigDecimal(builder.toString()).setScale(12, RoundingMode.DOWN).toPlainString();
+            return new BigDecimal(builder.toString())
+                    .setScale(12, RoundingMode.DOWN)
+                    .toPlainString();
         } catch (Exception e) {
-            return new BigDecimal("0").setScale(12, RoundingMode.DOWN).toPlainString();
+            return new BigDecimal("0")
+                    .setScale(12, RoundingMode.DOWN)
+                    .toPlainString();
         }
     }
 }

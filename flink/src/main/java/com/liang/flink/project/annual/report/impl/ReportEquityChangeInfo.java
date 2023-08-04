@@ -63,7 +63,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
     }
 
     private String parse(String number) {
-        String replaced = number.replaceAll("%", "");
+        String replaced = number.replaceAll("%|\\s", "");
         try {
             return new BigDecimal(replaced)
                     .divide(new BigDecimal(100), RoundingMode.DOWN)
