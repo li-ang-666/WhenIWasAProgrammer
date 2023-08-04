@@ -90,7 +90,7 @@ public class RatioPathCompanyService {
         }
     }
 
-    public List<String> updateWithReturn(Map<String, Object> columnMap) {
+    private List<String> updateWithReturn(Map<String, Object> columnMap) {
         List<String> sqls = new ArrayList<>();
         String companyId = String.valueOf(columnMap.get("company_id"));
         String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
