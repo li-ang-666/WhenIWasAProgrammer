@@ -13,7 +13,7 @@ public class AnnualReportDao {
     private final JdbcTemplate prism116 = new JdbcTemplate("116prism");
     private final JdbcTemplate prism464 = new JdbcTemplate("464prism");
 
-    public Tuple3<String, String, String> getInfoAndNameByReportId(String reportId, Map<String, Object> columnMap) {
+    public Tuple3<String, String, String> getCompanyInfoAndReportYearByReportId(String reportId, Map<String, Object> columnMap) {
         String sql = new SQL()
                 .SELECT("company_id,report_year")
                 .FROM("annual_report")

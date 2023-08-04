@@ -31,7 +31,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         String ratioAfter = String.valueOf(columnMap.get("ratio_after"));
         String changeTime = String.valueOf(columnMap.get("change_time"));
 
-        Tuple3<String, String, String> info = dao.getInfoAndNameByReportId(reportId, resultMap);
+        Tuple3<String, String, String> info = dao.getCompanyInfoAndReportYearByReportId(reportId, resultMap);
         resultMap.put("id", id);
         //
         resultMap.put("tyc_unique_entity_id", info.f0);
