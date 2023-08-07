@@ -5,23 +5,9 @@ import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
 
 @UtilityClass
 public class TycStringUtils {
-    private static final List<Character> EQUITY_UNIT_BLACK_CHAR = new ArrayList<>();
-
-    static {
-        EQUITY_UNIT_BLACK_CHAR.add(',');
-        EQUITY_UNIT_BLACK_CHAR.add('(');
-        EQUITY_UNIT_BLACK_CHAR.add(')');
-        EQUITY_UNIT_BLACK_CHAR.add('{');
-        EQUITY_UNIT_BLACK_CHAR.add('}');
-        EQUITY_UNIT_BLACK_CHAR.add('-');
-        EQUITY_UNIT_BLACK_CHAR.add('&');
-    }
-
     public static boolean isUnsignedId(String id) {
         if (id == null || id.isEmpty()) {
             return false;
@@ -72,14 +58,14 @@ public class TycStringUtils {
             char c = equity.charAt(i);
             if (Character.isDigit(c) || '.' == c) {
                 numberBuilder.append(c);
-            } else if (!Character.isWhitespace(c) && !Character.isLetterOrDigit(c) && !EQUITY_UNIT_BLACK_CHAR.contains(c)) {
+            } else if (!Character.isWhitespace(c) && String.valueOf(c).matches("[\u4e00-\u9fa5]")) {
                 unitBuilder.append(c);
             }
         }
         String number = numberBuilder.toString();
         String unit = unitBuilder.toString();
-        int multiply = unit.contains("万") ? 10000 * 10 * 10 : 10 * 10;
-        number = getDecimalString(number, multiply);
+        unit = (unit.isEmpty() || "万".equals(unit)) ? "万人民币" : unit;
+        number = getDecimalString(number, unit.contains("万") ? 10000 * 10 * 10 : 10 * 10);
         if (unit.contains("人民币") || "万元".equals(unit) || "元".equals(unit)) {
             return Tuple2.of(number, "人民币");
         } else if (unit.contains("美国") || unit.contains("美元") || unit.contains("美币")) {
@@ -99,9 +85,6 @@ public class TycStringUtils {
         } else if (unit.contains("韩国") || unit.contains("韩元") || unit.contains("韩币")) {
             return Tuple2.of(number, "韩元");
         } else {
-            unit = unit.replaceAll("万元|万", "");
-        }
-        if (!unit.isEmpty()) {
             return Tuple2.of(number, unit);
         }
     }
