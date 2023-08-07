@@ -1,10 +1,14 @@
 package com.liang.common.util;
 
+import com.liang.common.service.SQL;
+import com.liang.common.service.database.template.JdbcTemplate;
 import lombok.experimental.UtilityClass;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+
+import static com.liang.common.util.SqlUtils.formatValue;
 
 @UtilityClass
 public class TycUtils {
@@ -93,7 +97,7 @@ public class TycUtils {
         } else if (unit.contains("韩国") || unit.contains("韩元") || unit.contains("韩币")) {
             return Tuple2.of(number, "韩元");
         } else {
-            return Tuple2.of(number, unit);
+            return Tuple2.of(number, unit.replaceAll("万元|万", ""));
         }
     }
 
@@ -109,5 +113,23 @@ public class TycUtils {
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         }
+    }
+
+    public static Tuple2<String, String> companyCid2GidAndName(String companyCid) {
+        String sql = new SQL().SELECT("graph_id,name")
+                .FROM("enterprise")
+                .WHERE("deleted = 0")
+                .WHERE("id = " + formatValue(companyCid))
+                .toString();
+        return new JdbcTemplate("464prism").queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
+    }
+
+    public static String humanCid2Gid(String humanCid) {
+        String sql = new SQL().SELECT("graph_id")
+                .FROM("human_graph")
+                .WHERE("deleted = 0")
+                .WHERE("human_id = " + formatValue(humanCid))
+                .toString();
+        return new JdbcTemplate("116prism").queryForObject(sql, rs -> rs.getString(1));
     }
 }
