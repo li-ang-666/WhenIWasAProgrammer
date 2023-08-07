@@ -6,6 +6,7 @@ import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
     private final static String TABLE_NAME = "entity_annual_report_shareholder_equity_change_details";
     private final AnnualReportDao dao = new AnnualReportDao();
@@ -33,18 +35,18 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
 
         Tuple3<String, String, String> info = dao.getCompanyInfoAndReportYearByReportId(reportId, resultMap);
         resultMap.put("id", id);
-        //
+        // 公司
         resultMap.put("tyc_unique_entity_id", info.f0);
         resultMap.put("entity_name_valid", info.f1);
         resultMap.put("entity_type_id", 1);
-        //
+        // 股东
         resultMap.put("annual_report_year", info.f2);
         resultMap.put("annual_report_tyc_unique_entity_id_shareholder", -1);
         resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
         resultMap.put("annual_report_entity_type_id_shareholder", -1);
-        //
-        resultMap.put("annual_report_equity_ratio_before_change", parse(ratioBefore));
-        resultMap.put("annual_report_equity_ratio_after_change", parse(ratioAfter));
+        // 股权变更
+        resultMap.put("annual_report_equity_ratio_before_change", parse(id, ratioBefore));
+        resultMap.put("annual_report_equity_ratio_after_change", parse(id, ratioAfter));
         resultMap.put("annual_report_equity_ratio_change_time", TycUtils.isDateTime(changeTime) ? changeTime : null);
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL()
@@ -63,15 +65,19 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         return Collections.singletonList(sql);
     }
 
-    private String parse(String number) {
-        String replaced = number.replaceAll("%|\\s", "");
+    private String parse(String id, String percent) {
+        String replaced = percent.replaceAll("%|\\s", "");
         try {
             String plainString = new BigDecimal(replaced)
                     .divide(new BigDecimal(100), RoundingMode.DOWN)
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
+            if (plainString.compareTo("1.0") >= 0) {
+                log.error("股权变更解析异常, id = {}, percent = {}", id, percent);
+            }
             return plainString;
         } catch (Exception e) {
+            log.error("股权变更解析异常, id = {}, percent = {}", id, percent, e);
             return new BigDecimal("0")
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();

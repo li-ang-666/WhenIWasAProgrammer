@@ -34,20 +34,21 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("business_id", id);
         Tuple3<String, String, String> info = dao.getCompanyInfoAndReportYearByReportId(reportId, resultMap);
-        //
+        // 公司
         resultMap.put("tyc_unique_entity_id", info.f0);
         resultMap.put("entity_name_valid", info.f1);
         resultMap.put("entity_type_id", 1);
-        //
+        // 股东
         resultMap.put("annual_report_year", info.f2);
         resultMap.put("annual_report_tyc_unique_entity_id_shareholder", -1);
         resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
         resultMap.put("annual_report_entity_type_id_shareholder", -1);
-        //
+        // 认缴
         HashMap<String, Object> resultMap1 = new HashMap<>(resultMap);
         resultMap1.put("annual_report_shareholder_capital_type", 1);
-        resultMap1.put("annual_report_shareholder_equity_amt", parse(subscribeAmount));
-        resultMap1.put("annual_report_shareholder_equity_currency", "万元");
+        Tuple2<String, String> numberAndUnit1 = TycUtils.formatEquity(subscribeAmount);
+        resultMap1.put("annual_report_shareholder_equity_amt", numberAndUnit1.f0);
+        resultMap1.put("annual_report_shareholder_equity_currency", numberAndUnit1.f1);
         resultMap1.put("annual_report_shareholder_equity_valid_date", TycUtils.isDateTime(subscribeTime) ? subscribeTime : null);
         resultMap1.put("annual_report_shareholder_equity_submission_method", subscribeType);
         Tuple2<String, String> insert1 = SqlUtils.columnMap2Insert(resultMap1);
@@ -56,11 +57,12 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 .INTO_VALUES(insert1.f1)
                 .toString();
         result.add(sql1);
-        //
+        // 实缴
         HashMap<String, Object> resultMap2 = new HashMap<>(resultMap);
         resultMap2.put("annual_report_shareholder_capital_type", 2);
-        resultMap2.put("annual_report_shareholder_equity_amt", parse(paidAmount));
-        resultMap2.put("annual_report_shareholder_equity_currency", "万元");
+        Tuple2<String, String> numberAndUnit2 = TycUtils.formatEquity(paidAmount);
+        resultMap2.put("annual_report_shareholder_equity_amt", numberAndUnit2.f0);
+        resultMap2.put("annual_report_shareholder_equity_currency", numberAndUnit2.f1);
         resultMap2.put("annual_report_shareholder_equity_valid_date", TycUtils.isDateTime(paidTime) ? paidTime : null);
         resultMap2.put("annual_report_shareholder_equity_submission_method", paidType);
         Tuple2<String, String> insert2 = SqlUtils.columnMap2Insert(resultMap2);

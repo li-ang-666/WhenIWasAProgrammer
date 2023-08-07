@@ -2,6 +2,7 @@ package com.liang.flink.project.annual.report.dao;
 
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.util.TycUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 
@@ -26,15 +27,10 @@ public class AnnualReportDao {
             return Tuple3.of("-1", String.format("invalid report_id %s", reportId), null);
         }
         // 查询enterprise表
-        sql = new SQL().SELECT("graph_id,name")
-                .FROM("enterprise")
-                .WHERE("deleted = 0")
-                .WHERE("id = " + formatValue(companyCidAndReportYear.f0))
-                .toString();
-        Tuple2<String, String> companyGidAndName = prism464.queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
+        Tuple2<String, String> companyGidAndName = TycUtils.companyCid2GidAndName(companyCidAndReportYear.f0);
         if (companyGidAndName == null) {
             columnMap.put("delete_status", 2);
-            return Tuple3.of("-1", String.format("invalid company_cid %s", companyCidAndReportYear.f0), null);
+            return Tuple3.of("-1", String.format("invalid company_cid %s", companyCidAndReportYear.f0), companyCidAndReportYear.f1);
         }
         return Tuple3.of(companyGidAndName.f0, companyGidAndName.f1, companyCidAndReportYear.f1);
     }
