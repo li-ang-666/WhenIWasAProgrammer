@@ -96,8 +96,4 @@ public class DateTimeUtils {
     public static long getLastNTimestamp(int nDays) {
         return (System.currentTimeMillis() - (nDays * 24L * 3600L * 1000L)) / 1000;
     }
-
-    public static boolean isDateTime(String str) {
-        return str.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$");
-    }
 }
