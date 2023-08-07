@@ -2,7 +2,7 @@ package com.liang.flink.project.annual.report.impl;
 
 import com.liang.common.service.SQL;
 import com.liang.common.util.SqlUtils;
-import com.liang.common.util.TycStringUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -48,7 +48,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         resultMap1.put("annual_report_shareholder_capital_type", 1);
         resultMap1.put("annual_report_shareholder_equity_amt", parse(subscribeAmount));
         resultMap1.put("annual_report_shareholder_equity_currency", "万元");
-        resultMap1.put("annual_report_shareholder_equity_valid_date", TycStringUtils.isDateTime(subscribeTime) ? subscribeTime : null);
+        resultMap1.put("annual_report_shareholder_equity_valid_date", TycUtils.isDateTime(subscribeTime) ? subscribeTime : null);
         resultMap1.put("annual_report_shareholder_equity_submission_method", subscribeType);
         Tuple2<String, String> insert1 = SqlUtils.columnMap2Insert(resultMap1);
         String sql1 = new SQL().REPLACE_INTO(TABLE_NAME)
@@ -61,7 +61,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         resultMap2.put("annual_report_shareholder_capital_type", 2);
         resultMap2.put("annual_report_shareholder_equity_amt", parse(paidAmount));
         resultMap2.put("annual_report_shareholder_equity_currency", "万元");
-        resultMap2.put("annual_report_shareholder_equity_valid_date", TycStringUtils.isDateTime(paidTime) ? paidTime : null);
+        resultMap2.put("annual_report_shareholder_equity_valid_date", TycUtils.isDateTime(paidTime) ? paidTime : null);
         resultMap2.put("annual_report_shareholder_equity_submission_method", paidType);
         Tuple2<String, String> insert2 = SqlUtils.columnMap2Insert(resultMap2);
         String sql2 = new SQL().REPLACE_INTO(TABLE_NAME)

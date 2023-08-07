@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 @UtilityClass
-public class TycStringUtils {
+public class TycUtils {
     public static boolean isUnsignedId(String id) {
         if (id == null || id.isEmpty()) {
             return false;
@@ -49,7 +49,7 @@ public class TycStringUtils {
 
     public static Tuple2<String, String> formatEquity(String equity) {
         if (equity == null || equity.isEmpty()) {
-            return Tuple2.of(getDecimalString("0", 1), "");
+            return Tuple2.of(getDecimalString("0", 1), "人民币");
         }
         StringBuilder numberBuilder = new StringBuilder();
         StringBuilder unitBuilder = new StringBuilder();
@@ -64,7 +64,15 @@ public class TycStringUtils {
         }
         String number = numberBuilder.toString();
         String unit = unitBuilder.toString();
-        unit = (unit.isEmpty() || "万".equals(unit)) ? "万人民币" : unit;
+        if (unit.isEmpty()) {
+            if (getDecimalString(number, 1).compareTo("10000") >= 0) {
+                unit = "元";
+            } else {
+                unit = "万元";
+            }
+        } else if ("万".equals(unit)) {
+            unit = "万元";
+        }
         number = getDecimalString(number, unit.contains("万") ? 10000 * 10 * 10 : 10 * 10);
         if (unit.contains("人民币") || "万元".equals(unit) || "元".equals(unit)) {
             return Tuple2.of(number, "人民币");

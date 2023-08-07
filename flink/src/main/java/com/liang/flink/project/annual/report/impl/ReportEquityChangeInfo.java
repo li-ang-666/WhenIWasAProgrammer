@@ -2,7 +2,7 @@ package com.liang.flink.project.annual.report.impl;
 
 import com.liang.common.service.SQL;
 import com.liang.common.util.SqlUtils;
-import com.liang.common.util.TycStringUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -45,7 +45,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         //
         resultMap.put("annual_report_equity_ratio_before_change", parse(ratioBefore));
         resultMap.put("annual_report_equity_ratio_after_change", parse(ratioAfter));
-        resultMap.put("annual_report_equity_ratio_change_time", TycStringUtils.isDateTime(changeTime) ? changeTime : null);
+        resultMap.put("annual_report_equity_ratio_change_time", TycUtils.isDateTime(changeTime) ? changeTime : null);
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL()
                 .REPLACE_INTO(TABLE_NAME)

@@ -2,7 +2,7 @@ package com.liang.flink.project.dim.count.impl;
 
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
-import com.liang.common.util.TycStringUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.dim.count.dao.ShareholderTagDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -20,7 +20,7 @@ public class RatioPathCompany extends AbstractDataUpdate<HbaseOneRow> {
         List<HbaseOneRow> result = new ArrayList<>();
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String companyId = String.valueOf(columnMap.get("company_id"));
-        if (TycStringUtils.isUnsignedId(companyId)) {
+        if (TycUtils.isUnsignedId(companyId)) {
             HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, companyId)
                     .put("has_controller", dao.queryHasController(companyId))
                     .put("has_beneficiary", dao.queryHasBeneficiary(companyId))
@@ -28,7 +28,7 @@ public class RatioPathCompany extends AbstractDataUpdate<HbaseOneRow> {
             result.add(hbaseOneRow);
         }
         String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-        if (TycStringUtils.isShareholderId(shareholderId)) {
+        if (TycUtils.isShareholderId(shareholderId)) {
             if (StringUtils.isNumeric(shareholderId)) {
                 HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, shareholderId)
                         .put("has_controller", dao.queryHasController(shareholderId))
