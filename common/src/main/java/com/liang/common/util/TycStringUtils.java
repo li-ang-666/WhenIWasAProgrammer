@@ -99,6 +99,8 @@ public class TycStringUtils {
             return Tuple2.of(getDecimalString(number, multiply), "英镑");
         } else if (unit.contains("韩国") || unit.contains("韩元")) {
             return Tuple2.of(getDecimalString(number, multiply), "韩元");
+        } else {
+            return Tuple2.of(getDecimalString(number, multiply), unit.replaceAll("万元|万", ""));
         }
     }
 
