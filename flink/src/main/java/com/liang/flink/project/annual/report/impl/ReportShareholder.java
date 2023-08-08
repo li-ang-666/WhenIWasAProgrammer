@@ -60,7 +60,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         }
         String fixedShareholderId = String.valueOf(resultMap.get("annual_report_tyc_unique_entity_id_shareholder"));
         String fixedShareholderName = String.valueOf(resultMap.get("annual_report_entity_name_valid_shareholder"));
-        if (!TycUtils.isTycUniqueEntityId(fixedShareholderId) || !TycUtils.isValidName(fixedShareholderName)) {
+        if (!TycUtils.isTycUniqueEntityId(fixedShareholderId) || !TycUtils.isTycUniqueEntityName(fixedShareholderName)) {
             resultMap.put("delete_status", 2);
         }
         resultMap.put("annual_report_year", info.f2);

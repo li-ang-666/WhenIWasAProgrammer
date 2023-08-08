@@ -6,12 +6,12 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  #  - taskId: "111"
-  #    sourceName: "116prism"
-  #    tableName: "report_equity_change_info"
-  #    columns: "*"
-  #    where: "1=1"
-  #    scanMode: TumblingWindow
+  - taskId: "111"
+    sourceName: "116prism"
+    tableName: "report_equity_change_info"
+    columns: "*"
+    where: "annualreport_id in (2899795106,2899795107,2899795108,2899795105,2929328432,2982142439,3064263112,3128941408,4409589494)"
+    scanMode: Direct
   - taskId: "222"
     sourceName: "116prism"
     tableName: "report_shareholder"

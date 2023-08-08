@@ -28,7 +28,7 @@ public class AnnualReportDao {
         }
         // 查询enterprise表
         Tuple2<String, String> companyGidAndName = TycUtils.companyCid2GidAndName(companyCidAndReportYear.f0);
-        if (!TycUtils.isUnsignedId(companyGidAndName.f0) || !TycUtils.isValidName(companyGidAndName.f1)) {
+        if (!TycUtils.isUnsignedId(companyGidAndName.f0) || !TycUtils.isTycUniqueEntityName(companyGidAndName.f1)) {
             columnMap.put("delete_status", 2);
             return Tuple3.of("-1", String.format("%s:company_cid ", companyCidAndReportYear.f0), companyCidAndReportYear.f1);
         }

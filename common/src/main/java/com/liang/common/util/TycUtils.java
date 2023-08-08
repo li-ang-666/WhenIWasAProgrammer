@@ -48,7 +48,7 @@ public class TycUtils {
         return true;
     }
 
-    public static boolean isValidName(String str) {
+    public static boolean isTycUniqueEntityName(String str) {
         return StringUtils.isNotBlank(str) && !"null".equalsIgnoreCase(str);
     }
 
