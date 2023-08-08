@@ -74,7 +74,8 @@ public class TycUtils {
         String number = numberBuilder.toString();
         String unit = unitBuilder.toString();
         if (unit.isEmpty()) {
-            if (getDecimalString(number, 1).compareTo("10000") >= 0) {
+            // 如果整数有5位
+            if (getDecimalString(number, 1).split("\\.")[0].length() >= 5) {
                 unit = "元";
             } else {
                 unit = "万元";
@@ -149,5 +150,9 @@ public class TycUtils {
                 .toString();
         String res = new JdbcTemplate("prismBoss").queryForObject(sql, rs -> rs.getString(1));
         return res != null ? res : "0";
+    }
+
+    public static void main(String[] args) {
+        System.out.println(formatEquity("395.9744"));
     }
 }
