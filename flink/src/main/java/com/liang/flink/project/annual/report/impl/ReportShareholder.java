@@ -9,8 +9,6 @@ import com.liang.flink.service.data.update.AbstractDataUpdate;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 public class ReportShareholder extends AbstractDataUpdate<String> {
@@ -24,6 +22,8 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         String id = String.valueOf(columnMap.get("id"));
         String reportId = String.valueOf(columnMap.get("annual_report_id"));
         String shareholderName = String.valueOf(columnMap.get("investor_name_clean"));
+        String investorId = String.valueOf(columnMap.get("investor_id"));
+        String investorType = String.valueOf(columnMap.get("investor_type"));
         String subscribeAmount = String.valueOf(columnMap.get("subscribe_amount"));
         String subscribeTime = String.valueOf(columnMap.get("subscribe_time"));
         String subscribeType = String.valueOf(columnMap.get("subscribe_type"));
@@ -39,10 +39,30 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         resultMap.put("entity_name_valid", info.f1);
         resultMap.put("entity_type_id", 1);
         // 股东
+        // report_shareholder的人、公司枚举是反着的
+        switch (investorType) {
+            case "1": // 人
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.getHumanHashId(info.f0, TycUtils.humanCid2Gid(investorId)));
+                resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
+                resultMap.put("annual_report_entity_type_id_shareholder", 2);
+                break;
+            case "2": // 公司
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.companyCid2GidAndName(investorId).f0);
+                resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
+                resultMap.put("annual_report_entity_type_id_shareholder", 1);
+                break;
+            case "3": // 其它
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
+                resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
+                resultMap.put("annual_report_entity_type_id_shareholder", 3);
+                break;
+        }
+        String fixedShareholderId = String.valueOf(resultMap.get("annual_report_tyc_unique_entity_id_shareholder"));
+        String fixedShareholderName = String.valueOf(resultMap.get("annual_report_entity_name_valid_shareholder"));
+        if (!TycUtils.isShareholderId(fixedShareholderId) || !TycUtils.isValidName(fixedShareholderName)) {
+            resultMap.put("delete_status", 2);
+        }
         resultMap.put("annual_report_year", info.f2);
-        resultMap.put("annual_report_tyc_unique_entity_id_shareholder", -1);
-        resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
-        resultMap.put("annual_report_entity_type_id_shareholder", -1);
         // 认缴
         HashMap<String, Object> resultMap1 = new HashMap<>(resultMap);
         resultMap1.put("annual_report_shareholder_capital_type", 1);
@@ -80,23 +100,5 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 .WHERE("business_id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
                 .toString();
         return Collections.singletonList(sql);
-    }
-
-    private String parse(String money) {
-        StringBuilder builder = new StringBuilder();
-        for (char c : money.toCharArray()) {
-            if (Character.isDigit(c) || c == '.') {
-                builder.append(c);
-            }
-        }
-        try {
-            return new BigDecimal(builder.toString())
-                    .setScale(12, RoundingMode.DOWN)
-                    .toPlainString();
-        } catch (Exception e) {
-            return new BigDecimal("0")
-                    .setScale(12, RoundingMode.DOWN)
-                    .toPlainString();
-        }
     }
 }

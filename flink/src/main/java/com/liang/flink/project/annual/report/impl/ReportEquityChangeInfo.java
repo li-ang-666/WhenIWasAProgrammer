@@ -66,21 +66,33 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
     }
 
     private String parse(String id, String percent) {
-        String replaced = percent.replaceAll("%|\\s", "");
+        StringBuilder builder = new StringBuilder();
+        int length = percent.length();
+        for (int i = 0; i < length; i++) {
+            char c = percent.charAt(i);
+            if (Character.isDigit(c) || '.' == c) {
+                builder.append(c);
+            }
+        }
+        if (builder.length() == 0) {
+            builder.append("0");
+        }
+        String defaultResult = new BigDecimal(0)
+                .setScale(12, RoundingMode.DOWN)
+                .toPlainString();
         try {
-            String plainString = new BigDecimal(replaced)
+            String plainString = new BigDecimal(builder.toString())
                     .divide(new BigDecimal(100), RoundingMode.DOWN)
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
-            if (plainString.compareTo("1.0") >= 0) {
+            if (plainString.compareTo("1.0000000000000") > 0) {
                 log.error("股权变更解析异常, id = {}, percent = {}", id, percent);
+                return defaultResult;
             }
             return plainString;
         } catch (Exception e) {
             log.error("股权变更解析异常, id = {}, percent = {}", id, percent, e);
-            return new BigDecimal("0")
-                    .setScale(12, RoundingMode.DOWN)
-                    .toPlainString();
+            return defaultResult;
         }
     }
 }

@@ -3,6 +3,7 @@ package com.liang.common.util;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.math.BigDecimal;
@@ -47,8 +48,12 @@ public class TycUtils {
         return true;
     }
 
+    public static boolean isValidName(String str) {
+        return StringUtils.isNotBlank(str) && !"null".equalsIgnoreCase(str);
+    }
+
     public static boolean isDateTime(String str) {
-        return str.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$");
+        return String.valueOf(str).matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$");
     }
 
     public static Tuple2<String, String> formatEquity(String equity) {
@@ -121,7 +126,8 @@ public class TycUtils {
                 .WHERE("deleted = 0")
                 .WHERE("id = " + formatValue(companyCid))
                 .toString();
-        return new JdbcTemplate("464prism").queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
+        Tuple2<String, String> res = new JdbcTemplate("464prism").queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
+        return res != null ? res : Tuple2.of("0", "");
     }
 
     public static String humanCid2Gid(String humanCid) {
@@ -130,6 +136,18 @@ public class TycUtils {
                 .WHERE("deleted = 0")
                 .WHERE("human_id = " + formatValue(humanCid))
                 .toString();
-        return new JdbcTemplate("116prism").queryForObject(sql, rs -> rs.getString(1));
+        String res = new JdbcTemplate("116prism").queryForObject(sql, rs -> rs.getString(1));
+        return res != null ? res : "0";
+    }
+
+    public static String getHumanHashId(String companyGid, String humanGid) {
+        String sql = new SQL().SELECT("human_pid")
+                .FROM("company_human_relation")
+                .WHERE("deleted = 0")
+                .WHERE("company_graph_id = " + formatValue(companyGid))
+                .WHERE("human_graph_id = " + formatValue(humanGid))
+                .toString();
+        String res = new JdbcTemplate("prismBoss").queryForObject(sql, rs -> rs.getString(1));
+        return res != null ? res : "0";
     }
 }
