@@ -28,7 +28,7 @@ public class RatioPathCompany extends AbstractDataUpdate<HbaseOneRow> {
             result.add(hbaseOneRow);
         }
         String shareholderId = String.valueOf(columnMap.get("shareholder_id"));
-        if (TycUtils.isShareholderId(shareholderId)) {
+        if (TycUtils.isTycUniqueEntityId(shareholderId)) {
             if (StringUtils.isNumeric(shareholderId)) {
                 HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, shareholderId)
                         .put("has_controller", dao.queryHasController(shareholderId))

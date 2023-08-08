@@ -11,12 +11,12 @@ public class StringTest extends ConfigHolder {
         System.out.println(TycUtils.isUnsignedId("NULL"));
         System.out.println(TycUtils.isUnsignedId("0"));
         System.out.println("--------------------------");
-        System.out.println(TycUtils.isShareholderId("94jfrnfnuef"));
-        System.out.println(TycUtils.isShareholderId(""));
-        System.out.println(TycUtils.isShareholderId("0"));
-        System.out.println(TycUtils.isShareholderId("null"));
-        System.out.println(TycUtils.isShareholderId("NULL"));
-        System.out.println(TycUtils.isShareholderId("Null"));
-        System.out.println(TycUtils.isShareholderId("S011DMN09MG24PND6"));
+        System.out.println(TycUtils.isTycUniqueEntityId("94jfrnfnuef"));
+        System.out.println(TycUtils.isTycUniqueEntityId(""));
+        System.out.println(TycUtils.isTycUniqueEntityId("0"));
+        System.out.println(TycUtils.isTycUniqueEntityId("null"));
+        System.out.println(TycUtils.isTycUniqueEntityId("NULL"));
+        System.out.println(TycUtils.isTycUniqueEntityId("Null"));
+        System.out.println(TycUtils.isTycUniqueEntityId("S011DMN09MG24PND6"));
     }
 }

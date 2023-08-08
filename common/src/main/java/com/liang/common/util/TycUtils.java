@@ -29,7 +29,7 @@ public class TycUtils {
         return true;
     }
 
-    public static boolean isShareholderId(String shareholderId) {
+    public static boolean isTycUniqueEntityId(String shareholderId) {
         if (isUnsignedId(shareholderId)) {
             return true;
         }

@@ -59,13 +59,14 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         }
         String fixedShareholderId = String.valueOf(resultMap.get("annual_report_tyc_unique_entity_id_shareholder"));
         String fixedShareholderName = String.valueOf(resultMap.get("annual_report_entity_name_valid_shareholder"));
-        if (!TycUtils.isShareholderId(fixedShareholderId) || !TycUtils.isValidName(fixedShareholderName)) {
+        if (!TycUtils.isTycUniqueEntityId(fixedShareholderId) || !TycUtils.isValidName(fixedShareholderName)) {
             resultMap.put("delete_status", 2);
         }
         resultMap.put("annual_report_year", info.f2);
         // 认缴
         HashMap<String, Object> resultMap1 = new HashMap<>(resultMap);
         resultMap1.put("annual_report_shareholder_capital_type", 1);
+        resultMap1.put("annual_report_shareholder_capital_source", subscribeAmount);
         Tuple2<String, String> numberAndUnit1 = TycUtils.formatEquity(subscribeAmount);
         resultMap1.put("annual_report_shareholder_equity_amt", numberAndUnit1.f0);
         resultMap1.put("annual_report_shareholder_equity_currency", numberAndUnit1.f1);
@@ -80,6 +81,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         // 实缴
         HashMap<String, Object> resultMap2 = new HashMap<>(resultMap);
         resultMap2.put("annual_report_shareholder_capital_type", 2);
+        resultMap1.put("annual_report_shareholder_capital_source", paidAmount);
         Tuple2<String, String> numberAndUnit2 = TycUtils.formatEquity(paidAmount);
         resultMap2.put("annual_report_shareholder_equity_amt", numberAndUnit2.f0);
         resultMap2.put("annual_report_shareholder_equity_currency", numberAndUnit2.f1);
