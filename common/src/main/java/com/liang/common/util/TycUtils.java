@@ -128,7 +128,7 @@ public class TycUtils {
                 .WHERE("id = " + formatValue(companyCid))
                 .toString();
         Tuple2<String, String> res = new JdbcTemplate("464prism").queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        return res != null ? res : Tuple2.of("0", "");
+        return res != null ? res : Tuple2.of("0", String.format("%s:company_cid", companyCid));
     }
 
     public static String humanCid2Gid(String humanCid) {
@@ -150,9 +150,5 @@ public class TycUtils {
                 .toString();
         String res = new JdbcTemplate("prismBoss").queryForObject(sql, rs -> rs.getString(1));
         return res != null ? res : "0";
-    }
-
-    public static void main(String[] args) {
-        System.out.println(formatEquity("395.9744"));
     }
 }
