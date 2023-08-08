@@ -28,7 +28,9 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         Map<String, Object> resultMap = new HashMap<>();
         String id = String.valueOf(columnMap.get("id"));
         String reportId = String.valueOf(columnMap.get("annualreport_id"));
+        String investorId = String.valueOf(columnMap.get("investor_id"));
         String investorName = String.valueOf(columnMap.get("investor_name"));
+        String investorType = String.valueOf(columnMap.get("investor_type"));
         String ratioBefore = String.valueOf(columnMap.get("ratio_before"));
         String ratioAfter = String.valueOf(columnMap.get("ratio_after"));
         String changeTime = String.valueOf(columnMap.get("change_time"));
@@ -40,10 +42,31 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         resultMap.put("entity_name_valid", info.f1);
         resultMap.put("entity_type_id", 1);
         // 股东
-        resultMap.put("annual_report_year", info.f2);
-        resultMap.put("annual_report_tyc_unique_entity_id_shareholder", -1);
         resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
-        resultMap.put("annual_report_entity_type_id_shareholder", -1);
+        switch (investorType) {
+            case "2": // 人
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.getHumanHashId(info.f0, TycUtils.humanCid2Gid(investorId)));
+                resultMap.put("annual_report_entity_type_id_shareholder", 2);
+                break;
+            case "1": // 公司
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.companyCid2GidAndName(investorId).f0);
+                resultMap.put("annual_report_entity_type_id_shareholder", 1);
+                break;
+            case "3": // 非人非公司
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
+                resultMap.put("annual_report_entity_type_id_shareholder", 3);
+                break;
+            default: // 其它
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
+                resultMap.put("annual_report_entity_type_id_shareholder", 0);
+                break;
+        }
+        String fixedShareholderId = String.valueOf(resultMap.get("annual_report_tyc_unique_entity_id_shareholder"));
+        String fixedShareholderName = String.valueOf(resultMap.get("annual_report_entity_name_valid_shareholder"));
+        if (!TycUtils.isTycUniqueEntityId(fixedShareholderId) || !TycUtils.isTycUniqueEntityName(fixedShareholderName)) {
+            resultMap.put("delete_status", 2);
+        }
+        resultMap.put("annual_report_year", info.f2);
         // 股权变更
         resultMap.put("annual_report_equity_ratio_before_change", parse(id, ratioBefore));
         resultMap.put("annual_report_equity_ratio_after_change", parse(id, ratioAfter));

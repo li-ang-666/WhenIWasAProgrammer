@@ -49,11 +49,11 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.companyCid2GidAndName(investorId).f0);
                 resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
-            case "3": // 其它
+            case "3": // 非人非公司
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
                 resultMap.put("annual_report_entity_type_id_shareholder", 3);
                 break;
-            default:
+            default: // 其它
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
                 resultMap.put("annual_report_entity_type_id_shareholder", 0);
                 break;
