@@ -117,7 +117,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             Map<String, String> reportMap = redisTemplate.hScan(repairKey);
             long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[completed]")).count();
             long totalNum = config.getRepairTasks().size();
-            if (completedNum == totalNum) {
+            if (completedNum == totalNum || completedNum == 0) {
                 log.info("Detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
                 cancel();
             }
