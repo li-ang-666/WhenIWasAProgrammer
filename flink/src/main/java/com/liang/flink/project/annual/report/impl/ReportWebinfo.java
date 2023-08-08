@@ -2,6 +2,7 @@ package com.liang.flink.project.annual.report.impl;
 
 import com.liang.common.service.SQL;
 import com.liang.common.util.SqlUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -51,6 +52,9 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
         }
         resultMap.put("annual_report_ebusiness_name", name);
         resultMap.put("annual_report_ebusiness_website", website);
+        if (!TycUtils.isTycUniqueEntityName(name) && !TycUtils.isTycUniqueEntityName(website)) {
+            resultMap.put("delete_status", 2);
+        }
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert.f0)
