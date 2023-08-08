@@ -21,7 +21,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String id = String.valueOf(columnMap.get("id"));
         String reportId = String.valueOf(columnMap.get("annual_report_id"));
-        String shareholderName = String.valueOf(columnMap.get("investor_name_clean"));
+        String shareholderName = String.valueOf(columnMap.get("investor_name"));
         String investorId = String.valueOf(columnMap.get("investor_id"));
         String investorType = String.valueOf(columnMap.get("investor_type"));
         String subscribeAmount = String.valueOf(columnMap.get("subscribe_amount"));
@@ -38,23 +38,24 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         resultMap.put("tyc_unique_entity_id", info.f0);
         resultMap.put("entity_name_valid", info.f1);
         resultMap.put("entity_type_id", 1);
-        // 股东
-        // report_shareholder的人、公司枚举是反着的
+        // 股东(report_shareholder的人、公司枚举是反着的)
+        resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
         switch (investorType) {
             case "1": // 人
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.getHumanHashId(info.f0, TycUtils.humanCid2Gid(investorId)));
-                resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
                 resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 break;
             case "2": // 公司
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.companyCid2GidAndName(investorId).f0);
-                resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
                 resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
             case "3": // 其它
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
-                resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
                 resultMap.put("annual_report_entity_type_id_shareholder", 3);
+                break;
+            default:
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
+                resultMap.put("annual_report_entity_type_id_shareholder", 0);
                 break;
         }
         String fixedShareholderId = String.valueOf(resultMap.get("annual_report_tyc_unique_entity_id_shareholder"));
