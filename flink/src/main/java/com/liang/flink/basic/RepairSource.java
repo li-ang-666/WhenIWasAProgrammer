@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 @SuppressWarnings("SynchronizeOnNonFinalField")
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
-    private final static int CHECK_INTERVAL = 1000 * 30;
+    private final static int CHECK_INTERVAL = 1000 * 5;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;

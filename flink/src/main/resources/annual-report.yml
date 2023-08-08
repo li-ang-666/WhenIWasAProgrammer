@@ -18,12 +18,12 @@ repairTasks:
     columns: "*"
     where: "annual_report_id in (2899795106,2899795107,2899795108,2899795105,2929328432,2982142439,3064263112,3128941408,4409589494)"
     scanMode: Direct
-#  - taskId: "333"
-#    sourceName: "116prism"
-#    tableName: "report_outbound_investment"
-#    columns: "*"
-#    where: "1=1"
-#    scanMode: TumblingWindow
+  - taskId: "333"
+    sourceName: "116prism"
+    tableName: "report_outbound_investment"
+    columns: "*"
+    where: "annual_report_id in (2899795106,2899795107,2899795108,2899795105,2929328432,2982142439,3064263112,3128941408,4409589494)"
+    scanMode: Direct
 #  - taskId: "444"
 #    sourceName: "116prism"
 #    tableName: "report_webinfo"

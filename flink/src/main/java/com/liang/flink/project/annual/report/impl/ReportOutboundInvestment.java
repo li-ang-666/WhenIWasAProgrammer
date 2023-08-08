@@ -2,6 +2,7 @@ package com.liang.flink.project.annual.report.impl;
 
 import com.liang.common.service.SQL;
 import com.liang.common.util.SqlUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -22,19 +23,25 @@ public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String id = String.valueOf(columnMap.get("id"));
         String reportId = String.valueOf(columnMap.get("annual_report_id"));
+        String outcompanyId = String.valueOf(columnMap.get("outcompany_id"));
         String outCompanyName = String.valueOf(columnMap.get("outcompany_name"));
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("id", id);
         Tuple3<String, String, String> info = dao.getCompanyInfoAndReportYearByReportId(reportId, resultMap);
-        //
+        // 公司
         resultMap.put("tyc_unique_entity_id", info.f0);
         resultMap.put("entity_name_valid", info.f1);
         resultMap.put("entity_type_id", 1);
-        //
+        // 投资对象
         resultMap.put("annual_report_year", info.f2);
-        resultMap.put("annual_report_company_id_invested", -1);
+        resultMap.put("annual_report_company_id_invested", TycUtils.companyCid2GidAndName(outcompanyId).f0);
         resultMap.put("annual_report_company_name_invested", outCompanyName);
+        String fixedInvestCompanyId = String.valueOf(resultMap.get("annual_report_company_id_invested"));
+        String fixedInvestCompanyName = String.valueOf(resultMap.get("annual_report_company_name_invested"));
+        if (!TycUtils.isTycUniqueEntityId(fixedInvestCompanyId) || !TycUtils.isTycUniqueEntityName(fixedInvestCompanyName)) {
+            resultMap.put("delete_status", 2);
+        }
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert.f0)
