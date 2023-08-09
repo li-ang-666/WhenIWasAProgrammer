@@ -1,5 +1,7 @@
 package com.liang.flink.project.annual.report.impl;
 
+import com.liang.common.dto.tyc.Company;
+import com.liang.common.dto.tyc.Human;
 import com.liang.common.service.SQL;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
@@ -7,7 +9,6 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
 
 import java.util.*;
 
@@ -19,51 +20,55 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
         List<String> result = new ArrayList<>(deleteWithReturn(singleCanalBinlog));
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+        // 公司
         String id = String.valueOf(columnMap.get("id"));
         String reportId = String.valueOf(columnMap.get("annual_report_id"));
-        String shareholderName = String.valueOf(columnMap.get("investor_name"));
+        // 股东
         String investorId = String.valueOf(columnMap.get("investor_id"));
+        String investorName = String.valueOf(columnMap.get("investor_name"));
         String investorType = String.valueOf(columnMap.get("investor_type"));
+        // 其它
         String subscribeAmount = String.valueOf(columnMap.get("subscribe_amount"));
         String subscribeTime = String.valueOf(columnMap.get("subscribe_time"));
         String subscribeType = String.valueOf(columnMap.get("subscribe_type"));
         String paidAmount = String.valueOf(columnMap.get("paid_amount"));
         String paidTime = String.valueOf(columnMap.get("paid_time"));
         String paidType = String.valueOf(columnMap.get("paid_type"));
-
+        // 开始解析
         Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("business_id", id);
-        Tuple3<String, String, String> info = dao.getCompanyAndYear(reportId, resultMap);
+        Tuple2<Company, String> companyAndYear = dao.getCompanyAndYear(reportId);
+        Company company = companyAndYear.f0;
+        String year = companyAndYear.f1;
         // 公司
-        resultMap.put("tyc_unique_entity_id", info.f0);
-        resultMap.put("entity_name_valid", info.f1);
+        resultMap.put("business_id", id);
+        resultMap.put("annual_report_year", year);
+        resultMap.put("tyc_unique_entity_id", company.getGid());
+        resultMap.put("entity_name_valid", company.getName());
         resultMap.put("entity_type_id", 1);
-        // 股东(report_shareholder的人、公司枚举是反着的)
-        resultMap.put("annual_report_entity_name_valid_shareholder", shareholderName);
+        // 股东
+        resultMap.put("annual_report_entity_name_register_shareholder", investorName);
         switch (investorType) {
             case "1": // 人
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.getHumanHashId(info.f0, TycUtils.humanCid2Gid(investorId)));
+                Human human = TycUtils.cid2Human(investorId);
+                String pid = TycUtils.gid2Pid(company.getGid(), human.getGid());
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", pid);
+                resultMap.put("annual_report_entity_name_valid_shareholder", human.getName());
                 resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 break;
             case "2": // 公司
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", TycUtils.companyCid2GidAndName(investorId).f0);
+                Company investor = TycUtils.cid2Company(investorId);
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investor.getGid());
+                resultMap.put("annual_report_entity_name_valid_shareholder", investor.getName());
                 resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
-            case "3": // 非人非公司
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
+            default: // 非人非公司 or 其它
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
+                resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
                 resultMap.put("annual_report_entity_type_id_shareholder", 3);
                 break;
-            default: // 其它
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investorId);
-                resultMap.put("annual_report_entity_type_id_shareholder", 0);
-                break;
         }
-        String fixedShareholderId = String.valueOf(resultMap.get("annual_report_tyc_unique_entity_id_shareholder"));
-        String fixedShareholderName = String.valueOf(resultMap.get("annual_report_entity_name_valid_shareholder"));
-        if (!TycUtils.isTycUniqueEntityId(fixedShareholderId) || !TycUtils.isValidName(fixedShareholderName)) {
-            resultMap.put("delete_status", 2);
-        }
-        resultMap.put("annual_report_year", info.f2);
+        // 检测脏数据
+        checkMap(resultMap);
         // 认缴
         HashMap<String, Object> resultMap1 = new HashMap<>(resultMap);
         resultMap1.put("annual_report_shareholder_capital_type", 1);
@@ -103,5 +108,18 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 .WHERE("business_id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
                 .toString();
         return Collections.singletonList(sql);
+    }
+
+    private void checkMap(Map<String, Object> resultMap) {
+        if (TycUtils.isTycUniqueEntityId(resultMap.get("tyc_unique_entity_id")) &&
+                TycUtils.isValidName(resultMap.get("entity_name_valid")) &&
+                TycUtils.isTycUniqueEntityId(resultMap.get("annual_report_tyc_unique_entity_id_shareholder")) &&
+                TycUtils.isValidName(resultMap.get("annual_report_entity_name_valid_shareholder")) &&
+                TycUtils.isValidName(resultMap.get("annual_report_entity_name_register_shareholder")) &&
+                String.valueOf(resultMap.get("annual_report_year")).matches("\\d{4}")
+        ) {
+        } else {
+            resultMap.put("delete_status", 2);
+        }
     }
 }

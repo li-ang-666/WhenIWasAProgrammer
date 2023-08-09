@@ -26,7 +26,6 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
     @Override
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-        Map<String, Object> resultMap = new HashMap<>();
         // 公司
         String id = String.valueOf(columnMap.get("id"));
         String reportId = String.valueOf(columnMap.get("annualreport_id"));
@@ -38,7 +37,8 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         String ratioBefore = String.valueOf(columnMap.get("ratio_before"));
         String ratioAfter = String.valueOf(columnMap.get("ratio_after"));
         String changeTime = String.valueOf(columnMap.get("change_time"));
-        // 解析
+        // 开始解析
+        Map<String, Object> resultMap = new HashMap<>();
         Tuple2<Company, String> companyAndYear = dao.getCompanyAndYear(reportId);
         Company company = companyAndYear.f0;
         String year = companyAndYear.f1;
@@ -49,29 +49,29 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         resultMap.put("entity_name_valid", company.getName());
         resultMap.put("entity_type_id", 1);
         // 股东
-        resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
+        resultMap.put("annual_report_entity_name_register_shareholder", investorName);
         switch (investorType) {
-            case "2": // 人
+            case "1": // 人
                 Human human = TycUtils.cid2Human(investorId);
-                String pid = TycUtils.getHumanHashId(company.getGid().toString(), human.getGid().toString());
+                String pid = TycUtils.gid2Pid(company.getGid(), human.getGid());
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", pid);
+                resultMap.put("annual_report_entity_name_valid_shareholder", human.getName());
                 resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 break;
-            case "1": // 公司
+            case "2": // 公司
                 Company investor = TycUtils.cid2Company(investorId);
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investor.getGid());
+                resultMap.put("annual_report_entity_name_valid_shareholder", investor.getName());
                 resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
             default: // 非人非公司 or 其它
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", -1);
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
+                resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
                 resultMap.put("annual_report_entity_type_id_shareholder", 3);
                 break;
         }
-        String fixedShareholderId = String.valueOf(resultMap.get("annual_report_tyc_unique_entity_id_shareholder"));
-        String fixedShareholderName = String.valueOf(resultMap.get("annual_report_entity_name_valid_shareholder"));
-        if (!TycUtils.isTycUniqueEntityId(fixedShareholderId) || !TycUtils.isValidName(fixedShareholderName)) {
-            resultMap.put("delete_status", 2);
-        }
+        // 检测脏数据
+        checkMap(resultMap);
         // 股权变更
         resultMap.put("annual_report_equity_ratio_before_change", parse(id, ratioBefore));
         resultMap.put("annual_report_equity_ratio_after_change", parse(id, ratioAfter));
@@ -121,6 +121,19 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         } catch (Exception e) {
             log.error("股权变更解析异常, id = {}, percent = {}", id, percent, e);
             return defaultResult;
+        }
+    }
+
+    private void checkMap(Map<String, Object> resultMap) {
+        if (TycUtils.isTycUniqueEntityId(resultMap.get("tyc_unique_entity_id")) &&
+                TycUtils.isValidName(resultMap.get("entity_name_valid")) &&
+                TycUtils.isTycUniqueEntityId(resultMap.get("annual_report_tyc_unique_entity_id_shareholder")) &&
+                TycUtils.isValidName(resultMap.get("annual_report_entity_name_valid_shareholder")) &&
+                TycUtils.isValidName(resultMap.get("annual_report_entity_name_register_shareholder")) &&
+                String.valueOf(resultMap.get("annual_report_year")).matches("\\d{4}")
+        ) {
+        } else {
+            resultMap.put("delete_status", 2);
         }
     }
 }

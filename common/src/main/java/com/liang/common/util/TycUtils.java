@@ -15,58 +15,62 @@ import static com.liang.common.util.SqlUtils.formatValue;
 
 @UtilityClass
 public class TycUtils {
-    public static boolean isUnsignedId(String id) {
-        if (id == null || id.isEmpty()) {
+    public static boolean isUnsignedId(Object id) {
+        String idStr = String.valueOf(id);
+        if (idStr == null || idStr.isEmpty()) {
             return false;
         }
-        if ("0".equals(id)) {
+        if ("0".equals(idStr)) {
             return false;
         }
-        int length = id.length();
+        int length = idStr.length();
         for (int i = 0; i < length; i++) {
-            if (!Character.isDigit(id.charAt(i))) {
+            if (!Character.isDigit(idStr.charAt(i))) {
                 return false;
             }
         }
         return true;
     }
 
-    public static boolean isTycUniqueEntityId(String shareholderId) {
-        if (isUnsignedId(shareholderId)) {
+    public static boolean isTycUniqueEntityId(Object shareholderId) {
+        String shareholderIdStr = String.valueOf(shareholderId);
+        if (isUnsignedId(shareholderIdStr)) {
             return true;
         }
-        if (shareholderId == null || shareholderId.isEmpty()) {
+        if (shareholderIdStr == null || shareholderIdStr.isEmpty()) {
             return false;
         }
-        int length = shareholderId.length();
+        int length = shareholderIdStr.length();
         if (length < 17) {
             return false;
         }
         for (int i = 0; i < length; i++) {
-            if (!Character.isLetterOrDigit(shareholderId.charAt(i))) {
+            if (!Character.isLetterOrDigit(shareholderIdStr.charAt(i))) {
                 return false;
             }
         }
         return true;
     }
 
-    public static boolean isValidName(String str) {
-        return StringUtils.isNotBlank(str) && !"null".equalsIgnoreCase(str);
+    public static boolean isValidName(Object name) {
+        String nameStr = String.valueOf(name);
+        return StringUtils.isNotBlank(nameStr) && !"null".equalsIgnoreCase(nameStr);
     }
 
-    public static boolean isDateTime(String str) {
-        return String.valueOf(str).matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$");
+    public static boolean isDateTime(Object datetime) {
+        return String.valueOf(datetime).matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$");
     }
 
-    public static Tuple2<String, String> formatEquity(String equity) {
-        if (equity == null || equity.isEmpty()) {
-            return Tuple2.of(getDecimalString("0", 1), "人民币");
+    public static Tuple2<String, String> formatEquity(Object equity) {
+        String equityStr = String.valueOf(equity);
+        if (equityStr == null || equityStr.isEmpty()) {
+            return Tuple2.of(getMultiplied("0", 1), "人民币");
         }
         StringBuilder numberBuilder = new StringBuilder();
         StringBuilder unitBuilder = new StringBuilder();
-        int length = equity.length();
+        int length = equityStr.length();
         for (int i = 0; i < length; i++) {
-            char c = equity.charAt(i);
+            char c = equityStr.charAt(i);
             if (Character.isDigit(c) || '.' == c) {
                 numberBuilder.append(c);
             } else if (!Character.isWhitespace(c) && String.valueOf(c).matches("[\u4e00-\u9fa5]")) {
@@ -77,7 +81,7 @@ public class TycUtils {
         String unit = unitBuilder.toString();
         if (unit.isEmpty()) {
             // 如果整数有5位
-            if (getDecimalString(number, 1).split("\\.")[0].length() >= 5) {
+            if (getMultiplied(number, 1).split("\\.")[0].length() >= 5) {
                 unit = "元";
             } else {
                 unit = "万元";
@@ -85,7 +89,7 @@ public class TycUtils {
         } else if ("万".equals(unit)) {
             unit = "万元";
         }
-        number = getDecimalString(number, unit.contains("万") ? 10000 * 10 * 10 : 10 * 10);
+        number = getMultiplied(number, unit.contains("万") ? 10000 * 10 * 10 : 10 * 10);
         if (unit.contains("人民币") || "万元".equals(unit) || "元".equals(unit)) {
             return Tuple2.of(number, "人民币");
         } else if (unit.contains("美国") || unit.contains("美元") || unit.contains("美币")) {
@@ -109,7 +113,7 @@ public class TycUtils {
         }
     }
 
-    private static String getDecimalString(String number, long multiply) {
+    private static String getMultiplied(String number, long multiply) {
         try {
             BigDecimal bigDecimal = new BigDecimal(multiply);
             return new BigDecimal(number)
@@ -123,7 +127,7 @@ public class TycUtils {
         }
     }
 
-    public static Company cid2Company(String cid) {
+    public static Company cid2Company(Object cid) {
         if (!isUnsignedId(cid)) {
             return new Company();
         }
@@ -134,13 +138,18 @@ public class TycUtils {
                 .toString();
         Tuple2<String, String> tuple2 = new JdbcTemplate("464prism").queryForObject(sql,
                 rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        if (tuple2 == null || !isUnsignedId(tuple2.f0) || !isValidName(tuple2.f1)) {
+        if (tuple2 == null) {
             return new Company();
         }
-        return new Company(Long.parseLong(tuple2.f0), tuple2.f1);
+        String gid = tuple2.f0;
+        String name = tuple2.f1;
+        if (isUnsignedId(gid) && isValidName(name)) {
+            return new Company(Long.parseLong(gid), name);
+        }
+        return new Company();
     }
 
-    public static Human cid2Human(String cid) {
+    public static Human cid2Human(Object cid) {
         if (!isUnsignedId(cid)) {
             return new Human();
         }
@@ -152,13 +161,21 @@ public class TycUtils {
                 .toString();
         Tuple2<String, String> tuple2 = new JdbcTemplate("116prism").queryForObject(sql,
                 rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        if (tuple2 == null || !isUnsignedId(tuple2.f0) || !isValidName(tuple2.f1)) {
+        if (tuple2 == null) {
             return new Human();
         }
-        return new Human(Long.parseLong(tuple2.f0), tuple2.f1);
+        String gid = tuple2.f0;
+        String name = tuple2.f1;
+        if (isUnsignedId(gid) && isValidName(name)) {
+            return new Human(Long.parseLong(gid), name);
+        }
+        return new Human();
     }
 
-    public static String getHumanHashId(String companyGid, String humanGid) {
+    public static String gid2Pid(Object companyGid, Object humanGid) {
+        if (!isUnsignedId(companyGid) || !isUnsignedId(humanGid)) {
+            return "0";
+        }
         String sql = new SQL().SELECT("human_pid")
                 .FROM("company_human_relation")
                 .WHERE("deleted = 0")
@@ -166,6 +183,6 @@ public class TycUtils {
                 .WHERE("human_graph_id = " + formatValue(humanGid))
                 .toString();
         String res = new JdbcTemplate("prismBoss").queryForObject(sql, rs -> rs.getString(1));
-        return res != null ? res : "0";
+        return isTycUniqueEntityId(res) ? res : "0";
     }
 }
