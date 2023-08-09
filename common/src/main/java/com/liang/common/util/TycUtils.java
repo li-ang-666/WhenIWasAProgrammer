@@ -4,6 +4,7 @@ import com.liang.common.dto.tyc.Company;
 import com.liang.common.dto.tyc.Human;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -61,6 +62,7 @@ public class TycUtils {
         return String.valueOf(datetime).matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$");
     }
 
+    @NonNull
     public static Tuple2<String, String> formatEquity(Object equity) {
         String equityStr = String.valueOf(equity);
         if (equityStr == null || equityStr.isEmpty()) {
@@ -113,6 +115,7 @@ public class TycUtils {
         }
     }
 
+    @NonNull
     private static String getMultiplied(String number, long multiply) {
         try {
             BigDecimal bigDecimal = new BigDecimal(multiply);
@@ -127,6 +130,7 @@ public class TycUtils {
         }
     }
 
+    @NonNull
     public static Company cid2Company(Object cid) {
         if (!isUnsignedId(cid)) {
             return new Company();
@@ -149,6 +153,7 @@ public class TycUtils {
         return new Company();
     }
 
+    @NonNull
     public static Human cid2Human(Object cid) {
         if (!isUnsignedId(cid)) {
             return new Human();
@@ -172,6 +177,7 @@ public class TycUtils {
         return new Human();
     }
 
+    @NonNull
     public static String gid2Pid(Object companyGid, Object humanGid) {
         if (!isUnsignedId(companyGid) || !isUnsignedId(humanGid)) {
             return "0";
