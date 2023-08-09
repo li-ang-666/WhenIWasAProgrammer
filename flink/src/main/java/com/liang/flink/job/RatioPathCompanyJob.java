@@ -4,6 +4,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.DaemonExecutor;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
@@ -12,7 +13,6 @@ import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -84,15 +84,11 @@ public class RatioPathCompanyJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
-            if (!StringUtils.isNumeric(companyIdString) || "0".equals(companyIdString)) {
-                return;
-            }
-            Long companyId = Long.parseLong(companyIdString);
-            if (companyIds.contains(companyId)) {
-                return;
-            }
-            synchronized (companyIds) {
-                companyIds.add(companyId);
+            if (TycUtils.isUnsignedId(columnMap.get("company_id_invested"))) {
+                Long companyId = Long.parseLong(companyIdString);
+                synchronized (companyIds) {
+                    companyIds.add(companyId);
+                }
             }
         }
 
