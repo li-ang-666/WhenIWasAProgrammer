@@ -1,6 +1,7 @@
 package com.liang.common.util;
 
 import com.liang.common.dto.tyc.Company;
+import com.liang.common.dto.tyc.Human;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import lombok.experimental.UtilityClass;
@@ -139,24 +140,22 @@ public class TycUtils {
         return new Company(Long.parseLong(tuple2.f0), tuple2.f1);
     }
 
-    public static Tuple2<String, String> companyCid2GidAndName(String companyCid) {
-        String sql = new SQL().SELECT("graph_id,name")
-                .FROM("enterprise")
-                .WHERE("deleted = 0")
-                .WHERE("id = " + formatValue(companyCid))
+    public static Human cid2Human(String cid) {
+        if (!isUnsignedId(cid)) {
+            return new Human();
+        }
+        String sql = new SQL().SELECT("hg.graph_id", "h.name")
+                .FROM("human_graph hg")
+                .JOIN("human h on hg.human_id = h.id")
+                .WHERE("hg.deleted = 0")
+                .WHERE("hg.human_id = " + formatValue(cid))
                 .toString();
-        Tuple2<String, String> res = new JdbcTemplate("464prism").queryForObject(sql, rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        return res != null ? res : Tuple2.of("0", String.format("%s:company_cid", companyCid));
-    }
-
-    public static String humanCid2Gid(String humanCid) {
-        String sql = new SQL().SELECT("graph_id")
-                .FROM("human_graph")
-                .WHERE("deleted = 0")
-                .WHERE("human_id = " + formatValue(humanCid))
-                .toString();
-        String res = new JdbcTemplate("116prism").queryForObject(sql, rs -> rs.getString(1));
-        return res != null ? res : "0";
+        Tuple2<String, String> tuple2 = new JdbcTemplate("116prism").queryForObject(sql,
+                rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
+        if (tuple2 == null || !isUnsignedId(tuple2.f0) || !isTycUniqueEntityName(tuple2.f1)) {
+            return new Human();
+        }
+        return new Human(Long.parseLong(tuple2.f0), tuple2.f1);
     }
 
     public static String getHumanHashId(String companyGid, String humanGid) {

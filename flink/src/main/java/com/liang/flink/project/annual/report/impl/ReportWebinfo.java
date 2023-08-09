@@ -29,7 +29,7 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("id", id);
-        Tuple3<String, String, String> info = dao.getCompanyInfoAndReportYearByReportId(reportId, resultMap);
+        Tuple3<String, String, String> info = dao.getCompanyAndYear(reportId, resultMap);
         //
         resultMap.put("tyc_unique_entity_id", info.f0);
         resultMap.put("entity_name_valid", info.f1);
