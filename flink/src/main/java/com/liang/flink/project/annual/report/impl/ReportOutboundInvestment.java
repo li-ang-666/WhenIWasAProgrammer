@@ -39,7 +39,7 @@ public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
         resultMap.put("annual_report_company_name_invested", outCompanyName);
         String fixedInvestCompanyId = String.valueOf(resultMap.get("annual_report_company_id_invested"));
         String fixedInvestCompanyName = String.valueOf(resultMap.get("annual_report_company_name_invested"));
-        if (!TycUtils.isTycUniqueEntityId(fixedInvestCompanyId) || !TycUtils.isTycUniqueEntityName(fixedInvestCompanyName)) {
+        if (!TycUtils.isTycUniqueEntityId(fixedInvestCompanyId) || !TycUtils.isValidName(fixedInvestCompanyName)) {
             resultMap.put("delete_status", 2);
         }
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);

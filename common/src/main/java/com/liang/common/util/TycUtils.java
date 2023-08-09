@@ -50,7 +50,7 @@ public class TycUtils {
         return true;
     }
 
-    public static boolean isTycUniqueEntityName(String str) {
+    public static boolean isValidName(String str) {
         return StringUtils.isNotBlank(str) && !"null".equalsIgnoreCase(str);
     }
 
@@ -134,7 +134,7 @@ public class TycUtils {
                 .toString();
         Tuple2<String, String> tuple2 = new JdbcTemplate("464prism").queryForObject(sql,
                 rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        if (tuple2 == null || !isUnsignedId(tuple2.f0) || !isTycUniqueEntityName(tuple2.f1)) {
+        if (tuple2 == null || !isUnsignedId(tuple2.f0) || !isValidName(tuple2.f1)) {
             return new Company();
         }
         return new Company(Long.parseLong(tuple2.f0), tuple2.f1);
@@ -152,7 +152,7 @@ public class TycUtils {
                 .toString();
         Tuple2<String, String> tuple2 = new JdbcTemplate("116prism").queryForObject(sql,
                 rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        if (tuple2 == null || !isUnsignedId(tuple2.f0) || !isTycUniqueEntityName(tuple2.f1)) {
+        if (tuple2 == null || !isUnsignedId(tuple2.f0) || !isValidName(tuple2.f1)) {
             return new Human();
         }
         return new Human(Long.parseLong(tuple2.f0), tuple2.f1);
