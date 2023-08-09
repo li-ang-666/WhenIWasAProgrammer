@@ -1,5 +1,6 @@
 package com.liang.common.util;
 
+import com.liang.common.dto.tyc.Company;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import lombok.experimental.UtilityClass;
@@ -119,6 +120,23 @@ public class TycUtils {
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         }
+    }
+
+    public static Company cid2Company(String cid) {
+        if (!isUnsignedId(cid)) {
+            return new Company();
+        }
+        String sql = new SQL().SELECT("graph_id", "name")
+                .FROM("enterprise")
+                .WHERE("deleted = 0")
+                .WHERE("id = " + formatValue(cid))
+                .toString();
+        Tuple2<String, String> tuple2 = new JdbcTemplate("464prism").queryForObject(sql,
+                rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
+        if (tuple2 == null || !isUnsignedId(tuple2.f0) || !isTycUniqueEntityName(tuple2.f1)) {
+            return new Company();
+        }
+        return new Company(Long.parseLong(tuple2.f0), tuple2.f1);
     }
 
     public static Tuple2<String, String> companyCid2GidAndName(String companyCid) {
