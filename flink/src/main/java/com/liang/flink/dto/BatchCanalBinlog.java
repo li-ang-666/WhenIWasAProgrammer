@@ -65,7 +65,7 @@ public class BatchCanalBinlog implements Serializable {
                 singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap, new HashMap<>(), columnMap));
             } else if (eventType == CanalEntry.EventType.UPDATE) {
                 Map<String, Object> oldColumnMapPart = old.get(i);
-                HashMap<String, Object> oldColumnMapAll = new HashMap<>(columnMap);
+                Map<String, Object> oldColumnMapAll = new LinkedHashMap<>(columnMap);
                 oldColumnMapAll.putAll(oldColumnMapPart);
                 singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap, oldColumnMapAll, columnMap));
             } else {
