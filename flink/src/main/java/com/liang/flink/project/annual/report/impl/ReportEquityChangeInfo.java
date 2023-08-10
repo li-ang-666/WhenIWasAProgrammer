@@ -110,7 +110,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
                 .toPlainString();
         try {
             String plainString = new BigDecimal(builder.toString())
-                    .divide(new BigDecimal(100), RoundingMode.DOWN)
+                    .divide(new BigDecimal(100), 12, RoundingMode.DOWN)
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
             if (plainString.compareTo("1.0000000000000") > 0) {
