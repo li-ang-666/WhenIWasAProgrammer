@@ -60,12 +60,16 @@ public class BatchCanalBinlog implements Serializable {
         List<Map<String, Object>> data = (List<Map<String, Object>>) binlogMap.get("data");
         List<Map<String, Object>> old = (List<Map<String, Object>>) binlogMap.get("old");
         for (int i = 0; i < data.size(); i++) {
+            Map<String, Object> columnMap = data.get(i);
             if (eventType == CanalEntry.EventType.INSERT) {
-                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, data.get(i), new HashMap<>(), data.get(i)));
+                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap, new HashMap<>(), columnMap));
             } else if (eventType == CanalEntry.EventType.UPDATE) {
-                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, data.get(i), old.get(i), data.get(i)));
+                Map<String, Object> oldColumnMapPart = old.get(i);
+                HashMap<String, Object> oldColumnMapAll = new HashMap<>(columnMap);
+                oldColumnMapAll.putAll(oldColumnMapPart);
+                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap, oldColumnMapAll, columnMap));
             } else {
-                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, data.get(i), data.get(i), new HashMap<>()));
+                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap, columnMap, new HashMap<>()));
             }
         }
     }
