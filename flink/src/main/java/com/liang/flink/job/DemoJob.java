@@ -27,8 +27,8 @@ public class DemoJob {
                         System.out.println(JsonUtils.toString(singleCanalBinlog));
                         Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
                         Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
-                        System.out.println("name: " + Objects.deepEquals(beforeColumnMap.get("name"), afterColumnMap.get("name")));
-                        System.out.println("deleted: " + Objects.deepEquals(beforeColumnMap.get("deleted"), afterColumnMap.get("deleted")));
+                        System.out.println("nameEquals?: " + Objects.deepEquals(beforeColumnMap.get("name"), afterColumnMap.get("name")));
+                        System.out.println("deletedEquals?: " + Objects.deepEquals(beforeColumnMap.get("deleted"), afterColumnMap.get("deleted")));
                     }
                 });
         env.execute("DemoJob");
