@@ -45,7 +45,8 @@ public class AnnualReportJob {
             ReportEquityChangeInfo.class,
             ReportShareholder.class,
             ReportOutboundInvestment.class,
-            ReportWebinfo.class
+            ReportWebinfo.class,
+
     })
     private final static class AnnualReportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;

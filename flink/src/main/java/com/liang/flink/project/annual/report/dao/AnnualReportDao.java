@@ -6,6 +6,9 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.TycUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.liang.common.util.SqlUtils.formatValue;
 
 public class AnnualReportDao {
@@ -32,5 +35,65 @@ public class AnnualReportDao {
         String year = companyCidAndYear.f1;
         // 查询enterprise表
         return Tuple2.of(TycUtils.cid2Company(companyCid), year);
+    }
+
+    public void updateSource(String companyCid) {
+        String querySql = new SQL()
+                .SELECT("id")
+                .FROM("annual_report")
+                .WHERE("company_id = " + formatValue(companyCid))
+                .toString();
+        List<String> reportIds = prism116.queryForList(querySql, rs -> rs.getString(1));
+        List<String> sqls = new ArrayList<>();
+        // 四张表
+        if (!reportIds.isEmpty()) {
+            String strReportIds = "(" + String.join(",", reportIds) + ")";
+            String sql1 = new SQL()
+                    .UPDATE("report_equity_change_info")
+                    .SET("createTime = date_add(createTime, interval 1 second)")
+                    .WHERE("annualreport_id in " + strReportIds)
+                    .toString();
+            String sql2 = new SQL()
+                    .UPDATE("report_shareholder")
+                    .SET("createTime = date_add(createTime, interval 1 second)")
+                    .WHERE("annual_report_id in " + strReportIds)
+                    .toString();
+            String sql3 = new SQL()
+                    .UPDATE("report_outbound_investment")
+                    .SET("createTime = date_add(createTime, interval 1 second)")
+                    .WHERE("annual_report_id in " + strReportIds)
+                    .toString();
+            String sql4 = new SQL()
+                    .UPDATE("report_webinfo")
+                    .SET("createTime = date_add(createTime, interval 1 second)")
+                    .WHERE("annualreport_id in " + strReportIds)
+                    .toString();
+            sqls.add(sql1);
+            sqls.add(sql2);
+            sqls.add(sql3);
+            sqls.add(sql4);
+        }
+        // 三张有股东或者对外投资的表
+        String sql1 = new SQL()
+                .UPDATE("report_equity_change_info")
+                .SET("createTime = date_add(createTime, interval 1 second)")
+                .WHERE("investor_id = 2")
+                .WHERE("investor_id = " + formatValue(companyCid))
+                .toString();
+        String sql2 = new SQL()
+                .UPDATE("report_shareholder")
+                .SET("createTime = date_add(createTime, interval 1 second)")
+                .WHERE("investor_id = 2")
+                .WHERE("investor_id = " + formatValue(companyCid))
+                .toString();
+        String sql3 = new SQL()
+                .UPDATE("report_outbound_investment")
+                .SET("createTime = date_add(createTime, interval 1 second)")
+                .WHERE("outcompany_id = " + formatValue(companyCid))
+                .toString();
+        sqls.add(sql1);
+        sqls.add(sql2);
+        sqls.add(sql3);
+        prism116.update(sqls);
     }
 }
