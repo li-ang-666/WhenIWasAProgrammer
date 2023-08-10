@@ -8,8 +8,11 @@ import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+
+import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @LocalConfigFile("demo.yml")
@@ -18,12 +21,16 @@ public class DemoJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
-                .map(new MapFunction<SingleCanalBinlog, String>() {
+                .addSink(new SinkFunction<SingleCanalBinlog>() {
                     @Override
-                    public String map(SingleCanalBinlog value) throws Exception {
-                        return JsonUtils.toString(value);
+                    public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+                        System.out.println(JsonUtils.toString(singleCanalBinlog));
+                        Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
+                        Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
+                        System.out.println("name: " + Objects.deepEquals(beforeColumnMap.get("name"), afterColumnMap.get("name")));
+                        System.out.println("deleted: " + Objects.deepEquals(beforeColumnMap.get("deleted"), afterColumnMap.get("deleted")));
                     }
-                }).print().setParallelism(1);
+                });
         env.execute("DemoJob");
     }
 }
