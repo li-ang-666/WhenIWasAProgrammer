@@ -84,7 +84,7 @@ public class RatioPathCompanyJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
-            if (TycUtils.isUnsignedId(columnMap.get("company_id_invested"))) {
+            if (TycUtils.isUnsignedId(companyIdString)) {
                 Long companyId = Long.parseLong(companyIdString);
                 synchronized (companyIds) {
                     companyIds.add(companyId);
