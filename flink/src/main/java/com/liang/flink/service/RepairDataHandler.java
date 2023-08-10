@@ -7,6 +7,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -50,7 +51,7 @@ public class RepairDataHandler implements Runnable {
                 List<Map<String, Object>> columnMaps = nextBatch();
                 synchronized (task) {
                     for (Map<String, Object> columnMap : columnMaps) {
-                        queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap));
+                        queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                     }
                     commit();
                 }

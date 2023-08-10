@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @Slf4j
@@ -61,8 +58,15 @@ public class BatchCanalBinlog implements Serializable {
         String tb = String.valueOf(binlogMap.get("table"));
         long executeTime = Long.parseLong(String.valueOf(binlogMap.get("es")));
         List<Map<String, Object>> data = (List<Map<String, Object>>) binlogMap.get("data");
-        for (Map<String, Object> row : data) {
-            singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, row));
+        List<Map<String, Object>> old = (List<Map<String, Object>>) binlogMap.get("old");
+        for (int i = 0; i < data.size(); i++) {
+            if (eventType == CanalEntry.EventType.INSERT) {
+                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, data.get(i), new HashMap<>(), data.get(i)));
+            } else if (eventType == CanalEntry.EventType.UPDATE) {
+                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, data.get(i), old.get(i), data.get(i)));
+            } else {
+                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, data.get(i), data.get(i), new HashMap<>()));
+            }
         }
     }
 
@@ -100,14 +104,14 @@ public class BatchCanalBinlog implements Serializable {
             long executeTime = header.getExecuteTime();
             List<CanalEntry.RowData> rowDatasList = rowChange.getRowDatasList();
             for (CanalEntry.RowData rowData : rowDatasList) {
-                if (eventType == CanalEntry.EventType.INSERT || eventType == CanalEntry.EventType.UPDATE) {
-                    //after columns
-                    Map<String, Object> columnMap = columnListToColumnMap(rowData.getAfterColumnsList());
-                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap));
+                Map<String, Object> beforeColumnMap = columnListToColumnMap(rowData.getBeforeColumnsList());
+                Map<String, Object> afterColumnMap = columnListToColumnMap(rowData.getAfterColumnsList());
+                if (eventType == CanalEntry.EventType.INSERT) {
+                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, afterColumnMap, new HashMap<>(), afterColumnMap));
+                } else if (eventType == CanalEntry.EventType.UPDATE) {
+                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, afterColumnMap, beforeColumnMap, afterColumnMap));
                 } else if (eventType == CanalEntry.EventType.DELETE) {
-                    //before columns
-                    Map<String, Object> columnMap = columnListToColumnMap(rowData.getBeforeColumnsList());
-                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap));
+                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, beforeColumnMap, new HashMap<>()));
                 } else {
                     log.warn("singleCanalBinlog对象非增删改,type: {}, sql: {}", eventType, sql);
                 }

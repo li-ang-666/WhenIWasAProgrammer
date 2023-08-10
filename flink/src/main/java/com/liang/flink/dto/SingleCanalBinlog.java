@@ -21,4 +21,6 @@ public class SingleCanalBinlog implements Serializable {
     private long executeMilliseconds;
     private CanalEntry.EventType eventType;
     private Map<String, Object> columnMap;
+    private Map<String, Object> beforeColumnMap;
+    private Map<String, Object> afterColumnMap;
 }
