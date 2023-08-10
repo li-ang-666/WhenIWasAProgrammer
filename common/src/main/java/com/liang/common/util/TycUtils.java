@@ -18,29 +18,20 @@ import static com.liang.common.util.SqlUtils.formatValue;
 public class TycUtils {
     public static boolean isUnsignedId(Object id) {
         String idStr = String.valueOf(id);
-        if (idStr == null || idStr.isEmpty()) {
-            return false;
-        }
-        if ("0".equals(idStr)) {
-            return false;
-        }
-        int length = idStr.length();
-        for (int i = 0; i < length; i++) {
-            if (!Character.isDigit(idStr.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
+        return StringUtils.isNumeric(idStr) && !"0".equals(idStr);
     }
 
     public static boolean isTycUniqueEntityId(Object shareholderId) {
-        String shareholderIdStr = String.valueOf(shareholderId);
-        if (isUnsignedId(shareholderIdStr)) {
+        // 先判断数字
+        if (isUnsignedId(shareholderId)) {
             return true;
         }
-        if (shareholderIdStr == null || shareholderIdStr.isEmpty()) {
+        // 判空
+        if (shareholderId == null) {
             return false;
         }
+        // 判断17位hash值
+        String shareholderIdStr = String.valueOf(shareholderId);
         int length = shareholderIdStr.length();
         if (length < 17) {
             return false;
@@ -64,10 +55,11 @@ public class TycUtils {
 
     @NonNull
     public static Tuple2<String, String> formatEquity(Object equity) {
-        String equityStr = String.valueOf(equity);
-        if (equityStr == null || equityStr.isEmpty()) {
+        // 判空
+        if (equity == null) {
             return Tuple2.of(getMultiplied("0", 1), "人民币");
         }
+        String equityStr = String.valueOf(equity);
         StringBuilder numberBuilder = new StringBuilder();
         StringBuilder unitBuilder = new StringBuilder();
         int length = equityStr.length();
