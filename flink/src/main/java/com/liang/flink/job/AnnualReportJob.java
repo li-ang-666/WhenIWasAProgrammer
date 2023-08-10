@@ -7,10 +7,7 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
-import com.liang.flink.project.annual.report.impl.ReportEquityChangeInfo;
-import com.liang.flink.project.annual.report.impl.ReportOutboundInvestment;
-import com.liang.flink.project.annual.report.impl.ReportShareholder;
-import com.liang.flink.project.annual.report.impl.ReportWebinfo;
+import com.liang.flink.project.annual.report.impl.*;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
@@ -46,7 +43,7 @@ public class AnnualReportJob {
             ReportShareholder.class,
             ReportOutboundInvestment.class,
             ReportWebinfo.class,
-
+            Enterprise.class
     })
     private final static class AnnualReportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
