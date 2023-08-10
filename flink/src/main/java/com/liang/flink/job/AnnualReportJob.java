@@ -3,6 +3,7 @@ package com.liang.flink.job;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -30,8 +31,14 @@ public class AnnualReportJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
+        Distributor distributor = new Distributor()
+                .with("report_equity_change_info", e -> e.getColumnMap().get("id").toString())
+                .with("report_shareholder", e -> e.getColumnMap().get("id").toString())
+                .with("report_outbound_investment", e -> e.getColumnMap().get("id").toString())
+                .with("report_webinfo", e -> e.getColumnMap().get("id").toString())
+                .with("enterprise", e -> e.getColumnMap().get("id").toString());
         stream
-                .rebalance()
+                .keyBy(distributor)
                 .addSink(new AnnualReportSink(config)).name("AnnualReportSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("AnnualReportJob");
     }

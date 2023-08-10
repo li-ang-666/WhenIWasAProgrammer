@@ -39,5 +39,6 @@ kafkaConfigs:
       - "0bb01.proto.prism.report_shareholder"
       - "0bb01.proto.prism.report_outbound_investment"
       - "0bb01.json.prism.report_webinfo"
+      #- "56736.json.prism.enterprise"
     groupId: "annual-report-job"
     startFrom: "1"
