@@ -1,7 +1,5 @@
 package com.liang.flink.job;
 
-import com.liang.common.dto.Config;
-import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
@@ -19,8 +17,6 @@ import java.util.Objects;
 public class DemoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
-        env.getConfig().enableForceKryo();
-        Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
                 .addSink(new SinkFunction<SingleCanalBinlog>() {
                     @Override
