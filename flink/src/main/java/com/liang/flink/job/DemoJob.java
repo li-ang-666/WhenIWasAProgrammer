@@ -19,6 +19,7 @@ import java.util.Objects;
 public class DemoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
+        env.getConfig().enableForceKryo();
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
                 .addSink(new SinkFunction<SingleCanalBinlog>() {
