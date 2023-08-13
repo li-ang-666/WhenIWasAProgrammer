@@ -11,6 +11,13 @@
 
     <artifactId>repair</artifactId>
     <dependencies>
+        <!--delete kafka topic-->
+        <!--<dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.5.1</version>
+        </dependency>-->
+
         <!--hutool-->
         <dependency>
             <groupId>cn.hutool</groupId>
