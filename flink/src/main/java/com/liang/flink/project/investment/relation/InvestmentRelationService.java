@@ -32,7 +32,7 @@ public class InvestmentRelationService {
                 .DELETE_FROM("investment_relation")
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyGid));
         sqls.add(deleteSQL);
-        HashMap<String, Object> abstractColumnMap = new HashMap<>();
+        Map<String, Object> abstractColumnMap = new HashMap<>();
         abstractColumnMap.put("company_id_invested", companyMap.get("id"));
         abstractColumnMap.put("company_name_invested", companyMap.get("name"));
         abstractColumnMap.put("company_type_invested", companyMap.get("type"));
@@ -45,17 +45,20 @@ public class InvestmentRelationService {
         for (InvestmentRelationDao.InvestmentRelationBean relation : relations) {
             String shareholderGid = relation.getShareholderGid();
             String shareholderPid = relation.getShareholderPid();
-            String equityRatio = relation.getEquityRatio();
             HashMap<String, Object> columnMap = new HashMap<>(abstractColumnMap);
             if (shareholderPid.length() >= 17) {
+                // 股东类型是人
                 columnMap.put("shareholder_entity_type", 2);
                 columnMap.put("company_entity_inlink", relation.getShareholderName() + ":" + shareholderGid + "-" + companyGid + ":" + shareholderPid + ":human");
                 columnMap.put("shareholder_company_position_list_clean", dao.getCompanyHumanPosition(companyGid, shareholderGid));
             } else {
+                // 股东类型是公司
                 Map<String, Object> shareholderMapForCompanyType = getCompanyMap(shareholderGid);
                 if (shareholderMapForCompanyType.isEmpty()) {
                     continue;
                 }
+                columnMap.put("shareholder_entity_type", 1);
+                columnMap.put("company_entity_inlink", shareholderMapForCompanyType.get("name") + ":" + shareholderGid + ":company");
                 columnMap.put("company_type", shareholderMapForCompanyType.get("type"));
                 columnMap.put("is_listed_company", shareholderMapForCompanyType.get("isListed"));
                 columnMap.put("is_foreign_branches", shareholderMapForCompanyType.get("isForeign"));
@@ -63,12 +66,10 @@ public class InvestmentRelationService {
                 columnMap.put("is_partnership_company", shareholderMapForCompanyType.get("isPartnership"));
                 columnMap.put("legal_rep_inlinks", shareholderMapForCompanyType.get("legal"));
                 columnMap.put("company_uscc_prefix_code_two", shareholderMapForCompanyType.get("prefix"));
-                columnMap.put("shareholder_entity_type", 1);
-                columnMap.put("company_entity_inlink", shareholderMapForCompanyType.get("name") + ":" + shareholderGid + ":company");
                 columnMap.put("shareholder_company_position_list_clean", "");
             }
             columnMap.put("shareholder_name_id", shareholderGid);
-            columnMap.put("investment_ratio", equityRatio);
+            columnMap.put("investment_ratio", relation.getEquityRatio());
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             SQL insertSQL = new SQL()
                     .INSERT_INTO("investment_relation")
