@@ -145,7 +145,7 @@ public class InvestmentRelationDao {
             return "";
         } else {
             return Arrays.stream(res.split("@@@@@"))
-                    .filter(e -> e.matches(".*?:\\d+:company") || e.matches(".*?:\\d+-\\d+:.*?:human"))
+                    .filter(e -> e.matches(".*?:\\d+:company") || e.matches(".*?:\\d+-\\d+:.{17,}:human"))
                     .collect(Collectors.joining(","));
         }
     }
@@ -185,7 +185,7 @@ public class InvestmentRelationDao {
             return "";
         } else {
             return Arrays.stream(res.split("@@@@@"))
-                    .filter(e -> e.matches(".*?:\\d+:company") || e.matches(".*?:\\d+-\\d+:.*?:human"))
+                    .filter(e -> e.matches(".*?:\\d+:company") || e.matches(".*?:\\d+-\\d+:.{17,}:human"))
                     .collect(Collectors.joining(","));
         }
     }
