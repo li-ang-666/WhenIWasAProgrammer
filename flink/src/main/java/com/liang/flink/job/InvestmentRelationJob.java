@@ -48,11 +48,11 @@ public class InvestmentRelationJob {
         private JdbcTemplate jdbcTemplate;
 
         @Override
-        public void initializeState(FunctionInitializationContext context) throws Exception {
+        public void initializeState(FunctionInitializationContext context) {
         }
 
         @Override
-        public void open(Configuration parameters) throws Exception {
+        public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             DataUpdateContext<SQL> context = new DataUpdateContext<>(InvestmentRelationSink.class);
             service = new DataUpdateService<>(context);
@@ -61,24 +61,24 @@ public class InvestmentRelationJob {
         }
 
         @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             List<SQL> result = service.invoke(singleCanalBinlog);
             List<String> sqls = result.stream().map(AbstractSQL::toString).collect(Collectors.toList());
             jdbcTemplate.update(sqls);
         }
 
         @Override
-        public void snapshotState(FunctionSnapshotContext context) throws Exception {
+        public void snapshotState(FunctionSnapshotContext context) {
             jdbcTemplate.flush();
         }
 
         @Override
-        public void finish() throws Exception {
+        public void finish() {
             jdbcTemplate.flush();
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             jdbcTemplate.flush();
             ConfigUtils.unloadAll();
         }
