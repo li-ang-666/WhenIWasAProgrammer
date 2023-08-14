@@ -180,7 +180,7 @@ public class TycUtils {
                 .WHERE("company_graph_id = " + formatValue(companyGid))
                 .WHERE("human_graph_id = " + formatValue(humanGid))
                 .toString();
-        String res = new JdbcTemplate("prismBoss").queryForObject(sql, rs -> rs.getString(1));
+        String res = new JdbcTemplate("157PrismBoss").queryForObject(sql, rs -> rs.getString(1));
         return isTycUniqueEntityId(res) ? res : "0";
     }
 }
