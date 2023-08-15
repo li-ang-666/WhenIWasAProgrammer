@@ -22,6 +22,7 @@ public class InvestmentRelationDao {
     private final JdbcTemplate dataListedCompany = new JdbcTemplate("110.data_listed_company");
     private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
     private final JdbcTemplate humanBase = new JdbcTemplate("040.human_base");
+    private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
 
     public List<InvestmentRelationBean> getRelations(String companyGid) {
         if (!TycUtils.isUnsignedId(companyGid)) {
@@ -141,7 +142,7 @@ public class InvestmentRelationDao {
                 .WHERE("company_bond_plates.listing_status not in('暂停上市','IPO终止','退市整理','终止上市')")
                 .WHERE("company_graph.graph_id = " + SqlUtils.formatValue(companyGid))
                 .toString();
-        String res = dataListedCompany.queryForObject(sql, rs -> rs.getString(1));
+        String res = prism116.queryForObject(sql, rs -> rs.getString(1));
         return res != null ? res : "0";
     }
 
