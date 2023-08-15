@@ -20,6 +20,10 @@ public class InvestmentRelationService {
         if (!TycUtils.isUnsignedId(companyGid)) {
             return sqls;
         }
+        SQL deleteSQL = new SQL()
+                .DELETE_FROM("investment_relation")
+                .WHERE("company_id_invested = " + SqlUtils.formatValue(companyGid));
+        sqls.add(deleteSQL);
         List<InvestmentRelationDao.InvestmentRelationBean> relations = dao.getRelations(companyGid);
         if (relations.isEmpty()) {
             return sqls;
@@ -28,10 +32,6 @@ public class InvestmentRelationService {
         if (companyMap.isEmpty()) {
             return sqls;
         }
-        SQL deleteSQL = new SQL()
-                .DELETE_FROM("investment_relation")
-                .WHERE("company_id_invested = " + SqlUtils.formatValue(companyGid));
-        sqls.add(deleteSQL);
         Map<String, Object> abstractColumnMap = new HashMap<>();
         abstractColumnMap.put("company_id_invested", companyMap.get("id"));
         abstractColumnMap.put("company_name_invested", companyMap.get("name"));
@@ -84,23 +84,20 @@ public class InvestmentRelationService {
         if (!TycUtils.isUnsignedId(companyGid)) {
             return new HashMap<>();
         }
-        // 查询 enterprise, 若查不到信息, 忽略该主体或关联主体
-        InvestmentRelationDao.EnterpriseBean enterpriseBean = dao.getEnterprise(companyGid);
-        String cid = enterpriseBean.getId();
-        String companyName = enterpriseBean.getName();
-        if (!TycUtils.isUnsignedId(cid) || !TycUtils.isValidName(companyName)) {
-            return new HashMap<>();
-        }
-        // 查询 company_index
+        // 查询 company_index, 查不到则忽略这条数据
         InvestmentRelationDao.CompanyIndexBean companyIndexBean = dao.getCompanyIndex(companyGid);
         String type = companyIndexBean.getType();
         String prefix = companyIndexBean.getPrefix();
         String isForeign = companyIndexBean.getIsForeign();
         String isPartnership = companyIndexBean.getIsPartnership();
+        String name = companyIndexBean.getName();
+        if (!TycUtils.isValidName(name)) {
+            return new HashMap<>();
+        }
         // 查询 company_legal_person (公司法人)
         String legal = dao.getLegal(companyGid);
         // 查询 company_bond_plates (是否上市)
-        String isListed = dao.getIsListed(cid);
+        String isListed = dao.getIsListed(companyGid);
         // 查询 stock_actual_controller (上市公司实际控制人)
         String listedController = "";
         if ("1".equals(isListed)) {
@@ -108,8 +105,8 @@ public class InvestmentRelationService {
         }
         HashMap<String, Object> infoMap = new HashMap<>();
         infoMap.put("id", companyGid);
-        infoMap.put("name", companyName);
-        infoMap.put("link", companyName + ":" + companyGid + ":company");
+        infoMap.put("name", name);
+        infoMap.put("link", name + ":" + companyGid + ":company");
         infoMap.put("type", type);
         infoMap.put("prefix", prefix);
         infoMap.put("isForeign", isForeign);

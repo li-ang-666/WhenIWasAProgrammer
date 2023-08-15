@@ -99,6 +99,7 @@ public class InvestmentRelationDao {
                         " and org_type not like '%台湾澳与外国投资者合资%' and org_type not like '%新闻%'" +
                         " and org_type not like '%旅游%' and org_type not like '%外国非法人%' then 1 else 0 end")
                 .SELECT("if(company_type=11,1,0)")
+                .SELECT("company_name")
                 .FROM("company_index")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyGid))
                 .toString();
@@ -107,6 +108,7 @@ public class InvestmentRelationDao {
             String prefix = rs.getString(2);
             String isForeign = rs.getString(3);
             String isPartnership = rs.getString(4);
+            String name = rs.getString(5);
             CompanyIndexBean companyIndexBean = new CompanyIndexBean();
             if (type != null) {
                 companyIndexBean.setType(type);
@@ -119,6 +121,9 @@ public class InvestmentRelationDao {
             }
             if ("1".equals(isPartnership)) {
                 companyIndexBean.setIsPartnership(isPartnership);
+            }
+            if (TycUtils.isValidName(name)) {
+                companyIndexBean.setName(name);
             }
             return companyIndexBean;
         });
@@ -150,15 +155,16 @@ public class InvestmentRelationDao {
         }
     }
 
-    public String getIsListed(String companyCid) {
-        if (!TycUtils.isUnsignedId(companyCid)) {
+    public String getIsListed(String companyGid) {
+        if (!TycUtils.isUnsignedId(companyGid)) {
             return "0";
         }
         String sql = new SQL().SELECT("1")
-                .FROM("company_bond_plates")
-                .WHERE("deleted = 0")
-                .WHERE("listing_status not in('暂停上市','IPO终止','退市整理','终止上市')")
-                .WHERE("company_id = " + SqlUtils.formatValue(companyCid))
+                .FROM("company_bond_plates join company_graph on company_bond_plates.company_id = company_graph.company_id")
+                .WHERE("company_bond_plates.deleted = 0")
+                .WHERE("company_graph.deleted = 0")
+                .WHERE("company_bond_plates.listing_status not in('暂停上市','IPO终止','退市整理','终止上市')")
+                .WHERE("company_graph.graph_id = " + SqlUtils.formatValue(companyGid))
                 .toString();
         String res = prism116.queryForObject(sql, rs -> rs.getString(1));
         return res != null ? res : "0";
@@ -231,5 +237,6 @@ public class InvestmentRelationDao {
         private String prefix = "";
         private String isForeign = "0";
         private String isPartnership = "0";
+        private String name = "";
     }
 }
