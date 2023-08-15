@@ -10,7 +10,6 @@ import com.liang.spark.basic.TableFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
-import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
@@ -21,8 +20,10 @@ import java.util.stream.Collectors;
 public class InvestmentRelationJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        Dataset<Row> companyIndex = TableFactory.jdbc(spark, "435.company_base", "company_index");
-        companyIndex.repartition(1200)
+        TableFactory.jdbc(spark, "435.company_base", "company_index")
+                .createOrReplaceTempView("company_index");
+        spark.sql("select distinct company_id from company_index")
+                .repartition(1200)
                 .foreachPartition(new InvestmentRelationForeachPartitionSink(ConfigUtils.getConfig()));
     }
 
