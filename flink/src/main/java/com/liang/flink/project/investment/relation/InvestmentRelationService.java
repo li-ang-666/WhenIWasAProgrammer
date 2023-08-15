@@ -25,7 +25,7 @@ public class InvestmentRelationService {
                 .DELETE_FROM("investment_relation")
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyGid));
         sqls.add(deleteSQL);
-        // 补充主体公司信息
+        // 补充主体公司信息, 主体异常, 直接跳出
         Map<String, Object> companyMap = this.getCompanyMap(companyGid);
         if (companyMap.isEmpty()) {
             return sqls;
@@ -45,6 +45,7 @@ public class InvestmentRelationService {
         if (relations.isEmpty()) {
             relations.add(new InvestmentRelationDao.InvestmentRelationBean(companyGid, companyGid, "0.01"));
         }
+        // 生成每一条 investment_relation
         for (InvestmentRelationDao.InvestmentRelationBean relation : relations) {
             String shareholderGid = relation.getShareholderGid();
             String shareholderPid = relation.getShareholderPid();
@@ -62,7 +63,7 @@ public class InvestmentRelationService {
             } else {
                 // 股东类型是公司, 通过补充公司信息来做验证
                 Map<String, Object> shareholderMapForCompanyType;
-                // 判断是否是无股东的relation, 减少重复计算
+                // 判断是否是无股东补加的relation, 减少重复计算
                 if (shareholderGid.equals(companyGid) && equityRatio.equals("0.01")) {
                     shareholderMapForCompanyType = companyMap;
                 } else {
