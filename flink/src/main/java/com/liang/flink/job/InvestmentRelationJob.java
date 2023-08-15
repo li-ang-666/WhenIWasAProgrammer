@@ -59,7 +59,7 @@ public class InvestmentRelationJob {
             ConfigUtils.setConfig(config);
             service = new InvestmentRelationService();
             jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");
-            jdbcTemplate.enableCache();
+            jdbcTemplate.enableCache(5000, 1024);
         }
 
         @Override
