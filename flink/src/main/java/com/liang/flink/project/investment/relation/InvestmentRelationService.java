@@ -50,7 +50,7 @@ public class InvestmentRelationService {
             String shareholderGid = relation.getShareholderGid();
             String shareholderPid = relation.getShareholderPid();
             String equityRatio = relation.getEquityRatio();
-            HashMap<String, Object> columnMap = new HashMap<>(abstractColumnMap);
+            Map<String, Object> columnMap = new HashMap<>(abstractColumnMap);
             if (shareholderPid.length() >= 17) {
                 // 股东类型是人, 通过查询名字来做验证
                 String humanName = dao.getHumanName(shareholderPid);
