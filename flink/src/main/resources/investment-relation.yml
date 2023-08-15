@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "464.prism"
     tableName: "enterprise"
     columns: "*"
-    where: "graph_id = 14427175"
+    where: "graph_id = 2318455639"
     scanMode: Direct
 
 kafkaConfigs:
