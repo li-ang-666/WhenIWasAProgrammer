@@ -63,23 +63,25 @@ public class EnvironmentFactory {
     }
 
     private static void configEnv(StreamExecutionEnvironment env) {
-        //统一checkpoint管理
+        // max parallel
+        env.setMaxParallelism(1000);
+        // 统一checkpoint管理
         CheckpointConfig checkpointConfig = env.getCheckpointConfig();
-        //运行周期
+        // 运行周期
         checkpointConfig.setCheckpointInterval(CHECKPOINT_INTERVAL);
-        //两次checkpoint之间最少间隔时间
+        // 两次checkpoint之间最少间隔时间
         checkpointConfig.setMinPauseBetweenCheckpoints(CHECKPOINT_INTERVAL);
-        //模式是Exactly-Once
+        // 模式是Exactly-Once
         checkpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-        //超时
+        // 超时
         checkpointConfig.setCheckpointTimeout(CHECKPOINT_TIMEOUT);
-        //可以容忍的连续checkpoint次数,次数超过后任务自动停止
+        // 可以容忍的连续checkpoint次数,次数超过后任务自动停止
         env.getCheckpointConfig().setTolerableCheckpointFailureNumber(3);
-        //同时运行的checkpoint数量
+        // 同时运行的checkpoint数量
         checkpointConfig.setMaxConcurrentCheckpoints(1);
-        //程序停止时保留checkpoint
+        // 程序停止时保留checkpoint
         checkpointConfig.setExternalizedCheckpointCleanup(RETAIN_ON_CANCELLATION);
-        //开启非对齐的checkpoint(可跳跃的barrier)
+        // 开启非对齐的checkpoint(可跳跃的barrier)
         checkpointConfig.enableUnalignedCheckpoints();
     }
 }
