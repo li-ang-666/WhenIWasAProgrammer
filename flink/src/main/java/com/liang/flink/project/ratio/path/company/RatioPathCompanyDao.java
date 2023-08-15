@@ -12,8 +12,8 @@ import java.util.Map;
 import static com.liang.common.util.SqlUtils.formatValue;
 
 public class RatioPathCompanyDao {
-    private final JdbcTemplate prismShareholderPath = new JdbcTemplate("prismShareholderPath");
-    private final JdbcTemplate bdpEquity = new JdbcTemplate("bdpEquity");
+    private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
+    private final JdbcTemplate bdpEquity = new JdbcTemplate("463.bdp_equity");
 
     public void deleteAll(Long companyId) {
         //删除ratio_path_company

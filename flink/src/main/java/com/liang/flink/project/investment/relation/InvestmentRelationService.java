@@ -26,7 +26,8 @@ public class InvestmentRelationService {
         sqls.add(deleteSQL);
         List<InvestmentRelationDao.InvestmentRelationBean> relations = dao.getRelations(companyGid);
         if (relations.isEmpty()) {
-            return sqls;
+            //return sqls;
+            relations.add(new InvestmentRelationDao.InvestmentRelationBean(companyGid, companyGid, "0.01"));
         }
         Map<String, Object> companyMap = this.getCompanyMap(companyGid);
         if (companyMap.isEmpty()) {
