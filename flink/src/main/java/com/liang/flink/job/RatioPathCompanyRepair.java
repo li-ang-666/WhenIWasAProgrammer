@@ -13,7 +13,7 @@ public class RatioPathCompanyRepair {
         Config config = ConfigUtils.initConfig(null);
         ConfigUtils.setConfig(config);
         Set<Long> companyIds = new HashSet<>(Arrays.asList(
-                6370201540L
+                1966L
         ));
         new RatioPathCompanyService().invoke(companyIds);
         ConfigUtils.unloadAll();

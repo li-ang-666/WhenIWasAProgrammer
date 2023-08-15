@@ -16,6 +16,7 @@ public class InvestmentRelationService {
     private final InvestmentRelationDao dao = new InvestmentRelationDao();
 
     public List<SQL> invoke(String companyGid) {
+        // 非合法ID直接跳出, 合法ID生成deleteSQL
         ArrayList<SQL> sqls = new ArrayList<>();
         if (!TycUtils.isUnsignedId(companyGid)) {
             return sqls;
@@ -24,16 +25,11 @@ public class InvestmentRelationService {
                 .DELETE_FROM("investment_relation")
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyGid));
         sqls.add(deleteSQL);
-        List<InvestmentRelationDao.InvestmentRelationBean> relations = dao.getRelations(companyGid);
-        if (relations.isEmpty()) {
-            //return sqls;
-            relations.add(new InvestmentRelationDao.InvestmentRelationBean(companyGid, companyGid, "0.01"));
-        }
+        // 补充主体公司信息
         Map<String, Object> companyMap = this.getCompanyMap(companyGid);
         if (companyMap.isEmpty()) {
             return sqls;
         }
-        // 补充主体公司信息
         Map<String, Object> abstractColumnMap = new HashMap<>();
         abstractColumnMap.put("company_id_invested", companyMap.get("id"));
         abstractColumnMap.put("company_name_invested", companyMap.get("name"));
@@ -44,9 +40,15 @@ public class InvestmentRelationService {
         abstractColumnMap.put("is_partnership_company_invested", companyMap.get("isPartnership"));
         abstractColumnMap.put("legal_rep_inlinks_invested", companyMap.get("legal"));
         abstractColumnMap.put("company_uscc_prefix_code_two_invested", companyMap.get("prefix"));
+        List<InvestmentRelationDao.InvestmentRelationBean> relations = dao.getRelations(companyGid);
+        // 如果判断无有效股东, 补加一个relation
+        if (relations.isEmpty()) {
+            relations.add(new InvestmentRelationDao.InvestmentRelationBean(companyGid, companyGid, "0.01"));
+        }
         for (InvestmentRelationDao.InvestmentRelationBean relation : relations) {
             String shareholderGid = relation.getShareholderGid();
             String shareholderPid = relation.getShareholderPid();
+            String equityRatio = relation.getEquityRatio();
             HashMap<String, Object> columnMap = new HashMap<>(abstractColumnMap);
             if (shareholderPid.length() >= 17) {
                 // 股东类型是人, 通过查询名字来做验证
@@ -59,7 +61,13 @@ public class InvestmentRelationService {
                 columnMap.put("shareholder_company_position_list_clean", dao.getCompanyHumanPosition(companyGid, shareholderGid));
             } else {
                 // 股东类型是公司, 通过补充公司信息来做验证
-                Map<String, Object> shareholderMapForCompanyType = getCompanyMap(shareholderGid);
+                Map<String, Object> shareholderMapForCompanyType;
+                // 判断是否是无股东的relation, 减少重复计算
+                if (shareholderGid.equals(companyGid) && equityRatio.equals("0.01")) {
+                    shareholderMapForCompanyType = companyMap;
+                } else {
+                    shareholderMapForCompanyType = getCompanyMap(shareholderGid);
+                }
                 if (shareholderMapForCompanyType.isEmpty()) {
                     continue;
                 }
@@ -75,7 +83,7 @@ public class InvestmentRelationService {
                 columnMap.put("shareholder_company_position_list_clean", "");
             }
             columnMap.put("shareholder_name_id", shareholderGid);
-            columnMap.put("investment_ratio", relation.getEquityRatio());
+            columnMap.put("investment_ratio", equityRatio);
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             SQL insertSQL = new SQL()
                     .INSERT_INTO("investment_relation")
