@@ -1,16 +1,16 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "464.prism"
-    tableName: "enterprise"
+    sourceName: "435.company_base"
+    tableName: "company_index"
     columns: "*"
-    where: "graph_id = 1146624492"
+    where: "company_id = 1146624492"
     scanMode: Direct
 
 kafkaConfigs:
