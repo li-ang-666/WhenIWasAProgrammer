@@ -51,7 +51,6 @@ public class InvestmentRelationDao {
                         InvestmentRelationBean investmentRelationBean = new InvestmentRelationBean();
                         investmentRelationBean.setShareholderGid(shareholderGid);
                         investmentRelationBean.setShareholderPid(shareholderPid);
-                        investmentRelationBean.setShareholderName(shareholderName);
                         investmentRelationBean.setEquityRatio(ratio);
                         return investmentRelationBean;
                     } else {
@@ -205,7 +204,6 @@ public class InvestmentRelationDao {
     public final static class InvestmentRelationBean {
         private String shareholderGid;
         private String shareholderPid;
-        private String shareholderName;
         private String equityRatio;
     }
 
