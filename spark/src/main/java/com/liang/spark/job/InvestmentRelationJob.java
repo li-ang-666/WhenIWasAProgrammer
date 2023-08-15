@@ -4,6 +4,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.AbstractSQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.project.investment.relation.InvestmentRelationService;
 import com.liang.spark.basic.SparkSessionFactory;
 import com.liang.spark.basic.TableFactory;
@@ -15,6 +16,7 @@ import org.apache.spark.sql.SparkSession;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class InvestmentRelationJob {
@@ -39,7 +41,8 @@ public class InvestmentRelationJob {
             JdbcTemplate jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");
             jdbcTemplate.enableCache(1000 * 60, 128);
             while (t.hasNext()) {
-                String companyId = String.valueOf(t.next().getAs("company_id"));
+                Map<String, Object> columnMap = JsonUtils.parseJsonObj(t.next().json());
+                String companyId = String.valueOf(columnMap.get("company_id"));
                 List<String> sqls = service.invoke(companyId).stream().map(AbstractSQL::toString).collect(Collectors.toList());
                 jdbcTemplate.update(sqls);
             }
