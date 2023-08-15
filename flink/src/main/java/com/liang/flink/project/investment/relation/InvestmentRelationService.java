@@ -48,8 +48,12 @@ public class InvestmentRelationService {
             HashMap<String, Object> columnMap = new HashMap<>(abstractColumnMap);
             if (shareholderPid.length() >= 17) {
                 // 股东类型是人
+                String humanName = dao.getHumanName(shareholderPid);
+                if (!TycUtils.isValidName(humanName)) {
+                    continue;
+                }
                 columnMap.put("shareholder_entity_type", 2);
-                columnMap.put("company_entity_inlink", relation.getShareholderName() + ":" + shareholderGid + "-" + companyGid + ":" + shareholderPid + ":human");
+                columnMap.put("company_entity_inlink", humanName + ":" + shareholderGid + "-" + companyGid + ":" + shareholderPid + ":human");
                 columnMap.put("shareholder_company_position_list_clean", dao.getCompanyHumanPosition(companyGid, shareholderGid));
             } else {
                 // 股东类型是公司

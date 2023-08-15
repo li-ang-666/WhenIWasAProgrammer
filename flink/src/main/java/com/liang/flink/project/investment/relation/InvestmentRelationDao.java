@@ -18,11 +18,10 @@ import java.util.stream.Collectors;
 
 public class InvestmentRelationDao {
     private final JdbcTemplate graphData = new JdbcTemplate("430.graph_data");
-    private final JdbcTemplate prism464 = new JdbcTemplate("464.prism");
     private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
-    private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
     private final JdbcTemplate dataListedCompany = new JdbcTemplate("110.data_listed_company");
     private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
+    private final JdbcTemplate humanBase = new JdbcTemplate("040.human_base");
 
     public List<InvestmentRelationBean> getRelations(String companyGid) {
         if (!TycUtils.isUnsignedId(companyGid)) {
@@ -62,29 +61,6 @@ public class InvestmentRelationDao {
                 .stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-    }
-
-    public EnterpriseBean getEnterprise(String companyGid) {
-        if (!TycUtils.isUnsignedId(companyGid)) {
-            return new EnterpriseBean();
-        }
-        String sql = new SQL().SELECT("id,name")
-                .FROM("enterprise")
-                .WHERE("deleted = 0")
-                .WHERE("name is not null")
-                .WHERE("name <> ''")
-                .WHERE("graph_id = " + SqlUtils.formatValue(companyGid))
-                .toString();
-        EnterpriseBean enterpriseBean = prism464.queryForObject(sql, rs -> {
-            String id = String.valueOf(rs.getString(1));
-            String name = String.valueOf(rs.getString(2));
-            if (TycUtils.isUnsignedId(id) && TycUtils.isValidName(name)) {
-                return new EnterpriseBean(id, name);
-            } else {
-                return new EnterpriseBean();
-            }
-        });
-        return enterpriseBean != null ? enterpriseBean : new EnterpriseBean();
     }
 
     public CompanyIndexBean getCompanyIndex(String companyGid) {
@@ -166,7 +142,7 @@ public class InvestmentRelationDao {
                 .WHERE("company_bond_plates.listing_status not in('暂停上市','IPO终止','退市整理','终止上市')")
                 .WHERE("company_graph.graph_id = " + SqlUtils.formatValue(companyGid))
                 .toString();
-        String res = prism116.queryForObject(sql, rs -> rs.getString(1));
+        String res = dataListedCompany.queryForObject(sql, rs -> rs.getString(1));
         return res != null ? res : "0";
     }
 
@@ -211,6 +187,18 @@ public class InvestmentRelationDao {
         return TycUtils.isValidName(res) ? res : "";
     }
 
+    public String getHumanName(String humanPid) {
+        if (!TycUtils.isTycUniqueEntityId(humanPid) || humanPid.length() < 17) {
+            return "";
+        }
+        String sql = new SQL().SELECT("human_name")
+                .FROM("human")
+                .WHERE("human_id = " + SqlUtils.formatValue(humanPid))
+                .toString();
+        String res = humanBase.queryForObject(sql, rs -> rs.getString(1));
+        return TycUtils.isValidName(res) ? res : "";
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -219,14 +207,6 @@ public class InvestmentRelationDao {
         private String shareholderPid;
         private String shareholderName;
         private String equityRatio;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public final static class EnterpriseBean {
-        private String id = "0";
-        private String name = "";
     }
 
     @Data
