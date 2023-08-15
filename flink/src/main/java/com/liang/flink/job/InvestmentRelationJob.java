@@ -33,6 +33,7 @@ public class InvestmentRelationJob {
         Distributor distributor = new Distributor()
                 .with("company_equity_relation_details", e -> String.valueOf(e.getColumnMap().get("company_id_invested")))
                 .with("company_index", e -> String.valueOf(e.getColumnMap().get("company_id")))
+                .with("enterprise", e -> String.valueOf(e.getColumnMap().get("graph_id")))
                 .with("company_legal_person", e -> String.valueOf(e.getColumnMap().get("company_id")))
                 .with("stock_actual_controller", e -> String.valueOf(e.getColumnMap().get("graph_id")))
                 .with("personnel_employment_history", e -> String.valueOf(e.getColumnMap().get("company_id")));
