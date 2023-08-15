@@ -28,10 +28,11 @@ public class InvestmentRelationService {
         if (relations.isEmpty()) {
             return sqls;
         }
-        Map<String, Object> companyMap = getCompanyMap(companyGid);
+        Map<String, Object> companyMap = this.getCompanyMap(companyGid);
         if (companyMap.isEmpty()) {
             return sqls;
         }
+        // 补充主体公司信息
         Map<String, Object> abstractColumnMap = new HashMap<>();
         abstractColumnMap.put("company_id_invested", companyMap.get("id"));
         abstractColumnMap.put("company_name_invested", companyMap.get("name"));
@@ -47,7 +48,7 @@ public class InvestmentRelationService {
             String shareholderPid = relation.getShareholderPid();
             HashMap<String, Object> columnMap = new HashMap<>(abstractColumnMap);
             if (shareholderPid.length() >= 17) {
-                // 股东类型是人
+                // 股东类型是人, 通过查询名字来做验证
                 String humanName = dao.getHumanName(shareholderPid);
                 if (!TycUtils.isValidName(humanName)) {
                     continue;
@@ -56,7 +57,7 @@ public class InvestmentRelationService {
                 columnMap.put("company_entity_inlink", humanName + ":" + shareholderGid + "-" + companyGid + ":" + shareholderPid + ":human");
                 columnMap.put("shareholder_company_position_list_clean", dao.getCompanyHumanPosition(companyGid, shareholderGid));
             } else {
-                // 股东类型是公司
+                // 股东类型是公司, 通过补充公司信息来做验证
                 Map<String, Object> shareholderMapForCompanyType = getCompanyMap(shareholderGid);
                 if (shareholderMapForCompanyType.isEmpty()) {
                     continue;

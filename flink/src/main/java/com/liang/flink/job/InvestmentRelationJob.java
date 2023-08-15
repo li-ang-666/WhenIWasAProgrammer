@@ -4,6 +4,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -20,7 +21,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,8 +30,14 @@ public class InvestmentRelationJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
-        stream.rebalance()
-                .addSink(new InvestmentRelationSink(config)).name("InvestmentRelationSink").setParallelism(config.getFlinkConfig().getOtherParallel());
+        Distributor distributor = new Distributor()
+                .with("company_equity_relation_details", e -> String.valueOf(e.getColumnMap().get("company_id_invested")))
+                .with("company_index", e -> String.valueOf(e.getColumnMap().get("company_id")))
+                .with("company_legal_person", e -> String.valueOf(e.getColumnMap().get("company_id")))
+                .with("stock_actual_controller", e -> String.valueOf(e.getColumnMap().get("graph_id")))
+                .with("personnel_employment_history", e -> String.valueOf(e.getColumnMap().get("company_id")));
+        stream.keyBy(distributor)
+                .addSink(new InvestmentRelationSink(config, distributor)).name("InvestmentRelationSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("InvestmentRelationJob");
     }
 
@@ -39,6 +45,7 @@ public class InvestmentRelationJob {
     @RequiredArgsConstructor
     private final static class InvestmentRelationSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
+        private final Distributor distributor;
         private InvestmentRelationService service;
         private JdbcTemplate jdbcTemplate;
 
@@ -56,9 +63,8 @@ public class InvestmentRelationJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = String.valueOf(columnMap.get("graph_id"));
-            List<SQL> sqls = service.invoke(companyId);
+            String key = distributor.getKey(singleCanalBinlog);
+            List<SQL> sqls = service.invoke(key);
             jdbcTemplate.update(sqls.stream().map(String::valueOf).collect(Collectors.toList()));
         }
 

@@ -16,7 +16,7 @@ public class Distributor implements KeySelector<SingleCanalBinlog, String> {
     }
 
     @Override
-    public String getKey(SingleCanalBinlog singleCanalBinlog) throws Exception {
+    public String getKey(SingleCanalBinlog singleCanalBinlog) {
         Mapper mapper = map.get(singleCanalBinlog.getTable());
         if (mapper == null) {
             return "";
