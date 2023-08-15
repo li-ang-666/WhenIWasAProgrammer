@@ -14,6 +14,7 @@ import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,14 +40,19 @@ public class InvestmentRelationJob {
             ConfigUtils.setConfig(config);
             InvestmentRelationService service = new InvestmentRelationService();
             JdbcTemplate jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");
-            jdbcTemplate.enableCache(1000 * 60, 128);
+            ArrayList<String> list = new ArrayList<>();
             while (t.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(t.next().json());
                 String companyId = String.valueOf(columnMap.get("company_id"));
                 List<String> sqls = service.invoke(companyId).stream().map(AbstractSQL::toString).collect(Collectors.toList());
-                jdbcTemplate.update(sqls);
+                list.addAll(sqls);
+                if (list.size() >= 64) {
+                    jdbcTemplate.update(list);
+                    list.clear();
+                }
             }
-            jdbcTemplate.flush();
+            jdbcTemplate.update(list);
+            list.clear();
         }
     }
 }
