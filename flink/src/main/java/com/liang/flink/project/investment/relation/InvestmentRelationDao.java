@@ -20,7 +20,6 @@ public class InvestmentRelationDao {
     private final JdbcTemplate graphData = new JdbcTemplate("430.graph_data");
     private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
     private final JdbcTemplate dataListedCompany = new JdbcTemplate("110.data_listed_company");
-    private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
     private final JdbcTemplate humanBase = new JdbcTemplate("040.human_base");
     private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
 
@@ -183,7 +182,7 @@ public class InvestmentRelationDao {
                 .WHERE("company_id = " + SqlUtils.formatValue(companyGid))
                 .WHERE("personnel_name_id = " + SqlUtils.formatValue(humanGid))
                 .toString();
-        String res = prismShareholderPath.queryForObject(sql, rs -> rs.getString(1));
+        String res = humanBase.queryForObject(sql, rs -> rs.getString(1));
         return TycUtils.isValidName(res) ? res : "";
     }
 

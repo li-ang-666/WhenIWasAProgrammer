@@ -17,6 +17,11 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "e1d4c.proto.prism_shareholder_path.investment_relation"
-    groupId: "ratio-path-company-job"
+      - "1ae09.proto.graph_data.company_equity_relation_details"
+      - "ee59d.proto.company_base.company_index"
+      - "56736.proto.prism.enterprise"
+      - "ee59d.proto.company_base.company_legal_person"
+      - "7d89c.proto.data_listed_company.stock_actual_controller"
+      - "36c60.proto.human_base.personnel_employment_history"
+    groupId: "investment-relation-job"
     startFrom: "2"
