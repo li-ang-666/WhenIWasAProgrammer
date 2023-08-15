@@ -58,7 +58,7 @@ public class InvestmentRelationJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             service = new InvestmentRelationService();
-            jdbcTemplate = new JdbcTemplate("427.test");
+            jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");
             jdbcTemplate.enableCache();
         }
 
