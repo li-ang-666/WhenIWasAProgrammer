@@ -25,7 +25,7 @@ public class InvestmentRelationJob {
         TableFactory.jdbc(spark, "435.company_base", "company_index")
                 .createOrReplaceTempView("company_index");
         spark.sql("select distinct company_id from company_index")
-                .repartition(1200)
+                .repartition(24000)
                 .foreachPartition(new InvestmentRelationForeachPartitionSink(ConfigUtils.getConfig()));
     }
 
