@@ -4,7 +4,7 @@ import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.project.dim.count.dao.ShareholderTagDao;
+import com.liang.flink.project.dim.count.dao.DimCountShareholderDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RatioPathCompany extends AbstractDataUpdate<HbaseOneRow> {
-    private final ShareholderTagDao dao = new ShareholderTagDao();
+    private final DimCountShareholderDao dao = new DimCountShareholderDao();
 
     @Override
     public List<HbaseOneRow> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
