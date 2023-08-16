@@ -75,16 +75,6 @@ public class InvestmentRelationJob {
             }
         }
 
-        private void flush() {
-            synchronized (companyIds) {
-                for (String companyId : companyIds) {
-                    List<SQL> sqls = service.invoke(companyId);
-                    jdbcTemplate.update(sqls.stream().map(String::valueOf).collect(Collectors.toList()));
-                }
-                companyIds.clear();
-            }
-        }
-
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
             flush();
@@ -99,6 +89,16 @@ public class InvestmentRelationJob {
         public void close() {
             flush();
             ConfigUtils.unloadAll();
+        }
+
+        private void flush() {
+            synchronized (companyIds) {
+                for (String companyId : companyIds) {
+                    List<SQL> sqls = service.invoke(companyId);
+                    jdbcTemplate.update(sqls.stream().map(String::valueOf).collect(Collectors.toList()));
+                }
+                companyIds.clear();
+            }
         }
     }
 }
