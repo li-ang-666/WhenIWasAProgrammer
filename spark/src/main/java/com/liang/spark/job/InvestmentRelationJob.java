@@ -22,7 +22,7 @@ public class InvestmentRelationJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
 
-        spark.sql("select distinct company_id from ods_company_base_company_index_df where pt='20230815' and dw_is_del = 0")
+        spark.sql("select distinct company_id from ods.ods_company_base_company_index_df where pt='20230815' and dw_is_del = 0")
                 .repartition(24000)
                 .foreachPartition(new InvestmentRelationForeachPartitionSink(ConfigUtils.getConfig()));
     }
