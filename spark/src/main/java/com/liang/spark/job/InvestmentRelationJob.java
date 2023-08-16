@@ -7,7 +7,6 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.flink.project.investment.relation.InvestmentRelationService;
 import com.liang.spark.basic.SparkSessionFactory;
-import com.liang.spark.basic.TableFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
@@ -22,9 +21,8 @@ import java.util.stream.Collectors;
 public class InvestmentRelationJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        TableFactory.jdbc(spark, "435.company_base", "company_index")
-                .createOrReplaceTempView("company_index");
-        spark.sql("select distinct company_id from company_index")
+
+        spark.sql("select distinct company_id from ods_company_base_company_index_df where pt='20230815' and dw_is_del = 0")
                 .repartition(24000)
                 .foreachPartition(new InvestmentRelationForeachPartitionSink(ConfigUtils.getConfig()));
     }
