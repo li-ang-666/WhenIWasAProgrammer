@@ -35,7 +35,7 @@ public class InvestmentRelationJob {
         private final Config config;
 
         @Override
-        public void call(Iterator<Row> t) throws Exception {
+        public void call(Iterator<Row> t) {
             ConfigUtils.setConfig(config);
             InvestmentRelationService service = new InvestmentRelationService();
             JdbcTemplate jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");

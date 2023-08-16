@@ -21,6 +21,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,6 +47,7 @@ public class InvestmentRelationJob {
     @Slf4j
     @RequiredArgsConstructor
     private final static class InvestmentRelationSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
+        private final Set<String> companyIds = ConcurrentHashMap.newKeySet();
         private final Config config;
         private final Distributor distributor;
         private InvestmentRelationService service;
@@ -64,23 +67,33 @@ public class InvestmentRelationJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             String key = distributor.getKey(singleCanalBinlog);
-            List<SQL> sqls = service.invoke(key);
-            jdbcTemplate.update(sqls.stream().map(String::valueOf).collect(Collectors.toList()));
+            companyIds.add(key);
+            if (companyIds.size() >= 128) {
+                flush();
+            }
+        }
+
+        private synchronized void flush() {
+            for (String companyId : companyIds) {
+                List<SQL> sqls = service.invoke(companyId);
+                jdbcTemplate.update(sqls.stream().map(String::valueOf).collect(Collectors.toList()));
+            }
+            companyIds.clear();
         }
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
-            jdbcTemplate.flush();
+            flush();
         }
 
         @Override
         public void finish() {
-            jdbcTemplate.flush();
+            flush();
         }
 
         @Override
         public void close() {
-            jdbcTemplate.flush();
+            flush();
             ConfigUtils.unloadAll();
         }
     }
