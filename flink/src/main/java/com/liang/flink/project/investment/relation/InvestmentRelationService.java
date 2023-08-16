@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Slf4j
 public class InvestmentRelationService {
-    private final static String SINK = "investment_relation_v2";
+    private final static String SINK = "investment_relation";
     private final InvestmentRelationDao dao = new InvestmentRelationDao();
 
     public List<SQL> invoke(String companyGid) {
