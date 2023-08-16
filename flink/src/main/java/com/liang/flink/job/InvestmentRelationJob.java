@@ -67,18 +67,22 @@ public class InvestmentRelationJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             String key = distributor.getKey(singleCanalBinlog);
-            companyIds.add(key);
-            if (companyIds.size() >= 128) {
+            synchronized (companyIds) {
+                companyIds.add(key);
+            }
+            if (companyIds.size() >= 256) {
                 flush();
             }
         }
 
-        private synchronized void flush() {
-            for (String companyId : companyIds) {
-                List<SQL> sqls = service.invoke(companyId);
-                jdbcTemplate.update(sqls.stream().map(String::valueOf).collect(Collectors.toList()));
+        private void flush() {
+            synchronized (companyIds) {
+                for (String companyId : companyIds) {
+                    List<SQL> sqls = service.invoke(companyId);
+                    jdbcTemplate.update(sqls.stream().map(String::valueOf).collect(Collectors.toList()));
+                }
+                companyIds.clear();
             }
-            companyIds.clear();
         }
 
         @Override
