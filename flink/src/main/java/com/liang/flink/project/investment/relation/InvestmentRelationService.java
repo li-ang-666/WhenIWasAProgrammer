@@ -13,6 +13,7 @@ import java.util.Map;
 
 @Slf4j
 public class InvestmentRelationService {
+    private final static String SINK = "investment_relation_v2";
     private final InvestmentRelationDao dao = new InvestmentRelationDao();
 
     public List<SQL> invoke(String companyGid) {
@@ -22,7 +23,7 @@ public class InvestmentRelationService {
             return sqls;
         }
         SQL deleteSQL = new SQL()
-                .DELETE_FROM("investment_relation")
+                .DELETE_FROM(SINK)
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyGid));
         sqls.add(deleteSQL);
         // 补充主体公司信息, 主体异常, 直接跳出
@@ -87,7 +88,7 @@ public class InvestmentRelationService {
             columnMap.put("investment_ratio", equityRatio);
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             SQL insertSQL = new SQL()
-                    .INSERT_INTO("investment_relation")
+                    .INSERT_INTO(SINK)
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1);
             sqls.add(insertSQL);
