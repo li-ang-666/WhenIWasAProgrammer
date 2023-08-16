@@ -6,7 +6,7 @@ import com.liang.common.util.ApolloUtils;
 import static com.liang.common.util.SqlUtils.formatValue;
 
 public class ShareholderTagDao {
-    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("prismShareholderPath");
+    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");
 
     public Integer queryHasController(Object companyId) {
         String sql = String.format(ApolloUtils.get("queryHasController"), formatValue(companyId));
