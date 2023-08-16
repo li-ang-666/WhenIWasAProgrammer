@@ -28,7 +28,7 @@ public class InvestmentRelationDao {
             return new ArrayList<>();
         }
         String sql = new SQL()
-                .SELECT("company_id_investor", "tyc_unique_entity_id_investor", "max(equity_ratio)")
+                .SELECT("company_id_investor", "max(tyc_unique_entity_id_investor)", "max(equity_ratio)")
                 .FROM("company_equity_relation_details")
                 .WHERE("reference_pt_year = '2023'")
                 .WHERE("investor_identity_type in (1,2)")
@@ -40,7 +40,7 @@ public class InvestmentRelationDao {
                 .WHERE("tyc_unique_entity_name_investor is not null")
                 .WHERE("tyc_unique_entity_name_investor <> ''")
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyGid))
-                .GROUP_BY("company_id_investor", "tyc_unique_entity_id_investor")
+                .GROUP_BY("company_id_investor")
                 .toString();
         return graphData.queryForList(sql, rs -> {
                     String shareholderGid = String.valueOf(rs.getString(1));
