@@ -12,27 +12,31 @@ import java.util.Map;
 import static com.liang.common.util.SqlUtils.formatValue;
 
 public class RatioPathCompanyDao {
+    private final static String SINK_RATIO_PATH_COMPANY = "ratio_path_company";
+    private final static String SINK_ENTITY_BENEFICIARY_DETAILS = "entity_beneficiary_details";
+    private final static String SINK_ENTITY_CONTROLLER_DETAILS = "entity_controller_details";
+    private final static String SINK_SHAREHOLDER_IDENTITY_TYPE_DETAILS = "shareholder_identity_type_details";
     private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
     private final JdbcTemplate bdpEquity = new JdbcTemplate("463.bdp_equity");
 
     public void deleteAll(Long companyId) {
         //删除ratio_path_company
-        String sql0 = new SQL().DELETE_FROM("ratio_path_company")
+        String sql0 = new SQL().DELETE_FROM(SINK_RATIO_PATH_COMPANY)
                 .WHERE("company_id = " + formatValue(companyId))
                 .toString();
         //删除受益人
         String sql1 = new SQL()
-                .DELETE_FROM("entity_beneficiary_details")
+                .DELETE_FROM(SINK_ENTITY_BENEFICIARY_DETAILS)
                 .WHERE("tyc_unique_entity_id = " + formatValue(companyId))
                 .toString();
         //删除控制人
         String sql2 = new SQL()
-                .DELETE_FROM("entity_controller_details")
+                .DELETE_FROM(SINK_ENTITY_CONTROLLER_DETAILS)
                 .WHERE("company_id_controlled = " + formatValue(companyId))
                 .toString();
         //删除身份关系
         String sql3 = new SQL()
-                .DELETE_FROM("shareholder_identity_type_details")
+                .DELETE_FROM(SINK_SHAREHOLDER_IDENTITY_TYPE_DETAILS)
                 .WHERE("tyc_unique_entity_id = " + formatValue(companyId))
                 .toString();
         prismShareholderPath.update(sql0);
@@ -41,7 +45,7 @@ public class RatioPathCompanyDao {
 
     public void replaceIntoRatioPathCompany(Map<String, Object> columnMap) {
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        String sql = new SQL().INSERT_INTO("ratio_path_company")
+        String sql = new SQL().INSERT_INTO(SINK_RATIO_PATH_COMPANY)
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
@@ -58,7 +62,15 @@ public class RatioPathCompanyDao {
         return res != null ? res : "";
     }
 
-    public String replaceInto(String tableName, Map<String, Object> columnMap) {
+    public String replaceIntoBeneficiary(Map<String, Object> columnMap) {
+        return replaceInto(SINK_ENTITY_BENEFICIARY_DETAILS, columnMap);
+    }
+
+    public String replaceIntoController(Map<String, Object> columnMap) {
+        return replaceInto(SINK_ENTITY_CONTROLLER_DETAILS, columnMap);
+    }
+
+    private String replaceInto(String tableName, Map<String, Object> columnMap) {
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
         return new SQL().INSERT_INTO(tableName)
                 .INTO_COLUMNS(insert.f0)
@@ -71,7 +83,7 @@ public class RatioPathCompanyDao {
         for (Map<String, Object> columnMap : columnMaps) {
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             String sql = new SQL()
-                    .INSERT_INTO("shareholder_identity_type_details")
+                    .INSERT_INTO(SINK_SHAREHOLDER_IDENTITY_TYPE_DETAILS)
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1)
                     .toString();

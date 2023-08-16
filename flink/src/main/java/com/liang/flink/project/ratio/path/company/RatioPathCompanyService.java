@@ -144,7 +144,7 @@ public class RatioPathCompanyService {
         resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
         resultMap.put("beneficiary_validation_time_year", 2023);
         resultMap.put("entity_type_id", 1);
-        return dao.replaceInto("entity_beneficiary_details", resultMap);
+        return dao.replaceIntoBeneficiary(resultMap);
     }
 
     // entity_controller_details
@@ -168,7 +168,7 @@ public class RatioPathCompanyService {
         if ("2".equals(String.valueOf(columnMap.get("is_controller")))) {
             resultMap.put("is_controller_tyc_unique_entity_id", 0);
         }
-        return dao.replaceInto("entity_controller_details", resultMap);
+        return dao.replaceIntoController(resultMap);
     }
 
     // shareholder_identity_type_details
