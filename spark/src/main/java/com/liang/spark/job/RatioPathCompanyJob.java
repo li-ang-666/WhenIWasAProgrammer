@@ -21,10 +21,10 @@ import java.util.Set;
 public class RatioPathCompanyJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        TableFactory.jdbc(spark, "prismShareholderPath", "investment_relation")
+        TableFactory.jdbc(spark, "457.prism_shareholder_path", "investment_relation")
                 .createOrReplaceTempView("t");
         spark.sql("select distinct company_id_invested from t")
-                .repartition(1800)
+                .repartition(2400)
                 .foreachPartition(new RatioPathCompanyForeach(ConfigUtils.getConfig()));
     }
 
@@ -34,7 +34,7 @@ public class RatioPathCompanyJob {
         private final Config config;
 
         @Override
-        public void call(Iterator<Row> iterator) throws Exception {
+        public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
             RatioPathCompanyService service = new RatioPathCompanyService();
             Set<Long> set = new HashSet<>();
@@ -45,7 +45,7 @@ public class RatioPathCompanyJob {
                 if (StringUtils.isNumeric(companyIdInvested) && !"0".equals(companyIdInvested)) {
                     set.add(Long.parseLong(companyIdInvested));
                 }
-                if (set.size() >= 100) {
+                if (set.size() >= 64) {
                     service.invoke(set);
                     set.clear();
                 }
