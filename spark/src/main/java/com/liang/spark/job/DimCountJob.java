@@ -23,11 +23,11 @@ public class DimCountJob {
                 .createOrReplaceTempView("t");
         spark.sql("select distinct 'company' type,company_id id from t")
                 .unionAll(spark.sql("select distinct 'shareholder' type,shareholder_id id from t"))
-                .foreachPartition(new DimCountJobForeachPartitionSink(ConfigUtils.getConfig()));
+                .foreachPartition(new DimCountForeachPartitionSink(ConfigUtils.getConfig()));
     }
 
     @RequiredArgsConstructor
-    private final static class DimCountJobForeachPartitionSink implements ForeachPartitionFunction<Row> {
+    private final static class DimCountForeachPartitionSink implements ForeachPartitionFunction<Row> {
         private final Config config;
 
         @Override
