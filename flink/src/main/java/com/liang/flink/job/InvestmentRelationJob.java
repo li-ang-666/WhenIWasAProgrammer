@@ -66,6 +66,13 @@ public class InvestmentRelationJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
+            if (singleCanalBinlog.getTable().equals("enterprise")) {
+                String beforeName = String.valueOf(singleCanalBinlog.getBeforeColumnMap().get("name"));
+                String afterName = String.valueOf(singleCanalBinlog.getAfterColumnMap().get("name"));
+                if (beforeName.equals(afterName)) {
+                    return;
+                }
+            }
             String key = distributor.getKey(singleCanalBinlog);
             synchronized (companyIds) {
                 companyIds.add(key);
