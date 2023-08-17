@@ -12,7 +12,7 @@ import java.util.List;
 import static com.liang.common.util.SqlUtils.formatValue;
 
 public class AnnualReportDao {
-    private final JdbcTemplate prism116 = new JdbcTemplate("116prism");
+    private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
 
     public Tuple2<Company, String> getCompanyAndYear(String reportId) {
         if (!TycUtils.isUnsignedId(reportId)) {
