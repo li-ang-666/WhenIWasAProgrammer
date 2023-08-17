@@ -66,6 +66,7 @@ public class InvestmentRelationJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
+            // enterprise数据量有点大
             if (singleCanalBinlog.getTable().equals("enterprise")) {
                 String beforeName = String.valueOf(singleCanalBinlog.getBeforeColumnMap().get("name"));
                 String afterName = String.valueOf(singleCanalBinlog.getAfterColumnMap().get("name"));
