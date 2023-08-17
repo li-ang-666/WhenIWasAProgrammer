@@ -22,26 +22,24 @@ public class TycUtils {
     }
 
     public static boolean isTycUniqueEntityId(Object shareholderId) {
-        // 先判断数字
-        if (isUnsignedId(shareholderId)) {
-            return true;
-        }
         // 判空
         if (shareholderId == null) {
             return false;
         }
-        // 判断17位hash值
         String shareholderIdStr = String.valueOf(shareholderId);
         int length = shareholderIdStr.length();
         if (length < 17) {
-            return false;
-        }
-        for (int i = 0; i < length; i++) {
-            if (!Character.isLetterOrDigit(shareholderIdStr.charAt(i))) {
-                return false;
+            // 小于17位, 判断数字
+            return isUnsignedId(shareholderIdStr);
+        } else {
+            // 否则判断pid
+            for (int i = 0; i < length; i++) {
+                if (!Character.isLetterOrDigit(shareholderIdStr.charAt(i))) {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
     }
 
     public static boolean isValidName(Object name) {
