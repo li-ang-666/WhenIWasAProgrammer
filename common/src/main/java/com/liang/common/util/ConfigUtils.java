@@ -21,7 +21,7 @@ public class ConfigUtils {
     private static volatile Config config;
     private static volatile AtomicInteger threadNum;
 
-    public static Config initConfig(String file) {
+    public static Config createConfig(String file) {
         Config defaultConfig = initDefaultConfig();
         if (!StringUtils.endsWith(file, SUFFIX)) {
             log.warn("no *{} file for customConfig, return defaultConfig", SUFFIX);

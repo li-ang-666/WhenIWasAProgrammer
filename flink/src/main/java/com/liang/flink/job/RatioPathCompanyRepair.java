@@ -10,7 +10,7 @@ import java.util.Set;
 
 public class RatioPathCompanyRepair {
     public static void main(String[] args) {
-        Config config = ConfigUtils.initConfig(null);
+        Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
         Set<Long> companyIds = new HashSet<>(Arrays.asList(
                 3295590945L

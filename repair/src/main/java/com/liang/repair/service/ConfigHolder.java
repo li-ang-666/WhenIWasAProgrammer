@@ -9,7 +9,7 @@ public abstract class ConfigHolder {
     protected final static Logger log = LoggerFactory.getLogger(ConfigHolder.class);
 
     static {
-        Config config = ConfigUtils.initConfig("config.yml");
+        Config config = ConfigUtils.createConfig("config.yml");
         ConfigUtils.setConfig(config);
     }
 }

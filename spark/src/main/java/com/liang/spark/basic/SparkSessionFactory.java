@@ -16,7 +16,7 @@ public class SparkSessionFactory {
     }
 
     private static void initConfig(String file) {
-        Config config = ConfigUtils.initConfig(file);
+        Config config = ConfigUtils.createConfig(file);
         ConfigUtils.setConfig(config);
     }
 
