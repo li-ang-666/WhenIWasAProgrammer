@@ -6,7 +6,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import static com.liang.common.util.SqlUtils.formatValue;
 
 public class BdpEquityDao {
-    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("bdpEquity");
+    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("463.bdp_equity");
 
     public void updateShareholderName(String shareholderId, String shareholderName) {
         String update1 = new SQL()

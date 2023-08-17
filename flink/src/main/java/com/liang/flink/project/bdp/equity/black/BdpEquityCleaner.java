@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class BdpEquityCleaner implements Runnable {
-    private final JdbcTemplate prismShareholderPath = new JdbcTemplate("prismShareholderPath");
-    private final JdbcTemplate bdpEquity = new JdbcTemplate("bdpEquity");
+    private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
+    private final JdbcTemplate bdpEquity = new JdbcTemplate("463.bdp_equity");
 
     @Override
     @SneakyThrows(InterruptedException.class)
