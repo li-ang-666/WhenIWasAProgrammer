@@ -13,6 +13,7 @@ import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -22,6 +23,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
 @LocalConfigFile("annual-report.yml")
@@ -31,7 +33,21 @@ public class AnnualReportJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
-                .keyBy(SingleCanalBinlog::getTable)
+                .keyBy((KeySelector<SingleCanalBinlog, Integer>) value -> {
+                    String table = value.getTable();
+                    switch (table) {
+                        case "report_equity_change_info":
+                            return 0;
+                        case "report_shareholder":
+                            return 1;
+                        case "report_outbound_investment":
+                            return 2;
+                        case "report_webinfo":
+                            return 3;
+                        default:
+                            return new Random().nextInt(4);
+                    }
+                })
                 .addSink(new AnnualReportSink(config)).name("AnnualReportSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("AnnualReportJob");
     }
