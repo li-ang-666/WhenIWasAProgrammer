@@ -38,21 +38,6 @@ public class AnnualReportJob {
                 .with("report_webinfo", e -> e.getColumnMap().get("id").toString())
                 .with("enterprise", e -> e.getColumnMap().get("id").toString());
         stream
-                /*.keyBy((KeySelector<SingleCanalBinlog, Integer>) value -> {
-                    String table = value.getTable();
-                    switch (table) {
-                        case "report_equity_change_info":
-                            return 0;
-                        case "report_shareholder":
-                            return 1;
-                        case "report_outbound_investment":
-                            return 2;
-                        case "report_webinfo":
-                            return 3;
-                        default:
-                            return new Random().nextInt(4);
-                    }
-                })*/
                 .keyBy(distributor)
                 .addSink(new AnnualReportSink(config)).name("AnnualReportSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("AnnualReportJob");
@@ -80,7 +65,7 @@ public class AnnualReportJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             jdbcTemplate = new JdbcTemplate("gauss");
-            //jdbcTemplate.enableCache(5000, 1024);
+            jdbcTemplate.enableCache(5000, 1024);
             DataUpdateContext<String> context = new DataUpdateContext<>(AnnualReportSink.class);
             service = new DataUpdateService<>(context);
         }

@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
@@ -44,6 +45,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
     protected void updateImmediately(String ignore, Queue<String> sqls) {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             connection.setAutoCommit(false);
             Statement statement = connection.createStatement();
             for (String sql : sqls) {
