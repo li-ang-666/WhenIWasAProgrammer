@@ -15,6 +15,7 @@ dbConfigs:
   464.prism: { host: "5673658675c84a3ba5ae7577850f1ed2in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
   157.prism_boss: { host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_boss" }
   doris: { host: "10.99.202.70",database: "test_db",user: "dba",password: "Tyc@1234" ,port: 6060 }
+  gauss: { host: "10.99.131.246",database: "company_base",user: "jindi_data_ddl_test",password: "A&q^2b9kVdKw" ,port: 6060 }
 
 redisConfigs:
   localhost: { host: "127.0.0.1",password: ~ }
