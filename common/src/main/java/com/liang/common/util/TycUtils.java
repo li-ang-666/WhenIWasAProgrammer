@@ -130,7 +130,7 @@ public class TycUtils {
                 .WHERE("deleted = 0")
                 .WHERE("id = " + formatValue(cid))
                 .toString();
-        Tuple2<String, String> tuple2 = new JdbcTemplate("464prism").queryForObject(sql,
+        Tuple2<String, String> tuple2 = new JdbcTemplate("464.prism").queryForObject(sql,
                 rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
         if (tuple2 == null) {
             return new Company();
@@ -154,7 +154,7 @@ public class TycUtils {
                 .WHERE("hg.deleted = 0")
                 .WHERE("hg.human_id = " + formatValue(cid))
                 .toString();
-        Tuple2<String, String> tuple2 = new JdbcTemplate("116prism").queryForObject(sql,
+        Tuple2<String, String> tuple2 = new JdbcTemplate("116.prism").queryForObject(sql,
                 rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
         if (tuple2 == null) {
             return new Human();
@@ -178,7 +178,7 @@ public class TycUtils {
                 .WHERE("company_graph_id = " + formatValue(companyGid))
                 .WHERE("human_graph_id = " + formatValue(humanGid))
                 .toString();
-        String res = new JdbcTemplate("157PrismBoss").queryForObject(sql, rs -> rs.getString(1));
+        String res = new JdbcTemplate("157.prism_boss").queryForObject(sql, rs -> rs.getString(1));
         return isTycUniqueEntityId(res) ? res : "0";
     }
 }
