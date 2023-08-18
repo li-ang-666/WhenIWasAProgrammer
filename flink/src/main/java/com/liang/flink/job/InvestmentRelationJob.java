@@ -74,6 +74,14 @@ public class InvestmentRelationJob {
                     return;
                 }
             }
+            // company_index数据量有点大
+            if (singleCanalBinlog.getTable().equals("company_index")) {
+                String beforeName = String.valueOf(singleCanalBinlog.getBeforeColumnMap().get("company_name"));
+                String afterName = String.valueOf(singleCanalBinlog.getAfterColumnMap().get("company_name"));
+                if (beforeName.equals(afterName)) {
+                    return;
+                }
+            }
             String key = distributor.getKey(singleCanalBinlog);
             synchronized (companyIds) {
                 companyIds.add(key);
