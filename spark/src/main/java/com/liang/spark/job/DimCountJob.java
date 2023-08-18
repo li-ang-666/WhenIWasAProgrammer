@@ -36,6 +36,7 @@ public class DimCountJob {
             RatioPathCompany ratioPathCompany = new RatioPathCompany();
             SingleCanalBinlog singleCanalBinlog = new SingleCanalBinlog();
             HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
+            hbaseTemplate.enableCache();
             while (t.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(t.next().json());
                 if (String.valueOf(columnMap.get("type")).equals("company")) {
@@ -46,6 +47,7 @@ public class DimCountJob {
                 singleCanalBinlog.setColumnMap(columnMap);
                 hbaseTemplate.update(ratioPathCompany.updateWithReturn(singleCanalBinlog));
             }
+            hbaseTemplate.flush();
         }
     }
 }
