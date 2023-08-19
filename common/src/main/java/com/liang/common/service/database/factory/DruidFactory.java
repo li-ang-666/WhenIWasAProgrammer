@@ -5,6 +5,8 @@ import com.liang.common.dto.config.DBConfig;
 import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.Connection;
+
 @Slf4j
 public class DruidFactory implements IFactory<DruidDataSource> {
     public static final String MEMORY_DRUID = "mem";
@@ -88,5 +90,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setMaxOpenPreparedStatements(100);
         druidDataSource.setUsePingMethod(false);
         druidDataSource.setAsyncInit(true);
+        // 隔离级别
+        druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
     }
 }
