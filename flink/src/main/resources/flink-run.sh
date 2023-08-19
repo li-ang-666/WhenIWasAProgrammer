@@ -21,21 +21,9 @@ export configName=config.yml
 # checkpoint dir
 export folderName=$(echo ${className} | sed -E 's/([A-Z])/-\1/g' | sed -E 's/^-//g' | tr 'A-Z' 'a-z')
 # yarn application name
-export jobName=$(
-if [[ ${configName} == config* ]]
-then
-  echo ${className}
-else
-  echo ${className}RepairTest
-fi)
+export jobName=$(if [[ ${configName} == config* ]] ; then echo ${className} ; else echo ${className}RepairTest ; fi)
 # restore dir
-export restoreDir=$(
-if [[ $1 ]]
-then
-  echo '-s '$1
-else
-  echo ''
-fi)
+export restoreDir=$(if [[ $1 ]] ; then echo '-s '$1 ; else echo '' ; fi)
 
 ####################################
 #                                  #
