@@ -65,7 +65,7 @@ public class AnnualReportJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             jdbcTemplate = new JdbcTemplate("gauss");
-            jdbcTemplate.enableCache(5000, 1024);
+            jdbcTemplate.enableCache(3000, 1024);
             DataUpdateContext<String> context = new DataUpdateContext<>(AnnualReportSink.class);
             service = new DataUpdateService<>(context);
         }
