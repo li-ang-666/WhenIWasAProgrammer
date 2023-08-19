@@ -1,5 +1,6 @@
 package com.liang.flink.project.annual.report.impl;
 
+import cn.hutool.core.util.ObjUtil;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
@@ -7,7 +8,6 @@ import com.liang.flink.service.data.update.AbstractDataUpdate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class Enterprise extends AbstractDataUpdate<String> {
     private final AnnualReportDao dao = new AnnualReportDao();
@@ -16,8 +16,8 @@ public class Enterprise extends AbstractDataUpdate<String> {
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
         Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
         Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
-        boolean deletedEquals = Objects.deepEquals(beforeColumnMap.get("deleted"), afterColumnMap.get("deleted"));
-        boolean nameEquals = Objects.deepEquals(beforeColumnMap.get("name"), afterColumnMap.get("name"));
+        boolean deletedEquals = ObjUtil.equals(beforeColumnMap.get("deleted"), afterColumnMap.get("deleted"));
+        boolean nameEquals = ObjUtil.equals(beforeColumnMap.get("name"), afterColumnMap.get("name"));
         if (!deletedEquals || !nameEquals) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String id = String.valueOf(columnMap.get("id"));
