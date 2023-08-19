@@ -1,8 +1,4 @@
 #!/bin/bash
-
-export FLINK_HOME=/data/liang/flink-1.17.1
-export FLINK_CONF_DIR=/data/liang/flink-conf
-
 ####################################
 #                                  #
 #             variable             #
@@ -18,12 +14,15 @@ export configName=config.yml
 #              ignore              #
 #                                  #
 ####################################
+# flink env
+export FLINK_HOME=/data/liang/flink-1.17.1
+export FLINK_CONF_DIR=/data/liang/flink-conf
 # checkpoint dir
 export folderName=$(echo ${className} | sed -E 's/([A-Z])/-\1/g' | sed -E 's/^-//g' | tr 'A-Z' 'a-z')
 # yarn application name
 export jobName=$(if [[ ${configName} == config* ]] ; then echo ${className} ; else echo ${className}RepairTest ; fi)
 # restore dir
-export restoreDir=$(if [[ $1 ]] ; then echo '-s '$1 ; else echo '' ; fi)
+export restoreDir=$(if [[ $1 == hdfs* ]] ; then echo '-s '$1 ; else echo '' ; fi)
 
 ####################################
 #                                  #
