@@ -41,6 +41,7 @@ public class StreamFactory {
         String kafkaTimeKey = simpleName + "___Time___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
         log.info("kafkaOffsetKey: {}, kafkaTimeKey: {}", kafkaOffsetKey, kafkaTimeKey);
         DaemonExecutor.launch("KafkaLagReporter", new KafkaLagReporter(kafkaOffsetKey, kafkaTimeKey));
+        // 填充KafkaSource
         Config config = ConfigUtils.getConfig();
         KafkaSource<KafkaRecord<BatchCanalBinlog>> kafkaSource = KafkaSourceFactory.create(BatchCanalBinlog::new);
         return streamEnvironment
