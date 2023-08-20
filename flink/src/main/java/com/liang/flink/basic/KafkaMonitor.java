@@ -37,7 +37,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
 
     @Override
     public void flatMap(KafkaRecord<BatchCanalBinlog> kafkaRecord, Collector<SingleCanalBinlog> out) {
-        String key = kafkaRecord.getTopic() + ", " + kafkaRecord.getPartition();
+        String key = kafkaRecord.getTopic() + "@" + kafkaRecord.getPartition();
         offsetMap.put(key, String.valueOf(kafkaRecord.getOffset()));
         timeMap.put(key, String.valueOf(kafkaRecord.getReachMilliseconds() / 1000));
         long currentTimeMillis = System.currentTimeMillis();

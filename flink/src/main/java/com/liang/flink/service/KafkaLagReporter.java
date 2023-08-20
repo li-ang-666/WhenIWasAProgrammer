@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class KafkaLagReporter implements Runnable {
-    private static final int INTERVAL_SECONDS = 5;
+    private static final int INTERVAL_SECONDS = 60 * 3;
 
     private final Comparator<TopicPartition> mapKeyComparator = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
@@ -43,15 +43,18 @@ public class KafkaLagReporter implements Runnable {
         while (true) {
             TimeUnit.SECONDS.sleep(INTERVAL_SECONDS);
             Map<String, String> offsetMap = redisTemplate.hScan(kafkaOffsetKey);
+            // 格式化
             Map<TopicPartition, Long> copyOffsetMap = new TreeMap<>(mapKeyComparator);
             for (Map.Entry<String, String> entry : offsetMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                String[] split = key.split(", ");
+                String[] split = key.split("@");
                 copyOffsetMap.put(new TopicPartition(split[0], Integer.parseInt(split[1])), Long.parseLong(value));
             }
+            // 获取最大值
             Map<TopicPartition, Long> maxOffsetMap = kafkaConsumer.endOffsets(copyOffsetMap.keySet());
             int i = 0;
+            // 计算
             for (Map.Entry<TopicPartition, Long> entry : maxOffsetMap.entrySet()) {
                 TopicPartition key = entry.getKey();
                 long lag = entry.getValue() - copyOffsetMap.get(key);
@@ -66,6 +69,7 @@ public class KafkaLagReporter implements Runnable {
             }
             log.warn("kafka offset lag: {}", JsonUtils.toString(copyOffsetMap));
             Map<String, String> timeMap = redisTemplate.hScan(kafkaTimeKey);
+            // 格式化
             Map<TopicPartition, String> copyTimeMap = new TreeMap<>(mapKeyComparator);
             for (Map.Entry<String, String> entry : timeMap.entrySet()) {
                 String key = entry.getKey();
@@ -73,6 +77,7 @@ public class KafkaLagReporter implements Runnable {
                 String[] split = key.split(", ");
                 copyTimeMap.put(new TopicPartition(split[0], Integer.parseInt(split[1])), value);
             }
+            // 计算
             for (Map.Entry<TopicPartition, String> entry : copyTimeMap.entrySet()) {
                 TopicPartition key = entry.getKey();
                 copyTimeMap.put(key, DateTimeUtils.fromUnixTime(Long.parseLong(entry.getValue()), "yyyy-MM-dd HH:mm:ss"));
