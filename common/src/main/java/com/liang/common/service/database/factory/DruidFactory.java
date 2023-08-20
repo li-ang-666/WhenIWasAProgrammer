@@ -24,7 +24,6 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private DruidDataSource createNormal(String name) {
@@ -89,9 +88,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         // 设置sql超时, 避免断电未提交的事务导致其它sql lock wait timeout
         List<String> initSqls = Arrays.asList(
-                "set wait_timeout = 120",
-                "set interactive_timeout = 120"
-        );
+                "set wait_timeout = 120", "set interactive_timeout = 120");
         druidDataSource.setConnectionInitSqls(initSqls);
         druidDataSource.setConnectTimeout(1000 * 60 * 2);
         druidDataSource.setSocketTimeout(1000 * 60 * 2);
