@@ -40,13 +40,6 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&characterSetResults=UTF-8" +
                 // useSSL
                 "&useSSL=false" +
-                // 连接策略
-                "&socketTimeout=60000" +
-                "&connectTimeout=5000" +
-                "&autoReconnect=true" +
-                "&&initialTimeout=5" +
-                "&maxReconnects=3" +
-                "&failOverReadOnly=false" +
                 // 性能优化
                 "&maxAllowedPacket=67108864" + // 64mb
                 "&rewriteBatchedStatements=true";
@@ -77,14 +70,14 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(10);
         // jdbc-url配置, 5秒超时, 每次重试间隔5秒, 总重试3次
-        druidDataSource.setMaxWait(1000 * 30);
+        druidDataSource.setMaxWait(1000 * 60 * 2);
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
         druidDataSource.setTestWhileIdle(true);
         // 管理minIdle
-        druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 60);
-        druidDataSource.setMinEvictableIdleTimeMillis(1000 * 60 * 5);
-        // minIdle以内保持活跃
+        druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 30);
+        druidDataSource.setMinEvictableIdleTimeMillis(1000 * 60);
+        // minIdle以内的连接保持活跃
         druidDataSource.setKeepAlive(true);
         druidDataSource.setValidationQuery("select 1");
         // 其它
@@ -95,7 +88,14 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         // 隔离级别
         druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         // 设置sql超时, 避免断电未提交的事务导致其它sql lock wait timeout
-        List<String> initSqls = Arrays.asList("set wait_timeout = 300", "set interactive_timeout = 300");
+        List<String> initSqls = Arrays.asList(
+                "set wait_timeout = 120",
+                "set interactive_timeout = 120"
+        );
         druidDataSource.setConnectionInitSqls(initSqls);
+        druidDataSource.setConnectTimeout(1000 * 60 * 2);
+        druidDataSource.setSocketTimeout(1000 * 60 * 2);
+        druidDataSource.setQueryTimeout(120);
+        druidDataSource.setTransactionQueryTimeout(120);
     }
 }
