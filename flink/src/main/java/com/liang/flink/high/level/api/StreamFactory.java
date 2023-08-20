@@ -11,6 +11,7 @@ import com.liang.flink.basic.RepairSource;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.service.KafkaLagReporter;
 import com.liang.flink.service.RepairDataReporter;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +33,20 @@ public class StreamFactory {
     }
 
     private static DataStream<SingleCanalBinlog> createKafkaStream(StreamExecutionEnvironment streamEnvironment) {
+        // 在JobManager启动汇报线程
+        String jobClassName = StackUtils.getMainFrame().getClassName();
+        String[] split = jobClassName.split("\\.");
+        String simpleName = split[split.length - 1];
+        String kafkaOffsetKey = simpleName + "___Offset___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
+        String kafkaTimeKey = simpleName + "___Time___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
+        log.info("kafkaOffsetKey: {}, kafkaTimeKey: {}", kafkaOffsetKey, kafkaTimeKey);
+        DaemonExecutor.launch("KafkaLagReporter", new KafkaLagReporter(kafkaOffsetKey, kafkaTimeKey));
+        Config config = ConfigUtils.getConfig();
         KafkaSource<KafkaRecord<BatchCanalBinlog>> kafkaSource = KafkaSourceFactory.create(BatchCanalBinlog::new);
         return streamEnvironment
                 .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "KafkaSource")
-                .setParallelism(ConfigUtils.getConfig().getFlinkConfig().getSourceParallel())
-                .flatMap(new KafkaMonitor(ConfigUtils.getConfig())).name("Monitor")
+                .setParallelism(config.getFlinkConfig().getSourceParallel())
+                .flatMap(new KafkaMonitor(config, kafkaOffsetKey, kafkaTimeKey)).name("Monitor")
                 .setParallelism(1);
     }
 

@@ -1,6 +1,6 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Repair
+  sourceType: Kafka
   sourceParallel: 1
   otherParallel: 1
 
@@ -19,4 +19,4 @@ kafkaConfigs:
     topics:
       - "e1d4c.proto.prism_shareholder_path.investment_relation"
     groupId: "ratio-path-company-job"
-    startFrom: "2"
+    startFrom: "1"
