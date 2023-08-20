@@ -69,18 +69,15 @@ public class KafkaLagReporter implements Runnable {
             }
             log.warn("kafka offset lag: {}", JsonUtils.toString(copyOffsetMap));
             Map<String, String> timeMap = redisTemplate.hScan(kafkaTimeKey);
-            // 格式化
+            // 格式化 and 计算
             Map<TopicPartition, String> copyTimeMap = new TreeMap<>(mapKeyComparator);
             for (Map.Entry<String, String> entry : timeMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
                 String[] split = key.split("@");
-                copyTimeMap.put(new TopicPartition(split[0], Integer.parseInt(split[1])), value);
-            }
-            // 计算
-            for (Map.Entry<TopicPartition, String> entry : copyTimeMap.entrySet()) {
-                TopicPartition key = entry.getKey();
-                copyTimeMap.put(key, DateTimeUtils.fromUnixTime(Long.parseLong(entry.getValue()), "yyyy-MM-dd HH:mm:ss"));
+                TopicPartition topicPartition = new TopicPartition(split[0], Integer.parseInt(split[1]));
+                String time = DateTimeUtils.fromUnixTime(Long.parseLong(value), "yyyy-MM-dd HH:mm:ss");
+                copyTimeMap.put(topicPartition, time);
             }
             log.warn("kafka time info: {}", JsonUtils.toString(copyTimeMap));
         }
