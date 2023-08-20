@@ -29,7 +29,8 @@ public class DruidFactory implements IFactory<DruidDataSource> {
 
     private DruidDataSource createNormal(String name) {
         DBConfig dbConfig = ConfigUtils.getConfig().getDbConfigs().get(name);
-        String url = "jdbc:mysql://" + dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
+        String url = "jdbc:mysql://" +
+                dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
                 // 时区
                 "?serverTimezone=GMT%2B8" +
                 // 时间字段处理
@@ -41,7 +42,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 // useSSL
                 "&useSSL=false" +
                 // 性能优化
-                "&maxAllowedPacket=67108864" + // 64mb
+                "&maxAllowedPacket=67108864" + // 64MB
                 "&rewriteBatchedStatements=true";
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setUrl(url);
