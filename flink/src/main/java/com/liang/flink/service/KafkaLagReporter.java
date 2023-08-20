@@ -74,7 +74,7 @@ public class KafkaLagReporter implements Runnable {
             for (Map.Entry<String, String> entry : timeMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                String[] split = key.split(", ");
+                String[] split = key.split("@");
                 copyTimeMap.put(new TopicPartition(split[0], Integer.parseInt(split[1])), value);
             }
             // 计算
