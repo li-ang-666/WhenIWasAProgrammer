@@ -6,7 +6,8 @@ import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 public class DruidFactory implements IFactory<DruidDataSource> {
@@ -94,6 +95,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         // 隔离级别
         druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         // 设置sql超时, 避免断电未提交的事务导致其它sql lock wait timeout
-        druidDataSource.setConnectionInitSqls(Collections.singletonList("set max_execution_time = 300000"));
+        List<String> initSqls = Arrays.asList("set wait_timeout = 300", "set interactive_timeout = 300");
+        druidDataSource.setConnectionInitSqls(initSqls);
     }
 }
