@@ -20,21 +20,20 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class KafkaLagReporter implements Runnable {
     private static final int INTERVAL_SECONDS = 5;
+
+    private final Comparator<TopicPartition> mapKeyComparator = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
     private final KafkaConsumer<byte[], byte[]> kafkaConsumer;
     private final String kafkaOffsetKey;
     private final String kafkaTimeKey;
 
-    {
+    public KafkaLagReporter(String kafkaOffsetKey, String kafkaTimeKey) {
+        this.kafkaOffsetKey = kafkaOffsetKey;
+        this.kafkaTimeKey = kafkaTimeKey;
         kafkaConsumer = new KafkaConsumer<>(new Properties() {{
             setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                     ConfigUtils.getConfig().getKafkaConfigs().get("kafkaSource").getBootstrapServers());
         }}, new ByteArrayDeserializer(), new ByteArrayDeserializer());
-    }
-
-    public KafkaLagReporter(String kafkaOffsetKey, String kafkaTimeKey) {
-        this.kafkaOffsetKey = kafkaOffsetKey;
-        this.kafkaTimeKey = kafkaTimeKey;
     }
 
     @Override
@@ -42,7 +41,7 @@ public class KafkaLagReporter implements Runnable {
     @SneakyThrows(InterruptedException.class)
     public void run() {
         while (true) {
-            Comparator<TopicPartition> mapKeyComparator = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
+            TimeUnit.SECONDS.sleep(INTERVAL_SECONDS);
             Map<String, String> offsetMap = redisTemplate.hScan(kafkaOffsetKey);
             Map<TopicPartition, Long> copyOffsetMap = new TreeMap<>(mapKeyComparator);
             for (Map.Entry<String, String> entry : offsetMap.entrySet()) {
@@ -63,9 +62,9 @@ public class KafkaLagReporter implements Runnable {
             }
             if (i == 0) {
                 log.info("本轮周期内 kafka 所有分区 lag 均小于 100");
-                return;
+                continue;
             }
-            log.warn("offset lag: {}", JsonUtils.toString(copyOffsetMap));
+            log.warn("kafka offset lag: {}", JsonUtils.toString(copyOffsetMap));
             Map<String, String> timeMap = redisTemplate.hScan(kafkaTimeKey);
             Map<TopicPartition, String> copyTimeMap = new TreeMap<>(mapKeyComparator);
             for (Map.Entry<String, String> entry : timeMap.entrySet()) {
@@ -78,8 +77,7 @@ public class KafkaLagReporter implements Runnable {
                 TopicPartition key = entry.getKey();
                 copyTimeMap.put(key, DateTimeUtils.fromUnixTime(Long.parseLong(entry.getValue()), "yyyy-MM-dd HH:mm:ss"));
             }
-            log.warn("msg time info: {}", JsonUtils.toString(copyTimeMap));
-            TimeUnit.SECONDS.sleep(INTERVAL_SECONDS);
+            log.warn("kafka time info: {}", JsonUtils.toString(copyTimeMap));
         }
     }
 }

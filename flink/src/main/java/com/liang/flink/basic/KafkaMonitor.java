@@ -11,14 +11,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
-import org.apache.kafka.common.TopicPartition;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
 public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog> {
+    private final static long INTERVAL = 1000 * 10L;
+
+    private final Map<String, String> offsetMap = new HashMap<>();
+    private final Map<String, String> timeMap = new HashMap<>();
+
     private final Config config;
     private final String kafkaOffsetKey;
     private final String kafkaTimeKey;
+    private long lastSendTime = System.currentTimeMillis();
     private RedisTemplate redisTemplate;
 
     @Override
@@ -29,10 +37,15 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
 
     @Override
     public void flatMap(KafkaRecord<BatchCanalBinlog> kafkaRecord, Collector<SingleCanalBinlog> out) {
-        TopicPartition topicPartition = new TopicPartition(kafkaRecord.getTopic(), kafkaRecord.getPartition());
-        String key = topicPartition.topic() + ", " + topicPartition.partition();
-        redisTemplate.hSet(kafkaOffsetKey, key, String.valueOf(kafkaRecord.getOffset()));
-        redisTemplate.hSet(kafkaTimeKey, key, String.valueOf(kafkaRecord.getReachMilliseconds() / 1000));
+        String key = kafkaRecord.getTopic() + ", " + kafkaRecord.getPartition();
+        offsetMap.put(key, String.valueOf(kafkaRecord.getOffset()));
+        timeMap.put(key, String.valueOf(kafkaRecord.getReachMilliseconds() / 1000));
+        long currentTimeMillis = System.currentTimeMillis();
+        if (currentTimeMillis - lastSendTime >= INTERVAL) {
+            redisTemplate.hMSet(kafkaOffsetKey, offsetMap);
+            redisTemplate.hMSet(kafkaTimeKey, timeMap);
+            lastSendTime = currentTimeMillis;
+        }
         for (SingleCanalBinlog singleCanalBinlog : kafkaRecord.getValue().getSingleCanalBinlogs()) {
             out.collect(singleCanalBinlog);
         }

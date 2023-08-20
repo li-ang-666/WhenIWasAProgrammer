@@ -20,7 +20,7 @@ public class DemoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         StreamFactory.create(env)
-                .addSink(new DemoSink(ConfigUtils.getConfig())).setParallelism(1);
+                .addSink(new DemoSink(ConfigUtils.getConfig())).setParallelism(20);
         env.execute("DemoJob");
     }
 
@@ -33,12 +33,12 @@ public class DemoJob {
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
             obsWriter = new ObsWriter("obs://hadoop-obs/flink/enterprise");
-            obsWriter.enableCache();
+            //obsWriter.enableCache();
         }
 
         @Override
         public void invoke(SingleCanalBinlog value, Context context) throws Exception {
-            System.out.println((JsonUtils.toString(value)));
+            obsWriter.update(JsonUtils.toString(value));
         }
     }
 }

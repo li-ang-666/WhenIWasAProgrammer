@@ -2,7 +2,7 @@
 flinkConfig:
   sourceType: Kafka
   sourceParallel: 5
-  otherParallel: 1
+  otherParallel: 20
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -19,4 +19,4 @@ kafkaConfigs:
     topics:
       - "56736.json.prism.enterprise"
     groupId: "2"
-    startFrom: "2"
+    startFrom: "1"
