@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class KafkaLagReporter implements Runnable {
     private static final int INTERVAL_SECONDS = 60 * 3;
+    private static final Comparator<TopicPartition> TOPIC_PARTITION_COMPARATOR = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
 
-    private final Comparator<TopicPartition> mapKeyComparator = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
     private final KafkaConsumer<byte[], byte[]> kafkaConsumer;
     private final String kafkaOffsetKey;
@@ -44,7 +44,7 @@ public class KafkaLagReporter implements Runnable {
             TimeUnit.SECONDS.sleep(INTERVAL_SECONDS);
             Map<String, String> offsetMap = redisTemplate.hScan(kafkaOffsetKey);
             // 格式化
-            Map<TopicPartition, Long> copyOffsetMap = new TreeMap<>(mapKeyComparator);
+            Map<TopicPartition, Long> copyOffsetMap = new TreeMap<>(TOPIC_PARTITION_COMPARATOR);
             for (Map.Entry<String, String> entry : offsetMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
@@ -70,7 +70,7 @@ public class KafkaLagReporter implements Runnable {
             log.warn("kafka offset lag: {}", JsonUtils.toString(copyOffsetMap));
             Map<String, String> timeMap = redisTemplate.hScan(kafkaTimeKey);
             // 格式化 and 计算
-            Map<TopicPartition, String> copyTimeMap = new TreeMap<>(mapKeyComparator);
+            Map<TopicPartition, String> copyTimeMap = new TreeMap<>(TOPIC_PARTITION_COMPARATOR);
             for (Map.Entry<String, String> entry : timeMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
