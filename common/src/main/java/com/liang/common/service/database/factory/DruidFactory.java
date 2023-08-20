@@ -69,7 +69,6 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setInitialSize(1);
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(10);
-        // jdbc-url配置, 5秒超时, 每次重试间隔5秒, 总重试3次
         druidDataSource.setMaxWait(1000 * 60 * 2);
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);

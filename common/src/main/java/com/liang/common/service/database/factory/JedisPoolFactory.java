@@ -2,16 +2,15 @@ package com.liang.common.service.database.factory;
 
 import com.liang.common.dto.config.RedisConfig;
 import com.liang.common.util.ConfigUtils;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 @Slf4j
 public class JedisPoolFactory implements IFactory<JedisPool> {
+    private final static JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 
-    @NonNull
-    private static JedisPoolConfig getJedisPoolConfig() {
+    static {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMinIdle(1);
         jedisPoolConfig.setMaxIdle(10);
@@ -24,7 +23,6 @@ public class JedisPoolFactory implements IFactory<JedisPool> {
         jedisPoolConfig.setMinEvictableIdleTimeMillis(1000 * 60);
         jedisPoolConfig.setSoftMinEvictableIdleTimeMillis(1000 * 60);
         jedisPoolConfig.setNumTestsPerEvictionRun(1);
-        return jedisPoolConfig;
     }
 
     @Override
@@ -34,7 +32,6 @@ public class JedisPoolFactory implements IFactory<JedisPool> {
             String host = redisConfig.getHost();
             int port = redisConfig.getPort();
             String password = redisConfig.getPassword();
-            JedisPoolConfig jedisPoolConfig = getJedisPoolConfig();
             log.info("jedisPool 加载: {}", redisConfig);
             return new JedisPool(jedisPoolConfig, host, port, 1000 * 60 * 2, password);
         } catch (Exception e) {
