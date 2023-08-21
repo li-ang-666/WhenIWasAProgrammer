@@ -19,10 +19,12 @@ import java.util.Map;
 public class DimCountJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        TableFactory.jdbc(spark, "457.prism_shareholder_path", "ratio_path_company")
-                .createOrReplaceTempView("t");
-        spark.sql("select distinct 'company' type,company_id id from t")
-                .unionAll(spark.sql("select distinct 'shareholder' type,shareholder_id id from t"))
+        TableFactory.jdbc(spark, "435.company_base", "company_index")
+                .createOrReplaceTempView("t1");
+        TableFactory.jdbc(spark, "040.human_base", "human")
+                .createOrReplaceTempView("t2");
+        spark.sql("select distinct 'company' type,company_id id from t1")
+                .unionAll(spark.sql("select distinct 'shareholder' type,human_id id from t2"))
                 .foreachPartition(new DimCountForeachPartitionSink(ConfigUtils.getConfig()));
     }
 
@@ -41,6 +43,7 @@ public class DimCountJob {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(t.next().json());
                 if (String.valueOf(columnMap.get("type")).equals("company")) {
                     columnMap.put("company_id", String.valueOf(columnMap.get("id")));
+                    columnMap.put("shareholder_id", String.valueOf(columnMap.get("id")));
                 } else {
                     columnMap.put("shareholder_id", String.valueOf(columnMap.get("id")));
                 }
