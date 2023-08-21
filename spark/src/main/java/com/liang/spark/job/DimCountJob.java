@@ -23,8 +23,10 @@ public class DimCountJob {
                 .createOrReplaceTempView("t1");
         TableFactory.jdbc(spark, "040.human_base", "human")
                 .createOrReplaceTempView("t2");
-        spark.sql("select distinct 'company' type,company_id id from t1")
-                .unionAll(spark.sql("select distinct 'shareholder' type,human_id id from t2"))
+        String sql1 = "select distinct 'company' type,company_id id from t1";
+        String sql2 = "select distinct 'shareholder' type,human_id id from t2";
+        spark.sql(String.format("%s union all %s", sql1, sql2))
+                .repartition(2400)
                 .foreachPartition(new DimCountForeachPartitionSink(ConfigUtils.getConfig()));
     }
 
