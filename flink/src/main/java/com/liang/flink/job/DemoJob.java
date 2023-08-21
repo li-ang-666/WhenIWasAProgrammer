@@ -20,7 +20,7 @@ public class DemoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         StreamFactory.create(env)
-                .addSink(new DemoSink(ConfigUtils.getConfig())).setParallelism(20);
+                .addSink(new DemoSink(ConfigUtils.getConfig())).setParallelism(1);
         env.execute("DemoJob");
     }
 
@@ -38,7 +38,7 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog value, Context context) throws Exception {
-            obsWriter.update(JsonUtils.toString(value));
+            System.out.println(JsonUtils.toString(value));
         }
     }
 }
