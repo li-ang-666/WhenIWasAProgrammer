@@ -28,7 +28,7 @@ public class CompanyBaseInfoService {
                 .WHERE("id = " + companyCid)
                 .toString();
         sqls.add(deleteSql1);
-        //sqls.add(deleteSql2);
+        sqls.add(deleteSql2);
         Map<String, Object> enterpriseMap = dao.queryEnterprise(companyCid);
         if (enterpriseMap.isEmpty()) {
             return sqls;
