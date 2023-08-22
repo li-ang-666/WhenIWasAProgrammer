@@ -37,7 +37,10 @@ public class CompanyBaseInfoService {
         if (sourceFlag.matches("http://qyxy.baic.gov.cn/(_\\d+)?")) {
             sqls.add(getCompanySql(enterpriseMap));
         } else if (sourceFlag.equals("institution")) {
-            sqls.add(getInstitutionSql(enterpriseMap));
+            String sql = getInstitutionSql(enterpriseMap);
+            if (sql != null) {
+                sqls.add(sql);
+            }
         }
         return sqls;
     }
@@ -94,7 +97,7 @@ public class CompanyBaseInfoService {
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         Map<String, Object> govMap = dao.queryGovInfo(companyCid);
         if (govMap.isEmpty()) {
-            return "select 1";
+            return null;
         }
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);

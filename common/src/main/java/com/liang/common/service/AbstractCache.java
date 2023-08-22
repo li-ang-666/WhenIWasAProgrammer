@@ -86,6 +86,9 @@ public abstract class AbstractCache<K, V> {
         // 同一批次的写入,不拆开
         synchronized (cache) {
             for (V value : values) {
+                if (value == null) {
+                    continue;
+                }
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
                 cache.get(key).add(value);
