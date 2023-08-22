@@ -48,7 +48,7 @@ public class CompanyBaseInfoService {
             if (sql != null) {
                 sqls.add(sql);
             } else {
-                log.error("company_cid {} 在 gov_unit 缺失", companyCid);
+                log.warn("company_cid {} 在 gov_unit 缺失", companyCid);
                 sqls.add(deleteSql2);
             }
         }
@@ -96,7 +96,7 @@ public class CompanyBaseInfoService {
         // 纳税人识别号
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        return new SQL().INSERT_INTO(COMPANY)
+        return new SQL().REPLACE_INTO(COMPANY)
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
@@ -145,7 +145,7 @@ public class CompanyBaseInfoService {
         // 纳税人识别号
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        return new SQL().INSERT_INTO(INSTITUTION)
+        return new SQL().REPLACE_INTO(INSTITUTION)
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
