@@ -1,0 +1,45 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 10
+
+# scanMode: Direct or TumblingWindow
+# where: "annual_report_id in (select id from annual_report where company_id in (select company_id from company_graph where graph_id = '2318455639' and deleted = 0))"
+repairTasks:
+  - taskId: "111"
+    sourceName: "116.prism"
+    tableName: "report_equity_change_info"
+    columns: "*"
+    where: "1=1"
+    scanMode: TumblingWindow
+  - taskId: "222"
+    sourceName: "116.prism"
+    tableName: "report_shareholder"
+    columns: "*"
+    where: "1=1"
+    scanMode: TumblingWindow
+  - taskId: "333"
+    sourceName: "116.prism"
+    tableName: "report_outbound_investment"
+    columns: "*"
+    where: "1=1"
+    scanMode: TumblingWindow
+  - taskId: "444"
+    sourceName: "116.prism"
+    tableName: "report_webinfo"
+    columns: "*"
+    where: "1=1"
+    scanMode: TumblingWindow
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "0bb01.proto.prism.report_equity_change_info"
+      - "0bb01.proto.prism.report_shareholder"
+      - "0bb01.proto.prism.report_outbound_investment"
+      - "0bb01.json.prism.report_webinfo"
+      #- "56736.json.prism.enterprise"
+    groupId: "annual-report-job"
+    startFrom: "1"
