@@ -1,16 +1,18 @@
 #!/bin/bash
 
+export className=SparkJob
+
 nohup spark-submit \
-  --class com.liang.spark.job.AdsJob \
-  --name ads \
+  --class com.liang.spark.job.${className} \
+  --name ${className} \
   --proxy-user liang \
   --master yarn \
   --deploy-mode cluster \
   --driver-memory 2g --driver-cores 2 \
   --conf spark.driver.memoryOverhead=512m \
-  --executor-memory 6g --num-executors 10 --executor-cores 2 \
+  --executor-memory 6g --num-executors 10 --executor-cores 3 \
   --conf spark.executor.memoryOverhead=512m \
-  --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=2g \
+  --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=512m \
   --queue default \
   --conf spark.memory.fraction=0.8 \
   --conf spark.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=256m" \
