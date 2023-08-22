@@ -115,7 +115,7 @@ public class CompanyBaseInfoService {
         columnMap.put("entity_name_valid", String.valueOf(enterpriseMap.get("name")));
         Tuple4<String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
         columnMap.put("register_capital_amount", equityInfo.f0);
-        columnMap.put("register_capital_currency", equityInfo.f1);
+        columnMap.put("register_capital_currency", "人民币");
         // 登记经营状态
         columnMap.put("entity_registration_status", ifNull(enterpriseMap, "reg_status", ""));
         // 举办单位名称
@@ -126,7 +126,7 @@ public class CompanyBaseInfoService {
         columnMap.put("registration_institute", ifNull(enterpriseMap, "reg_institute", ""));
         // 原证书号
         columnMap.put("original_certificate_number_public_institution", String.valueOf(govMap.get("old_cert")).replaceAll("[^0-9]", ""));
-        // 工商注册号
+        // 工商注册号 基础数据:端上无
         columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", ""));
         // 统一社会信用代码
         columnMap.put("unified_social_credit_code", ifNull(enterpriseMap, "code", ""));
@@ -140,9 +140,9 @@ public class CompanyBaseInfoService {
         columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", ""));
         // 是否中央级事业单位
         columnMap.put("is_national_public_institution", "4".equals(dao.getProperty(companyGid)));
-        // 组织机构代码
+        // 组织机构代码 基础数据:端上无
         columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
-        // 纳税人识别号
+        // 纳税人识别号 基础数据:端上无
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
         return new SQL().REPLACE_INTO(INSTITUTION)
