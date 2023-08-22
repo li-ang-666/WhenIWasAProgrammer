@@ -3,6 +3,7 @@ package com.liang.flink.project.company.base.info;
 import com.liang.common.service.SQL;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple4;
 
@@ -11,28 +12,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class CompanyBaseInfoService {
+    private final static String COMPANY = "entity_mainland_general_registration_info_details";
+    private final static String INSTITUTION = "entity_mainland_public_institution_registration_info_details";
     private final CompanyBaseInfoDao dao = new CompanyBaseInfoDao();
 
     public List<String> invoke(String companyCid) {
         if (!TycUtils.isUnsignedId(companyCid)) {
             return new ArrayList<>();
         }
-        ArrayList<String> sqls = new ArrayList<>();
         String deleteSql1 = new SQL()
-                .DELETE_FROM("entity_mainland_general_registration_info_details")
+                .DELETE_FROM(COMPANY)
                 .WHERE("id = " + companyCid)
                 .toString();
         String deleteSql2 = new SQL()
-                .DELETE_FROM("entity_mainland_public_institution_registration_info_details")
+                .DELETE_FROM(INSTITUTION)
                 .WHERE("id = " + companyCid)
                 .toString();
-        sqls.add(deleteSql1);
-        sqls.add(deleteSql2);
+        ArrayList<String> sqls = new ArrayList<>();
         Map<String, Object> enterpriseMap = dao.queryEnterprise(companyCid);
+        // 查询enterprise, 若缺失, 双删
         if (enterpriseMap.isEmpty()) {
+            log.warn("company_cid {} 在 enterprise 缺失", companyCid);
+            sqls.add(deleteSql1);
+            sqls.add(deleteSql2);
             return sqls;
         }
+        // 分发两种处理逻辑
         String sourceFlag = String.valueOf(enterpriseMap.get("source_flag"));
         if (sourceFlag.matches("http://qyxy.baic.gov.cn/(_\\d+)?")) {
             sqls.add(getCompanySql(enterpriseMap));
@@ -40,6 +47,9 @@ public class CompanyBaseInfoService {
             String sql = getInstitutionSql(enterpriseMap);
             if (sql != null) {
                 sqls.add(sql);
+            } else {
+                log.error("company_cid {} 在 gov_unit 缺失", companyCid);
+                sqls.add(deleteSql2);
             }
         }
         return sqls;
@@ -86,7 +96,7 @@ public class CompanyBaseInfoService {
         // 纳税人识别号
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        return new SQL().INSERT_INTO("entity_mainland_general_registration_info_details")
+        return new SQL().INSERT_INTO(COMPANY)
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
@@ -135,7 +145,7 @@ public class CompanyBaseInfoService {
         // 纳税人识别号
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-        return new SQL().INSERT_INTO("entity_mainland_public_institution_registration_info_details")
+        return new SQL().INSERT_INTO(INSTITUTION)
                 .INTO_COLUMNS(insert.f0)
                 .INTO_VALUES(insert.f1)
                 .toString();
