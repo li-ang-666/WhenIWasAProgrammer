@@ -73,8 +73,7 @@ public class CompanyBaseInfoDao {
      * 22-集体经济组织
      */
     public String getProperty(String companyGid) {
-        return "这是一个property";
-        /*if (!TycUtils.isUnsignedId(companyGid)) {
+        if (!TycUtils.isUnsignedId(companyGid)) {
             return "0";
         }
         String sql = new SQL()
@@ -83,7 +82,7 @@ public class CompanyBaseInfoDao {
                 .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyGid))
                 .toString();
         String res = companyBase465.queryForObject(sql, rs -> rs.getString(1));
-        return res != null ? res : "0";*/
+        return res != null ? res : "0";
     }
 
     public String getTax(String companyCid) {

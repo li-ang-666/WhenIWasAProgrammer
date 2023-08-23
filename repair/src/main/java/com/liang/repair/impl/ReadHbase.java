@@ -15,7 +15,7 @@ public class ReadHbase extends ConfigHolder {
     }
 
     public static void main(String[] args) {
-        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, "3293201654");
+        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, "3300631542");
         HbaseOneRow queryResult = query(hbaseOneRow);
 //        queryResult.put("manage_dis_pute_count", null);
 //        update(queryResult);
