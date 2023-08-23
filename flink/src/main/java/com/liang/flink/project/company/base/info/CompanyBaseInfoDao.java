@@ -11,6 +11,34 @@ import java.util.List;
 import java.util.Map;
 
 public class CompanyBaseInfoDao {
+    private final static Map<String, String> dictionary = new HashMap<>();
+
+    static {
+        dictionary.put("0", "其它组织");
+        dictionary.put("1", "工商来源其它企业");
+        dictionary.put("2", "香港");
+        dictionary.put("3", "台湾");
+        dictionary.put("4", "中央级事业单位");
+        dictionary.put("5", "其他事业单位");
+        dictionary.put("6", "律所");
+        dictionary.put("7", "社会组织");
+        dictionary.put("8", "基金会");
+        dictionary.put("9", "机构");
+        dictionary.put("10", "国家机关");
+        dictionary.put("11", "工商来源个体工商户");
+        dictionary.put("12", "农民专业合作社");
+        dictionary.put("13", "工商来源有限责任公司");
+        dictionary.put("14", "工商来源股份有限公司");
+        dictionary.put("15", "工商来源普通合伙企业");
+        dictionary.put("16", "工商来源有限合伙企业");
+        dictionary.put("17", "工商来源个人独资企业");
+        dictionary.put("18", "工商来源集体所有制");
+        dictionary.put("19", "工商来源全民所有制");
+        dictionary.put("20", "工商来源联营企业");
+        dictionary.put("21", "工商来源股份制/股份合作制");
+        dictionary.put("22", "集体经济组织");
+    }
+
     private final JdbcTemplate prism464 = new JdbcTemplate("464.prism");
     private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
     private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
@@ -47,34 +75,9 @@ public class CompanyBaseInfoDao {
         return res != null ? res : Tuple4.of("", "", "", "");
     }
 
-    /**
-     * 0-其他组织
-     * 1-工商来源其它企业
-     * 2-香港
-     * 3-台湾
-     * 4-中央级事业单位
-     * 5-其他事业单位
-     * 6-律所
-     * 7-社会组织
-     * 8-基金会
-     * 9-机构
-     * 10-国家机关
-     * 11-工商来源个体工商户
-     * 12-农民专业合作社
-     * 13-工商来源有限责任公司
-     * 14-工商来源股份有限公司
-     * 15-工商来源普通合伙企业
-     * 16-工商来源有限合伙企业
-     * 17-工商来源个人独资企业
-     * 18-工商来源集体所有制
-     * 19-工商来源全民所有制
-     * 20-工商来源联营企业
-     * 21-工商来源股份制/股份合作制
-     * 22-集体经济组织
-     */
     public String getProperty(String companyGid) {
         if (!TycUtils.isUnsignedId(companyGid)) {
-            return "0";
+            return dictionary.get("0");
         }
         String sql = new SQL()
                 .SELECT("entity_property")
@@ -82,7 +85,8 @@ public class CompanyBaseInfoDao {
                 .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyGid))
                 .toString();
         String res = companyBase465.queryForObject(sql, rs -> rs.getString(1));
-        return res != null ? res : "0";
+        String prop = dictionary.get(res);
+        return prop != null ? res : dictionary.get("0");
     }
 
     public String getTax(String companyCid) {
