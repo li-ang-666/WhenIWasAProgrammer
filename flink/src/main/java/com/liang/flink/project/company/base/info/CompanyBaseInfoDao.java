@@ -86,7 +86,7 @@ public class CompanyBaseInfoDao {
                 .toString();
         String res = companyBase465.queryForObject(sql, rs -> rs.getString(1));
         String prop = dictionary.get(res);
-        return prop != null ? res : dictionary.get("0");
+        return prop != null ? prop : dictionary.get("0");
     }
 
     public String getTax(String companyCid) {
