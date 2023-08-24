@@ -88,7 +88,7 @@ public class CompanyBaseInfoService {
         // 经营期限
         columnMap.put("business_term_start_date", ifNull(enterpriseMap, "from_date", null));
         columnMap.put("business_term_end_date", ifNull(enterpriseMap, "to_date", null));
-        columnMap.put("business_term_is_permanent", "-1");
+        columnMap.put("business_term_is_permanent", enterpriseMap.get("to_date") == null);
         // 经营范围
         columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", ""));
         // 登记机关
