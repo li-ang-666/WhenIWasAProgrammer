@@ -39,15 +39,21 @@ public class CompanyBaseInfoService {
             sqls.add(deleteSql2);
             return sqls;
         }
-        // 分发两种处理逻辑 or 双删
-        String sourceFlag = String.valueOf(enterpriseMap.get("source_flag"));
-        if (sourceFlag.matches("http://qyxy.baic.gov.cn/(_\\d+)?")) {
+        // 查询企业性质
+        String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
+        String entityProperty = dao.getProperty(companyGid);
+        // 分发处理
+        if (entityProperty.startsWith("工商来源") || entityProperty.equals("农民专业合作社")) {
+            enterpriseMap.put("entity_property", entityProperty);
             String sql = getCompanySql(enterpriseMap);
             sqls.add(sql != null ? sql : deleteSql1);
-        } else if (sourceFlag.equals("institution")) {
+        } else if (entityProperty.endsWith("事业单位")) {
+            enterpriseMap.put("entity_property", entityProperty);
             String sql = getInstitutionSql(enterpriseMap);
             sqls.add(sql != null ? sql : deleteSql2);
         } else {
+            sqls.add(deleteSql1);
+            sqls.add(deleteSql2);
         }
         return sqls;
     }
@@ -55,11 +61,7 @@ public class CompanyBaseInfoService {
     private String getCompanySql(Map<String, Object> enterpriseMap) {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
-        String entityProperty = dao.getProperty(companyGid);
-        if (!entityProperty.startsWith("工商来源") && !entityProperty.equals("农民专业合作社")) {
-            log.warn("company_cid {}, company_gid {} 是[{}], 不是工商", companyCid, companyGid, entityProperty);
-            return null;
-        }
+        String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
@@ -107,11 +109,7 @@ public class CompanyBaseInfoService {
     private String getInstitutionSql(Map<String, Object> enterpriseMap) {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
-        String entityProperty = dao.getProperty(companyGid);
-        if (!entityProperty.endsWith("事业单位")) {
-            log.warn("company_cid {}, company_gid {} 是[{}], 不是事业单位", companyCid, companyGid, entityProperty);
-            return null;
-        }
+        String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
         Map<String, Object> govMap = dao.queryGovInfo(companyCid);
         if (govMap.isEmpty()) {
             log.warn("company_cid {}, company_gid {} 在 gov_unit 缺失", companyCid, companyGid);
