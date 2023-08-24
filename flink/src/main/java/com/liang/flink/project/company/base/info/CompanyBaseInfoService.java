@@ -48,8 +48,6 @@ public class CompanyBaseInfoService {
             String sql = getInstitutionSql(enterpriseMap);
             sqls.add(sql != null ? sql : deleteSql2);
         } else {
-            sqls.add(deleteSql1);
-            sqls.add(deleteSql2);
         }
         return sqls;
     }
