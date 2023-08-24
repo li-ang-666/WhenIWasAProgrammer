@@ -39,18 +39,15 @@ public class CompanyBaseInfoService {
             sqls.add(deleteSql2);
             return sqls;
         }
+        String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         // 分发两种处理逻辑
         String sourceFlag = String.valueOf(enterpriseMap.get("source_flag"));
         if (sourceFlag.matches("http://qyxy.baic.gov.cn/(_\\d+)?")) {
-            sqls.add(getCompanySql(enterpriseMap));
+            String sql = getCompanySql(enterpriseMap);
+            sqls.add(sql != null ? sql : deleteSql1);
         } else if (sourceFlag.equals("institution")) {
             String sql = getInstitutionSql(enterpriseMap);
-            if (sql != null) {
-                sqls.add(sql);
-            } else {
-                log.warn("company_cid {} 在 gov_unit 缺失", companyCid);
-                sqls.add(deleteSql2);
-            }
+            sqls.add(sql != null ? sql : deleteSql2);
         }
         return sqls;
     }
@@ -58,6 +55,11 @@ public class CompanyBaseInfoService {
     private String getCompanySql(Map<String, Object> enterpriseMap) {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
+        String entityProperty = dao.getProperty(companyGid);
+        if (!entityProperty.startsWith("工商来源") && !entityProperty.equals("农民专业合作社")) {
+            log.warn("company_cid {}, company_gid {} 不是工商", companyCid, companyGid);
+            return null;
+        }
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
@@ -74,7 +76,7 @@ public class CompanyBaseInfoService {
         // 统一社会信用代码
         columnMap.put("unified_social_credit_code", ifNull(enterpriseMap, "code", ""));
         // 实体性质
-        columnMap.put("entity_property", dao.getProperty(companyGid));
+        columnMap.put("entity_property", entityProperty);
         // 实体性质原始(企业类型)
         columnMap.put("entity_property_original", ifNull(enterpriseMap, "company_org_type", 0));
         // 登记注册地址
@@ -105,8 +107,14 @@ public class CompanyBaseInfoService {
     private String getInstitutionSql(Map<String, Object> enterpriseMap) {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
+        String entityProperty = dao.getProperty(companyGid);
+        if (!entityProperty.endsWith("事业单位")) {
+            log.warn("company_cid {}, company_gid {} 不是事业单位", companyCid, companyGid);
+            return null;
+        }
         Map<String, Object> govMap = dao.queryGovInfo(companyCid);
         if (govMap.isEmpty()) {
+            log.warn("company_cid {}, company_gid {} 在 gov_unit 缺失", companyCid, companyGid);
             return null;
         }
         Map<String, Object> columnMap = new HashMap<>();
@@ -139,7 +147,7 @@ public class CompanyBaseInfoService {
         // 经营范围
         columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", ""));
         // 是否中央级事业单位
-        columnMap.put("is_national_public_institution", "4".equals(dao.getProperty(companyGid)));
+        columnMap.put("is_national_public_institution", "中央级事业单位".equals(entityProperty));
         // 组织机构代码 基础数据:端上无
         columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
         // 纳税人识别号 基础数据:端上无
