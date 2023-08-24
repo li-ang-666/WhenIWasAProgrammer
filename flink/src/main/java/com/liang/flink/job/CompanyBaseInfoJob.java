@@ -42,7 +42,7 @@ public class CompanyBaseInfoJob {
                 .with("gov_unit", e -> String.valueOf(e.getColumnMap().get("company_id")));
         stream
                 .rebalance()
-                .map(new CompanyBaseInfoMap(config)).setParallelism(config.getFlinkConfig().getOtherParallel())
+                .map(new CompanyBaseInfoMap(config)).name("CompanyBaseInfoMap").setParallelism(config.getFlinkConfig().getOtherParallel())
                 .keyBy(distributor)
                 .addSink(new CompanyBaseInfoSink(config, distributor)).name("CompanyBaseInfoSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("CompanyBaseInfoJob");
