@@ -13,6 +13,7 @@ import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.project.company.base.info.CompanyBaseInfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -33,27 +34,48 @@ public class CompanyBaseInfoJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
-        Distributor distributor = new Distributor(config)
-                .with("tyc_entity_general_property_reference", e -> {
-                    Map<String, Object> columnMap = e.getColumnMap();
-                    Object tycUniqueEntityId = columnMap.get("tyc_unique_entity_id");
-                    String sql = new SQL().SELECT("id")
-                            .FROM("enterprise")
-                            .WHERE("deleted = 0")
-                            .WHERE("graph_id = " + SqlUtils.formatValue(tycUniqueEntityId))
-                            .toString();
-                    String res = new JdbcTemplate("464.prism").queryForObject(sql, rs -> rs.getString(1));
-                    columnMap.put("company_cid", res != null ? res : "0");
-                    return res != null ? res : "0";
-                })
+        Distributor distributor = new Distributor()
+                .with("tyc_entity_general_property_reference", e -> String.valueOf(e.getColumnMap().get("company_cid")))
                 .with("enterprise", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("company", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("company_clean_info", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("gov_unit", e -> String.valueOf(e.getColumnMap().get("company_id")));
         stream
+                .rebalance()
+                .map(new CompanyBaseInfoMap(config)).setParallelism(config.getFlinkConfig().getOtherParallel())
                 .keyBy(distributor)
                 .addSink(new CompanyBaseInfoSink(config, distributor)).name("CompanyBaseInfoSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("CompanyBaseInfoJob");
+    }
+
+    @Slf4j
+    @RequiredArgsConstructor
+    private final static class CompanyBaseInfoMap extends RichMapFunction<SingleCanalBinlog, SingleCanalBinlog> {
+        private final Config config;
+        private JdbcTemplate jdbcTemplate;
+
+
+        @Override
+        public void open(Configuration parameters) {
+            ConfigUtils.setConfig(config);
+            jdbcTemplate = new JdbcTemplate("464.prism");
+        }
+
+        @Override
+        public SingleCanalBinlog map(SingleCanalBinlog singleCanalBinlog) {
+            if (singleCanalBinlog.getTable().equals("tyc_entity_general_property_reference")) {
+                Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+                Object tycUniqueEntityId = columnMap.get("tyc_unique_entity_id");
+                String sql = new SQL().SELECT("id")
+                        .FROM("enterprise")
+                        .WHERE("deleted = 0")
+                        .WHERE("graph_id = " + SqlUtils.formatValue(tycUniqueEntityId))
+                        .toString();
+                String res = jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+                columnMap.put("company_cid", res != null ? res : "0");
+            }
+            return singleCanalBinlog;
+        }
     }
 
     @Slf4j
@@ -78,12 +100,7 @@ public class CompanyBaseInfoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            String cid;
-            if (singleCanalBinlog.getTable().equals("tyc_entity_general_property_reference")) {
-                cid = String.valueOf(singleCanalBinlog.getColumnMap().get("company_cid"));
-            } else {
-                cid = String.valueOf(distributor.getKey(singleCanalBinlog));
-            }
+            String cid = String.valueOf(distributor.getKey(singleCanalBinlog));
             synchronized (companyCids) {
                 companyCids.add(cid);
             }

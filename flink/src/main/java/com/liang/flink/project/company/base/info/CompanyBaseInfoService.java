@@ -34,7 +34,6 @@ public class CompanyBaseInfoService {
         Map<String, Object> enterpriseMap = dao.queryEnterprise(companyCid);
         // 查询enterprise, 若缺失, 双删
         if (enterpriseMap.isEmpty()) {
-            log.warn("company_cid {} 在 enterprise 缺失", companyCid);
             sqls.add(deleteSql1);
             sqls.add(deleteSql2);
             return sqls;
@@ -46,11 +45,11 @@ public class CompanyBaseInfoService {
         if (entityProperty.startsWith("工商来源") || entityProperty.equals("农民专业合作社")) {
             enterpriseMap.put("entity_property", entityProperty);
             String sql = getCompanySql(enterpriseMap);
-            sqls.add(sql != null ? sql : deleteSql1);
+            sqls.add(sql);
         } else if (entityProperty.endsWith("事业单位")) {
             enterpriseMap.put("entity_property", entityProperty);
             String sql = getInstitutionSql(enterpriseMap);
-            sqls.add(sql != null ? sql : deleteSql2);
+            sqls.add(sql);
         } else {
             sqls.add(deleteSql1);
             sqls.add(deleteSql2);
@@ -111,10 +110,6 @@ public class CompanyBaseInfoService {
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
         Map<String, Object> govMap = dao.queryGovInfo(companyCid);
-        if (govMap.isEmpty()) {
-            log.warn("company_cid {}, company_gid {} 在 gov_unit 缺失", companyCid, companyGid);
-            return null;
-        }
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
@@ -164,7 +159,7 @@ public class CompanyBaseInfoService {
     }
 
     private Tuple2<String, String> getStartAndEndDate(String text) {
-        if (text != null && text.matches(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*")) {
+        if (text.matches(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*")) {
             return Tuple2.of(
                     text.replaceAll(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*", "$1-$2-$3"),
                     text.replaceAll(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*", "$4-$5-$6"));
