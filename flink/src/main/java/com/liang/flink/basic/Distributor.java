@@ -1,5 +1,7 @@
 package com.liang.flink.basic;
 
+import com.liang.common.dto.Config;
+import com.liang.common.util.ConfigUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import org.apache.flink.api.java.functions.KeySelector;
 
@@ -8,7 +10,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Distributor implements KeySelector<SingleCanalBinlog, String> {
+    private final Config config;
     private final Map<String, Mapper> map = new HashMap<>();
+    private boolean opened = false;
+
+    public Distributor() {
+        this.config = null;
+    }
+
+    public Distributor(Config config) {
+        this.config = config;
+    }
 
     public Distributor with(String tableName, Mapper mapper) {
         map.put(tableName, mapper);
@@ -17,6 +29,10 @@ public class Distributor implements KeySelector<SingleCanalBinlog, String> {
 
     @Override
     public String getKey(SingleCanalBinlog singleCanalBinlog) {
+        if (config != null && !opened) {
+            ConfigUtils.setConfig(config);
+            opened = true;
+        }
         Mapper mapper = map.get(singleCanalBinlog.getTable());
         if (mapper == null) {
             return "";

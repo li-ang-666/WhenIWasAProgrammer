@@ -1,8 +1,10 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
@@ -20,6 +22,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @LocalConfigFile("company-base-info.yml")
 public class CompanyBaseInfoJob {
@@ -27,8 +32,21 @@ public class CompanyBaseInfoJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
-        Distributor distributor = new Distributor()
+        Distributor distributor = new Distributor(config)
+                .with("tyc_entity_general_property_reference", e -> {
+                    Object tycUniqueEntityId = e.getColumnMap().get("tyc_unique_entity_id");
+                    String sql = new SQL().SELECT("id")
+                            .FROM("enterprise")
+                            .WHERE("deleted = 0")
+                            .WHERE("graph_id = " + SqlUtils.formatValue(tycUniqueEntityId))
+                            .toString();
+                    String res = new JdbcTemplate("464.prism").queryForObject(sql, rs -> rs.getString(1));
+                    return res != null ? res : "0";
+                })
                 .with("enterprise", e -> String.valueOf(e.getColumnMap().get("id")))
+                .with("company", e -> String.valueOf(e.getColumnMap().get("id")))
+                .with("company_index", e -> String.valueOf(e.getColumnMap().get("id")))
+                .with("company_clean_info", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("gov_unit", e -> String.valueOf(e.getColumnMap().get("company_id")));
         stream
                 .keyBy(distributor)
@@ -39,6 +57,7 @@ public class CompanyBaseInfoJob {
     @Slf4j
     @RequiredArgsConstructor
     private final static class CompanyBaseInfoSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
+        private final Set<String> companyCids = ConcurrentHashMap.newKeySet();
         private final Config config;
         private final Distributor distributor;
         private CompanyBaseInfoService service;
@@ -58,24 +77,35 @@ public class CompanyBaseInfoJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             String cid = String.valueOf(distributor.getKey(singleCanalBinlog));
-            List<String> sqls = service.invoke(cid);
-            jdbcTemplate.update(sqls);
+            synchronized (companyCids) {
+                companyCids.add(cid);
+            }
+            if (companyCids.size() >= 128) {
+                flush();
+            }
         }
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
-            jdbcTemplate.flush();
+            flush();
         }
 
         @Override
         public void finish() {
-            jdbcTemplate.flush();
+            flush();
         }
 
         @Override
         public void close() {
-            jdbcTemplate.flush();
+            flush();
             ConfigUtils.unloadAll();
+        }
+
+        private void flush() {
+            synchronized (companyCids) {
+                List<String> sqls = companyCids.stream().flatMap(e -> service.invoke(e).stream()).collect(Collectors.toList());
+                jdbcTemplate.update(sqls);
+            }
         }
     }
 }
