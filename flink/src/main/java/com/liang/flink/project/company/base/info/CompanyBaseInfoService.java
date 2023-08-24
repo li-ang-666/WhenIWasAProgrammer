@@ -39,8 +39,7 @@ public class CompanyBaseInfoService {
             sqls.add(deleteSql2);
             return sqls;
         }
-        String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
-        // 分发两种处理逻辑
+        // 分发两种处理逻辑 or 双删
         String sourceFlag = String.valueOf(enterpriseMap.get("source_flag"));
         if (sourceFlag.matches("http://qyxy.baic.gov.cn/(_\\d+)?")) {
             String sql = getCompanySql(enterpriseMap);
@@ -48,6 +47,9 @@ public class CompanyBaseInfoService {
         } else if (sourceFlag.equals("institution")) {
             String sql = getInstitutionSql(enterpriseMap);
             sqls.add(sql != null ? sql : deleteSql2);
+        } else {
+            sqls.add(deleteSql1);
+            sqls.add(deleteSql2);
         }
         return sqls;
     }
