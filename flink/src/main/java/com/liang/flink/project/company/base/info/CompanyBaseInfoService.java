@@ -59,7 +59,7 @@ public class CompanyBaseInfoService {
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = dao.getProperty(companyGid);
         if (!entityProperty.startsWith("工商来源") && !entityProperty.equals("农民专业合作社")) {
-            log.warn("company_cid {}, company_gid {} 不是工商", companyCid, companyGid);
+            log.warn("company_cid {}, company_gid {} 是[{}], 不是工商", companyCid, companyGid, entityProperty);
             return null;
         }
         Map<String, Object> columnMap = new HashMap<>();
@@ -111,7 +111,7 @@ public class CompanyBaseInfoService {
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = dao.getProperty(companyGid);
         if (!entityProperty.endsWith("事业单位")) {
-            log.warn("company_cid {}, company_gid {} 不是事业单位", companyCid, companyGid);
+            log.warn("company_cid {}, company_gid {} 是[{}], 不是事业单位", companyCid, companyGid, entityProperty);
             return null;
         }
         Map<String, Object> govMap = dao.queryGovInfo(companyCid);
@@ -141,9 +141,10 @@ public class CompanyBaseInfoService {
         // 统一社会信用代码
         columnMap.put("unified_social_credit_code", ifNull(enterpriseMap, "code", ""));
         // 经营期限
-        columnMap.put("business_term_start_date", ifNull(enterpriseMap, "from_date", null));
-        columnMap.put("business_term_end_date", ifNull(enterpriseMap, "to_date", null));
-        columnMap.put("business_term_is_permanent", "-1");
+        Tuple2<String, String> validTime = getStartAndEndDate(String.valueOf(govMap.get("valid_time")));
+        columnMap.put("business_term_start_date", validTime.f0);
+        columnMap.put("business_term_end_date", validTime.f1);
+        columnMap.put("business_term_is_permanent", validTime.f1 == null);
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(enterpriseMap, "reg_location", ""));
         // 经营范围
@@ -164,5 +165,15 @@ public class CompanyBaseInfoService {
     private Object ifNull(Map<String, Object> map, String key, Object defaultValue) {
         Object value = map.get(key);
         return value != null ? value : defaultValue;
+    }
+
+    private Tuple2<String, String> getStartAndEndDate(String text) {
+        if (text != null && text.matches(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*")) {
+            return Tuple2.of(
+                    text.replaceAll(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*", "$1-$2-$3"),
+                    text.replaceAll(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*", "$4-$5-$6"));
+        } else {
+            return Tuple2.of(null, null);
+        }
     }
 }
