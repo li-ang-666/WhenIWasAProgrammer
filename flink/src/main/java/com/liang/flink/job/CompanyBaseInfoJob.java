@@ -21,11 +21,11 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @LocalConfigFile("company-base-info.yml")
 public class CompanyBaseInfoJob {
@@ -88,7 +88,7 @@ public class CompanyBaseInfoJob {
             synchronized (companyCids) {
                 companyCids.add(cid);
             }
-            if (companyCids.size() >= 1024) {
+            if (companyCids.size() >= 10240) {
                 flush();
             }
         }
@@ -111,8 +111,17 @@ public class CompanyBaseInfoJob {
 
         private void flush() {
             synchronized (companyCids) {
-                List<String> sqls = companyCids.stream().flatMap(e -> service.invoke(e).stream()).collect(Collectors.toList());
-                jdbcTemplate.update(sqls);
+                ArrayList<String> buffer = new ArrayList<>();
+                for (String companyCid : companyCids) {
+                    List<String> sqls = service.invoke(companyCid);
+                    buffer.addAll(sqls);
+                    if (buffer.size() >= 1024) {
+                        jdbcTemplate.update(buffer);
+                        buffer.clear();
+                    }
+                }
+                jdbcTemplate.update(buffer);
+                buffer.clear();
             }
         }
     }
