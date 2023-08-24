@@ -22,6 +22,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -34,13 +35,15 @@ public class CompanyBaseInfoJob {
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         Distributor distributor = new Distributor(config)
                 .with("tyc_entity_general_property_reference", e -> {
-                    Object tycUniqueEntityId = e.getColumnMap().get("tyc_unique_entity_id");
+                    Map<String, Object> columnMap = e.getColumnMap();
+                    Object tycUniqueEntityId = columnMap.get("tyc_unique_entity_id");
                     String sql = new SQL().SELECT("id")
                             .FROM("enterprise")
                             .WHERE("deleted = 0")
                             .WHERE("graph_id = " + SqlUtils.formatValue(tycUniqueEntityId))
                             .toString();
                     String res = new JdbcTemplate("464.prism").queryForObject(sql, rs -> rs.getString(1));
+                    columnMap.put("company_cid", res != null ? res : "0");
                     return res != null ? res : "0";
                 })
                 .with("enterprise", e -> String.valueOf(e.getColumnMap().get("id")))
@@ -76,7 +79,12 @@ public class CompanyBaseInfoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            String cid = String.valueOf(distributor.getKey(singleCanalBinlog));
+            String cid;
+            if (singleCanalBinlog.getTable().equals("tyc_entity_general_property_reference")) {
+                cid = String.valueOf(singleCanalBinlog.getColumnMap().get("company_cid"));
+            } else {
+                cid = String.valueOf(distributor.getKey(singleCanalBinlog));
+            }
             synchronized (companyCids) {
                 companyCids.add(cid);
             }
