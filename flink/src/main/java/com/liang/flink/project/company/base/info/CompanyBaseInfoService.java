@@ -80,7 +80,7 @@ public class CompanyBaseInfoService {
         // 实体性质
         columnMap.put("entity_property", entityProperty);
         // 实体性质原始(企业类型)
-        columnMap.put("entity_property_original", ifNull(enterpriseMap, "company_org_type", 0));
+        columnMap.put("entity_property_original", ifNull(enterpriseMap, "company_org_type", ""));
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(enterpriseMap, "reg_location", ""));
         // 成立日期
