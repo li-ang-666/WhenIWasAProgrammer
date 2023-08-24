@@ -20,7 +20,6 @@ kafkaConfigs:
       - "c8ce5.proto.company_base.tyc_entity_general_property_reference"
       - "56736.proto.prism.enterprise"
       - "0bb01.proto.prism.company"
-      - "ee59d.proto.company_base.company_index"
       - "0bb01.proto.prism.company_clean_info"
       - "886a2.proto.data_experience_situation.gov_unit"
     groupId: "company-base-info-job"

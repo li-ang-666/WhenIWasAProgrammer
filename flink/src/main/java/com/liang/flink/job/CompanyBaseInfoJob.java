@@ -48,7 +48,6 @@ public class CompanyBaseInfoJob {
                 })
                 .with("enterprise", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("company", e -> String.valueOf(e.getColumnMap().get("id")))
-                .with("company_index", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("company_clean_info", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("gov_unit", e -> String.valueOf(e.getColumnMap().get("company_id")));
         stream
