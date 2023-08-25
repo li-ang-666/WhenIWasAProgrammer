@@ -132,11 +132,11 @@ public class CompanyBaseInfoJob {
                     List<String> sqls = service.invoke(companyCid);
                     buffer.addAll(sqls);
                     if (buffer.size() >= 1024) {
-                        jdbcTemplate.update(buffer);
+                        //jdbcTemplate.update(buffer);
                         buffer.clear();
                     }
                 }
-                jdbcTemplate.update(buffer);
+                //jdbcTemplate.update(buffer);
                 buffer.clear();
             }
         }
