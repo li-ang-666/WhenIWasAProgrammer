@@ -118,4 +118,17 @@ public class CompanyBaseInfoDao {
         }
         return columnMaps.get(0);
     }
+
+    public String gid2Cid(String companyGid) {
+        if (!TycUtils.isUnsignedId(companyGid)) {
+            return "0";
+        }
+        String sql = new SQL().SELECT("id")
+                .FROM("enterprise")
+                .WHERE("deleted = 0")
+                .WHERE("graph_id = " + SqlUtils.formatValue(companyGid))
+                .toString();
+        String res = prism464.queryForObject(sql, rs -> rs.getString(1));
+        return res != null ? res : "0";
+    }
 }

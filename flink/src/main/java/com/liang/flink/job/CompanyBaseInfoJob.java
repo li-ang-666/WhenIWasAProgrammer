@@ -1,15 +1,14 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.project.company.base.info.CompanyBaseInfoDao;
 import com.liang.flink.project.company.base.info.CompanyBaseInfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,27 +51,21 @@ public class CompanyBaseInfoJob {
     @RequiredArgsConstructor
     private final static class CompanyBaseInfoMap extends RichMapFunction<SingleCanalBinlog, SingleCanalBinlog> {
         private final Config config;
-        private JdbcTemplate jdbcTemplate;
-
+        private CompanyBaseInfoDao dao;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            jdbcTemplate = new JdbcTemplate("464.prism");
+            dao = new CompanyBaseInfoDao();
         }
 
         @Override
         public SingleCanalBinlog map(SingleCanalBinlog singleCanalBinlog) {
             if (singleCanalBinlog.getTable().equals("tyc_entity_general_property_reference")) {
                 Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-                Object tycUniqueEntityId = columnMap.get("tyc_unique_entity_id");
-                String sql = new SQL().SELECT("id")
-                        .FROM("enterprise")
-                        .WHERE("deleted = 0")
-                        .WHERE("graph_id = " + SqlUtils.formatValue(tycUniqueEntityId))
-                        .toString();
-                String res = jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
-                columnMap.put("company_cid", res != null ? res : "0");
+                String tycUniqueEntityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
+                String companyCid = dao.gid2Cid(tycUniqueEntityId);
+                columnMap.put("company_cid", companyCid);
             }
             return singleCanalBinlog;
         }
@@ -132,11 +125,11 @@ public class CompanyBaseInfoJob {
                     List<String> sqls = service.invoke(companyCid);
                     buffer.addAll(sqls);
                     if (buffer.size() >= 128) {
-                        //jdbcTemplate.update(buffer);
+                        jdbcTemplate.update(buffer);
                         buffer.clear();
                     }
                 }
-                //jdbcTemplate.update(buffer);
+                jdbcTemplate.update(buffer);
                 buffer.clear();
                 companyCids.clear();
             }

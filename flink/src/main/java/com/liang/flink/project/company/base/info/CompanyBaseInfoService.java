@@ -31,8 +31,8 @@ public class CompanyBaseInfoService {
                 .WHERE("id = " + companyCid)
                 .toString();
         ArrayList<String> sqls = new ArrayList<>();
-        Map<String, Object> enterpriseMap = dao.queryEnterprise(companyCid);
         // 查询enterprise, 若缺失, 双删
+        Map<String, Object> enterpriseMap = dao.queryEnterprise(companyCid);
         if (enterpriseMap.isEmpty()) {
             sqls.add(deleteSql1);
             sqls.add(deleteSql2);
@@ -41,15 +41,12 @@ public class CompanyBaseInfoService {
         // 查询企业性质
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = dao.getProperty(companyGid);
+        enterpriseMap.put("entity_property", entityProperty);
         // 分发处理
         if (entityProperty.startsWith("工商来源") || entityProperty.equals("农民专业合作社")) {
-            enterpriseMap.put("entity_property", entityProperty);
-            String sql = getCompanySql(enterpriseMap);
-            sqls.add(sql);
+            sqls.add(getCompanySql(enterpriseMap));
         } else if (entityProperty.endsWith("事业单位")) {
-            enterpriseMap.put("entity_property", entityProperty);
-            String sql = getInstitutionSql(enterpriseMap);
-            sqls.add(sql);
+            sqls.add(getInstitutionSql(enterpriseMap));
         } else {
             sqls.add(deleteSql1);
             sqls.add(deleteSql2);
@@ -109,7 +106,8 @@ public class CompanyBaseInfoService {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
-        Map<String, Object> govMap = dao.queryGovInfo(companyCid);
+        Map<String, Object> govMap = "institution".equals(String.valueOf(enterpriseMap.get("source_flag"))) ?
+                dao.queryGovInfo(companyCid) : new HashMap<>();
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
