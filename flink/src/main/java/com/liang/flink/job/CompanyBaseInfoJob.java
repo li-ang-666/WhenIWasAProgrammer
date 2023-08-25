@@ -104,7 +104,7 @@ public class CompanyBaseInfoJob {
             synchronized (companyCids) {
                 companyCids.add(cid);
             }
-            if (companyCids.size() >= 10240) {
+            if (companyCids.size() >= 1024) {
                 flush();
             }
         }
@@ -131,13 +131,14 @@ public class CompanyBaseInfoJob {
                 for (String companyCid : companyCids) {
                     List<String> sqls = service.invoke(companyCid);
                     buffer.addAll(sqls);
-                    if (buffer.size() >= 1024) {
+                    if (buffer.size() >= 128) {
                         //jdbcTemplate.update(buffer);
                         buffer.clear();
                     }
                 }
                 //jdbcTemplate.update(buffer);
                 buffer.clear();
+                companyCids.clear();
             }
         }
     }
