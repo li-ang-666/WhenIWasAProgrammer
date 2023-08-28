@@ -19,8 +19,10 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 public class DemoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
+        Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
-                .addSink(new DemoSink(ConfigUtils.getConfig())).setParallelism(1);
+                .rebalance()
+                .addSink(new DemoSink(config)).name("DemoSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("DemoJob");
     }
 
