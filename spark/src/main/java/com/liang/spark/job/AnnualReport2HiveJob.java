@@ -17,7 +17,7 @@ public class AnnualReport2HiveJob {
                 .createOrReplaceTempView("t7");
 
         spark.sql("insert overwrite table test.entity_annual_report_shareholder_equity_change_details select /*+ REPARTITION(180) */ * from t3");
-        spark.sql("insert overwrite table test.entity_annual_report_shareholder_equity_details select /*+ REPARTITION(180) */ * from t4");
+        spark.sql("insert overwrite table test.entity_annual_report_shareholder_equity_details select /*+ REPARTITION(360) */ * from t4");
         spark.sql("insert overwrite table test.entity_annual_report_investment_details select /*+ REPARTITION(180) */ * from t6");
         spark.sql("insert overwrite table test.entity_annual_report_ebusiness_details select /*+ REPARTITION(180) */ * from t7");
     }
