@@ -41,10 +41,6 @@ class FixedMySQLDialect extends JdbcDialect {
     s"ALTER TABLE $tableName MODIFY COLUMN ${quoteIdentifier(columnName)} $newDataType"
   }
 
-  override def quoteIdentifier(colName: String): String = {
-    s"`$colName`"
-  }
-
   // See Old Syntax: https://dev.mysql.com/doc/refman/5.6/en/alter-table.html
   // According to https://dev.mysql.com/worklog/task/?id=10761 old syntax works for
   // both versions of MySQL i.e. 5.x and 8.0
@@ -62,6 +58,10 @@ class FixedMySQLDialect extends JdbcDialect {
       throw new SQLFeatureNotSupportedException(
         s"Rename column is only supported for MySQL version 8.0 and above.")
     }
+  }
+
+  override def quoteIdentifier(colName: String): String = {
+    s"`$colName`"
   }
 
   // See https://dev.mysql.com/doc/refman/8.0/en/alter-table.html
