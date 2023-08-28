@@ -5,6 +5,7 @@ import com.liang.common.util.ConfigUtils;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.jdbc.JdbcDialects;
 
 @Slf4j
 @UtilityClass
@@ -12,6 +13,9 @@ public class SparkSessionFactory {
     public static SparkSession createSpark(String[] args) {
         String file = (args != null && args.length > 0) ? args[0] : null;
         initConfig(file);
+        // 自定义JdbcDialect
+        JdbcDialects.unregisterDialect(JdbcDialects.get("jdbc:mysql"));
+        JdbcDialects.registerDialect(new FixedMySQLDialect());
         return initSpark();
     }
 
