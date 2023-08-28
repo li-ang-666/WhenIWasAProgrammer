@@ -6,7 +6,7 @@ import org.apache.spark.sql.types._
 import java.sql.{SQLFeatureNotSupportedException, Types}
 import java.util.Locale
 
-case class FixedMySQLDialect() extends JdbcDialect {
+class FixedMySQLDialect extends JdbcDialect {
 
   override def canHandle(url: String): Boolean =
     url.toLowerCase(Locale.ROOT).startsWith("jdbc:mysql")
@@ -27,6 +27,10 @@ case class FixedMySQLDialect() extends JdbcDialect {
     }
   }
 
+  override def quoteIdentifier(colName: String): String = {
+    s"`$colName`"
+  }
+
   override def getTableExistsQuery(table: String): String = {
     s"SELECT 1 FROM $table LIMIT 1"
   }
@@ -39,10 +43,6 @@ case class FixedMySQLDialect() extends JdbcDialect {
                                          columnName: String,
                                          newDataType: String): String = {
     s"ALTER TABLE $tableName MODIFY COLUMN ${quoteIdentifier(columnName)} $newDataType"
-  }
-
-  override def quoteIdentifier(colName: String): String = {
-    s"`$colName`"
   }
 
   // See Old Syntax: https://dev.mysql.com/doc/refman/5.6/en/alter-table.html
