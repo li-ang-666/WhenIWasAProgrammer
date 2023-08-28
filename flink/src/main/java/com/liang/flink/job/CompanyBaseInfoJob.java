@@ -97,7 +97,7 @@ public class CompanyBaseInfoJob {
             synchronized (companyCids) {
                 companyCids.add(cid);
             }
-            if (companyCids.size() >= 1024) {
+            if (companyCids.size() >= 1) {
                 flush();
             }
         }
