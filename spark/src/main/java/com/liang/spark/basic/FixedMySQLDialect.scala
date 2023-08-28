@@ -27,10 +27,6 @@ class FixedMySQLDialect extends JdbcDialect {
     }
   }
 
-  override def quoteIdentifier(colName: String): String = {
-    s"`$colName`"
-  }
-
   override def getTableExistsQuery(table: String): String = {
     s"SELECT 1 FROM $table LIMIT 1"
   }
@@ -62,6 +58,10 @@ class FixedMySQLDialect extends JdbcDialect {
       throw new SQLFeatureNotSupportedException(
         s"Rename column is only supported for MySQL version 8.0 and above.")
     }
+  }
+
+  override def quoteIdentifier(colName: String): String = {
+    s"`$colName`"
   }
 
   // See https://dev.mysql.com/doc/refman/8.0/en/alter-table.html
