@@ -14,6 +14,7 @@
         <module>study</module>
         <module>spark</module>
         <module>repair</module>
+        <module>hudi</module>
     </modules>
     <dependencyManagement>
         <dependencies>
