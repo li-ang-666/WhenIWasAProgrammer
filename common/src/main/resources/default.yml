@@ -8,7 +8,7 @@ dbConfigs:
   463.bdp_equity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity" }
   457.prism_shareholder_path: { host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path" }
   008.bigdata_online: { host: "140f5010b84c4d9abfc4d13bc597a2ebin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online" }
-  #157.prism1: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1" }
+  157.prism1: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1" }
   110.data_listed_company: { host: "7d89cf1613024a3d9b0511a21743806ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company" }
   430.graph_data: { host: "1ae09b20e4504ae2a39b6d209b49f269in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "graph_data" }
   116.prism: { host: "0bb0147d82fe49e6953138da0eea61dbin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }

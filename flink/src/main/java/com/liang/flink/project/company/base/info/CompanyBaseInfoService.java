@@ -40,12 +40,14 @@ public class CompanyBaseInfoService {
         }
         // 查询企业性质
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
-        String entityProperty = dao.getProperty(companyGid);
-        enterpriseMap.put("entity_property", entityProperty);
+        Tuple2<String, String> entityPropertyTp2 = dao.getProperty(companyGid);
+        String entityPropertyId = entityPropertyTp2.f0;
+        String entityPropertyName = entityPropertyTp2.f1;
+        enterpriseMap.put("entity_property", entityPropertyId);
         // 分发处理
-        if (entityProperty.startsWith("工商来源") || entityProperty.equals("农民专业合作社")) {
+        if (entityPropertyName.startsWith("工商来源") || entityPropertyName.equals("农民专业合作社")) {
             sqls.add(getCompanySql(enterpriseMap));
-        } else if (entityProperty.endsWith("事业单位")) {
+        } else if (entityPropertyName.endsWith("事业单位")) {
             sqls.add(getInstitutionSql(enterpriseMap));
         } else {
             sqls.add(deleteSql1);
@@ -139,7 +141,7 @@ public class CompanyBaseInfoService {
         // 经营范围
         columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", ""));
         // 是否中央级事业单位
-        columnMap.put("is_national_public_institution", "中央级事业单位".equals(entityProperty));
+        columnMap.put("is_national_public_institution", "4".equals(entityProperty));
         // 组织机构代码 基础数据:端上无
         columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
         // 纳税人识别号 基础数据:端上无

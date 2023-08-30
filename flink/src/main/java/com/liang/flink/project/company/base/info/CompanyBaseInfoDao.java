@@ -4,6 +4,7 @@ import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple4;
 
 import java.util.HashMap;
@@ -75,9 +76,9 @@ public class CompanyBaseInfoDao {
         return res != null ? res : Tuple4.of("", "", "", "");
     }
 
-    public String getProperty(String companyGid) {
+    public Tuple2<String, String> getProperty(String companyGid) {
         if (!TycUtils.isUnsignedId(companyGid)) {
-            return dictionary.get("0");
+            return Tuple2.of("0", dictionary.get("0"));
         }
         String sql = new SQL()
                 .SELECT("entity_property")
@@ -86,7 +87,7 @@ public class CompanyBaseInfoDao {
                 .toString();
         String res = companyBase465.queryForObject(sql, rs -> rs.getString(1));
         String prop = dictionary.get(res);
-        return prop != null ? prop : dictionary.get("0");
+        return prop != null ? Tuple2.of(res, prop) : Tuple2.of("0", dictionary.get("0"));
     }
 
     public String getTax(String companyCid) {
