@@ -16,7 +16,7 @@ create table hudi_table(
   PRIMARY KEY (id) NOT ENFORCED
 ) with (
   'connector' = 'hudi',
-  'path' = 'obs://hadoop-obs/flink/hudi_table',
+  'path' = 'obs://hadoop-obs/flink/hudi_table/',
   'table.type' = 'MERGE_ON_READ',
   -- read
   'read.streaming.enabled' = 'true',
@@ -32,6 +32,7 @@ create table hudi_table(
   -- changelog
   'changelog.enabled' = 'true',
   -- obs
+  'fs.defaultFS' = 'obs://hadoop-obs',
   'fs.obs.impl' = 'org.apache.hadoop.fs.obs.OBSFileSystem',
   'fs.obs.access.key' = 'NT5EWZ4FRH54R2R2CB8G',
   'fs.obs.secret.key' = 'BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS',
