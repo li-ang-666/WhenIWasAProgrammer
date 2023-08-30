@@ -16,10 +16,19 @@ create table hudi_table(
   PRIMARY KEY (id) NOT ENFORCED
 ) with (
   'connector' = 'hudi',
-  'path' = 'hdfs:///liang/hudi_table/',
+  'path' = 'hdfs:///liang/hudi_table',
   'table.type' = 'MERGE_ON_READ',
   -- read
   'read.streaming.enabled' = 'true',
   'read.streaming.start-commit' = '20230830010101',
-  'read.streaming.check-interval' = '4'
+  'read.streaming.check-interval' = '3',
+  -- compaction
+  'compaction.schedule.enabled' = 'true',
+  'compaction.async.enabled	' = 'true',
+  'compaction.trigger.strategy' = 'num_or_time',
+  'compaction.delta_commits' = '2',
+  'compaction.delta_seconds' = '30',
+  'compaction.max_memory' = '512',
+  -- changelog
+  'changelog.enabled' = 'true'
 )
