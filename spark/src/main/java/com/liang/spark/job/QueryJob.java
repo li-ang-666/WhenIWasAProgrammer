@@ -13,6 +13,7 @@ public class QueryJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         String sql = ApolloUtils.get("spark");
+        log.info("sql: {}", sql);
         List<Row> rows = spark.sql(sql).collectAsList();
         for (Row row : rows) {
             log.info("{}", row.json());
