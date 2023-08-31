@@ -40,7 +40,7 @@ public class DorisJob {
                 DorisSchema schema = DorisSchema
                         .builder()
                         .database("dwd")
-                        .tableName("dwd_user_register_details_v2")
+                        .tableName("dwd_user_register_details")
                         .uniqueDeleteOn("__DORIS_DELETE_SIGN__ = 1")
                         .build();
                 DorisOneRow dorisOneRow = new DorisOneRow(schema, columnMap);
