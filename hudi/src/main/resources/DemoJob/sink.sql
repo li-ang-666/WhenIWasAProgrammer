@@ -31,10 +31,4 @@ create table hudi_table(
   'compaction.max_memory' = '512',
   -- changelog
   'changelog.enabled' = 'true'
-  -- obs
-  --'fs.defaultFS' = 'obs://hadoop-obs',
-  --'fs.obs.impl' = 'org.apache.hadoop.fs.obs.OBSFileSystem',
-  --'fs.obs.access.key' = 'NT5EWZ4FRH54R2R2CB8G',
-  --'fs.obs.secret.key' = 'BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS',
-  --'fs.obs.endpoint' = 'obs.cn-north-4.myhuaweicloud.com'
 )

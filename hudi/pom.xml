@@ -17,19 +17,6 @@
             <version>1.0</version>
         </dependency>
 
-        <!--hive-->
-        <!--<dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-exec</artifactId>
-            <version>3.1.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>-->
-
         <!--hadoop-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -37,30 +24,11 @@
             <version>3.1.1</version>
         </dependency>
 
-        <!--obs-->
-        <dependency>
-            <groupId>com.huawei.mrs</groupId>
-            <artifactId>mrs-obs-provider</artifactId>
-            <version>3.1.1.42</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!--hudi-->
         <dependency>
             <groupId>org.apache.hudi</groupId>
             <artifactId>hudi-flink1.16-bundle</artifactId>
             <version>0.13.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!--flink-->
