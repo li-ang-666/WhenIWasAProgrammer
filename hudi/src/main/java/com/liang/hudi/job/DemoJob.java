@@ -22,7 +22,7 @@ public class DemoJob {
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
         // exec sql
         tEnv.executeSql(TableFactory.fromFile("cdc.sql"));
-        tEnv.executeSql(TableFactory.fromFile("kafka.sql"));
-        //tEnv.executeSql("insert into hudi_table select id,company_id,shareholder_id,shareholder_entity_type,shareholder_name_id,investment_ratio_total,is_controller,is_ultimate,is_big_shareholder,is_controlling_shareholder,equity_holding_path,create_time,update_time,is_deleted from ratio_path_company").print();
+        tEnv.executeSql(TableFactory.fromFile("hudi.sql"));
+        tEnv.executeSql("insert into hudi_table select id,company_id,shareholder_id,shareholder_entity_type,shareholder_name_id,investment_ratio_total,is_controller,is_ultimate,is_big_shareholder,is_controlling_shareholder,equity_holding_path,create_time,update_time,is_deleted from cdc_table").print();
     }
 }

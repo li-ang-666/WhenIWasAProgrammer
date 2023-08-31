@@ -21,5 +21,6 @@ CREATE TABLE cdc_table (
   'username' = 'jdhw_d_data_dml',
   'password' = '2s0^tFa4SLrp72',
   'database-name' = 'prism_shareholder_path',
-  'table-name' = 'ratio_path_company'
+  'table-name' = 'ratio_path_company',
+  'server-id' = '5400-5410'
 );
