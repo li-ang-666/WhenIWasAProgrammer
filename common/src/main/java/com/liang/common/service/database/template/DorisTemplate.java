@@ -96,10 +96,12 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 HttpEntity httpEntity = response.getEntity();
                 String loadResult = EntityUtils.toString(httpEntity);
                 int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode == 200 && loadResult.contains("OK") && loadResult.contains("Success")) {
+                if (statusCode == 200 && loadResult.contains("Success") && loadResult.contains("OK")) {
                     log.info("stream load success, loadResult: {}", loadResult);
+                } else if (statusCode == 200 && loadResult.contains("Publish Timeout") && loadResult.contains("PUBLISH_TIMEOUT")) {
+                    log.warn("stream load success, loadResult: {}", loadResult);
                 } else {
-                    log.error("stream load failed, loadResult: {}, content: {}", loadResult, contentString);
+                    log.error("stream load failed, statusCode: {}, loadResult: {}, content: {}", statusCode, loadResult, contentString);
                 }
             }
         } catch (Exception e) {
