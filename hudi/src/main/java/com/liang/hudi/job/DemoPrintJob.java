@@ -14,9 +14,9 @@ import java.nio.charset.StandardCharsets;
 public class DemoPrintJob {
     public static void main(String[] args) throws Exception {
         // read file
-        InputStream stream1 = DemoPrintJob.class.getClassLoader().getResourceAsStream("sqls/hudi.sql");
+        InputStream stream1 = DemoPrintJob.class.getClassLoader().getResourceAsStream("sqls/kafka.sql");
         String source = IOUtils.toString(stream1, StandardCharsets.UTF_8);
-        InputStream stream2 = DemoPrintJob.class.getClassLoader().getResourceAsStream("sqls/kafka.sql");
+        InputStream stream2 = DemoPrintJob.class.getClassLoader().getResourceAsStream("sqls/hudi.sql");
         String sink = IOUtils.toString(stream2, StandardCharsets.UTF_8);
 
         // create env
