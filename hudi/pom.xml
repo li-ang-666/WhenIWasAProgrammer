@@ -10,7 +10,15 @@
     </parent>
     <artifactId>hudi</artifactId>
     <dependencies>
+        <!--common-->
         <dependency>
+            <groupId>com.liang</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <!--hive-->
+        <!--<dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
             <version>3.1.1</version>
@@ -20,20 +28,23 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
+
         <!--hadoop-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>3.1.1</version>
         </dependency>
+
+        <!--obs-->
         <dependency>
             <groupId>com.huawei.mrs</groupId>
             <artifactId>mrs-obs-provider</artifactId>
             <version>3.1.1.42</version>
             <exclusions>
                 <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
+                    <groupId>*</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
@@ -44,13 +55,12 @@
             <groupId>org.apache.hudi</groupId>
             <artifactId>hudi-flink1.16-bundle</artifactId>
             <version>0.13.0</version>
-        </dependency>
-
-        <!--common-->
-        <dependency>
-            <groupId>com.liang</groupId>
-            <artifactId>common</artifactId>
-            <version>1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!--flink-->
