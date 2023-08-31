@@ -40,7 +40,7 @@ public abstract class AbstractCache<K, V> {
                 @SneakyThrows(InterruptedException.class)
                 public void run() {
                     while (true) {
-                        TimeUnit.MILLISECONDS.sleep(100);
+                        TimeUnit.MILLISECONDS.sleep(10);
                         // 时间触发
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - lastSendTime >= cacheMilliseconds && !cache.isEmpty()) {
