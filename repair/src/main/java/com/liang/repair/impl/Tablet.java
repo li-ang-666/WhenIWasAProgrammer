@@ -25,7 +25,7 @@ public class Tablet extends ConfigHolder {
                     String detailCmd = doris.queryForObject("show tablet " + tablet, rs -> rs.getString("DetailCmd"));
                     columnMaps = doris.queryForColumnMaps(detailCmd.replaceAll(";", ""));
                     columnMaps.stream()
-                            .filter(e -> e.get("LstFailedTime") != null)
+                            .filter(e -> !"-1".equals(e.get("LstFailedVersion")) || e.get("LstFailedTime") != null)
                             .forEach(e -> {
                                 String cmd = String.format("ADMIN SET REPLICA STATUS PROPERTIES(\"tablet_id\" = \"%s\", \"backend_id\" = \"%s\", \"status\" = \"bad\")", tablet, e.get("BackendId"));
                                 doris.update(cmd);
