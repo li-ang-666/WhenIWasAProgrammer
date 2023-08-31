@@ -1,4 +1,4 @@
-create table hudi_table(
+create table kafka_table(
     id                         BIGINT,
     company_id                 BIGINT,
     shareholder_id             STRING,
@@ -14,7 +14,7 @@ create table hudi_table(
     update_time                TIMESTAMP(0),
     is_deleted                 BIGINT,
   PRIMARY KEY (id) NOT ENFORCED
-) with (
+) WITH (
   'connector' = 'hudi',
   'path' = 'hdfs:///liang/hudi_table',
   'table.type' = 'MERGE_ON_READ',

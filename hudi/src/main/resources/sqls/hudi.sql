@@ -1,4 +1,4 @@
-CREATE TABLE ratio_path_company (
+CREATE TABLE hudi_table (
     id                         BIGINT,
     company_id                 BIGINT,
     shareholder_id             STRING,
