@@ -12,15 +12,19 @@
     <dependencies>
         <!--obs-->
         <dependency>
+            <groupId>com.huaweicloud</groupId>
+            <artifactId>esdk-obs-java-bundle</artifactId>
+            <version>[3.21.11,)</version>
+        </dependency>
+        <dependency>
+            <groupId>com.huaweicloud.dis</groupId>
+            <artifactId>huaweicloud-sdk-java-dis</artifactId>
+            <version>1.3.5</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-huaweicloud</artifactId>
-            <version>3.1.1-hw-40</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>3.1.1-hw-45</version>
         </dependency>
 
         <!--cdc-->
