@@ -13,13 +13,14 @@ import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 public class DorisJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        spark.sql("select * from test.dwd_user_register_details_1")
+        spark.sql("select * from test.test_ods_promotion_user_promotion_all_df_0830")
                 .foreachPartition(new DorisForeachPartitionSink(ConfigUtils.getConfig()));
     }
 
@@ -36,14 +37,24 @@ public class DorisJob {
             while (iterator.hasNext()) {
                 Row row = iterator.next();
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(row.json());
-                columnMap.put("__DORIS_DELETE_SIGN__", 0);
+                HashMap<String, Object> resultMap = new HashMap<>();
+                resultMap.put("__DORIS_DELETE_SIGN__", 0);
+                resultMap.put("promotion_code", columnMap.get("promotion_code"));
+                resultMap.put("unique_user_id", columnMap.get("user_id"));
+                resultMap.put("promotion_id", columnMap.get("promotion_id"));
+                resultMap.put("use_status", columnMap.get("use_status"));
+                resultMap.put("receive_time", columnMap.get("receive_time"));
+                resultMap.put("effective_time", columnMap.get("effective_time"));
+                resultMap.put("expiration_time", columnMap.get("expiration_time"));
+                resultMap.put("create_time", columnMap.get("create_time"));
+                resultMap.put("update_time", columnMap.get("update_time"));
                 DorisSchema schema = DorisSchema
                         .builder()
                         .database("dwd")
-                        .tableName("dwd_user_register_details")
+                        .tableName("dwd_coupon_info")
                         .uniqueDeleteOn("__DORIS_DELETE_SIGN__ = 1")
                         .build();
-                DorisOneRow dorisOneRow = new DorisOneRow(schema, columnMap);
+                DorisOneRow dorisOneRow = new DorisOneRow(schema, resultMap);
                 doris.update(dorisOneRow);
             }
             doris.flush();
