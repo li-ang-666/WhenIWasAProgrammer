@@ -32,8 +32,8 @@ export restoreDir=$(if [[ $1 == hdfs* ]] ; then echo '-s '$1 ; else echo '' ; fi
 /data/hudi/flink-1.16.2/bin/flink run-application -t yarn-application ${restoreDir} \
   -D jobmanager.memory.process.size=2048mb \
   -D taskmanager.memory.process.size=4096mb \
-  -D taskmanager.numberOfTaskSlots=8 \
+  -D taskmanager.numberOfTaskSlots=4 \
   -D state.checkpoints.dir=hdfs:///hudi/flink-checkpoints/${folderName} \
   -D yarn.ship-files=${configName} \
   -D yarn.application.name=${jobName} \
-  -c com.hudi.flink.job.${className} flink-1.0-jar-with-dependencies.jar ${configName}
+  -c com.hudi.flink.job.${className} hudi-1.0.jar ${configName}
