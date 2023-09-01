@@ -28,7 +28,7 @@ create table hudi_table(
   'compaction.trigger.strategy' = 'num_or_time',
   'compaction.delta_commits' = '3',
   'compaction.delta_seconds' = '60',
-  'compaction.max_memory' = '256',
+  'compaction.max_memory' = '100',
   -- changelog
   'changelog.enabled' = 'true'
 )
