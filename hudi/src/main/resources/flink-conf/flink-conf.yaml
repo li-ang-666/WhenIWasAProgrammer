@@ -1,0 +1,34 @@
+# 特殊参数
+taskmanager.network.memory.buffer-debloat.enabled: true
+classloader.check-leaked-classloader: false
+classloader.parent-first-patterns.additional: org.codehaus.
+
+# jvm参数
+env.java.opts.all: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps
+#env.java.opts.jobmanager:
+#env.java.opts.taskmanager:
+
+# checkpoint参数
+state.backend: rocksdb
+state.backend.incremental: true
+state.checkpoint-storage: filesystem
+
+# 内存 框架 堆内外
+taskmanager.memory.framework.heap.size: 128m
+taskmanager.memory.framework.off-heap.size: 128m
+# 内存 用户 堆外
+taskmanager.memory.task.off-heap.size: 0m
+# 内存 DirectMemory (框架堆外 + 用户堆外 + 网络)
+taskmanager.memory.network.fraction: 0.15
+# 内存 RocksDB
+taskmanager.memory.managed.fraction: 0.5
+# 内存 jvm开销
+taskmanager.memory.jvm-metaspace.size: 256m
+taskmanager.memory.jvm-overhead.fraction: 0.1
+
+#并行度
+taskmanager.numberOfTaskSlots: 1
+parallelism.default: 1
+
+#yarn
+yarn.application.queue: default

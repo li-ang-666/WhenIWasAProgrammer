@@ -36,4 +36,4 @@ export restoreDir=$(if [[ $1 == hdfs* ]] ; then echo '-s '$1 ; else echo '' ; fi
   -D state.checkpoints.dir=hdfs:///hudi/flink-checkpoints/${folderName} \
   -D yarn.ship-files=${configName} \
   -D yarn.application.name=${jobName} \
-  -c com.hudi.flink.job.${className} hudi-1.0.jar ${configName}
+  -c com.liang.hudi.job.${className} hudi-1.0.jar ${configName}
