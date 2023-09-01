@@ -16,7 +16,7 @@ create table hudi_table(
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'hudi',
-  'path' = 'hdfs:///liang/hudi_table',
+  'path' = 'obs://hadoop-obs/flink/hudi_table',
   'table.type' = 'MERGE_ON_READ',
   -- read
   'read.streaming.enabled' = 'true',

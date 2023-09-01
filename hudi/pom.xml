@@ -10,6 +10,19 @@
     </parent>
     <artifactId>hudi</artifactId>
     <dependencies>
+        <!--obs-->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-huaweicloud</artifactId>
+            <version>3.1.1-hw-40</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!--cdc-->
         <dependency>
             <groupId>com.ververica</groupId>
