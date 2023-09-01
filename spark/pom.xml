@@ -30,6 +30,11 @@
             <artifactId>hudi-spark3.1-bundle_2.12</artifactId>
             <version>0.13.1</version>
         </dependency>
+        <!--<dependency>
+            <groupId>org.apache.hudi</groupId>
+            <artifactId>hudi-flink1.16-bundle</artifactId>
+            <version>0.13.1</version>
+        </dependency>-->
 
         <!--apollo-->
         <dependency>
