@@ -16,11 +16,12 @@ CREATE TABLE cdc_table (
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'mysql-cdc',
-  'hostname' = '9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com',
+  'hostname' = 'e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com',
   'port' = '3306',
   'username' = 'jdhw_d_data_dml',
   'password' = '2s0^tFa4SLrp72',
   'database-name' = 'prism_shareholder_path',
   'table-name' = 'ratio_path_company',
-  'server-id' = '5400-5410'
+  'server-id' = '6000-6010',
+  'server-time-zone' = 'Asia/Shanghai'
 );
