@@ -29,11 +29,13 @@ public class SparkSessionFactory {
             return SparkSession
                     .builder()
                     .config("spark.debug.maxToStringFields", "200")
+                    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
                     .enableHiveSupport()
                     .getOrCreate();
         } catch (Exception e) {
             return SparkSession.builder()
                     .config("spark.debug.maxToStringFields", "200")
+                    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
                     .master("local[*]")
                     .getOrCreate();
         }
