@@ -21,6 +21,7 @@ public class DorisJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.sql("select * from test.test_ods_promotion_user_promotion_all_df_0830")
+                .repartition(180)
                 .foreachPartition(new DorisForeachPartitionSink(ConfigUtils.getConfig()));
     }
 
@@ -46,8 +47,6 @@ public class DorisJob {
                 resultMap.put("receive_time", columnMap.get("receive_time"));
                 resultMap.put("effective_time", columnMap.get("effective_time"));
                 resultMap.put("expiration_time", columnMap.get("expiration_time"));
-                resultMap.put("create_time", columnMap.get("create_time"));
-                resultMap.put("update_time", columnMap.get("update_time"));
                 DorisSchema schema = DorisSchema
                         .builder()
                         .database("dwd")
