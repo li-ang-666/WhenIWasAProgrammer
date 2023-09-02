@@ -61,5 +61,7 @@ public class TableEnvironmentFactory {
         checkpointConfig.setExternalizedCheckpointCleanup(RETAIN_ON_CANCELLATION);
         // 开启非对齐的checkpoint(可跳跃的barrier)
         checkpointConfig.enableUnalignedCheckpoints();
+        // hudi bucket索引 需要开启这个
+        checkpointConfig.setForceUnalignedCheckpoints(true);
     }
 }
