@@ -18,5 +18,6 @@ create table hudi_table(
   'connector' = 'hudi',
   'path' = 'obs://hadoop-obs/hudi/hudi_table',
   'table.type' = 'MERGE_ON_READ',
-  'index.type' = 'BUCKET'
+  'index.type' = 'BUCKET',
+  'index.bootstrap.enabled' = 'true'
 )
