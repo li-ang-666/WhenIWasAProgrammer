@@ -86,17 +86,11 @@
             </exclusions>
         </dependency>
 
-        <!--common-->
+        <!--liang common-->
         <dependency>
             <groupId>com.liang</groupId>
             <artifactId>common</artifactId>
             <version>1.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-lang3</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!--liang flink-->
@@ -104,16 +98,6 @@
             <groupId>com.liang</groupId>
             <artifactId>flink</artifactId>
             <version>1.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-lang3</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.flink</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!--spark-->
