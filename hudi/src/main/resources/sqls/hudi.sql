@@ -18,9 +18,8 @@ create table hudi_table(
   'connector' = 'hudi',
   'path' = 'obs://hadoop-obs/hudi/hudi_table',
   'table.type' = 'MERGE_ON_READ',
+  'index.type' = 'BUCKET',
   -- write
   'write.rate.limit	' = '4096',
   'write.task.max.size' = '512D',
-  -- index
-  'hoodie.index.type' = 'BUCKET'
 )
