@@ -20,7 +20,5 @@ create table hudi_table(
   'table.type' = 'MERGE_ON_READ',
   'index.type' = 'BUCKET',
   'index.bootstrap.enabled' = 'true',
-  'hoodie.bucket.index.num.buckets' = '8',
-  'metadata.enabled' = 'true',
-  'hoodie.fs.atomic_creation.support' = 'obs'
+  'hoodie.bucket.index.num.buckets' = '8'
 )
