@@ -12,6 +12,9 @@ import java.util.List;
 public class QueryJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
+        spark.read().format("hudi")
+                .load("obs://hadoop-obs/hudi/hudi_table")
+                .createOrReplaceTempView("hudi_table");
         String sql = ApolloUtils.get("spark");
         log.info("sql: {}", sql);
         List<Row> rows = spark.sql(sql).collectAsList();
