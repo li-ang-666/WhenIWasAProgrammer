@@ -9,6 +9,6 @@ public class QueryHudiJob {
         spark.read().format("hudi")
                 .load("obs://hadoop-obs/hudi/hudi_table")
                 .createOrReplaceTempView("hudi_table");
-        spark.sql("select count(distinct id) from hudi_table").show();
+        spark.sql("select count(1) from hudi_table").show();
     }
 }
