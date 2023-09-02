@@ -20,5 +20,5 @@ create table hudi_table(
   'table.type' = 'MERGE_ON_READ',
   -- write
   'write.rate.limit	' = '4096',
-  'write.task.max.size' = '512D',
+  'write.task.max.size' = '512D'
 )
