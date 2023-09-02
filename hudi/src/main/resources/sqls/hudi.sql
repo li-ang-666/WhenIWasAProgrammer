@@ -20,5 +20,5 @@ create table hudi_table(
   'table.type' = 'MERGE_ON_READ',
   'index.type' = 'BUCKET',
   'index.bootstrap.enabled' = 'true',
-  'hoodie.bucket.index.num.buckets' = '8'
+  'hoodie.bucket.index.num.buckets' = '256'
 )
