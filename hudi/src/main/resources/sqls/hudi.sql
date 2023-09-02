@@ -18,11 +18,15 @@ create table hudi_table(
   'connector' = 'hudi',
   'path' = 'obs://hadoop-obs/hudi/hudi_table',
   'table.type' = 'MERGE_ON_READ',
+  -- write
+  'write.rate.limit	' = '4096',
+  'write.tasks' = '1',
   -- compaction
   'compaction.schedule.enabled' = 'true',
   'compaction.async.enabled	' = 'true',
   'compaction.trigger.strategy' = 'num_commits',
   'compaction.delta_commits' = '3',
+  'compaction.tasks' = '1',
   -- changelog
   'changelog.enabled' = 'true'
 )
