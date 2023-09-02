@@ -22,6 +22,5 @@ create table hudi_table(
   'write.rate.limit	' = '4096',
   'write.task.max.size' = '512D',
   -- index
-  'hoodie.index.type' = 'BUCKET',
-  'hoodie.index.bucket.engine' = 'CONSISTENT_HASHING'
+  'hoodie.index.type' = 'BUCKET'
 )
