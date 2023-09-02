@@ -20,5 +20,8 @@ create table hudi_table(
   'table.type' = 'MERGE_ON_READ',
   -- write
   'write.rate.limit	' = '4096',
-  'write.task.max.size' = '512D'
+  'write.task.max.size' = '512D',
+  -- index
+  'hoodie.index.type' = 'BUCKET',
+  'hoodie.index.bucket.engine' = 'CONSISTENT_HASHING'
 )
