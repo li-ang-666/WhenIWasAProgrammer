@@ -21,5 +21,5 @@ create table hudi_table(
   'index.type' = 'BUCKET',
   -- write
   'write.rate.limit	' = '4096',
-  'write.task.max.size' = '512D',
+  'write.task.max.size' = '512D'
 )
