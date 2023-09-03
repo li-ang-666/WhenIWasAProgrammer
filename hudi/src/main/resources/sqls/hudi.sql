@@ -18,7 +18,15 @@ create table hudi_table(
   'connector' = 'hudi',
   'path' = 'obs://hadoop-obs/hudi/hudi_table',
   'table.type' = 'MERGE_ON_READ',
+  -- precombine
+  'write.precombine' = 'true',
+  -- index
   'index.type' = 'BUCKET',
-  'index.bootstrap.enabled' = 'true',
-  'hoodie.bucket.index.num.buckets' = '256'
+  'hoodie.bucket.index.num.buckets' = '2',
+  -- compaction
+  'compaction.schedule.enabled' = 'true',
+  'compaction.async.enabled' = 'true',
+  'compaction.trigger.strategy' = 'num_commits',
+  'compaction.delta_commits' = '10',
+  'compaction.max_memory' = '1024'
 )
