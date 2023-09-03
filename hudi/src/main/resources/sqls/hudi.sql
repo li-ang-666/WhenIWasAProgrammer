@@ -22,12 +22,11 @@ create table hudi_table(
   'write.precombine' = 'true',
   -- index
   'index.type' = 'BUCKET',
-  'hoodie.bucket.index.num.buckets' = '2',
+  'hoodie.bucket.index.num.buckets' = '1',
+  'index.bootstrap.enabled' = 'true',
   -- compaction
   'compaction.schedule.enabled' = 'true',
   'compaction.async.enabled' = 'true',
   'compaction.trigger.strategy' = 'num_commits',
-  'compaction.delta_commits' = '10',
-  -- memory
-  'write.task.max.size' = '512D'
+  'compaction.delta_commits' = '10'
 )
