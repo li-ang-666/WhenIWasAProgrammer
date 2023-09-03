@@ -28,5 +28,6 @@ create table hudi_table(
   'compaction.async.enabled' = 'true',
   'compaction.trigger.strategy' = 'num_commits',
   'compaction.delta_commits' = '10',
-  'compaction.max_memory' = '1024'
+  -- memory
+  'write.task.max.size' = '512D'
 )
