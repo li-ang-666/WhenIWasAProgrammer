@@ -17,7 +17,7 @@ create table hudi_table(
 ) WITH (
   'connector' = 'hudi',
   'path' = 'obs://hadoop-obs/hudi/hudi_table',
-  'table.type' = 'COPY_ON_WRITE',
+  'table.type' = 'MERGE_ON_READ',
   -- index
   'index.type' = 'BUCKET',
   'hoodie.bucket.index.num.buckets' = '32',
