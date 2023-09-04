@@ -2,7 +2,7 @@
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 10
+  otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 # where: "annual_report_id in (select id from annual_report where company_id in (select company_id from company_graph where graph_id = '2318455639' and deleted = 0))"
@@ -11,26 +11,26 @@ repairTasks:
     sourceName: "116.prism"
     tableName: "report_equity_change_info"
     columns: "*"
-    where: "1=1"
-    scanMode: TumblingWindow
+    where: "annualreport_id in (select id from annual_report where company_id in (select company_id from company_graph where graph_id = '2318455639' and deleted = 0))"
+    scanMode: Direct
   - taskId: "222"
     sourceName: "116.prism"
     tableName: "report_shareholder"
     columns: "*"
-    where: "1=1"
-    scanMode: TumblingWindow
+    where: "annual_report_id in (select id from annual_report where company_id in (select company_id from company_graph where graph_id = '2318455639' and deleted = 0))"
+    scanMode: Direct
   - taskId: "333"
     sourceName: "116.prism"
     tableName: "report_outbound_investment"
     columns: "*"
-    where: "1=1"
-    scanMode: TumblingWindow
+    where: "annual_report_id in (select id from annual_report where company_id in (select company_id from company_graph where graph_id = '2318455639' and deleted = 0));"
+    scanMode: Direct
   - taskId: "444"
     sourceName: "116.prism"
     tableName: "report_webinfo"
     columns: "*"
-    where: "1=1"
-    scanMode: TumblingWindow
+    where: "annualreport_id in (select id from annual_report where company_id in (select company_id from company_graph where graph_id = '2318455639' and deleted = 0))"
+    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:

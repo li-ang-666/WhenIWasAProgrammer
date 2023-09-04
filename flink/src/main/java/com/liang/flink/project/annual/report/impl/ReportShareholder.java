@@ -15,7 +15,7 @@ import java.util.*;
 
 @Slf4j
 public class ReportShareholder extends AbstractDataUpdate<String> {
-    private final static String TABLE_NAME = "entity_annual_report_shareholder_equity_details";
+    private final static String TABLE_NAME = "entity_annual_report_shareholder_equity_details_v2";
     private final AnnualReportDao dao = new AnnualReportDao();
 
     @Override
