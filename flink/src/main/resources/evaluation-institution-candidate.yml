@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "108.data_judicial_risk"
     tableName: "zhixinginfo_evaluate"
     columns: "*"
-    where: "id = 116176"
+    where: "id = 65169"
     scanMode: Direct
 
 kafkaConfigs:

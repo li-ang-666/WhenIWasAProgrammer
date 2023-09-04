@@ -21,6 +21,8 @@ public class EvaluationInstitutionCandidateService {
     //private final static String TABLE = "entity_enforcement_object_evaluation_institution_candidate_details";
     private final static String TABLE = "entity_evaluation_details";
     private final EvaluationInstitutionCandidateDao dao = new EvaluationInstitutionCandidateDao();
+    private final CaseCodeClean caseCodeClean = new CaseCodeClean();
+    private final CaseCodeType caseCodeType = new CaseCodeType();
 
     public List<String> invoke(String evaluateId) {
         // 如果不是合法id, 跳出
@@ -41,6 +43,7 @@ public class EvaluationInstitutionCandidateService {
         // evaluate表字段陈列
         String type = String.valueOf(evaluate.get("type"));
         String zhixingid = String.valueOf(evaluate.get("zhixingid"));
+        String caseNumber = String.valueOf(evaluate.get("caseNumber"));
         // 准备所有涉及到的被执行实体
         List<Entity> entities = new ArrayList<>();
         if ("1".equals(type)) {
@@ -79,11 +82,12 @@ public class EvaluationInstitutionCandidateService {
         // id
         resultMap.put("business_id", evaluateId);
         // 执行案号(清洗)
-        resultMap.put("enforcement_case_number", "执行案号");
+        String caseNumberClean = caseCodeClean.evaluate(caseNumber);
+        resultMap.put("enforcement_case_number", caseNumberClean);
         // 执行案号(原始)
-        resultMap.put("enforcement_case_number_original", evaluate.get("caseNumber"));
+        resultMap.put("enforcement_case_number_original", caseNumber);
         // 执行案型
-        resultMap.put("enforcement_case_type", "执行案型");
+        resultMap.put("enforcement_case_type", caseCodeType.evaluate(caseNumberClean));
         // 委托法院
         resultMap.put("enforcement_object_evaluation_court_name", evaluate.get("execCourtName"));
         // 财产类型
