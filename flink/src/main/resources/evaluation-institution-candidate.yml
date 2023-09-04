@@ -1,0 +1,26 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 1
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - taskId: "111"
+    sourceName: "108.data_judicial_risk"
+    tableName: "zhixinginfo_evaluate"
+    columns: "*"
+    where: "id = 116176"
+    scanMode: Direct
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "9349c.proto.company_base.tyc_entity_general_property_reference"
+      - "9349c.proto.prism.enterprise"
+      - "9349c.proto.prism.company"
+      - "9349c.proto.prism.company_clean_info"
+      - "9349c.proto.data_experience_situation.gov_unit"
+    groupId: "company-base-info-job"
+    startFrom: "1"

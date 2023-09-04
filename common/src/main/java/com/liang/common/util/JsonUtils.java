@@ -1,6 +1,7 @@
 package com.liang.common.util;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
@@ -20,6 +21,8 @@ import java.util.TimeZone;
 public class JsonUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .setTimeZone(TimeZone.getTimeZone("GTM+8"))
+            // 可以识别单引号
+            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
             .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true)
             .configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true)
             .configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)

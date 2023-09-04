@@ -16,6 +16,8 @@ dbConfigs:
   464.prism: { host: "5673658675c84a3ba5ae7577850f1ed2in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
   465.company_base: { host: "c8ce5ba3cd8b49ca8f57c945ef51d45cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
   157.prism_boss: { host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_boss" }
+  108.data_judicial_risk: { host: "43283515096042b8bbd9704a4fdbbcd4in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_judicial_risk" }
+  150.data_index: { host: "be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_index" }
   doris: { host: "10.99.202.70",database: "test_db",user: "dba",password: "Tyc@1234" ,port: 6060 }
   gauss: { host: "10.99.131.246",database: "company_base" }
 
