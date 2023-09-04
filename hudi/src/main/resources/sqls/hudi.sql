@@ -25,5 +25,6 @@ create table hudi_table(
   'hoodie.bucket.index.num.buckets' = '32',
   'index.bootstrap.enabled' = 'true',
   -- compaction
-  'compaction.delta_commits' = '30'
+  'compaction.delta_commits' = '30',
+  'compaction.max_memory' = '512'
 )
