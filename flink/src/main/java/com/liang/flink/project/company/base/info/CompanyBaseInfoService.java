@@ -5,7 +5,7 @@ import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.api.java.tuple.Tuple5;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +48,8 @@ public class CompanyBaseInfoService {
         if (entityPropertyName.startsWith("工商来源") || entityPropertyName.equals("农民专业合作社")) {
             sqls.add(getCompanySql(enterpriseMap));
         } else if (entityPropertyName.endsWith("事业单位")) {
-            sqls.add(getInstitutionSql(enterpriseMap));
+            String sql = getInstitutionSql(enterpriseMap);
+            sqls.add(sql != null ? sql : deleteSql2);
         } else {
             sqls.add(deleteSql1);
             sqls.add(deleteSql2);
@@ -64,13 +65,13 @@ public class CompanyBaseInfoService {
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
         columnMap.put("entity_name_valid", String.valueOf(enterpriseMap.get("name")));
-        Tuple4<String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
+        Tuple5<String, String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
         columnMap.put("register_capital_amount", equityInfo.f0);
         columnMap.put("register_capital_currency", equityInfo.f1);
         columnMap.put("actual_capital_amount", equityInfo.f2);
         columnMap.put("actual_capital_currency", equityInfo.f3);
         // 登记经营状态
-        columnMap.put("entity_registration_status", ifNull(enterpriseMap, "reg_status", ""));
+        columnMap.put("entity_registration_status", equityInfo.f4);
         // 工商注册号
         columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", ""));
         // 统一社会信用代码
@@ -110,36 +111,39 @@ public class CompanyBaseInfoService {
         String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
         Map<String, Object> govMap = "institution".equals(String.valueOf(enterpriseMap.get("source_flag"))) ?
                 dao.queryGovInfo(companyCid) : new HashMap<>();
+        if (govMap.isEmpty()) {
+            return null;
+        }
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
         columnMap.put("entity_name_valid", String.valueOf(enterpriseMap.get("name")));
-        Tuple4<String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
+        Tuple5<String, String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
         columnMap.put("register_capital_amount", equityInfo.f0);
         columnMap.put("register_capital_currency", "人民币");
         // 登记经营状态
-        columnMap.put("entity_registration_status", ifNull(enterpriseMap, "reg_status", ""));
+        columnMap.put("entity_registration_status", equityInfo.f4);
         // 举办单位名称
         columnMap.put("register_unit_public_institution", ifNull(govMap, "reg_unit_name", ""));
         // 经费来源
         columnMap.put("public_institution_funding_source", ifNull(govMap, "expend_source", ""));
         // 登记机关
-        columnMap.put("registration_institute", ifNull(enterpriseMap, "reg_institute", ""));
+        columnMap.put("registration_institute", ifNull(govMap, "hold_unit", ""));
         // 原证书号
         columnMap.put("original_certificate_number_public_institution", String.valueOf(govMap.get("old_cert")).replaceAll("[^0-9]", ""));
         // 工商注册号 基础数据:端上无
         columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", ""));
         // 统一社会信用代码
-        columnMap.put("unified_social_credit_code", ifNull(enterpriseMap, "code", ""));
+        columnMap.put("unified_social_credit_code", ifNull(govMap, "us_credit_code", ""));
         // 经营期限
         Tuple2<String, String> validTime = getStartAndEndDate(String.valueOf(govMap.get("valid_time")));
         columnMap.put("business_term_start_date", validTime.f0);
         columnMap.put("business_term_end_date", validTime.f1);
         columnMap.put("business_term_is_permanent", validTime.f1 == null);
         // 登记注册地址
-        columnMap.put("entity_register_address", ifNull(enterpriseMap, "reg_location", ""));
+        columnMap.put("entity_register_address", ifNull(govMap, "address", ""));
         // 经营范围
-        columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", ""));
+        columnMap.put("business_registration_scope", ifNull(govMap, "scope", ""));
         // 是否中央级事业单位
         columnMap.put("is_national_public_institution", "4".equals(entityProperty));
         // 组织机构代码 基础数据:端上无

@@ -5,7 +5,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.api.java.tuple.Tuple5;
 
 import java.util.HashMap;
 import java.util.List;
@@ -62,18 +62,18 @@ public class CompanyBaseInfoDao {
         return columnMaps.get(0);
     }
 
-    public Tuple4<String, String, String, String> getEquityInfo(String companyCid) {
+    public Tuple5<String, String, String, String, String> getEquityInfo(String companyCid) {
         if (!TycUtils.isUnsignedId(companyCid)) {
-            return Tuple4.of("", "", "", "");
+            return Tuple5.of("", "", "", "", "");
         }
         String sql = new SQL()
-                .SELECT("ifnull(reg_capital_amount,'')", "ifnull(reg_capital_currency,'')", "ifnull(actual_capital_amount,'')", "ifnull(actual_capital_currency,'')")
+                .SELECT("ifnull(reg_capital_amount,'')", "ifnull(reg_capital_currency,'')", "ifnull(actual_capital_amount,'')", "ifnull(actual_capital_currency,'')", "ifnull(reg_status,'')")
                 .FROM("company_clean_info")
                 .WHERE("is_deleted = 0")
                 .WHERE("id = " + SqlUtils.formatValue(companyCid))
                 .toString();
-        Tuple4<String, String, String, String> res = prism116.queryForObject(sql, rs -> Tuple4.of(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
-        return res != null ? res : Tuple4.of("", "", "", "");
+        Tuple5<String, String, String, String, String> res = prism116.queryForObject(sql, rs -> Tuple5.of(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(4)));
+        return res != null ? res : Tuple5.of("", "", "", "", "");
     }
 
     public Tuple2<String, String> getProperty(String companyGid) {
