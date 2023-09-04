@@ -17,14 +17,9 @@ create table hudi_table(
 ) WITH (
   'connector' = 'hudi',
   'path' = 'obs://hadoop-obs/hudi/hudi_table',
-  'table.type' = 'MERGE_ON_READ',
-  -- precombine
-  'write.precombine' = 'true',
+  'table.type' = 'COPY_ON_WRITE',
   -- index
   'index.type' = 'BUCKET',
   'hoodie.bucket.index.num.buckets' = '32',
-  'index.bootstrap.enabled' = 'true',
-  -- compaction
-  'compaction.delta_commits' = '30',
-  'compaction.max_memory' = '512'
+  'index.bootstrap.enabled' = 'true'
 )
