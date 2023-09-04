@@ -10,6 +10,6 @@ public class QueryHudiJob {
                 .load("obs://hadoop-obs/hudi/hudi_table")
                 .createOrReplaceTempView("hudi_table");*/
         //spark.sql("select count(1) from hudi_table").show();
-        spark.sql("select cast(0.000123456789 as float)").show();
+        spark.sql("select cast(1111111111111111111 as decimal(38,12))").show();
     }
 }

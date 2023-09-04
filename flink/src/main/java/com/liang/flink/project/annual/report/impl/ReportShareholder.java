@@ -8,10 +8,12 @@ import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.*;
 
+@Slf4j
 public class ReportShareholder extends AbstractDataUpdate<String> {
     private final static String TABLE_NAME = "entity_annual_report_shareholder_equity_details";
     private final AnnualReportDao dao = new AnnualReportDao();
@@ -71,9 +73,9 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         checkMap(resultMap);
         // 认缴
         HashMap<String, Object> resultMap1 = new HashMap<>(resultMap);
-        resultMap1.put("annual_report_shareholder_capital_type", 1);
+        resultMap1.put("annual_report_shareholder_capital_type", "认缴");
         resultMap1.put("annual_report_shareholder_capital_source", subscribeAmount);
-        Tuple2<String, String> numberAndUnit1 = TycUtils.formatEquity(subscribeAmount);
+        Tuple2<String, String> numberAndUnit1 = formatEquity(id, TycUtils.formatEquity(subscribeAmount));
         resultMap1.put("annual_report_shareholder_equity_amt", numberAndUnit1.f0);
         resultMap1.put("annual_report_shareholder_equity_currency", numberAndUnit1.f1);
         resultMap1.put("annual_report_shareholder_equity_valid_date", TycUtils.isDateTime(subscribeTime) ? subscribeTime : null);
@@ -86,9 +88,9 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         result.add(sql1);
         // 实缴
         HashMap<String, Object> resultMap2 = new HashMap<>(resultMap);
-        resultMap2.put("annual_report_shareholder_capital_type", 2);
+        resultMap2.put("annual_report_shareholder_capital_type", "实缴");
         resultMap2.put("annual_report_shareholder_capital_source", paidAmount);
-        Tuple2<String, String> numberAndUnit2 = TycUtils.formatEquity(paidAmount);
+        Tuple2<String, String> numberAndUnit2 = formatEquity(id, TycUtils.formatEquity(paidAmount));
         resultMap2.put("annual_report_shareholder_equity_amt", numberAndUnit2.f0);
         resultMap2.put("annual_report_shareholder_equity_currency", numberAndUnit2.f1);
         resultMap2.put("annual_report_shareholder_equity_valid_date", TycUtils.isDateTime(paidTime) ? paidTime : null);
@@ -119,7 +121,18 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 String.valueOf(resultMap.get("annual_report_year")).matches("\\d{4}")
         ) {
         } else {
-            resultMap.put("delete_status", 2);
+            resultMap.put("delete_status", 1);
+        }
+    }
+
+    private Tuple2<String, String> formatEquity(String businessId, Tuple2<String, String> tuple2) {
+        String equity = tuple2.f0;
+        String[] split = equity.split("\\.");
+        if (split[0].length() > 38 - 12) {
+            log.error("超出decimal(38,12)的投资额: {}, business_id: {}", tuple2, businessId);
+            return Tuple2.of("0", tuple2.f1);
+        } else {
+            return tuple2;
         }
     }
 }

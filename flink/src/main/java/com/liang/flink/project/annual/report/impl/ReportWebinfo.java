@@ -42,23 +42,23 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
         // 网上运营
         switch (webType) {
             case "网站":
-                resultMap.put("annual_report_ebusiness_type", 1);
+                resultMap.put("annual_report_ebusiness_type", "网站");
                 break;
             case "网店":
-                resultMap.put("annual_report_ebusiness_type", 2);
+                resultMap.put("annual_report_ebusiness_type", "网店");
                 break;
             case "网页":
-                resultMap.put("annual_report_ebusiness_type", 3);
+                resultMap.put("annual_report_ebusiness_type", "网页");
                 break;
             default:
-                resultMap.put("annual_report_ebusiness_type", 4);
+                resultMap.put("annual_report_ebusiness_type", "其它");
                 break;
         }
         resultMap.put("annual_report_ebusiness_name", name);
         resultMap.put("annual_report_ebusiness_website", website);
         // 两个都是空, 代表脏数据
         if (!TycUtils.isValidName(name) && !TycUtils.isValidName(website)) {
-            resultMap.put("delete_status", 2);
+            resultMap.put("delete_status", 1);
         }
         // 检测脏数据
         checkMap(resultMap);
@@ -84,7 +84,7 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
                 String.valueOf(resultMap.get("annual_report_year")).matches("\\d{4}")
         ) {
         } else {
-            resultMap.put("delete_status", 2);
+            resultMap.put("delete_status", 1);
         }
     }
 }

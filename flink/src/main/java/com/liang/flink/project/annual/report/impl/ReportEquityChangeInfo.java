@@ -133,7 +133,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
                 String.valueOf(resultMap.get("annual_report_year")).matches("\\d{4}")
         ) {
         } else {
-            resultMap.put("delete_status", 2);
+            resultMap.put("delete_status", 1);
         }
     }
 }
