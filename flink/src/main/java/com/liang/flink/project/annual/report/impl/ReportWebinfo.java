@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ReportWebinfo extends AbstractDataUpdate<String> {
-    private final static String TABLE_NAME = "entity_annual_report_ebusiness_details";
+    private final static String TABLE_NAME = "entity_annual_report_ebusiness_details_v2";
     private final AnnualReportDao dao = new AnnualReportDao();
 
     @Override
