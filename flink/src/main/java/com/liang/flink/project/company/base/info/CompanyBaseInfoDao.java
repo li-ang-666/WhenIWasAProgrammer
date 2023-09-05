@@ -72,7 +72,7 @@ public class CompanyBaseInfoDao {
                 .WHERE("is_deleted = 0")
                 .WHERE("id = " + SqlUtils.formatValue(companyCid))
                 .toString();
-        Tuple5<String, String, String, String, String> res = prism116.queryForObject(sql, rs -> Tuple5.of(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(4)));
+        Tuple5<String, String, String, String, String> res = prism116.queryForObject(sql, rs -> Tuple5.of(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5)));
         return res != null ? res : Tuple5.of("0", "", "0", "", "");
     }
 
