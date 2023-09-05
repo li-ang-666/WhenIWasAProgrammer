@@ -81,12 +81,11 @@ public class EvaluationInstitutionCandidateService {
         // id
         resultMap.put("business_id", evaluateId);
         // 执行案号(清洗)
-        String caseNumberClean = caseCodeClean.evaluate(caseNumber);
-        resultMap.put("enforcement_case_number", caseNumberClean);
+        resultMap.put("enforcement_case_number", caseCodeClean.evaluate(caseNumber));
         // 执行案号(原始)
         resultMap.put("enforcement_case_number_original", caseNumber);
         // 执行案型
-        resultMap.put("enforcement_case_type", caseCodeType.evaluate(caseNumberClean));
+        resultMap.put("enforcement_case_type", caseCodeType.evaluate(caseNumber));
         // 委托法院
         resultMap.put("enforcement_object_evaluation_court_name", evaluate.get("execCourtName"));
         // 财产类型
