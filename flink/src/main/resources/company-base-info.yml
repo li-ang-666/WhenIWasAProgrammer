@@ -40,5 +40,6 @@ kafkaConfigs:
       - "9349c.proto.prism.company"
       - "9349c.proto.prism.company_clean_info"
       - "9349c.proto.data_experience_situation.gov_unit"
+      - "9349c.proto.prism.organization_info"
     groupId: "company-base-info-job"
-    startFrom: "1"
+    startFrom: "2"

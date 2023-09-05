@@ -120,6 +120,23 @@ public class CompanyBaseInfoDao {
         return columnMaps.get(0);
     }
 
+    public Map<String, Object> queryOrgInfo(String companyCid) {
+        if (!TycUtils.isUnsignedId(companyCid)) {
+            return new HashMap<>();
+        }
+        String sql = new SQL()
+                .SELECT("*")
+                .FROM("organization_info")
+                .WHERE("deleted = 0")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyCid))
+                .toString();
+        List<Map<String, Object>> columnMaps = prism116.queryForColumnMaps(sql);
+        if (columnMaps.isEmpty()) {
+            return new HashMap<>();
+        }
+        return columnMaps.get(0);
+    }
+
     public String gid2Cid(String companyGid) {
         if (!TycUtils.isUnsignedId(companyGid)) {
             return "0";
