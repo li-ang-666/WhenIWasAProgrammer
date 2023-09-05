@@ -189,10 +189,11 @@ public class CompanyBaseInfoService {
         // 统一社会信用代码
         columnMap.put("unified_social_credit_code", ifNull(orgMap, "unified_social_credit_code", ""));
         // 经营期限
-        Tuple2<String, String> validTime = getStartAndEndDate(String.valueOf(orgMap.get("expiry_date")));
+        String expiryDate = String.valueOf(orgMap.get("expiry_date"));
+        Tuple2<String, String> validTime = getStartAndEndDate(expiryDate);
         columnMap.put("business_term_start_date", validTime.f0);
         columnMap.put("business_term_end_date", validTime.f1);
-        columnMap.put("business_term_is_permanent", validTime.f1 == null);
+        columnMap.put("business_term_is_permanent", expiryDate.contains("长期") || expiryDate.matches(".*?2099.*?12.*?31.*"));
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(orgMap, "address", ""));
         // 经营范围
