@@ -146,6 +146,8 @@ public class CompanyBaseInfoService {
         columnMap.put("business_registration_scope", ifNull(govMap, "scope", ""));
         // 实体性质
         columnMap.put("entity_property", entityProperty);
+        // 是否中央级事业单位
+        columnMap.put("is_national_public_institution", "4".equals(entityProperty));
         // 组织机构代码 基础数据:端上无
         columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
         // 纳税人识别号 基础数据:端上无
