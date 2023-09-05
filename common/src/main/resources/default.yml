@@ -19,7 +19,7 @@ dbConfigs:
   108.data_judicial_risk: { host: "43283515096042b8bbd9704a4fdbbcd4in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_judicial_risk" }
   150.data_index: { host: "be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_index" }
   doris: { host: "10.99.202.70",database: "test_db",user: "dba",password: "Tyc@1234" ,port: 6060 }
-  gauss: { host: "10.99.131.246",database: "company_base" }
+  gauss: { host: "10.99.131.246",database: "entity_operation_development" }
 
 redisConfigs:
   localhost: { host: "127.0.0.1",password: ~ }

@@ -5,6 +5,7 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.RequiredArgsConstructor;
@@ -44,9 +45,9 @@ public class DorisJob {
                 resultMap.put("unique_user_id", columnMap.get("user_id"));
                 resultMap.put("promotion_id", columnMap.get("promotion_id"));
                 resultMap.put("use_status", columnMap.get("use_status"));
-                resultMap.put("receive_time", columnMap.get("receive_time"));
-                resultMap.put("effective_time", columnMap.get("effective_time"));
-                resultMap.put("expiration_time", columnMap.get("expiration_time"));
+                resultMap.put("receive_time", DateTimeUtils.fromUnixTime(Long.parseLong(String.valueOf(columnMap.get("receive_time"))) / 1000));
+                resultMap.put("effective_time", DateTimeUtils.fromUnixTime(Long.parseLong(String.valueOf(columnMap.get("effective_time"))) / 1000));
+                resultMap.put("expiration_time", DateTimeUtils.fromUnixTime(Long.parseLong(String.valueOf(columnMap.get("expiration_time"))) / 1000));
                 DorisSchema schema = DorisSchema
                         .builder()
                         .database("dwd")
