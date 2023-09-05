@@ -1,6 +1,7 @@
 package com.liang.flink.project.company.base.info;
 
 import com.liang.common.service.SQL;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -220,12 +221,14 @@ public class CompanyBaseInfoService {
     }
 
     private Tuple3<String, String, Boolean> getTimeInfo(String text) {
-        if (text.contains("无固定期限") || text.contains("长期") || text.contains("未公示")) {
+        // 非日期内容
+        if (text.contains("无固定期限") || text.contains("长期")) {
             return Tuple3.of(null, null, true);
         }
-        if (text.contains("证书已公告废止")) {
+        if (text.contains("证书已公告废止") || text.contains("未公示")) {
             return Tuple3.of(null, null, false);
         }
+        // 内容格式化, 提取日期
         text = text.replaceAll("到", "至").replaceAll("[年月日]", "-").replaceAll("自|\\s", "");
         if (!text.contains("至")) {
             return Tuple3.of(null, null, false);
@@ -233,9 +236,19 @@ public class CompanyBaseInfoService {
         String[] split = (" " + text + " ").split("至");
         String start = split[0].trim().matches("\\d{4}-\\d{2}-\\d{2}") ? split[0].trim() : null;
         String end = split[1].trim().matches("\\d{4}-\\d{2}-\\d{2}") ? split[1].trim() : null;
+        // 开始日期 大于 当前, 脏数据, 跳出
+        if (start != null && start.compareTo(DateTimeUtils.currentDate()) > 0) {
+            return Tuple3.of(null, null, false);
+        }
+        // 结束日期 大于 开始日期, 脏数据, 跳出
+        if (start != null && end != null && end.compareTo(start) > 0) {
+            return Tuple3.of(null, null, false);
+        }
+        // 特殊判断, 2099-12-31结束, 代表长期
         if ("2099-12-31".equals(end)) {
             return Tuple3.of(start, end, true);
         }
+        // 有开始无结束, 代表长期
         if (start != null && end == null) {
             return Tuple3.of(start, end, true);
         }
