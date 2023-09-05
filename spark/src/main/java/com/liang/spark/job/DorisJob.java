@@ -20,7 +20,7 @@ import java.util.Map;
 public class DorisJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        spark.sql("select * from test.test_ods_promotion_user_promotion_all_df_0830")
+        spark.sql("select * from test.test_ods_promotion_user_promotion_all_df_0830 where pt='20230903'")
                 .repartition(180)
                 .foreachPartition(new DorisForeachPartitionSink(ConfigUtils.getConfig()));
     }
