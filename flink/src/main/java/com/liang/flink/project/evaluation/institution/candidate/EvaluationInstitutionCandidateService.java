@@ -18,8 +18,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class EvaluationInstitutionCandidateService {
-    //private final static String TABLE = "entity_enforcement_object_evaluation_institution_candidate_details";
-    private final static String TABLE = "entity_evaluation_details";
+    private final static String TABLE = "entity_enforcement_object_evaluate_institution_candidate_details";
     private final EvaluationInstitutionCandidateDao dao = new EvaluationInstitutionCandidateDao();
     private final CaseCodeClean caseCodeClean = new CaseCodeClean();
     private final CaseCodeType caseCodeType = new CaseCodeType();
