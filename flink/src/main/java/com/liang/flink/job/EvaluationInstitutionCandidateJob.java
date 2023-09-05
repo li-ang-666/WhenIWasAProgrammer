@@ -63,7 +63,7 @@ public class EvaluationInstitutionCandidateJob {
                     evaluationIds.add(gid);
                 }
             }
-            if (evaluationIds.size() >= 1) {
+            if (evaluationIds.size() >= 128) {
                 flush();
             }
         }

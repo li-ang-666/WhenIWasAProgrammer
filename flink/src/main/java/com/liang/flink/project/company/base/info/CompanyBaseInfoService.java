@@ -5,6 +5,7 @@ import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
 
 import java.util.ArrayList;
@@ -139,10 +140,10 @@ public class CompanyBaseInfoService {
         // 统一社会信用代码
         columnMap.put("unified_social_credit_code", ifNull(govMap, "us_credit_code", ""));
         // 经营期限
-        Tuple2<String, String> validTime = getStartAndEndDate(String.valueOf(govMap.get("valid_time")));
-        columnMap.put("business_term_start_date", validTime.f0);
-        columnMap.put("business_term_end_date", validTime.f1);
-        columnMap.put("business_term_is_permanent", validTime.f1 == null);
+        Tuple3<String, String, Boolean> timeInfo = getTimeInfo(String.valueOf(govMap.get("valid_time")));
+        columnMap.put("business_term_start_date", timeInfo.f0);
+        columnMap.put("business_term_end_date", timeInfo.f1);
+        columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(govMap, "address", ""));
         // 经营范围
@@ -190,10 +191,10 @@ public class CompanyBaseInfoService {
         columnMap.put("unified_social_credit_code", ifNull(orgMap, "unified_social_credit_code", ""));
         // 经营期限
         String expiryDate = String.valueOf(orgMap.get("expiry_date"));
-        Tuple2<String, String> validTime = getStartAndEndDate(expiryDate);
-        columnMap.put("business_term_start_date", validTime.f0);
-        columnMap.put("business_term_end_date", validTime.f1);
-        columnMap.put("business_term_is_permanent", expiryDate.contains("长期") || expiryDate.matches(".*?2099.*?12.*?31.*"));
+        Tuple3<String, String, Boolean> timeInfo = getTimeInfo(expiryDate);
+        columnMap.put("business_term_start_date", timeInfo.f0);
+        columnMap.put("business_term_end_date", timeInfo.f1);
+        columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(orgMap, "address", ""));
         // 经营范围
@@ -218,13 +219,26 @@ public class CompanyBaseInfoService {
         return value != null ? value : defaultValue;
     }
 
-    private Tuple2<String, String> getStartAndEndDate(String text) {
-        if (text.matches(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*")) {
-            return Tuple2.of(
-                    text.replaceAll(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*", "$1-$2-$3"),
-                    text.replaceAll(".*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*?(\\d{4}).*?(\\d{2}).*?(\\d{2}).*", "$4-$5-$6"));
-        } else {
-            return Tuple2.of(null, null);
+    private Tuple3<String, String, Boolean> getTimeInfo(String text) {
+        if (text.contains("无固定期限") || text.contains("长期") || text.contains("未公示")) {
+            return Tuple3.of(null, null, true);
         }
+        if (text.contains("证书已公告废止")) {
+            return Tuple3.of(null, null, false);
+        }
+        text = text.replaceAll("到", "至").replaceAll("[年月日]", "-").replaceAll("自|\\s", "");
+        if (!text.contains("至")) {
+            return Tuple3.of(null, null, false);
+        }
+        String[] split = (" " + text + " ").split("至");
+        String start = split[0].trim().matches("\\d{4}-\\d{2}-\\d{2}") ? split[0].trim() : null;
+        String end = split[1].trim().matches("\\d{4}-\\d{2}-\\d{2}") ? split[1].trim() : null;
+        if ("2099-12-31".equals(end)) {
+            return Tuple3.of(start, end, true);
+        }
+        if (start != null && end == null) {
+            return Tuple3.of(start, end, true);
+        }
+        return Tuple3.of(start, end, false);
     }
 }

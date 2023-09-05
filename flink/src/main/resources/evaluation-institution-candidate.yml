@@ -2,7 +2,7 @@
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 1
+  otherParallel: 10
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -10,8 +10,8 @@ repairTasks:
     sourceName: "108.data_judicial_risk"
     tableName: "zhixinginfo_evaluate"
     columns: "*"
-    where: "id = 65169"
-    scanMode: Direct
+    where: "1=1"
+    scanMode: TumblingWindow
 
 kafkaConfigs:
   kafkaSource:

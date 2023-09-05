@@ -15,5 +15,7 @@ public class Evaluate extends ConfigHolder {
                 .flatMap(e -> Arrays.stream(e.split(";")))
                 .distinct()
                 .forEach(System.out::println);
+        System.out.println(Arrays.toString("至b".split("至")));
+        System.out.println(Arrays.toString("a至".split("至")));
     }
 }
