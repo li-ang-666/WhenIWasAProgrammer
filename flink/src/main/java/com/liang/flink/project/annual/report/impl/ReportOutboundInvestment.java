@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
-    private final static String TABLE_NAME = "entity_annual_report_investment_details_v2";
+    private final static String TABLE_NAME = "entity_annual_report_investment_details";
     private final AnnualReportDao dao = new AnnualReportDao();
 
     @Override
