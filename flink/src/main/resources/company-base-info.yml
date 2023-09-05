@@ -18,7 +18,7 @@ dbConfigs:
 
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 1
 
@@ -28,7 +28,7 @@ repairTasks:
     sourceName: "464.prism"
     tableName: "enterprise"
     columns: "*"
-    where: "graph_id = 2318455639 or id = 5"
+    where: "graph_id = 3226982791"
     scanMode: Direct
 
 kafkaConfigs:
