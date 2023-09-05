@@ -45,6 +45,9 @@ public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
         resultMap.put("annual_report_company_name_invested_register_name", outCompanyName);
         // 检测脏数据
         checkMap(resultMap);
+        if ("1".equals(String.valueOf(resultMap.get("delete_status")))) {
+            return deleteWithReturn(singleCanalBinlog);
+        }
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert.f0)

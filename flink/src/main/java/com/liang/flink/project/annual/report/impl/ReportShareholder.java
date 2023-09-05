@@ -71,6 +71,9 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         }
         // 检测脏数据
         checkMap(resultMap);
+        if ("1".equals(String.valueOf(resultMap.get("delete_status")))) {
+            return deleteWithReturn(singleCanalBinlog);
+        }
         // 认缴
         HashMap<String, Object> resultMap1 = new HashMap<>(resultMap);
         resultMap1.put("annual_report_shareholder_capital_type", "认缴");

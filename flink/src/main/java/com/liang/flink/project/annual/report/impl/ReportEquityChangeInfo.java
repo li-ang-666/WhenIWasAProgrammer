@@ -72,6 +72,9 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         }
         // 检测脏数据
         checkMap(resultMap);
+        if ("1".equals(String.valueOf(resultMap.get("delete_status")))) {
+            return deleteWithReturn(singleCanalBinlog);
+        }
         // 股权变更
         resultMap.put("annual_report_equity_ratio_before_change", parse(id, ratioBefore));
         resultMap.put("annual_report_equity_ratio_after_change", parse(id, ratioAfter));

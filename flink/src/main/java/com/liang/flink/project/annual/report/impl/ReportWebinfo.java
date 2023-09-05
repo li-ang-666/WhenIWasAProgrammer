@@ -52,16 +52,20 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
                 break;
             default:
                 resultMap.put("annual_report_ebusiness_type", "其它");
+                resultMap.put("delete_status", 1);
                 break;
         }
-        resultMap.put("annual_report_ebusiness_name", name);
-        resultMap.put("annual_report_ebusiness_website", website);
+        resultMap.put("annual_report_ebusiness_name", TycUtils.isValidName(name) ? name : "");
+        resultMap.put("annual_report_ebusiness_website", TycUtils.isValidName(website) ? website : "");
         // 两个都是空, 代表脏数据
         if (!TycUtils.isValidName(name) && !TycUtils.isValidName(website)) {
             resultMap.put("delete_status", 1);
         }
         // 检测脏数据
         checkMap(resultMap);
+        if ("1".equals(String.valueOf(resultMap.get("delete_status")))) {
+            return deleteWithReturn(singleCanalBinlog);
+        }
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert.f0)
