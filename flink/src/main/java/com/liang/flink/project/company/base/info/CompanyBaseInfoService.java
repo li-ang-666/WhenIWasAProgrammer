@@ -222,7 +222,7 @@ public class CompanyBaseInfoService {
 
     private Tuple3<String, String, Boolean> getTimeInfo(String text) {
         // 非日期内容
-        if (text.contains("无固定期限") || text.contains("长期")) {
+        if (text.contains("无固定期限") || text.contains("长期") || text.contains("永久")) {
             return Tuple3.of(null, null, true);
         }
         if (text.contains("证书已公告废止") || text.contains("未公示")) {
@@ -236,12 +236,16 @@ public class CompanyBaseInfoService {
         String[] split = (" " + text + " ").split("至");
         String start = split[0].trim().matches("\\d{4}-\\d{2}-\\d{2}") ? split[0].trim() : null;
         String end = split[1].trim().matches("\\d{4}-\\d{2}-\\d{2}") ? split[1].trim() : null;
-        // 开始日期 大于 当前, 脏数据, 跳出
+        // 开始日期 大于 今天, 脏数据, 跳出
         if (start != null && start.compareTo(DateTimeUtils.currentDate()) > 0) {
             return Tuple3.of(null, null, false);
         }
-        // 结束日期 大于 开始日期, 脏数据, 跳出
-        if (start != null && end != null && end.compareTo(start) > 0) {
+        // 结束日期 大于 2099-12-31, 脏数据, 跳出
+        if (end != null && end.compareTo("2099-12-31") > 0) {
+            return Tuple3.of(null, null, false);
+        }
+        // 开始日期 大于 结束日期, 脏数据, 跳出
+        if (start != null && end != null && start.compareTo(end) > 0) {
             return Tuple3.of(null, null, false);
         }
         // 特殊判断, 2099-12-31结束, 代表长期
