@@ -33,7 +33,8 @@ public class PxCheckJob {
         //spark.sql("insert overwrite table ads.ads_bdp_equity_shareholder_identity_type_details partition(pt = '20230828') select /*+ REPARTITION(360) */ * from ttt");
 
         // 工商
-        TableFactory.jdbc(spark, "469.entity_operation_development", "entity_annual_report_shareholder_equity_change_details")
-                .createOrReplaceTempView("t3");
+        TableFactory.jdbc(spark, "469.entity_operation_development", "entity_mainland_general_registration_info_details")
+                .createOrReplaceTempView("t_company");
+        spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_mainland_general_registration_info_details partition(pt = '20230828') select /*+ REPARTITION(360) */ * from t_company");
     }
 }
