@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Slf4j
 public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
-    private final static String TABLE_NAME = "entity_annual_report_shareholder_equity_change_details_v2";
+    private final static String TABLE_NAME = "entity_annual_report_shareholder_equity_change_details";
     private final AnnualReportDao dao = new AnnualReportDao();
 
     @Override
