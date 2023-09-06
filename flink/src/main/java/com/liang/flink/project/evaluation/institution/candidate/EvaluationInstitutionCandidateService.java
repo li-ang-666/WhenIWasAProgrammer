@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class EvaluationInstitutionCandidateService {
+    public final static String TABLE = "entity_enforcement_object_evaluate_institution_candidate_details";
     private final static Set<String> BLACK_LIST = new HashSet<>(Arrays.asList("355061986", "28723141", "22944923"));
-    private final static String TABLE = "entity_enforcement_object_evaluate_institution_candidate_details";
     private final EvaluationInstitutionCandidateDao dao = new EvaluationInstitutionCandidateDao();
     private final CaseCodeClean caseCodeClean = new CaseCodeClean();
     private final CaseCodeType caseCodeType = new CaseCodeType();

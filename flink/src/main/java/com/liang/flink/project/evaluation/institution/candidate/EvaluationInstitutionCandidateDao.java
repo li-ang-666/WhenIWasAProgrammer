@@ -15,6 +15,7 @@ public class EvaluationInstitutionCandidateDao {
     private final JdbcTemplate dataIndex150 = new JdbcTemplate("150.data_index");
     private final JdbcTemplate humanBase040 = new JdbcTemplate("040.human_base");
     private final JdbcTemplate prism464 = new JdbcTemplate("464.prism");
+    private final JdbcTemplate sink = new JdbcTemplate("427.test");
 
     public Map<String, Object> getEvaluate(String evaluateId) {
         if (!TycUtils.isUnsignedId(evaluateId)) {
@@ -67,5 +68,15 @@ public class EvaluationInstitutionCandidateDao {
                 .toString();
         String res = prism464.queryForObject(sql, rs -> rs.getString(1));
         return res != null ? res : "";
+    }
+
+    public List<String> getBusinessIds(String companyGid) {
+        String sql = new SQL().SELECT("business_id")
+                .FROM(EvaluationInstitutionCandidateService.TABLE)
+                .WHERE("tyc_unique_entity_id_subject_to_enforcement = " + SqlUtils.formatValue(companyGid))
+                .OR()
+                .WHERE("tyc_unique_entity_id_candidate_evaluation_institution = " + SqlUtils.formatValue(companyGid))
+                .toString();
+        return sink.queryForList(sql, rs -> rs.getString(1));
     }
 }
