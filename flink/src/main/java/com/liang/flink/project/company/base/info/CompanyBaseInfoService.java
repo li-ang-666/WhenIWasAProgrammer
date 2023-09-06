@@ -229,7 +229,7 @@ public class CompanyBaseInfoService {
             return Tuple3.of(null, null, false);
         }
         // 内容格式化, 提取日期
-        text = text.replaceAll("到", "至").replaceAll("[年月日]", "-").replaceAll("自|\\s", "");
+        text = text.replaceAll("自|从|\\s|日", "").replaceAll("到", "至").replaceAll("[年月]", "-");
         if (!text.contains("至")) {
             return Tuple3.of(null, null, false);
         }
