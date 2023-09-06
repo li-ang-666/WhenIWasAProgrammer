@@ -89,8 +89,7 @@ public class CompanyBaseInfoJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             service = new CompanyBaseInfoService();
-            jdbcTemplate = new JdbcTemplate("427.test");
-            //jdbcTemplate = new JdbcTemplate("469.entity_operation_development");
+            jdbcTemplate = new JdbcTemplate("469.entity_operation_development");
         }
 
         @Override
@@ -99,7 +98,7 @@ public class CompanyBaseInfoJob {
             synchronized (companyCids) {
                 companyCids.add(cid);
             }
-            if (companyCids.size() >= 1) {
+            if (companyCids.size() >= 512) {
                 flush();
             }
         }
