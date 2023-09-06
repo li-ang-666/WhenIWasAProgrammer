@@ -91,7 +91,8 @@ public class EvaluationInstitutionCandidateService {
         // 财产名称
         resultMap.put("enforcement_object_name", evaluate.get("subjectname"));
         // 摇号日期
-        resultMap.put("lottery_date_to_candidate_evaluation_institution", evaluate.get("insertTime"));
+        Object insertTime = evaluate.get("insertTime");
+        resultMap.put("lottery_date_to_candidate_evaluation_institution", insertTime != null ? insertTime : "0000-01-01");
         for (Entity entity : entities) {
             for (Tuple2<String, String> agency : agencies) {
                 // 被执行实体
