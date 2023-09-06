@@ -35,11 +35,11 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "9349c.proto.company_base.tyc_entity_general_property_reference"
-      - "9349c.proto.prism.enterprise"
-      - "9349c.proto.prism.company"
-      - "9349c.proto.prism.company_clean_info"
-      - "9349c.proto.data_experience_situation.gov_unit"
-      - "9349c.proto.prism.organization_info"
+      - "c8ce5.proto.company_base.tyc_entity_general_property_reference"
+      - "56736.proto.prism.enterprise"
+      - "0bb01.proto.prism.company"
+      - "0bb01.proto.prism.company_clean_info"
+      - "0bb01.proto.prism.organization_info"
+      - "886a2.proto.data_experience_situation.gov_unit"
     groupId: "company-base-info-job"
     startFrom: "2"
