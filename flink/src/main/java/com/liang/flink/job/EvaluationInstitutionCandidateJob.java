@@ -31,7 +31,7 @@ public class EvaluationInstitutionCandidateJob {
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         Distributor distributor = new Distributor()
                 .with("zhixinginfo_evaluate", e -> String.valueOf(e.getColumnMap().get("id")))
-                .with("zhixinginfo_evaluate", e -> String.valueOf(e.getColumnMap().get("main_id")))
+                .with("zhixinginfo_evaluate_index", e -> String.valueOf(e.getColumnMap().get("main_id")))
                 .with("company_law_human_realtion", e -> String.valueOf(e.getColumnMap().get("source_id")))
                 .with("enterprise", e -> String.valueOf(e.getColumnMap().get("id")));
         stream.keyBy(distributor)
