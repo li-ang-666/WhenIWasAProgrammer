@@ -33,7 +33,7 @@ public class EvaluationInstitutionCandidateJob {
                 .with("zhixinginfo_evaluate", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("zhixinginfo_evaluate_index", e -> String.valueOf(e.getColumnMap().get("main_id")))
                 .with("company_law_human_realtion", e -> String.valueOf(e.getColumnMap().get("source_id")))
-                .with("enterprise", e -> String.valueOf(e.getColumnMap().get("id")));
+                .with("enterprise", e -> String.valueOf(e.getColumnMap().get("graph_id")));
         stream.keyBy(distributor)
                 .addSink(new EvaluationInstitutionCandidateSink(config)).name("EvaluationInstitutionCandidateSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("EvaluationInstitutionCandidateJob");
