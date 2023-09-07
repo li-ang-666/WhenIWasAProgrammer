@@ -24,6 +24,7 @@ public class EvaluationInstitutionCandidateDao {
         String sql = new SQL()
                 .SELECT("*")
                 .FROM("zhixinginfo_evaluate")
+                .WHERE("deleted = 0")
                 .WHERE("id = " + SqlUtils.formatValue(evaluateId))
                 .toString();
         List<Map<String, Object>> columnMaps = dataJudicialRisk108.queryForColumnMaps(sql);
@@ -37,6 +38,7 @@ public class EvaluationInstitutionCandidateDao {
         String sql = new SQL()
                 .SELECT("*")
                 .FROM("zhixinginfo_evaluate_index")
+                .WHERE("deleted = 0")
                 .WHERE("main_id = " + SqlUtils.formatValue(evaluateId))
                 .toString();
         List<Map<String, Object>> columnMaps = dataIndex150.queryForColumnMaps(sql);

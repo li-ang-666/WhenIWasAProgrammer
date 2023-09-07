@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class EvaluationInstitutionCandidateService {
     public final static String TABLE = "entity_enforcement_object_evaluate_institution_candidate_details";
     private final static Set<String> BLACK_LIST = new HashSet<>(Arrays.asList("355061986", "28723141", "22944923"));
+    //private final static Set<String> WHITE_LIST = new HashSet<>(Arrays.asList("房产", "交通运输工具", "森林、林木所有权", "集体土地所有权", "土地使用权", "机器设备", "产品原材料", "古玩字画", "珠宝玉石首饰", "股权", "知识产权", "探矿、采矿权", "其他财产"));
     private final EvaluationInstitutionCandidateDao dao = new EvaluationInstitutionCandidateDao();
     private final CaseCodeClean caseCodeClean = new CaseCodeClean();
     private final CaseCodeType caseCodeType = new CaseCodeType();
@@ -40,7 +41,6 @@ public class EvaluationInstitutionCandidateService {
         // evaluate表字段陈列
         String type = String.valueOf(evaluate.get("type"));
         String zhixingid = String.valueOf(evaluate.get("zhixingid"));
-        String caseNumber = String.valueOf(evaluate.get("caseNumber"));
         // 准备所有涉及到的被执行实体
         List<Entity> entities = new ArrayList<>();
         if ("1".equals(type)) {
@@ -79,11 +79,13 @@ public class EvaluationInstitutionCandidateService {
         // id
         resultMap.put("data_source_trace_id", evaluateId);
         // 执行案号(清洗)
-        resultMap.put("enforcement_case_number", caseCodeClean.evaluate(caseNumber));
+        String caseNumber = String.valueOf(evaluate.get("caseNumber"));
+        String caseNumberClean = caseCodeClean.evaluate(caseNumber);
+        resultMap.put("enforcement_case_number", caseNumberClean);
         // 执行案号(原始)
         resultMap.put("enforcement_case_number_original", caseNumber);
         // 执行案型
-        resultMap.put("enforcement_case_type", caseCodeType.evaluate(caseNumber));
+        resultMap.put("enforcement_case_type", caseCodeType.evaluate(caseNumberClean));
         // 委托法院
         resultMap.put("enforcement_object_evaluation_court_name", evaluate.get("execCourtName"));
         // 财产类型
