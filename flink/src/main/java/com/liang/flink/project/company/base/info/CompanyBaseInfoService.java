@@ -149,19 +149,19 @@ public class CompanyBaseInfoService {
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(enterpriseMap, "reg_location", ""));
         // 成立日期
-        columnMap.put("registration_date", ifNull(enterpriseMap, "establish_date", "0000-01-01"));
+        columnMap.put("registration_date", ifNull(enterpriseMap, "establish_date", null));
         // 经营期限
         String text = enterpriseMap.get("from_date") + "至" + enterpriseMap.get("to_date");
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(text);
-        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : "0000-01-01");
-        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : "0000-01-01");
+        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : null);
+        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : null);
         columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 经营范围
         columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", ""));
         // 登记机关
         columnMap.put("registration_institute", ifNull(enterpriseMap, "reg_institute", ""));
         // 核准日期
-        columnMap.put("approval_date", ifNull(enterpriseMap, "approved_date", "0000-01-01"));
+        columnMap.put("approval_date", ifNull(enterpriseMap, "approved_date", null));
         // 组织机构代码
         columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
         // 纳税人识别号
@@ -204,8 +204,8 @@ public class CompanyBaseInfoService {
         columnMap.put("unified_social_credit_code", ifNull(govMap, "us_credit_code", ""));
         // 经营期限
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(String.valueOf(govMap.get("valid_time")));
-        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : "0000-01-01");
-        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : "0000-01-01");
+        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : null);
+        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : null);
         columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(govMap, "address", ""));
@@ -255,8 +255,8 @@ public class CompanyBaseInfoService {
         // 经营期限
         String expiryDate = String.valueOf(orgMap.get("expiry_date"));
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(expiryDate);
-        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : "0000-01-01");
-        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : "0000-01-01");
+        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : null);
+        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : null);
         columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(orgMap, "address", ""));

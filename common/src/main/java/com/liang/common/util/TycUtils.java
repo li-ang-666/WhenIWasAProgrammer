@@ -48,7 +48,8 @@ public class TycUtils {
     }
 
     public static boolean isDateTime(Object datetime) {
-        return String.valueOf(datetime).matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$");
+        String str = String.valueOf(datetime);
+        return str.matches("\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2}:\\d{2})?");
     }
 
     @NonNull
