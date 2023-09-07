@@ -5,6 +5,7 @@ import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
@@ -132,9 +133,9 @@ public class CompanyBaseInfoService {
         columnMap.put("tyc_unique_entity_id", companyGid);
         columnMap.put("entity_name_valid", String.valueOf(enterpriseMap.get("name")));
         Tuple5<String, String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
-        columnMap.put("register_capital_amount", equityInfo.f0);
+        columnMap.put("register_capital_amount", StringUtils.isNumeric(equityInfo.f0) ? equityInfo.f0 : null);
         columnMap.put("register_capital_currency", equityInfo.f1);
-        columnMap.put("actual_capital_amount", equityInfo.f2);
+        columnMap.put("actual_capital_amount", StringUtils.isNumeric(equityInfo.f2) ? equityInfo.f2 : null);
         columnMap.put("actual_capital_currency", equityInfo.f3);
         // 登记经营状态
         columnMap.put("entity_registration_status", equityInfo.f4);
@@ -186,8 +187,8 @@ public class CompanyBaseInfoService {
         columnMap.put("tyc_unique_entity_id", companyGid);
         columnMap.put("entity_name_valid", String.valueOf(enterpriseMap.get("name")));
         Tuple5<String, String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
-        columnMap.put("register_capital_amount", equityInfo.f0);
-        columnMap.put("register_capital_currency", "人民币");
+        columnMap.put("register_capital_amount", StringUtils.isNumeric(equityInfo.f0) ? equityInfo.f0 : null);
+        columnMap.put("register_capital_currency", equityInfo.f1);
         // 登记经营状态
         columnMap.put("entity_registration_status", equityInfo.f4);
         // 举办单位名称

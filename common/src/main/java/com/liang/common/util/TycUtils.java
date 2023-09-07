@@ -56,7 +56,7 @@ public class TycUtils {
     public static Tuple2<String, String> formatEquity(Object equity) {
         // 判空
         if (equity == null) {
-            return Tuple2.of(getMultiplied("0", 1), "人民币");
+            return Tuple2.of(getMultiplied("-1", 1), "人民币");
         }
         String equityStr = String.valueOf(equity);
         StringBuilder numberBuilder = new StringBuilder();
@@ -115,7 +115,7 @@ public class TycUtils {
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         } catch (Exception e) {
-            return new BigDecimal(0)
+            return new BigDecimal(-1)
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         }

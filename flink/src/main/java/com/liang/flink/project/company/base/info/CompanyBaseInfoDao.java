@@ -64,16 +64,16 @@ public class CompanyBaseInfoDao {
 
     public Tuple5<String, String, String, String, String> getEquityInfo(String companyCid) {
         if (!TycUtils.isUnsignedId(companyCid)) {
-            return Tuple5.of("0", "", "0", "", "");
+            return Tuple5.of(null, "", null, "", "");
         }
         String sql = new SQL()
-                .SELECT("ifnull(reg_capital_amount,'0')", "ifnull(reg_capital_currency,'')", "ifnull(actual_capital_amount,'0')", "ifnull(actual_capital_currency,'')", "ifnull(reg_status,'')")
+                .SELECT("reg_capital_amount", "ifnull(reg_capital_currency,'')", "actual_capital_amount", "ifnull(actual_capital_currency,'')", "ifnull(reg_status,'')")
                 .FROM("company_clean_info")
                 .WHERE("is_deleted = 0")
                 .WHERE("id = " + SqlUtils.formatValue(companyCid))
                 .toString();
         Tuple5<String, String, String, String, String> res = prism116.queryForObject(sql, rs -> Tuple5.of(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5)));
-        return res != null ? res : Tuple5.of("0", "", "0", "", "");
+        return res != null ? res : Tuple5.of(null, "", null, "", "");
     }
 
     public Tuple2<String, String> getProperty(String companyGid) {
