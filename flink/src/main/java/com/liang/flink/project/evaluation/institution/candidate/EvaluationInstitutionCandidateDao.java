@@ -71,7 +71,7 @@ public class EvaluationInstitutionCandidateDao {
     }
 
     public List<String> getBusinessIds(String companyGid) {
-        String sql = new SQL().SELECT("business_id")
+        String sql = new SQL().SELECT("data_source_trace_id")
                 .FROM(EvaluationInstitutionCandidateService.TABLE)
                 .WHERE("tyc_unique_entity_id_subject_to_enforcement = " + SqlUtils.formatValue(companyGid))
                 .OR()

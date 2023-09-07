@@ -29,7 +29,7 @@ public class EvaluationInstitutionCandidateService {
         }
         // 合法id首先生成删除sql
         String deleteSql = new SQL().DELETE_FROM(TABLE)
-                .WHERE("business_id = " + SqlUtils.formatValue(evaluateId))
+                .WHERE("data_source_trace_id = " + SqlUtils.formatValue(evaluateId))
                 .toString();
         sqls.add(deleteSql);
         Map<String, Object> evaluate = dao.getEvaluate(evaluateId);
@@ -77,7 +77,7 @@ public class EvaluationInstitutionCandidateService {
         }
         HashMap<String, Object> resultMap = new HashMap<>();
         // id
-        resultMap.put("business_id", evaluateId);
+        resultMap.put("data_source_trace_id", evaluateId);
         // 执行案号(清洗)
         resultMap.put("enforcement_case_number", caseCodeClean.evaluate(caseNumber));
         // 执行案号(原始)
