@@ -42,7 +42,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         Company company = companyAndYear.f0;
         String year = companyAndYear.f1;
         // 公司
-        resultMap.put("business_id", id);
+        resultMap.put("data_source_trace_id", id);
         resultMap.put("annual_report_year", year);
         resultMap.put("tyc_unique_entity_id", company.getGid());
         resultMap.put("entity_name_valid", company.getName());
@@ -110,7 +110,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
     @Override
     public List<String> deleteWithReturn(SingleCanalBinlog singleCanalBinlog) {
         String sql = new SQL().DELETE_FROM(TABLE_NAME)
-                .WHERE("business_id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
+                .WHERE("data_source_trace_id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
                 .toString();
         return Collections.singletonList(sql);
     }
@@ -128,11 +128,11 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         }
     }
 
-    private Tuple2<String, String> formatEquity(String businessId, Tuple2<String, String> tuple2) {
+    private Tuple2<String, String> formatEquity(String dataSourceTraceId, Tuple2<String, String> tuple2) {
         String equity = tuple2.f0;
         String[] split = equity.split("\\.");
         if (split[0].length() > 38 - 12) {
-            log.error("超出decimal(38,12)的投资额: {}, business_id: {}", tuple2, businessId);
+            log.error("超出decimal(38,12)的投资额: {}, data_source_trace_id: {}", tuple2, dataSourceTraceId);
             return Tuple2.of("0", tuple2.f1);
         } else {
             return tuple2;
