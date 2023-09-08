@@ -56,6 +56,7 @@ public class EvaluationInstitutionCandidateJob {
                         trigger.update("update zhixinginfo_evaluate_result set property5 = '' where deleted = 0 and reference_mode = '委托评估'");
                         trigger.update("update zhixinginfo_evaluate_result set property5 = null where deleted = 0 and reference_mode = '委托评估'");
                         lastUpdateTime = current;
+                        TimeUnit.MINUTES.sleep(1440);
                     }
                     TimeUnit.MINUTES.sleep(1);
                 }
