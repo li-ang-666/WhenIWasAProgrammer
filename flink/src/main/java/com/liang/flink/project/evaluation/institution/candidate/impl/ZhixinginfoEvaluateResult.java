@@ -25,11 +25,9 @@ public class ZhixinginfoEvaluateResult extends AbstractDataUpdate<String> {
     private final String ak = "NT5EWZ4FRH54R2R2CB8G";
     private final String sk = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final ObsClient obsClient = new ObsClient(ak, sk, endPoint);
-    private int i = 0;
 
     @Override
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
-        System.out.println(++i);
         List<String> sqls = new ArrayList<>();
         Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
         String referenceMode = String.valueOf(columnMap.get("reference_mode"));
