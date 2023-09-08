@@ -44,4 +44,4 @@ kafkaConfigs:
       - "9349c.proto.human_base.company_law_human_relation"
       - "9349c.proto.prism.enterprise"
     groupId: "evaluation-candidate-job"
-    startFrom: "1"
+    startFrom: "2"
