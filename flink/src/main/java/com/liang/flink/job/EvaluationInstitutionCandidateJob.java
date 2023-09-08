@@ -73,7 +73,7 @@ public class EvaluationInstitutionCandidateJob {
                                     .toString();
                             trigger.update(sql2);
                             lastUpdateTime = current;
-                            TimeUnit.MINUTES.sleep(1440);
+                            //TimeUnit.MINUTES.sleep(1440);
                         }
                         TimeUnit.MINUTES.sleep(1);
                     }
