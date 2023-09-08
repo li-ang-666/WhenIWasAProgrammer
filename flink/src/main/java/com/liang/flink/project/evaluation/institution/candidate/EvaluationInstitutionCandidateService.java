@@ -105,7 +105,7 @@ public class EvaluationInstitutionCandidateService {
                 resultMap.put("entity_type_id_subject_to_enforcement", entity.getEntityType());
                 // 候选实体
                 resultMap.put("tyc_unique_entity_id_candidate_evaluation_institution", agency.f0);
-                resultMap.put("entity_name_valid_selected_evaluation_institution", agency.f1);
+                resultMap.put("entity_name_valid_selected_evaluation_institution", agency.f1.replaceAll("\\s", ""));
                 resultMap.put("entity_type_id_candidate_evaluation_institution", 1);
                 // sql
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);

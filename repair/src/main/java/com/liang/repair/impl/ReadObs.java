@@ -15,11 +15,11 @@ public class ReadObs extends ConfigHolder {
         String sk = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
         // 创建ObsClient实例
         final ObsClient obsClient = new ObsClient(ak, sk, endPoint);
-        ObsObject obsObject = obsClient.getObject("jindi-oss-wangsu", "pan_zhixing/xunjiapinggu_result_content/d0c257d2b0f0404191be1996229d3375");
+        ObsObject obsObject = obsClient.getObject("jindi-oss-wangsu", "pan_zhixing/xunjiapinggu_result_content/a4e492d8ef1b4a7a885873401256caac");
         // 读取对象内容
         InputStream input = obsObject.getObjectContent();
         String content = IOUtils.toString(input, StandardCharsets.UTF_8);
         System.out.println(content);
-        System.out.println(content.replaceAll("\\s", "").replaceAll(".*委托(.*?)进行评估.*", "$1"));
+        System.out.println(content.replaceAll("\\s", "").replaceAll(".*向(.*?)发出定向询价函.*", "$1"));
     }
 }

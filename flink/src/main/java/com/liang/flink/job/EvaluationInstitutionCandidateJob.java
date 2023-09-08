@@ -2,8 +2,10 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.DaemonExecutor;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
@@ -22,6 +24,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -52,9 +55,20 @@ public class EvaluationInstitutionCandidateJob {
                     long current = System.currentTimeMillis();
                     if (current - lastUpdateTime >= 1000 * 60 * 2) {
                         log.info("trigger run once");
-                        sink.update("update " + EvaluationInstitutionCandidateService.TABLE + " set is_eventual_evaluation_institution = 0 where is_eventual_evaluation_institution=1");
-                        trigger.update("update zhixinginfo_evaluate_result set property5 = '' where deleted = 0 and reference_mode = '委托评估'");
-                        trigger.update("update zhixinginfo_evaluate_result set property5 = null where deleted = 0 and reference_mode = '委托评估'");
+                        String sql1 = new SQL().UPDATE(EvaluationInstitutionCandidateService.TABLE)
+                                .SET("is_eventual_evaluation_institution = 0")
+                                .WHERE("is_eventual_evaluation_institution = 1")
+                                .toString();
+                        sink.update(sql1);
+                        String sql2 = new SQL().UPDATE("zhixinginfo_evaluate_result")
+                                .SET("property5 = " + SqlUtils.formatValue(UUID.randomUUID()))
+                                .WHERE("reference_mode in ('委托评估','定向询价')")
+                                .WHERE("deleted = 0")
+                                .WHERE("caseNumber is not null and caseNumber <> ''")
+                                .WHERE("subjectName is not null and subjectName <> ''")
+                                .WHERE("result_text_oss is not null and result_text_oss <>''")
+                                .toString();
+                        trigger.update(sql2);
                         lastUpdateTime = current;
                         TimeUnit.MINUTES.sleep(1440);
                     }
