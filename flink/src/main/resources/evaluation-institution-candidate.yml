@@ -1,30 +1,30 @@
-dbConfigs:
-  localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
-  427.test: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "test",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-  436.judicial_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk" }
-  435.company_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
-  040.human_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "human_base" }
-  446.operating_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk" }
-  463.bdp_equity: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity" }
-  457.prism_shareholder_path: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path" }
-  008.bigdata_online: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online" }
-  157.prism1: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1" }
-  110.data_listed_company: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company" }
-  430.graph_data: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "graph_data" }
-  116.prism: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
-  111.data_experience_situation: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_experience_situation" }
-  464.prism: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
-  465.company_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
-  157.prism_boss: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_boss" }
-  108.data_judicial_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_judicial_risk" }
-  150.data_index: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_index" }
-  469.entity_operation_development: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "entity_operation_development" }
+#dbConfigs:
+#  localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
+#  427.test: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "test",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+#  436.judicial_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk" }
+#  435.company_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
+#  040.human_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "human_base" }
+#  446.operating_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk" }
+#  463.bdp_equity: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity" }
+#  457.prism_shareholder_path: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path" }
+#  008.bigdata_online: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online" }
+#  157.prism1: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1" }
+#  110.data_listed_company: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company" }
+#  430.graph_data: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "graph_data" }
+#  116.prism: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
+#  111.data_experience_situation: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_experience_situation" }
+#  464.prism: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
+#  465.company_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
+#  157.prism_boss: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_boss" }
+#  108.data_judicial_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_judicial_risk" }
+#  150.data_index: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_index" }
+#  469.entity_operation_development: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "entity_operation_development" }
 
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Repair
+  sourceType: Kafka
   sourceParallel: 1
-  otherParallel: 10
+  otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -39,9 +39,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "9349c.proto.data_judicial_risk.zhixinginfo_evaluate"
-      - "9349c.proto.data_index.zhixinginfo_evaluate_index"
-      - "9349c.proto.human_base.company_law_human_relation"
-      - "9349c.proto.prism.enterprise"
+      - "43283.proto.data_judicial_risk.zhixinginfo_evaluate_result"
     groupId: "evaluation-candidate-job"
     startFrom: "2"

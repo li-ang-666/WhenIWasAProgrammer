@@ -10,14 +10,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.flink.api.java.tuple.Tuple2;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class EvaluationInstitutionCandidateService {
     public final static String TABLE = "entity_enforcement_object_evaluate_institution_candidate_details";
-    private final static Set<String> BLACK_LIST = new HashSet<>(Arrays.asList("355061986", "28723141", "22944923"));
-    //private final static Set<String> WHITE_LIST = new HashSet<>(Arrays.asList("房产", "交通运输工具", "森林、林木所有权", "集体土地所有权", "土地使用权", "机器设备", "产品原材料", "古玩字画", "珠宝玉石首饰", "股权", "知识产权", "探矿、采矿权", "其他财产"));
     private final EvaluationInstitutionCandidateDao dao = new EvaluationInstitutionCandidateDao();
     private final CaseCodeClean caseCodeClean = new CaseCodeClean();
     private final CaseCodeType caseCodeType = new CaseCodeType();
@@ -91,9 +92,11 @@ public class EvaluationInstitutionCandidateService {
         // 财产类型
         resultMap.put("enforcement_object_asset_type", evaluate.get("subjectType"));
         // 财产名称
-        resultMap.put("enforcement_object_name", evaluate.get("subjectname"));
+        resultMap.put("enforcement_object_name", String.valueOf(evaluate.get("subjectname")).replaceAll("\\s", ""));
         // 摇号日期
         resultMap.put("lottery_date_to_candidate_evaluation_institution", evaluate.get("insertTime"));
+        // 是否最终选定的机构
+        resultMap.put("is_eventual_evaluation_institution", 0);
         for (Entity entity : entities) {
             for (Tuple2<String, String> agency : agencies) {
                 // 被执行实体
@@ -104,8 +107,7 @@ public class EvaluationInstitutionCandidateService {
                 resultMap.put("tyc_unique_entity_id_candidate_evaluation_institution", agency.f0);
                 resultMap.put("entity_name_valid_selected_evaluation_institution", agency.f1);
                 resultMap.put("entity_type_id_candidate_evaluation_institution", 1);
-                // 是否最终选定的机构
-                resultMap.put("is_eventual_evaluation_institution", BLACK_LIST.contains(String.valueOf(agency.f0)));
+                // sql
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
                 String sql = new SQL().INSERT_INTO(TABLE).INTO_COLUMNS(insert.f0).INTO_VALUES(insert.f1).toString();
                 sqls.add(sql);
