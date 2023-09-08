@@ -152,7 +152,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         String equity = tuple2.f0;
         String[] split = equity.split("\\.");
         if (split[0].length() > 19) {
-            log.error("超出bigint的投资额: {}, data_source_trace_id: {}", tuple2, dataSourceTraceId);
+            log.warn("超出bigint的投资额: {}, data_source_trace_id: {}", tuple2, dataSourceTraceId);
             return Tuple2.of("-1", tuple2.f1);
         } else {
             return tuple2;

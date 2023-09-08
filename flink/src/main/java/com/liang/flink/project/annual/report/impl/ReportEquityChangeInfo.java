@@ -128,12 +128,12 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
             if (plainString.compareTo("1.0000000000000") > 0) {
-                log.error("股权变更解析异常, id = {}, percent = {}", id, percent);
+                log.warn("股权变更解析异常, id = {}, percent = {}", id, percent);
                 return defaultResult;
             }
             return plainString;
         } catch (Exception e) {
-            log.error("股权变更解析异常, id = {}, percent = {}", id, percent, e);
+            log.warn("股权变更解析异常, id = {}, percent = {}", id, percent, e);
             return defaultResult;
         }
     }
