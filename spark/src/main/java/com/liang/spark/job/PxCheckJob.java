@@ -36,6 +36,6 @@ public class PxCheckJob {
         TableFactory.jdbc(spark, "469.entity_operation_development", "entity_mainland_public_institution_registration_info_details")
                 .createOrReplaceTempView("t_gov");
         spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_mainland_general_registration_info_details partition(pt = '20230908') select /*+ REPARTITION(360) */ * from t_company");
-        spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_mainland_public_institution_registration_info_details partition(pt = '20230908') select /*+ REPARTITION(180) */ * from t_company");
+        spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_mainland_public_institution_registration_info_details partition(pt = '20230908') select /*+ REPARTITION(180) */ * from t_gov");
     }
 }
