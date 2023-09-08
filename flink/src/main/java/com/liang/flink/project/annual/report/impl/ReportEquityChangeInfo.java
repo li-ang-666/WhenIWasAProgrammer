@@ -78,12 +78,14 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         // 股权变更
         String bef = parse(id, ratioBefore);
         String aft = parse(id, ratioAfter);
+        // 股权比例脏数据, 跳出
         if (bef.contains("-") || aft.contains("-")) {
             return deleteWithReturn(singleCanalBinlog);
         }
         resultMap.put("annual_report_equity_ratio_before_change", bef);
         resultMap.put("annual_report_equity_ratio_after_change", aft);
         String checkedChangeTime = TycUtils.isDateTime(changeTime) ? changeTime : null;
+        // 变更时间脏数据, 跳出
         if (checkedChangeTime == null) {
             return deleteWithReturn(singleCanalBinlog);
         }

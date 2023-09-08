@@ -86,6 +86,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
             resultMap1.put("annual_report_shareholder_equity_amt", numberAndUnit1.f0);
             resultMap1.put("annual_report_shareholder_equity_currency", numberAndUnit1.f1);
         }
+        // 认缴时间脏数据, 跳出
         String checkedSubscribeTime = TycUtils.isDateTime(subscribeTime) ? subscribeTime : null;
         if (checkedSubscribeTime == null) {
             return deleteWithReturn(singleCanalBinlog);
@@ -110,6 +111,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
             resultMap2.put("annual_report_shareholder_equity_amt", numberAndUnit2.f0);
             resultMap2.put("annual_report_shareholder_equity_currency", numberAndUnit2.f1);
         }
+        // 实缴时间脏数据, 跳出
         String checkedPaidTime = TycUtils.isDateTime(paidTime) ? paidTime : null;
         if (checkedPaidTime == null) {
             return deleteWithReturn(singleCanalBinlog);
