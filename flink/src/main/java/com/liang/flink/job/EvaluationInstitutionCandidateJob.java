@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.DaemonExecutor;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -40,42 +41,45 @@ public class EvaluationInstitutionCandidateJob {
                 .with("company_law_human_realtion", e -> String.valueOf(e.getColumnMap().get("source_id")))
                 .with("zhixinginfo_evaluate_result", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("enterprise", e -> String.valueOf(e.getColumnMap().get("graph_id")));
+        // stream流
         stream.keyBy(distributor)
                 .addSink(new EvaluationInstitutionCandidateSink(config)).name("EvaluationInstitutionCandidateSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         // 触发obs
-        DaemonExecutor.launch("UpdateEvaluateResultAll", new Runnable() {
-            private long lastUpdateTime = System.currentTimeMillis();
+        if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Kafka) {
+            DaemonExecutor.launch("UpdateEvaluateResultAll", new Runnable() {
+                private long lastUpdateTime = System.currentTimeMillis();
 
-            @SneakyThrows(InterruptedException.class)
-            @Override
-            public void run() {
-                JdbcTemplate trigger = new JdbcTemplate("108.data_judicial_risk");
-                JdbcTemplate sink = new JdbcTemplate("427.test");
-                while (true) {
-                    long current = System.currentTimeMillis();
-                    if (current - lastUpdateTime >= 1000 * 60 * 2) {
-                        log.info("trigger run once");
-                        String sql1 = new SQL().UPDATE(EvaluationInstitutionCandidateService.TABLE)
-                                .SET("is_eventual_evaluation_institution = 0")
-                                .WHERE("is_eventual_evaluation_institution = 1")
-                                .toString();
-                        sink.update(sql1);
-                        String sql2 = new SQL().UPDATE("zhixinginfo_evaluate_result")
-                                .SET("property5 = " + SqlUtils.formatValue(UUID.randomUUID()))
-                                .WHERE("reference_mode in ('委托评估','定向询价')")
-                                .WHERE("deleted = 0")
-                                .WHERE("caseNumber is not null and caseNumber <> ''")
-                                .WHERE("subjectName is not null and subjectName <> ''")
-                                .WHERE("result_text_oss is not null and result_text_oss <>''")
-                                .toString();
-                        trigger.update(sql2);
-                        lastUpdateTime = current;
-                        TimeUnit.MINUTES.sleep(1440);
+                @SneakyThrows(InterruptedException.class)
+                @Override
+                public void run() {
+                    JdbcTemplate trigger = new JdbcTemplate("108.data_judicial_risk");
+                    JdbcTemplate sink = new JdbcTemplate("427.test");
+                    while (true) {
+                        long current = System.currentTimeMillis();
+                        if (current - lastUpdateTime >= 1000 * 60 * 2) {
+                            log.info("trigger run once");
+                            String sql1 = new SQL().UPDATE(EvaluationInstitutionCandidateService.TABLE)
+                                    .SET("is_eventual_evaluation_institution = 0")
+                                    .WHERE("is_eventual_evaluation_institution = 1")
+                                    .toString();
+                            sink.update(sql1);
+                            String sql2 = new SQL().UPDATE("zhixinginfo_evaluate_result")
+                                    .SET("property5 = " + SqlUtils.formatValue(UUID.randomUUID()))
+                                    .WHERE("reference_mode in ('委托评估','定向询价')")
+                                    .WHERE("deleted = 0")
+                                    .WHERE("caseNumber is not null and caseNumber <> ''")
+                                    .WHERE("subjectName is not null and subjectName <> ''")
+                                    .WHERE("result_text_oss is not null and result_text_oss <>''")
+                                    .toString();
+                            trigger.update(sql2);
+                            lastUpdateTime = current;
+                            TimeUnit.MINUTES.sleep(1440);
+                        }
+                        TimeUnit.MINUTES.sleep(1);
                     }
-                    TimeUnit.MINUTES.sleep(1);
                 }
-            }
-        });
+            });
+        }
         env.execute("EvaluationInstitutionCandidateJob");
     }
 
