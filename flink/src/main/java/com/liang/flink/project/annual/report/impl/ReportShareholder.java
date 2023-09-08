@@ -86,7 +86,11 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
             resultMap1.put("annual_report_shareholder_equity_amt", numberAndUnit1.f0);
             resultMap1.put("annual_report_shareholder_equity_currency", numberAndUnit1.f1);
         }
-        resultMap1.put("annual_report_shareholder_equity_valid_date", TycUtils.isDateTime(subscribeTime) ? subscribeTime : null);
+        String checkedSubscribeTime = TycUtils.isDateTime(subscribeTime) ? subscribeTime : null;
+        if (checkedSubscribeTime == null) {
+            return deleteWithReturn(singleCanalBinlog);
+        }
+        resultMap1.put("annual_report_shareholder_equity_valid_date", checkedSubscribeTime);
         resultMap1.put("annual_report_shareholder_equity_submission_method", TycUtils.isValidName(subscribeType) ? subscribeType : "");
         Tuple2<String, String> insert1 = SqlUtils.columnMap2Insert(resultMap1);
         String sql1 = new SQL().REPLACE_INTO(TABLE_NAME)
@@ -106,7 +110,11 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
             resultMap2.put("annual_report_shareholder_equity_amt", numberAndUnit2.f0);
             resultMap2.put("annual_report_shareholder_equity_currency", numberAndUnit2.f1);
         }
-        resultMap2.put("annual_report_shareholder_equity_valid_date", TycUtils.isDateTime(paidTime) ? paidTime : null);
+        String checkedPaidTime = TycUtils.isDateTime(paidTime) ? paidTime : null;
+        if (checkedPaidTime == null) {
+            return deleteWithReturn(singleCanalBinlog);
+        }
+        resultMap2.put("annual_report_shareholder_equity_valid_date", checkedPaidTime);
         resultMap2.put("annual_report_shareholder_equity_submission_method", TycUtils.isValidName(paidType) ? paidType : "");
         Tuple2<String, String> insert2 = SqlUtils.columnMap2Insert(resultMap2);
         String sql2 = new SQL().REPLACE_INTO(TABLE_NAME)

@@ -76,9 +76,18 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
             return deleteWithReturn(singleCanalBinlog);
         }
         // 股权变更
-        resultMap.put("annual_report_equity_ratio_before_change", parse(id, ratioBefore));
-        resultMap.put("annual_report_equity_ratio_after_change", parse(id, ratioAfter));
-        resultMap.put("annual_report_equity_ratio_change_time", TycUtils.isDateTime(changeTime) ? changeTime : null);
+        String bef = parse(id, ratioBefore);
+        String aft = parse(id, ratioAfter);
+        if (bef.contains("-") || aft.contains("-")) {
+            return deleteWithReturn(singleCanalBinlog);
+        }
+        resultMap.put("annual_report_equity_ratio_before_change", bef);
+        resultMap.put("annual_report_equity_ratio_after_change", aft);
+        String checkedChangeTime = TycUtils.isDateTime(changeTime) ? changeTime : null;
+        if (checkedChangeTime == null) {
+            return deleteWithReturn(singleCanalBinlog);
+        }
+        resultMap.put("annual_report_equity_ratio_change_time", checkedChangeTime);
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL()
                 .REPLACE_INTO(TABLE_NAME)
@@ -108,7 +117,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         if (builder.length() == 0) {
             builder.append("0");
         }
-        String defaultResult = new BigDecimal(0)
+        String defaultResult = new BigDecimal(-1)
                 .setScale(12, RoundingMode.DOWN)
                 .toPlainString();
         try {
