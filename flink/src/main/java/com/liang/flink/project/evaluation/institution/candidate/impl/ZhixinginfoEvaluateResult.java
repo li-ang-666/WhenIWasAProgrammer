@@ -24,6 +24,7 @@ public class ZhixinginfoEvaluateResult extends AbstractDataUpdate<String> {
     private final String endPoint = "obs.cn-north-4.myhuaweicloud.com";
     private final String ak = "NT5EWZ4FRH54R2R2CB8G";
     private final String sk = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
+    private final String bucket = "jindi-oss-wangsu";
     private final ObsClient obsClient = new ObsClient(ak, sk, endPoint);
     private int i = 0;
 
@@ -41,7 +42,7 @@ public class ZhixinginfoEvaluateResult extends AbstractDataUpdate<String> {
         // company
         String companyName;
         try {
-            ObsObject obsObject = obsClient.getObject("jindi-oss-wangsu", index);
+            ObsObject obsObject = obsClient.getObject(bucket, index);
             InputStream input = obsObject.getObjectContent();
             String content = IOUtils.toString(input, StandardCharsets.UTF_8);
             if ("委托评估".equals(referenceMode)) {
