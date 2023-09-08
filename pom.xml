@@ -51,6 +51,12 @@
                 <groupId>com.huaweicloud</groupId>
                 <artifactId>esdk-obs-java</artifactId>
                 <version>3.22.12</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!--h2-->
