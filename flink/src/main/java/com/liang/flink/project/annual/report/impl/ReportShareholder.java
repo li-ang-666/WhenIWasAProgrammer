@@ -151,9 +151,9 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
     private Tuple2<String, String> formatEquity(String dataSourceTraceId, Tuple2<String, String> tuple2) {
         String equity = tuple2.f0;
         String[] split = equity.split("\\.");
-        if (split[0].length() > 38 - 12) {
-            log.error("超出decimal(38,12)的投资额: {}, data_source_trace_id: {}", tuple2, dataSourceTraceId);
-            return Tuple2.of("0", tuple2.f1);
+        if (split[0].length() > 19) {
+            log.error("超出bigint的投资额: {}, data_source_trace_id: {}", tuple2, dataSourceTraceId);
+            return Tuple2.of("-1", tuple2.f1);
         } else {
             return tuple2;
         }
