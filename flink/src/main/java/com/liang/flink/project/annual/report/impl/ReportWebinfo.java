@@ -85,7 +85,7 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
     private void checkMap(Map<String, Object> resultMap) {
         if (TycUtils.isTycUniqueEntityId(resultMap.get("tyc_unique_entity_id")) &&
                 TycUtils.isValidName(resultMap.get("entity_name_valid")) &&
-                String.valueOf(resultMap.get("annual_report_year")).matches("\\d{4}")
+                TycUtils.isYear(resultMap.get("annual_report_year"))
         ) {
         } else {
             resultMap.put("delete_status", 1);

@@ -70,7 +70,7 @@ public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
                 TycUtils.isTycUniqueEntityId(resultMap.get("annual_report_company_id_invested")) &&
                 TycUtils.isValidName(resultMap.get("annual_report_company_name_invested")) &&
                 TycUtils.isValidName(resultMap.get("annual_report_company_name_invested_register_name")) &&
-                String.valueOf(resultMap.get("annual_report_year")).matches("\\d{4}")
+                TycUtils.isYear(resultMap.get("annual_report_year"))
         ) {
         } else {
             resultMap.put("delete_status", 1);

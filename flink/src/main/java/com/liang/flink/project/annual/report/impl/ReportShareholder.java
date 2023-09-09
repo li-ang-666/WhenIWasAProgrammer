@@ -141,7 +141,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 TycUtils.isTycUniqueEntityId(resultMap.get("annual_report_tyc_unique_entity_id_shareholder")) &&
                 TycUtils.isValidName(resultMap.get("annual_report_entity_name_valid_shareholder")) &&
                 TycUtils.isValidName(resultMap.get("annual_report_entity_name_register_shareholder")) &&
-                String.valueOf(resultMap.get("annual_report_year")).matches("\\d{4}")
+                TycUtils.isYear(resultMap.get("annual_report_year"))
         ) {
         } else {
             resultMap.put("delete_status", 1);

@@ -47,9 +47,19 @@ public class TycUtils {
         return StringUtils.isNotBlank(nameStr) && !"null".equalsIgnoreCase(nameStr);
     }
 
+    public static boolean isYear(Object year) {
+        String str = String.valueOf(year);
+        if (!str.matches("\\d{4}")) {
+            return false;
+        }
+        int i = Integer.parseInt(str);
+        return 1900 <= i && i <= 2025;
+    }
+
     public static boolean isDateTime(Object datetime) {
         String str = String.valueOf(datetime);
-        return str.matches("\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2}:\\d{2})?");
+        return str.matches("\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2}:\\d{2}.*)?")
+                && "1900-01-01".compareTo(str) <= 0 && str.compareTo("2025-12-31 23:59:59.999999999") <= 0;
     }
 
     @NonNull

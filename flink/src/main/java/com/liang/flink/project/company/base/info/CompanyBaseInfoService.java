@@ -61,26 +61,6 @@ public class CompanyBaseInfoService {
         return Tuple3.of(start, end, false);
     }
 
-    public static void main(String[] args) {
-        System.out.println(getTimeInfo("长期"));
-        System.out.println(getTimeInfo("证书已公告废止"));
-        System.out.println(getTimeInfo("至无固定期限"));
-        System.out.println(getTimeInfo("至2019-03-31"));
-        System.out.println(getTimeInfo("至"));
-        System.out.println(getTimeInfo("自至2032年03月31日"));
-        System.out.println(getTimeInfo("自至"));
-        System.out.println(getTimeInfo("自2023年09月05日至2028年09月04日"));
-        System.out.println(getTimeInfo("自2023年09月05日到2028年09月04日"));
-        System.out.println(getTimeInfo("自2020-03-23至2021-03-31"));
-        System.out.println(getTimeInfo("2022-05-23至2027-05-22"));
-        System.out.println(getTimeInfo("2017年01月16日至2022年01月16日"));
-        System.out.println(getTimeInfo("2014-11-20至"));
-        System.out.println(getTimeInfo("- 至 2025-09-02"));
-        System.out.println(getTimeInfo("1905-06-18 至 -"));
-        System.out.println(getTimeInfo("2018-05-22 至 2022-08-27"));
-        System.out.println(getTimeInfo("2099-12-31 至 2099-12-31"));
-    }
-
     public List<String> invoke(String companyCid) {
         if (!TycUtils.isUnsignedId(companyCid)) {
             return new ArrayList<>();
@@ -150,7 +130,7 @@ public class CompanyBaseInfoService {
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(enterpriseMap, "reg_location", ""));
         // 成立日期
-        columnMap.put("registration_date", ifNull(enterpriseMap, "establish_date", null));
+        columnMap.put("registration_date", TycUtils.isDateTime(enterpriseMap.get("establish_date")) ? enterpriseMap.get("establish_date") : null);
         // 经营期限
         String text = enterpriseMap.get("from_date") + "至" + enterpriseMap.get("to_date");
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(text);
@@ -162,7 +142,7 @@ public class CompanyBaseInfoService {
         // 登记机关
         columnMap.put("registration_institute", ifNull(enterpriseMap, "reg_institute", ""));
         // 核准日期
-        columnMap.put("approval_date", ifNull(enterpriseMap, "approved_date", null));
+        columnMap.put("approval_date", TycUtils.isDateTime(enterpriseMap.get("approved_date")) ? enterpriseMap.get("approved_date") : null);
         // 组织机构代码
         columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
         // 纳税人识别号
