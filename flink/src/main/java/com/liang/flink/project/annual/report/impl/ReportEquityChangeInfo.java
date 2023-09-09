@@ -117,11 +117,8 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
             }
         }
         if (builder.length() == 0) {
-            builder.append("0");
+            return "-1";
         }
-        String defaultResult = new BigDecimal(-1)
-                .setScale(12, RoundingMode.DOWN)
-                .toPlainString();
         try {
             String plainString = new BigDecimal(builder.toString())
                     .divide(new BigDecimal(100), 12, RoundingMode.DOWN)
@@ -129,12 +126,12 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
                     .toPlainString();
             if (plainString.compareTo("1.0000000000000") > 0) {
                 log.warn("股权变更解析异常, id = {}, percent = {}", id, percent);
-                return defaultResult;
+                return "-1";
             }
             return plainString;
         } catch (Exception e) {
             log.warn("股权变更解析异常, id = {}, percent = {}", id, percent, e);
-            return defaultResult;
+            return "-1";
         }
     }
 
