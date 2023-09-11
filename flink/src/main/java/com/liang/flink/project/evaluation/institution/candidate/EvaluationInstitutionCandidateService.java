@@ -82,19 +82,19 @@ public class EvaluationInstitutionCandidateService {
         // 执行案号(清洗)
         String caseNumber = String.valueOf(evaluate.get("caseNumber"));
         String caseNumberClean = caseCodeClean.evaluate(caseNumber);
-        resultMap.put("enforcement_case_number", caseNumberClean);
+        resultMap.put("enforcement_case_number", formatString(caseNumberClean));
         // 执行案号(原始)
-        resultMap.put("enforcement_case_number_original", caseNumber);
+        resultMap.put("enforcement_case_number_original", formatString(caseNumber));
         // 执行案型
-        resultMap.put("enforcement_case_type", caseCodeType.evaluate(caseNumberClean));
+        resultMap.put("enforcement_case_type", formatString(caseCodeType.evaluate(caseNumberClean)));
         // 委托法院
-        resultMap.put("enforcement_object_evaluation_court_name", evaluate.get("execCourtName"));
+        resultMap.put("enforcement_object_evaluation_court_name", formatString(evaluate.get("execCourtName")));
         // 财产类型
-        resultMap.put("enforcement_object_asset_type", evaluate.get("subjectType"));
+        resultMap.put("enforcement_object_asset_type", formatString(evaluate.get("subjectType")));
         // 财产名称
-        resultMap.put("enforcement_object_name", String.valueOf(evaluate.get("subjectname")).replaceAll("\\s", ""));
+        resultMap.put("enforcement_object_name", formatString(String.valueOf(evaluate.get("subjectname")).replaceAll("\\s", "")));
         // 摇号日期
-        resultMap.put("lottery_date_to_candidate_evaluation_institution", evaluate.get("insertTime"));
+        resultMap.put("lottery_date_to_candidate_evaluation_institution", TycUtils.isDateTime(evaluate.get("insertTime")) ? evaluate.get("insertTime") : null);
         // 是否最终选定的机构
         resultMap.put("is_eventual_evaluation_institution", 0);
         for (Entity entity : entities) {
@@ -114,6 +114,10 @@ public class EvaluationInstitutionCandidateService {
             }
         }
         return sqls;
+    }
+
+    private String formatString(Object obj) {
+        return TycUtils.isValidName(obj) ? String.valueOf(obj) : "";
     }
 
     @Data
