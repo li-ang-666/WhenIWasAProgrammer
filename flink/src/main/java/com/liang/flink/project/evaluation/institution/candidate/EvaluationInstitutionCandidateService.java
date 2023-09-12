@@ -41,7 +41,7 @@ public class EvaluationInstitutionCandidateService {
         }
         // 查询index
         Map<String, Object> evaluateIndex = dao.getEvaluateIndex(evaluateId);
-        // evaluate_index为空, 跳出
+        // index为空, 跳出
         if (evaluateIndex.isEmpty()) {
             return sqls;
         }
