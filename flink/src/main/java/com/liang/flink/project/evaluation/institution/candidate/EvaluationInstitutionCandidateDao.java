@@ -45,7 +45,7 @@ public class EvaluationInstitutionCandidateDao {
         return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
     }
 
-    public List<Map<String, Object>> getCompanyLawHumanRelations(String sourceId) {
+    public List<Map<String, Object>> getCompanyLawHumanRelations(String sourceId, String name) {
         if (!TycUtils.isUnsignedId(sourceId)) {
             return new ArrayList<>();
         }
@@ -55,6 +55,9 @@ public class EvaluationInstitutionCandidateDao {
                 .WHERE("source_id = " + SqlUtils.formatValue(sourceId))
                 .WHERE("source_table = 'zhixinginfo_evaluate'")
                 .WHERE("data_flag = 1")
+                .WHERE("human_id is not null")
+                .WHERE("human_id <> ''")
+                .WHERE("human_name = " + SqlUtils.formatValue(name))
                 .toString();
         return humanBase040.queryForColumnMaps(sql);
     }

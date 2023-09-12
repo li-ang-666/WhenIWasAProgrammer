@@ -1,6 +1,5 @@
 package com.liang.flink.project.evaluation.institution.candidate;
 
-import com.liang.common.dto.tyc.Company;
 import com.liang.common.service.SQL;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
@@ -34,45 +33,64 @@ public class EvaluationInstitutionCandidateService {
                 .WHERE("data_source_trace_id = " + SqlUtils.formatValue(evaluateId))
                 .toString();
         sqls.add(deleteSql);
+        // 查询evaluate
         Map<String, Object> evaluate = dao.getEvaluate(evaluateId);
-        // 合法id但是查不出数据,跳出
+        // evaluate为空, 跳出
         if (evaluate.isEmpty()) {
             return sqls;
         }
-        // evaluate表字段陈列
-        String type = String.valueOf(evaluate.get("type"));
-        String zhixingid = String.valueOf(evaluate.get("zhixingid"));
-        // 准备所有涉及到的被执行实体
-        List<Entity> entities = new ArrayList<>();
-        if ("1".equals(type)) {
-            // 1 代表 公司
-            Company company = TycUtils.cid2Company(zhixingid);
-            entities.add(new Entity(String.valueOf(company.getGid()), company.getName(), "1"));
-        } else {
-            // 其余一概走人的逻辑
-            List<Map<String, Object>> companyLawHumanRelations = dao.getCompanyLawHumanRelations(evaluateId);
-            for (Map<String, Object> companyLawHumanRelation : companyLawHumanRelations) {
-                entities.add(new Entity(String.valueOf(companyLawHumanRelation.get("human_id")), String.valueOf(companyLawHumanRelation.get("human_name")), "2"));
-            }
-        }
-        // entities清洗
-        entities = entities.stream().filter(e -> TycUtils.isTycUniqueEntityId(e.getTycUniqueEntityId()) && TycUtils.isValidName(e.getEntityName())).collect(Collectors.toList());
-        // 没有涉及到的被执行实体,跳出
-        if (entities.isEmpty()) {
+        // 查询index
+        Map<String, Object> evaluateIndex = dao.getEvaluateIndex(evaluateId);
+        // evaluate_index为空, 跳出
+        if (evaluateIndex.isEmpty()) {
             return sqls;
         }
-        // 准备所有涉及到的机构
-        Map<String, Object> evaluateIndex = dao.getEvaluateIndex(evaluateId);
+        // 提取被执行实体
+        List<Entity> entities = new ArrayList<>();
+        String gid = String.valueOf(evaluateIndex.get("gid"));
+        // 如果index.gid不为0, 则代表是公司
+        if (TycUtils.isUnsignedId(gid)) {
+            // 查询最新名字
+            String newCompanyName = dao.companyGid2Name(gid);
+            // 名字不合法, 跳出
+            if (!TycUtils.isValidName(newCompanyName)) {
+                return sqls;
+            }
+            // 国家机关, 跳出
+            if (dao.isStateOrgans(gid)) {
+                return sqls;
+            }
+            entities.add(new Entity(gid, newCompanyName, "1"));
+        }
+        // 否则, 走自然人的逻辑
+        else {
+            String ename = String.valueOf(evaluate.get("ename"));
+            // 名字不合法, 跳出
+            if (!TycUtils.isValidName(ename)) {
+                return sqls;
+            }
+            // 查询名字对应的human_pid
+            List<Map<String, Object>> companyLawHumanRelations = dao.getCompanyLawHumanRelations(evaluateId, ename);
+            for (Map<String, Object> companyLawHumanRelation : companyLawHumanRelations) {
+                entities.add(new Entity(String.valueOf(companyLawHumanRelation.get("human_id")), ename, "2"));
+            }
+            // 如果查不到pid, 插入一条非人非公司
+            if (entities.isEmpty()) {
+                entities.add(new Entity("", ename, "3"));
+            }
+        }
+        // 提取候选机构
         String json = String.valueOf(evaluateIndex.get("evaluationAgency"));
         List<Tuple2<String, String>> agencies = JsonUtils.parseJsonArr(json).stream()
                 .map(e -> {
-                    String gid = String.valueOf(((Map<String, Object>) e).get("gid"));
-                    String name = dao.companyGid2Name(gid);
-                    return Tuple2.of(gid, name);
+                    String eGid = String.valueOf(((Map<String, Object>) e).get("gid"));
+                    String name = dao.companyGid2Name(eGid);
+                    return Tuple2.of(eGid, name);
                 })
-                .filter(e -> TycUtils.isUnsignedId(e.f0) && TycUtils.isValidName(e.f1))
+                // 候选机构只保留合法id、合法名称、非国家机构的公司
+                .filter(e -> TycUtils.isUnsignedId(e.f0) && TycUtils.isValidName(e.f1) && !dao.isStateOrgans(e.f0))
                 .collect(Collectors.toList());
-        // 如果没有合法机构,跳出
+        // 没有合法候选机构, 跳出
         if (agencies.isEmpty()) {
             return sqls;
         }
@@ -83,7 +101,7 @@ public class EvaluationInstitutionCandidateService {
         String caseNumber = String.valueOf(evaluate.get("caseNumber"));
         String caseNumberClean = caseCodeClean.evaluate(caseNumber);
         String caseType = caseCodeType.evaluate(caseNumberClean);
-        if (caseNumber.matches(".*?([行法减假刑]).*") || caseNumberClean.matches(".*?([行法减假刑]).*") || caseType.matches(".*?((刑事)|(行政)|(国家赔偿)).*")) {
+        if (caseNumber.matches(".*?([法减假刑]).*") || caseNumberClean.matches(".*?([法减假刑]).*") || caseType.matches(".*?((刑事)|(国家赔偿)).*")) {
             return sqls;
         }
         // 执行案号(清洗)
@@ -102,19 +120,6 @@ public class EvaluationInstitutionCandidateService {
         resultMap.put("lottery_date_to_candidate_evaluation_institution", TycUtils.isDateTime(evaluate.get("insertTime")) ? evaluate.get("insertTime") : null);
         // 是否最终选定的机构
         resultMap.put("is_eventual_evaluation_institution", 0);
-        // 剔除国家机关
-        entities = entities.stream().filter(e -> {
-            if (e.getEntityType().equals("1") && dao.isStateOrgans(e.getTycUniqueEntityId())) {
-                return false;
-            }
-            return true;
-        }).collect(Collectors.toList());
-        agencies = agencies.stream().filter(e -> {
-            if (dao.isStateOrgans(e.f0)) {
-                return false;
-            }
-            return true;
-        }).collect(Collectors.toList());
         // 写入
         for (Entity entity : entities) {
             for (Tuple2<String, String> agency : agencies) {
