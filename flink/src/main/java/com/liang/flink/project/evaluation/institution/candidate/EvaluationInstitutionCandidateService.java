@@ -79,14 +79,19 @@ public class EvaluationInstitutionCandidateService {
         HashMap<String, Object> resultMap = new HashMap<>();
         // id
         resultMap.put("data_source_trace_id", evaluateId);
-        // 执行案号(清洗)
+        // 执行案号 & 执行类型
         String caseNumber = String.valueOf(evaluate.get("caseNumber"));
         String caseNumberClean = caseCodeClean.evaluate(caseNumber);
+        String caseType = caseCodeType.evaluate(caseNumberClean);
+        if (caseNumber.matches(".*?([行法减假刑]).*") || caseNumberClean.matches(".*?([行法减假刑]).*") || caseType.matches(".*?((刑事)|(行政)|(国家赔偿)).*")) {
+            return sqls;
+        }
+        // 执行案号(清洗)
         resultMap.put("enforcement_case_number", formatString(caseNumberClean));
         // 执行案号(原始)
         resultMap.put("enforcement_case_number_original", formatString(caseNumber));
-        // 执行案型
-        resultMap.put("enforcement_case_type", formatString(caseCodeType.evaluate(caseNumberClean)));
+        // 执行案型(清洗)
+        resultMap.put("enforcement_case_type", formatString(caseType));
         // 委托法院
         resultMap.put("enforcement_object_evaluation_court_name", formatString(evaluate.get("execCourtName")));
         // 财产类型
@@ -97,6 +102,20 @@ public class EvaluationInstitutionCandidateService {
         resultMap.put("lottery_date_to_candidate_evaluation_institution", TycUtils.isDateTime(evaluate.get("insertTime")) ? evaluate.get("insertTime") : null);
         // 是否最终选定的机构
         resultMap.put("is_eventual_evaluation_institution", 0);
+        // 剔除国家机关
+        entities = entities.stream().filter(e -> {
+            if (e.getEntityType().equals("1") && dao.isStateOrgans(e.getTycUniqueEntityId())) {
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+        agencies = agencies.stream().filter(e -> {
+            if (dao.isStateOrgans(e.f0)) {
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+        // 写入
         for (Entity entity : entities) {
             for (Tuple2<String, String> agency : agencies) {
                 // 被执行实体

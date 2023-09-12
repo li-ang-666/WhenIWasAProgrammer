@@ -81,4 +81,14 @@ public class EvaluationInstitutionCandidateDao {
                 .toString();
         return sink.queryForList(sql, rs -> rs.getString(1));
     }
+
+    public boolean isStateOrgans(String companyGid) {
+        String sql = new SQL().SELECT("code")
+                .FROM("enterprise")
+                .WHERE("deleted = 0")
+                .WHERE("graph_id = " + SqlUtils.formatValue(companyGid))
+                .toString();
+        String res = prism464.queryForObject(sql, rs -> rs.getString(1));
+        return String.valueOf(res).startsWith("11");
+    }
 }
