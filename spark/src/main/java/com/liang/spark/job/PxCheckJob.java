@@ -40,8 +40,8 @@ public class PxCheckJob {
         spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_mainland_general_registration_info_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t_company");
         spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_mainland_public_institution_registration_info_details partition(pt = '" + pt + "') select /*+ REPARTITION(180) */ * from t_gov");
         // 司法处罚
-//        TableFactory.jdbc(spark, "427.test", "entity_enforcement_object_evaluate_institution_candidate_details")
-//                .createOrReplaceTempView("judicial");
-//        spark.sql("insert overwrite table ods.ods_entity_enforcement_object_evaluate_institution_candidate_details partition(pt = '" + pt + "') select /*+ REPARTITION(180) */ * from judicial");
+        TableFactory.jdbc(spark, "427.test", "entity_enforcement_object_evaluate_institution_candidate_details")
+                .createOrReplaceTempView("judicial");
+        spark.sql("insert overwrite table ods.ods_entity_enforcement_object_evaluate_institution_candidate_details partition(pt = '" + pt + "') select /*+ REPARTITION(180) */ * from judicial");
     }
 }
