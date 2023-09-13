@@ -3,14 +3,18 @@ package com.liang.flink.project.evaluation.institution.candidate.impl
 import com.liang.flink.project.evaluation.institution.candidate.EvaluationInstitutionCandidateService
 
 object SqlHolder {
-  def getInsertSql(caseNumber: String): String = {
+  def getDeleteSql(caseNumber: String): String = {
     s"""
        |delete from ${EvaluationInstitutionCandidateService.TABLE.replaceAll("middle", "details")}
        |where enforcement_case_number = '${caseNumber}'
        |""".stripMargin
   }
 
-  def getDeleteSql(caseNumber: String): String = {
+  def main(args: Array[String]): Unit = {
+    println(getInsertSql("aaa"))
+  }
+
+  def getInsertSql(caseNumber: String): String = {
     s"""
        |insert into ${EvaluationInstitutionCandidateService.TABLE.replaceAll("middle", "details")}
        |select
@@ -34,11 +38,11 @@ object SqlHolder {
        |  `update_time`
        |from ${EvaluationInstitutionCandidateService.TABLE}
        |where enforcement_case_number in (
-       |  select enforcement_case_number
+       |  select distinct enforcement_case_number
        |  from ${EvaluationInstitutionCandidateService.TABLE}
        |  where enforcement_case_number = '${caseNumber}'
        |  group by enforcement_case_number
-       |  having group_concat(tyc_unique_entity_id_subject_to_enforcement) like '%1%' and sum(is_state_organs) = 0
+       |  having group_concat(entity_type_id_subject_to_enforcement) like '%1%' and sum(is_state_organs) = 0
        |)
        |""".stripMargin
   }
