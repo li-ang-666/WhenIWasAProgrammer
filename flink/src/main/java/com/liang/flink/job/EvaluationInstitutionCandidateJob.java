@@ -59,8 +59,8 @@ public class EvaluationInstitutionCandidateJob {
                         if (current - lastUpdateTime >= 1000 * 60 * 2) {
                             log.info("trigger run once");
                             String sql1 = new SQL().UPDATE(EvaluationInstitutionCandidateService.TABLE)
-                                    .SET("is_eventual_evaluation_institution = 0")
-                                    .WHERE("is_eventual_evaluation_institution = 1")
+                                    .SET("is_evaluation_institution_candidate = 0")
+                                    .WHERE("is_evaluation_institution_candidate = 1")
                                     .toString();
                             sink.update(sql1);
                             String sql2 = new SQL().UPDATE("zhixinginfo_evaluate_result")
@@ -90,7 +90,8 @@ public class EvaluationInstitutionCandidateJob {
             ZhixinginfoEvaluateIndex.class,
             CompanyLawHumanRealtion.class,
             Enterprise.class,
-            ZhixinginfoEvaluateResult.class
+            ZhixinginfoEvaluateResult.class,
+            EntityEnforcementObjectEvaluateInstitutionCandidateDetailsMiddle.class
     })
     private final static class EvaluationInstitutionCandidateSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;

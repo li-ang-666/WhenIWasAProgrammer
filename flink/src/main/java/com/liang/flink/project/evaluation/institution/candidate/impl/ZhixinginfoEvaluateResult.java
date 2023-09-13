@@ -61,7 +61,7 @@ public class ZhixinginfoEvaluateResult extends AbstractDataUpdate<String> {
         String subjectName = String.valueOf(columnMap.get("subjectName")).replaceAll("\\s", "");
         // return sql
         String sql = new SQL().UPDATE(EvaluationInstitutionCandidateService.TABLE)
-                .SET("is_eventual_evaluation_institution = 1")
+                .SET("is_evaluation_institution_candidate = 1")
                 .WHERE("entity_name_valid_selected_evaluation_institution = " + SqlUtils.formatValue(companyName))
                 .WHERE("enforcement_object_name = " + SqlUtils.formatValue(subjectName))
                 .WHERE("enforcement_case_number = " + SqlUtils.formatValue(caseNumberClean))

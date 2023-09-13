@@ -1,0 +1,39 @@
+package com.liang.flink.project.evaluation.institution.candidate.impl
+
+import com.liang.flink.project.evaluation.institution.candidate.EvaluationInstitutionCandidateService
+
+object SqlHolder {
+  def getSql(caseNumber: String): String = {
+    s"""
+       |insert into ${EvaluationInstitutionCandidateService.TABLE.replaceAll("_middle", "")}
+       |select
+       |  `id`,
+       |  `tyc_unique_entity_id_subject_to_enforcement`,
+       |  `entity_name_valid_subject_to_enforcement`,
+       |  `entity_type_id_subject_to_enforcement`,
+       |  `tyc_unique_entity_id_candidate_evaluation_institution`,
+       |  `entity_name_valid_selected_evaluation_institution`,
+       |  `entity_type_id_candidate_evaluation_institution`,
+       |  `enforcement_case_number`,
+       |  `enforcement_case_number_original`,
+       |  `enforcement_case_type`,
+       |  `enforcement_object_evaluation_court_name`,
+       |  `enforcement_object_asset_type`,
+       |  `enforcement_object_name`,
+       |  `lottery_date_to_candidate_evaluation_institution`,
+       |  `is_evaluation_institution_candidate`,
+       |  `delete_status`,
+       |  `create_time`,
+       |  `update_time`
+       |from
+       |  ${EvaluationInstitutionCandidateService.TABLE}
+       |where enforcement_case_number in (
+       |  select enforcement_case_number
+       |  from ${EvaluationInstitutionCandidateService.TABLE}
+       |  where enforcement_case_number = '${caseNumber}'
+       |  group by enforcement_case_number
+       |  having group_concat(tyc_unique_entity_id_subject_to_enforcement) like '%1%' and sum(is_state_organs) = 0
+       |)
+       |""".stripMargin
+  }
+}
