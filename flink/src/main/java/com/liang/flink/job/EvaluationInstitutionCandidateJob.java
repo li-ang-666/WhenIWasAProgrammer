@@ -40,7 +40,8 @@ public class EvaluationInstitutionCandidateJob {
                 .with("zhixinginfo_evaluate_index", e -> String.valueOf(e.getColumnMap().get("main_id")))
                 .with("company_law_human_realtion", e -> String.valueOf(e.getColumnMap().get("source_id")))
                 .with("zhixinginfo_evaluate_result", e -> String.valueOf(e.getColumnMap().get("id")))
-                .with("enterprise", e -> String.valueOf(e.getColumnMap().get("graph_id")));
+                .with("enterprise", e -> String.valueOf(e.getColumnMap().get("graph_id")))
+                .with(EvaluationInstitutionCandidateService.TABLE, e -> String.valueOf(e.getColumnMap().get("enforcement_case_number")));
         // stream流
         stream.keyBy(distributor)
                 .addSink(new EvaluationInstitutionCandidateSink(config)).name("EvaluationInstitutionCandidateSink").setParallelism(config.getFlinkConfig().getOtherParallel());
