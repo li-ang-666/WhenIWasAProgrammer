@@ -3,9 +3,16 @@ package com.liang.flink.project.evaluation.institution.candidate.impl
 import com.liang.flink.project.evaluation.institution.candidate.EvaluationInstitutionCandidateService
 
 object SqlHolder {
-  def getSql(caseNumber: String): String = {
+  def getInsertSql(caseNumber: String): String = {
     s"""
-       |insert into ${EvaluationInstitutionCandidateService.TABLE.replaceAll("_middle", "")}
+       |delete from ${EvaluationInstitutionCandidateService.TABLE.replaceAll("middle", "details")}
+       |where enforcement_case_number = '${caseNumber}'
+       |""".stripMargin
+  }
+
+  def getDeleteSql(caseNumber: String): String = {
+    s"""
+       |insert into ${EvaluationInstitutionCandidateService.TABLE.replaceAll("middle", "details")}
        |select
        |  `id`,
        |  `tyc_unique_entity_id_subject_to_enforcement`,
@@ -25,8 +32,7 @@ object SqlHolder {
        |  `delete_status`,
        |  `create_time`,
        |  `update_time`
-       |from
-       |  ${EvaluationInstitutionCandidateService.TABLE}
+       |from ${EvaluationInstitutionCandidateService.TABLE}
        |where enforcement_case_number in (
        |  select enforcement_case_number
        |  from ${EvaluationInstitutionCandidateService.TABLE}
