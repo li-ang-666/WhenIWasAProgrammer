@@ -69,14 +69,12 @@ public class EvaluationInstitutionCandidateService {
             if (!TycUtils.isValidName(ename)) {
                 return sqls;
             }
-            // 查询名字对应的human_pid
-            List<Map<String, Object>> companyLawHumanRelations = dao.getCompanyLawHumanRelations(evaluateId, ename);
-            for (Map<String, Object> companyLawHumanRelation : companyLawHumanRelations) {
-                entities.add(new Entity(String.valueOf(companyLawHumanRelation.get("human_id")), ename, "2"));
-            }
-            // 如果查不到pid, 插入一条非人非公司
-            if (entities.isEmpty()) {
+            // 查询名字对应的human_pid, 如果查不到pid, 插入一条非人非公司
+            Map<String, Object> companyLawHumanRelation = dao.getCompanyLawHumanRelation(evaluateId, ename);
+            if (companyLawHumanRelation.isEmpty()) {
                 entities.add(new Entity("", ename, "3"));
+            } else {
+                entities.add(new Entity(String.valueOf(companyLawHumanRelation.get("human_id")), ename, "2"));
             }
         }
         // 提取候选机构

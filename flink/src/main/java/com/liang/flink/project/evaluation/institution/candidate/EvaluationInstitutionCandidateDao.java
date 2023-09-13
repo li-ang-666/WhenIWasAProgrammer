@@ -5,7 +5,6 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +44,9 @@ public class EvaluationInstitutionCandidateDao {
         return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
     }
 
-    public List<Map<String, Object>> getCompanyLawHumanRelations(String sourceId, String name) {
+    public Map<String, Object> getCompanyLawHumanRelation(String sourceId, String name) {
         if (!TycUtils.isUnsignedId(sourceId)) {
-            return new ArrayList<>();
+            return new HashMap<>();
         }
         String sql = new SQL()
                 .SELECT("*")
@@ -58,8 +57,11 @@ public class EvaluationInstitutionCandidateDao {
                 .WHERE("human_id is not null")
                 .WHERE("human_id <> ''")
                 .WHERE("human_name = " + SqlUtils.formatValue(name))
+                .ORDER_BY("id desc")
+                .LIMIT(1)
                 .toString();
-        return humanBase040.queryForColumnMaps(sql);
+        List<Map<String, Object>> columnMaps = humanBase040.queryForColumnMaps(sql);
+        return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
     }
 
     public String companyGid2Name(String companyGid) {
