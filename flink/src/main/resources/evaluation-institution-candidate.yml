@@ -22,7 +22,7 @@
 
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 20
 

@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "108.data_judicial_risk"
     tableName: "zhixinginfo_evaluate"
     columns: "*"
-    where: "1=1"
+    where: "deleted = 0"
     scanMode: TumblingWindow
 
 kafkaConfigs:

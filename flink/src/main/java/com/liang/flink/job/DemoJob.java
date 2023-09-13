@@ -39,8 +39,9 @@ public class DemoJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String ename = String.valueOf(columnMap.get("ename"));
+            String id = String.valueOf(columnMap.get("id"));
             if (ename.matches(".*?([,，、 ;；]).*")) {
-                log.error("ename: {}", ename);
+                log.error("id: {}, ename: {}", id, ename);
             }
         }
     }
