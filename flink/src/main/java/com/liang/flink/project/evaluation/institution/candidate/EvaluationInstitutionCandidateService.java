@@ -101,7 +101,7 @@ public class EvaluationInstitutionCandidateService {
         String caseNumber = String.valueOf(evaluate.get("caseNumber"));
         String caseNumberClean = caseCodeClean.evaluate(caseNumber);
         String caseType = caseCodeType.evaluate(caseNumberClean);
-        if (caseNumber.matches(".*?([法减假刑]).*") || caseNumberClean.matches(".*?([法减假刑]).*") || caseType.matches(".*?((刑事)|(国家赔偿)).*")) {
+        if (caseType.matches(".*?((刑事)|(国家赔偿)).*")) {
             return sqls;
         }
         // 执行案号(清洗)
