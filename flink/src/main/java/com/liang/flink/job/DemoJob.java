@@ -1,9 +1,7 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.filesystem.ObsWriter;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -13,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+
+import java.util.Map;
 
 @Slf4j
 @LocalConfigFile("demo.yml")
@@ -29,18 +29,19 @@ public class DemoJob {
     @RequiredArgsConstructor
     private final static class DemoSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
-        private ObsWriter obsWriter;
 
         @Override
         public void open(Configuration parameters) throws Exception {
             ConfigUtils.setConfig(config);
-            obsWriter = new ObsWriter("obs://hadoop-obs/flink/enterprise");
-            //obsWriter.enableCache();
         }
 
         @Override
-        public void invoke(SingleCanalBinlog value, Context context) throws Exception {
-            System.out.println(JsonUtils.toString(value));
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String ename = String.valueOf(columnMap.get("ename"));
+            if (ename.matches(".*?([,，、 ;；]).*")) {
+                log.error("ename: {}", ename);
+            }
         }
     }
 }

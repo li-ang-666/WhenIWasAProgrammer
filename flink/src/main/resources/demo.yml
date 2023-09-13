@@ -1,17 +1,17 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
-  sourceParallel: 5
-  otherParallel: 20
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 10
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "xxxxx"
-    tableName: "xxxxx"
+    sourceName: "108.data_judicial_risk"
+    tableName: "zhixinginfo_evaluate"
     columns: "*"
     where: "1=1"
-    scanMode: Direct
+    scanMode: TumblingWindow
 
 kafkaConfigs:
   kafkaSource:
