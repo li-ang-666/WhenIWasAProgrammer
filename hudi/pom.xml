@@ -10,6 +10,12 @@
     </parent>
     <artifactId>hudi</artifactId>
     <dependencies>
+        <!--apollo-->
+        <dependency>
+            <groupId>com.ctrip.framework.apollo</groupId>
+            <artifactId>apollo-client</artifactId>
+        </dependency>
+
         <!--flink sql jdbc sink-->
         <dependency>
             <groupId>org.apache.flink</groupId>
