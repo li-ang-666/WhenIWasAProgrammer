@@ -20,6 +20,6 @@ create table hudi_table(
   'table.type' = 'MERGE_ON_READ',
   -- index
   'index.type' = 'BUCKET',
-  'hoodie.bucket.index.num.buckets' = '8',
+  'hoodie.bucket.index.num.buckets' = '1',
   'index.bootstrap.enabled' = 'true'
 )
