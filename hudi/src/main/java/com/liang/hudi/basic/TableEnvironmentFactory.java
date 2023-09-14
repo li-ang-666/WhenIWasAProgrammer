@@ -52,7 +52,7 @@ public class TableEnvironmentFactory {
         // 超时
         checkpointConfig.setCheckpointTimeout(CHECKPOINT_TIMEOUT);
         // 可以容忍的连续checkpoint次数,次数超过后任务自动停止
-        env.getCheckpointConfig().setTolerableCheckpointFailureNumber(3);
+        env.getCheckpointConfig().setTolerableCheckpointFailureNumber(1024);
         // 同时运行的checkpoint数量
         checkpointConfig.setMaxConcurrentCheckpoints(1);
         // 程序停止时保留checkpoint
