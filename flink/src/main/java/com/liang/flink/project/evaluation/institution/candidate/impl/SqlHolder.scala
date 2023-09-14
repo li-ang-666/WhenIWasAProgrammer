@@ -42,7 +42,7 @@ object SqlHolder {
        |  from ${EvaluationInstitutionCandidateService.TABLE}
        |  where enforcement_case_number = '${caseNumber}'
        |  group by enforcement_case_number
-       |  having group_concat(entity_type_id_subject_to_enforcement) like '%1%' and sum(is_state_organs) = 0
+       |  having min(entity_type_id_subject_to_enforcement) = 1 and sum(is_state_organs) = 0
        |)
        |""".stripMargin
   }
