@@ -5,7 +5,7 @@ import com.liang.flink.project.evaluation.institution.candidate.EvaluationInstit
 object SqlHolder {
   def getDeleteSql(caseNumber: String): String = {
     s"""
-       |delete from ${EvaluationInstitutionCandidateService.TABLE.replaceAll("middle", "details")}
+       |delete from ${EvaluationInstitutionCandidateService.TABLE.replace("middle", "details")}
        |where enforcement_case_number = '${caseNumber}'
        |""".stripMargin
   }
@@ -16,7 +16,7 @@ object SqlHolder {
 
   def getInsertSql(caseNumber: String): String = {
     s"""
-       |insert into ${EvaluationInstitutionCandidateService.TABLE.replaceAll("middle", "details")}
+       |insert into ${EvaluationInstitutionCandidateService.TABLE.replace("middle", "details")}
        |select
        |  `id`,
        |  `tyc_unique_entity_id_subject_to_enforcement`,
