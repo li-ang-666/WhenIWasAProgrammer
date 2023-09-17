@@ -15,6 +15,7 @@ CREATE TABLE cdc_table (
   is_deleted                 SMALLINT,
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
+  -- common
   'connector' = 'mysql-cdc',
   'hostname' = 'e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com',
   'port' = '3306',
@@ -23,5 +24,11 @@ CREATE TABLE cdc_table (
   'database-name' = 'prism_shareholder_path',
   'table-name' = 'ratio_path_company',
   'server-id' = '6000-6010',
-  'server-time-zone' = 'Asia/Shanghai'
+  'server-time-zone' = 'Asia/Shanghai',
+  -- scan
+  'scan.incremental.snapshot.chunk.size' = '10240',
+  'scan.snapshot.fetch.size' = '2048',
+  'scan.incremental.close-idle-reader.enabled' = 'true',
+  -- debezium
+  'debezium.min.row.count.to.stream.result' = '0'
 );
