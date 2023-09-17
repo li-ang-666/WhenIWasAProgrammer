@@ -55,8 +55,8 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
                 resultMap.put("delete_status", 1);
                 break;
         }
-        resultMap.put("annual_report_ebusiness_name", TycUtils.isValidName(name) ? name : "");
-        resultMap.put("annual_report_ebusiness_website", TycUtils.isValidName(website) ? website : "");
+        resultMap.put("annual_report_ebusiness_name", TycUtils.isValidName(name) ? name : null);
+        resultMap.put("annual_report_ebusiness_website", TycUtils.isValidName(website) ? website : null);
         // 两个都是空, 代表脏数据
         if (!TycUtils.isValidName(name) && !TycUtils.isValidName(website)) {
             resultMap.put("delete_status", 1);
