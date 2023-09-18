@@ -1,21 +1,9 @@
 package com.liang.hudi.job;
 
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.pool.DruidPooledConnection;
-import com.liang.common.dto.Config;
-import com.liang.common.service.database.factory.DruidFactory;
-import com.liang.common.util.ConfigUtils;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
-import org.apache.flink.types.Row;
-
-import java.sql.ResultSet;
-
 public class DemoPrintJob {
     public static void main(String[] args) throws Exception {
-        Config config = ConfigUtils.createConfig(null);
+        /*Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
         DruidDataSource pool = new DruidFactory().createPool("457.prism_shareholder_path");
         DruidPooledConnection connection = pool.getConnection();
@@ -29,6 +17,6 @@ public class DemoPrintJob {
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
         DataStreamSource<Row> stream = env.fromElements(row);
         tEnv.createTemporaryView("t", tEnv.fromDataStream(stream).as("id", "company_id", "shareholder_id", "shareholder_entity_type", "shareholder_name_id", "investment_ratio_total", "is_controller", "is_ultimate", "is_big_shareholder", "is_controlling_shareholder", "equity_holding_path", "create_time", "update_time", "is_deleted"));
-        tEnv.executeSql("select * from t").print();
+        tEnv.executeSql("select * from t").print();*/
     }
 }
