@@ -92,7 +92,7 @@ public class EvaluationInstitutionCandidateJob {
             CompanyLawHumanRealtion.class,
             Enterprise.class,
             ZhixinginfoEvaluateResult.class,
-            EntityEnforcementObjectEvaluateInstitutionCandidateDetailsMiddle.class
+            EntityEnforcementObjectEvaluateInstitutionCandidateMiddle.class
     })
     private final static class EvaluationInstitutionCandidateSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;

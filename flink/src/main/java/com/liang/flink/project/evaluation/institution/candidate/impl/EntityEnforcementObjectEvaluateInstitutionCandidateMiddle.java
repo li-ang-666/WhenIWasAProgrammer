@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class EntityEnforcementObjectEvaluateInstitutionCandidateDetailsMiddle extends AbstractDataUpdate<String> {
+public class EntityEnforcementObjectEvaluateInstitutionCandidateMiddle extends AbstractDataUpdate<String> {
 
     @Override
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
