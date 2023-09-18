@@ -18,6 +18,7 @@ object SqlHolder {
     s"""
        |insert into ${EvaluationInstitutionCandidateService.TABLE.replace("middle", "details")}
        |select
+       |  `id`,
        |  `tyc_unique_entity_id_subject_to_enforcement`,
        |  `entity_name_valid_subject_to_enforcement`,
        |  `entity_type_id_subject_to_enforcement`,
@@ -32,7 +33,9 @@ object SqlHolder {
        |  `enforcement_object_name`,
        |  `lottery_date_to_candidate_evaluation_institution`,
        |  `is_evaluation_institution_candidate`,
-       |  `delete_status`
+       |  `delete_status`,
+       |  `create_time`,
+       |  `update_time`
        |from ${EvaluationInstitutionCandidateService.TABLE}
        |where enforcement_case_number = (
        |  select enforcement_case_number
