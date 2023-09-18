@@ -1,37 +1,34 @@
 package com.liang.hudi.job;
 
 
-import org.apache.commons.io.IOUtils;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.CheckpointingMode;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidPooledConnection;
+import com.liang.common.dto.Config;
+import com.liang.common.service.database.factory.DruidFactory;
+import com.liang.common.util.ConfigUtils;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+import org.apache.flink.types.Row;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
 
 public class DemoPrintJob {
     public static void main(String[] args) throws Exception {
-        // read file
-        InputStream stream1 = DemoPrintJob.class.getClassLoader().getResourceAsStream("sqls/kafka.sql");
-        String source = IOUtils.toString(stream1, StandardCharsets.UTF_8);
-        InputStream stream2 = DemoPrintJob.class.getClassLoader().getResourceAsStream("sqls/hudi.sql");
-        String sink = IOUtils.toString(stream2, StandardCharsets.UTF_8);
-
-        // create env
-        Configuration configuration = new Configuration();
-        configuration.setString("rest.bind-port", "12345");
-        configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints/");
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
-        CheckpointConfig checkpointConfig = env.getCheckpointConfig();
-        checkpointConfig.enableUnalignedCheckpoints();
-        checkpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-        checkpointConfig.setCheckpointInterval(1000 * 30);
+        Config config = ConfigUtils.createConfig(null);
+        ConfigUtils.setConfig(config);
+        DruidDataSource pool = new DruidFactory().createPool("457.prism_shareholder_path");
+        DruidPooledConnection connection = pool.getConnection();
+        ResultSet rs = connection.prepareStatement("select * from ratio_path_company limit 1").executeQuery();
+        rs.next();
+        //Row row = Row.of(rs.getObject(1), rs.getObject(2), rs.getObject(3), rs.getObject(4), rs.getObject(5), rs.getObject(6), rs.getObject(7), rs.getObject(8), rs.getObject(9), rs.getObject(10), rs.getObject(11), rs.getObject(12), rs.getObject(13), rs.getObject(14));
+        Row row = Row.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
+        System.out.println(row);
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.enableCheckpointing(6000);
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
-        tEnv.executeSql(source);
-        tEnv.executeSql(sink);
-
-        tEnv.executeSql("select * from hudi_table").print();
+        DataStreamSource<Row> stream = env.fromElements(row);
+        tEnv.createTemporaryView("t", tEnv.fromDataStream(stream).as("id", "company_id", "shareholder_id", "shareholder_entity_type", "shareholder_name_id", "investment_ratio_total", "is_controller", "is_ultimate", "is_big_shareholder", "is_controlling_shareholder", "equity_holding_path", "create_time", "update_time", "is_deleted"));
+        tEnv.executeSql("select * from t").print();
     }
 }
