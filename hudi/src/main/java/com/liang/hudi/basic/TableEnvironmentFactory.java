@@ -20,6 +20,7 @@ public class TableEnvironmentFactory {
     public static StreamTableEnvironment create() {
         StreamExecutionEnvironment env = initEnv();
         configEnv(env);
+        env.setParallelism(1);
         return StreamTableEnvironment.create(env);
     }
 

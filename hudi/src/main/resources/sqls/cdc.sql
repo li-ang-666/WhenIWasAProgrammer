@@ -32,6 +32,9 @@ CREATE TABLE cdc_table (
   'scan.incremental.snapshot.chunk.size' = '10240',
   'scan.snapshot.fetch.size' = '2048',
   'scan.incremental.close-idle-reader.enabled' = 'true',
+  -- mode
+  'scan.startup.mode' = 'initial',
+  'debezium.snapshot.mode' = 'never',
   -- debezium
   'debezium.min.row.count.to.stream.result' = '0'
 );
