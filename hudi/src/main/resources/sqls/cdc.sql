@@ -25,6 +25,9 @@ CREATE TABLE cdc_table (
   'table-name' = 'ratio_path_company',
   'server-id' = '6000-6010',
   'server-time-zone' = 'Asia/Shanghai',
+  'connect.timeout' = '60s',
+  'connect.max-retries' = '5',
+  'heartbeat.interval' = '3600s',
   -- scan
   'scan.incremental.snapshot.chunk.size' = '10240',
   'scan.snapshot.fetch.size' = '2048',
