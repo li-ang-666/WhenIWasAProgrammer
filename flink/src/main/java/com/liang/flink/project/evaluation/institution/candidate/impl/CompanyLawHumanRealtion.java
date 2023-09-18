@@ -1,6 +1,7 @@
 package com.liang.flink.project.evaluation.institution.candidate.impl;
 
 import com.liang.common.service.SQL;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CompanyLawHumanRealtion extends AbstractDataUpdate<String> {
+    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("150.data_index");
 
     @Override
     public List<String> updateWithReturn(SingleCanalBinlog singleCanalBinlog) {
@@ -25,6 +27,8 @@ public class CompanyLawHumanRealtion extends AbstractDataUpdate<String> {
                     .toString();
             sqls.add(sql);
         }
+        jdbcTemplate.update(sqls);
+        sqls.clear();
         return sqls;
     }
 
