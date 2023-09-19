@@ -27,11 +27,10 @@ CREATE TABLE cdc_table (
   'server-time-zone' = 'Asia/Shanghai',
   'connect.timeout' = '60s',
   'connect.max-retries' = '5',
-  'heartbeat.interval' = '3600s',
+  'heartbeat.interval' = '600s',
   -- scan
   'scan.incremental.snapshot.chunk.size' = '10240',
   'scan.snapshot.fetch.size' = '2048',
-  'scan.incremental.close-idle-reader.enabled' = 'true',
   -- debezium
   'debezium.min.row.count.to.stream.result' = '0'
 );
