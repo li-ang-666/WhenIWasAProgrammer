@@ -32,7 +32,7 @@ repairTasks:
     sourceName: "150.data_index"
     tableName: "zhixinginfo_evaluate_index"
     columns: "*"
-    where: "gid=13294192"
+    where: "gid=12862764"
     scanMode: Direct
 
 kafkaConfigs:
