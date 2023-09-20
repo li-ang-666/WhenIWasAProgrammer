@@ -28,10 +28,10 @@ public class PxCheckJob {
                 .createOrReplaceTempView("t6");
         TableFactory.jdbc(spark, "gauss", "entity_annual_report_ebusiness_details")
                 .createOrReplaceTempView("t7");
-        spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_annual_report_shareholder_equity_change_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t3");
-        spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_annual_report_shareholder_equity_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t4");
-        spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_annual_report_investment_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t6");
-        spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_annual_report_ebusiness_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t7");
+        spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_shareholder_equity_change_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t3");
+        spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_shareholder_equity_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t4");
+        spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_investment_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t6");
+        spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_ebusiness_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t7");
         // 工商
         TableFactory.jdbc(spark, "469.entity_operation_development", "entity_mainland_general_registration_info_details")
                 .createOrReplaceTempView("t_company");
