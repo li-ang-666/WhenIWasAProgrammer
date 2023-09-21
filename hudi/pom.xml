@@ -16,13 +16,6 @@
             <artifactId>apollo-client</artifactId>
         </dependency>
 
-        <!--flink sql jdbc sink-->
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-jdbc</artifactId>
-            <version>3.1.0-1.16</version>
-        </dependency>
-
         <!--obs-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -60,70 +53,70 @@
         <!--hudi-->
         <dependency>
             <groupId>org.apache.hudi</groupId>
-            <artifactId>hudi-flink1.16-bundle</artifactId>
-            <version>0.13.0</version>
+            <artifactId>hudi-flink1.15-bundle</artifactId>
+            <version>0.12.3</version>
         </dependency>
 
         <!--flink-->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-api-java</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-api-java-bridge</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-runtime</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-runtime-web</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-runtime</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-planner-loader</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-base</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-json</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-clients</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-core</artifactId>
-            <version>1.16.0</version>
+            <version>1.15.3</version>
         </dependency>
 
         <!--scala-->
