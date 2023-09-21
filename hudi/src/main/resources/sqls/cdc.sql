@@ -23,7 +23,7 @@ CREATE TABLE cdc_table (
   'password' = '2s0^tFa4SLrp72',
   'database-name' = 'prism_shareholder_path',
   'table-name' = 'ratio_path_company',
-  'server-id' = '6000-6010',
+  'server-id' = '6000-6127',
   'server-time-zone' = 'Asia/Shanghai',
   'connect.timeout' = '60s',
   'connect.max-retries' = '5',
