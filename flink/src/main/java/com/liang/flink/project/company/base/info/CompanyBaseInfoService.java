@@ -91,7 +91,7 @@ public class CompanyBaseInfoService {
         String sourceFlag = String.valueOf(enterpriseMap.get("source_flag"));
         if (entityPropertyName.startsWith("工商来源") || entityPropertyName.equals("农民专业合作社")) {
             sqls.add(getCompanySql(enterpriseMap));
-        } else if (entityPropertyName.endsWith("事业单位") && "institution".equals(sourceFlag)) {
+        } else if (entityPropertyName.endsWith("事业单位") && sourceFlag.contains("institution")) {
             String sql = getInstitutionSql(enterpriseMap);
             sqls.add(sql != null ? sql : deleteSql2);
         } else if (entityPropertyName.endsWith("事业单位") && sourceFlag.startsWith("org_19")) {
