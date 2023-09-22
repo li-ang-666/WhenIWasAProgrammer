@@ -1,4 +1,4 @@
-CREATE TABLE cdc_table (
+CREATE TABLE source_table (
   id                         DECIMAL(20, 0),
   company_id                 BIGINT,
   shareholder_id             STRING,
