@@ -34,7 +34,7 @@ create table hudi_table(
   -- compaction
   'compaction.schedule.enabled' = 'true',
   'compaction.trigger.strategy' = 'time_elapsed',
-  'compaction.delta_seconds' = '1800',
+  'compaction.delta_seconds' = '600',
   'compaction.async.enabled' = 'false',
   'clean.async.enabled' = 'false'
 )
