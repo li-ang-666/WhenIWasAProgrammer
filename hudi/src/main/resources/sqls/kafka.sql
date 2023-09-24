@@ -16,7 +16,7 @@ CREATE TABLE source_table (
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'kafka',
-  'topic' = '9349c.json.prism_shareholder_path.ratio_path_company',
+  'topic' = 'e1d4c.json.prism_shareholder_path.ratio_path_company',
   'properties.bootstrap.servers' = '10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092',
   'properties.group.id' = 'demo-job',
   'scan.startup.mode' = 'earliest-offset',

@@ -7,12 +7,16 @@ import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
+import lombok.RequiredArgsConstructor;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AdsJob {
     public static void main(String[] args) throws Exception {
@@ -24,33 +28,30 @@ public class AdsJob {
         spark.stop();
     }
 
+    @RequiredArgsConstructor
     private static class Sink implements ForeachPartitionFunction<Row> {
+        private final static Set<String> DIMENSION_KEYS = new HashSet<String>() {{
+            add("...");
+        }};
         private final Config config;
 
-        public Sink(Config config) {
-            this.config = config;
-        }
-
         @Override
-        public void call(Iterator<Row> rowIterator) throws Exception {
+        public void call(Iterator<Row> rowIterator) {
             ConfigUtils.setConfig(config);
             DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
             dorisTemplate.enableCache();
-
+            // config `delete_on` and `seq_col` if is unique
             DorisSchema dorisSchema = DorisSchema.builder()
-                    .database("test_db")
-                    .tableName("ads_user_tag_commercial_df_tmp")
-                    .uniqueOrderBy(DorisSchema.DEFAULT_UNIQUE_ORDER_BY)
-                    .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
-                    .build();
+                    .database("ads")
+                    .tableName("ads_user_tag_commercial").build();
             while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                String json = row.json();
+                String json = rowIterator.next().json();
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(json);
-                columnMap.put("__DORIS_DELETE_SIGN__", 0);
-                columnMap.put("__DORIS_SEQUENCE_COL__", System.currentTimeMillis());
-                DorisOneRow dorisOneRow = new DorisOneRow(dorisSchema, columnMap);
-                dorisTemplate.update(dorisOneRow);
+                // filter needed dimension columns
+                Map<String, Object> sinkMap = columnMap.entrySet().stream()
+                        .filter(entry -> DIMENSION_KEYS.contains(entry.getKey()))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                dorisTemplate.update(new DorisOneRow(dorisSchema, sinkMap));
             }
             dorisTemplate.flush();
         }
