@@ -19,6 +19,7 @@ public class TableEnvironmentFactory {
 
     public static StreamTableEnvironment create() {
         StreamExecutionEnvironment env = initEnv();
+        env.disableOperatorChaining();
         //env.setRuntimeMode(RuntimeExecutionMode.BATCH);
         configEnv(env);
         return StreamTableEnvironment.create(env);
@@ -33,6 +34,8 @@ public class TableEnvironmentFactory {
         Configuration configuration = new Configuration();
         configuration.setString("rest.bind-port", "54321");
         configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints/");
+        configuration.setString("taskmanager.memory.network.min", "1g");
+        configuration.setString("taskmanager.memory.network.max", "1g");
         //configuration.setString("execution.savepoint.path", "file://" + "/Users/liang/Desktop/flink-checkpoints/53b0ef2c94cda86ea614605757352069/chk-2");
         return StreamExecutionEnvironment.getExecutionEnvironment(configuration);
     }
