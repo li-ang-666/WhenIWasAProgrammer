@@ -15,7 +15,6 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -23,20 +22,20 @@ public class ShareholderToMysqlJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         DruidDataSource pool = new DruidFactory().createPool("427.test");
-        HashMap<String, String> configMap = new HashMap<String, String>() {{
-            put("driver", pool.getDriverClassName());
-            put("url", pool.getUrl());
-            put("dbtable", "test.ratio_path_company");
-            put("user", pool.getUsername());
-            put("password", pool.getPassword());
-            put("batchsize", "1024");
-            put("truncate", "true");
-        }};
+        String url = pool.getUrl();
+        String userName = pool.getUsername();
+        String password = pool.getPassword();
         TableFactory.jdbc(spark, "457.prism_shareholder_path", "ratio_path_company")
                 .write()
                 .mode(SaveMode.Overwrite)
                 .format("jdbc")
-                .options(configMap).save();
+                .option("dbtable", "ratio_path_company")
+                .option("url", url)
+                .option("user", userName)
+                .option("password", password)
+                .option("batchsize", "1024")
+                .option("truncate", "true")
+                .save();
     }
 
     private final static class Sink implements ForeachPartitionFunction<Row> {
