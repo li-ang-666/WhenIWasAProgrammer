@@ -19,8 +19,6 @@ public class TableEnvironmentFactory {
 
     public static StreamTableEnvironment create() {
         StreamExecutionEnvironment env = initEnv();
-        env.disableOperatorChaining();
-        //env.setRuntimeMode(RuntimeExecutionMode.BATCH);
         configEnv(env);
         return StreamTableEnvironment.create(env);
     }
