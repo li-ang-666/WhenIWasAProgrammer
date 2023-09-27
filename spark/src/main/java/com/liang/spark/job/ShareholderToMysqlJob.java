@@ -22,11 +22,11 @@ import java.util.Map;
 public class ShareholderToMysqlJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        DruidDataSource pool = new DruidFactory().createPool("457.prism_shareholder_path");
+        DruidDataSource pool = new DruidFactory().createPool("427.test");
         HashMap<String, String> configMap = new HashMap<String, String>() {{
             put("driver", pool.getDriverClassName());
             put("url", pool.getUrl());
-            put("dbtable", "prism_shareholder_path.ratio_path_company");
+            put("dbtable", "test.ratio_path_company");
             put("user", pool.getUsername());
             put("password", pool.getPassword());
             put("batchsize", "1024");
