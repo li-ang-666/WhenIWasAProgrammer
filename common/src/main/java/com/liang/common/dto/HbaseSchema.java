@@ -26,6 +26,13 @@ public class HbaseSchema implements Serializable {
             .columnFamily("count")
             .rowKeyReverse(true)
             .build();
+    // 公司count_ali
+    public static final HbaseSchema COMPANY_ALL_COUNT_ALI = HbaseSchema.builder()
+            .namespace("prism_c")
+            .tableName("company_all_count_ali")
+            .columnFamily("count")
+            .rowKeyReverse(true)
+            .build();
     // 公司背景
     public static final HbaseSchema COMPANY_BASE_SPLICE = HbaseSchema.builder()
             .namespace("prism_c")
