@@ -10,6 +10,12 @@
     </parent>
     <artifactId>hudi</artifactId>
     <dependencies>
+        <!--bulk_insert-->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-table-planner_2.12</artifactId>
+            <version>1.16.2</version>
+        </dependency>
         <!--apollo-->
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>
@@ -88,11 +94,11 @@
             <artifactId>flink-table-runtime</artifactId>
             <version>1.16.2</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-planner-loader</artifactId>
             <version>1.16.2</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka</artifactId>
