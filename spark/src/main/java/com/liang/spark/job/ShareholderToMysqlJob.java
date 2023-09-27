@@ -21,7 +21,7 @@ import java.util.Map;
 public class ShareholderToMysqlJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        DruidDataSource pool = new DruidFactory().createPool("427.test");
+        DruidDataSource pool = new DruidFactory().createPool("gauss");
         String url = pool.getUrl();
         String userName = pool.getUsername();
         String password = pool.getPassword();
