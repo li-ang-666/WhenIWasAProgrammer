@@ -1,38 +1,42 @@
 package com.liang.spark.job;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.liang.common.dto.Config;
+import com.liang.common.service.database.factory.DruidFactory;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.spark.basic.SparkSessionFactory;
+import com.liang.spark.basic.TableFactory;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 public class ShareholderToMysqlJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        String arg = args[1];
-        String source;
-        String sink;
-        if ("1".equals(arg)) {
-            source = "dwc.dwc_new_tab3_entity_beneficiary_details_df";
-            sink = "entity_beneficiary_details";
-        } else if ("2".equals(arg)) {
-            source = "dwc.dwc_new_tab3_entity_controller_details_df";
-            sink = "entity_controller_details";
-        } else {
-            throw new RuntimeException();
-        }
-
-        spark.sql(String.format("select * from %s where pt = '20230702' ", source))
-                .repartition(1200)
-                .foreachPartition(new Sink(ConfigUtils.getConfig(), sink));
+        DruidDataSource pool = new DruidFactory().createPool("457.prism_shareholder_path");
+        HashMap<String, String> configMap = new HashMap<String, String>() {{
+            put("driver", pool.getDriverClassName());
+            put("url", pool.getUrl());
+            put("dbtable", "prism_shareholder_path.ratio_path_company");
+            put("user", pool.getUsername());
+            put("password", pool.getPassword());
+            put("batchsize", "1024");
+            put("truncate", "true");
+        }};
+        TableFactory.jdbc(spark, "457.prism_shareholder_path", "ratio_path_company")
+                .write()
+                .mode(SaveMode.Overwrite)
+                .format("jdbc")
+                .options(configMap).save();
     }
 
     private final static class Sink implements ForeachPartitionFunction<Row> {
