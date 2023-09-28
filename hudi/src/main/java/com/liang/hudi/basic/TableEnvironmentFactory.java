@@ -2,6 +2,7 @@ package com.liang.hudi.basic;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
@@ -20,6 +21,7 @@ public class TableEnvironmentFactory {
     public static StreamTableEnvironment create() {
         StreamExecutionEnvironment env = initEnv();
         configEnv(env);
+        env.setRuntimeMode(RuntimeExecutionMode.BATCH);
         return StreamTableEnvironment.create(env);
     }
 
