@@ -5,7 +5,6 @@ import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hudi.DataSourceReadOptions;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RuntimeConfig;
 import org.apache.spark.sql.SparkSession;
 
 import java.util.List;
@@ -14,9 +13,6 @@ import java.util.List;
 public class QueryJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        RuntimeConfig conf = spark.conf();
-        conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-        conf.set("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension");
         spark.read()
                 .format("hudi")
                 .option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_READ_OPTIMIZED_OPT_VAL())
