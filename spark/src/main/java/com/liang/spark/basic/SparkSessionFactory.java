@@ -28,11 +28,15 @@ public class SparkSessionFactory {
             return SparkSession
                     .builder()
                     .config("spark.debug.maxToStringFields", "200")
+                    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+                    .config("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension")
                     .enableHiveSupport()
                     .getOrCreate();
         } catch (Exception e) {
             return SparkSession.builder()
                     .config("spark.debug.maxToStringFields", "200")
+                    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+                    .config("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension")
                     .master("local[*]")
                     .getOrCreate();
         }
