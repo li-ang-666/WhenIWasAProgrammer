@@ -15,6 +15,7 @@ public class QueryJob {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         spark.read()
                 .format("hudi")
+                //.option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_SNAPSHOT_OPT_VAL())
                 .option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_READ_OPTIMIZED_OPT_VAL())
                 .load("obs://hadoop-obs/hudi_ods/ratio_path_company005")
                 .createOrReplaceTempView("hudi_table");
