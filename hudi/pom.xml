@@ -21,11 +21,6 @@
             <artifactId>flink-connector-jdbc</artifactId>
             <version>1.15.4</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.parquet</groupId>
-            <artifactId>parquet-avro</artifactId>
-            <version>1.13.1</version>
-        </dependency>
 
         <!--apollo-->
         <dependency>
