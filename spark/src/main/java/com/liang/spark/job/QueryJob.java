@@ -3,6 +3,7 @@ package com.liang.spark.job;
 import com.liang.common.util.ApolloUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hudi.DataSourceReadOptions;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RuntimeConfig;
 import org.apache.spark.sql.SparkSession;
@@ -16,10 +17,9 @@ public class QueryJob {
         RuntimeConfig conf = spark.conf();
         conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
         conf.set("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension");
-        conf.set("spark.kryo.registrator", "org.apache.spark.HoodieSparkKryoRegistrar");
         spark.read()
                 .format("hudi")
-                .option("hoodie.datasource.query.type", "read_optimized")
+                .option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_READ_OPTIMIZED_OPT_VAL())
                 .load("obs://hadoop-obs/hudi_ods/ratio_path_company005")
                 .createOrReplaceTempView("hudi_table");
         String sql = ApolloUtils.get("spark");
