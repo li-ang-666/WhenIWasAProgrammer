@@ -13,13 +13,14 @@ import java.util.List;
 public class QueryJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
+        String apollo = ApolloUtils.get("spark");
         spark.read()
                 .format("hudi")
-                //.option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_SNAPSHOT_OPT_VAL())
-                .option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_READ_OPTIMIZED_OPT_VAL())
-                .load("obs://hadoop-obs/hudi_ods/ratio_path_company005")
+                .option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_SNAPSHOT_OPT_VAL())
+                //.option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_READ_OPTIMIZED_OPT_VAL())
+                .load(apollo.split(";")[0])
                 .createOrReplaceTempView("hudi_table");
-        String sql = ApolloUtils.get("spark");
+        String sql = apollo.split(";")[1];
         log.info("sql: {}", sql);
         List<Row> rows = spark.sql(sql).collectAsList();
         for (Row row : rows) {
