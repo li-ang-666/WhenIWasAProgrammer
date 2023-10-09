@@ -31,6 +31,6 @@ create table enterprise(
   'path' = 'obs://hadoop-obs/hudi_ods/enterprise022',
   -- read
   'read.streaming.enabled' = 'true',
-  'read.start-commit' = 'latest',
-  'read.streaming.check-interval' = '30'
+  'read.start-commit' = '20231009174000',
+  'read.streaming.check-interval' = '5'
 );
