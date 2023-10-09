@@ -12,8 +12,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.Map;
-
 @Slf4j
 @LocalConfigFile("demo.yml")
 public class DemoJob {
@@ -37,12 +35,9 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String ename = String.valueOf(columnMap.get("ename"));
-            String id = String.valueOf(columnMap.get("id"));
-            if (ename.matches(".*?([,，、 ;；]).*")) {
-                log.error("id: {}, ename: {}", id, ename);
-            }
+            //if(singleCanalBinlog.getEventType()== CanalEntry.EventType.DELETE){
+            System.out.println(singleCanalBinlog);
+            //}
         }
     }
 }
