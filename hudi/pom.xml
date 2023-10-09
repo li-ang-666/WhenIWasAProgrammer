@@ -10,6 +10,19 @@
     </parent>
     <artifactId>hudi</artifactId>
     <dependencies>
+        <!--read hudi-->
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>3.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!--bulk_insert-->
         <dependency>
             <groupId>org.apache.flink</groupId>
