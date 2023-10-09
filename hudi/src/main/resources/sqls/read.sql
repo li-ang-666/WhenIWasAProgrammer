@@ -1,0 +1,36 @@
+create table enterprise(
+  id                DECIMAL(20,0),
+  graph_id          BIGINT,
+  base              STRING,
+  name              STRING,
+  legal_person_id   BIGINT,
+  legal_person_name STRING,
+  legal_person_type INT,
+  code              STRING,
+  reg_number        STRING,
+  company_org_type  STRING,
+  reg_location      STRING,
+  establish_date    DATE,
+  from_date         DATE,
+  to_date           DATE,
+  business_scope    STRING,
+  reg_institute     STRING,
+  approved_date     DATE,
+  reg_status        STRING,
+  reg_capital       STRING,
+  org_number        STRING,
+  source_flag       STRING,
+  crawled_time      TIMESTAMP(3),
+  deleted           TINYINT,
+  create_time       TIMESTAMP(3),
+  update_time       TIMESTAMP(3),
+  op_ts             TIMESTAMP(3),
+  PRIMARY KEY (id) NOT ENFORCED
+) WITH (
+  'connector' = 'hudi',
+  'path' = 'obs://hadoop-obs/hudi_ods/enterprise022',
+  -- read
+  'read.streaming.enabled' = 'true',
+  'read.start-commit' = '20231009170000',
+  'read.streaming.check-interval' = '30'
+);
