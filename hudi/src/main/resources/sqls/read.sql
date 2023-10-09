@@ -29,8 +29,9 @@ create table enterprise(
 ) WITH (
   'connector' = 'hudi',
   'path' = 'obs://hadoop-obs/hudi_ods/enterprise022',
+  'table.type' = 'MERGE_ON_READ',
   -- read
   'read.streaming.enabled' = 'true',
-  'read.start-commit' = '20231009174000',
+  --'read.start-commit' = 'earliest',
   'read.streaming.check-interval' = '5'
 );
