@@ -11,6 +11,6 @@ public class DemoPrintJob {
         StreamTableEnvironment tEnv = TableEnvironmentFactory.create();
         // exec sql
         tEnv.executeSql(TableFactory.fromFile("read.sql"));
-        tEnv.executeSql("select * from enterprise").print();
+        tEnv.executeSql("select id,count(1) cnt from enterprise group by id").print();
     }
 }

@@ -11,6 +11,6 @@ create table enterprise(
   -- read
   'read.tasks' = '1',
   'read.streaming.enabled' = 'true',
-  --'read.start-commit' = '',
+  'read.start-commit' = 'earliest',
   'read.streaming.check-interval' = '5'
 );
