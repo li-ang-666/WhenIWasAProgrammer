@@ -17,13 +17,13 @@ create table enterprise(
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'hudi',
-  'path' = 'obs://hadoop-obs/hudi_ods/ratio_path_company004',
+  'path' = 'obs://hadoop-obs/hudi_ods/ratio_path_company005',
   'table.type' = 'MERGE_ON_READ',
   -- cdc
   'changelog.enabled' = 'true',
   -- read
   'read.tasks' = '1',
   'read.streaming.enabled' = 'true',
-  'read.start-commit' = 'earliest',
+  --'read.start-commit' = 'earliest',
   'read.streaming.check-interval' = '5'
 );

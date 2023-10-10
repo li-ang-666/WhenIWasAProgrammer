@@ -16,7 +16,6 @@ import org.apache.flink.table.data.*;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Collector;
 import org.apache.hudi.common.model.HoodieTableType;
-import org.apache.hudi.configuration.FlinkOptions;
 import org.apache.hudi.index.HoodieIndex;
 import org.apache.hudi.util.HoodiePipeline;
 
@@ -27,10 +26,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.hudi.configuration.FlinkOptions.*;
+
 @SuppressWarnings("unchecked")
 @Slf4j
 public class ApiJob {
-    private static final String PATH = "obs://hadoop-obs/hudi_ods/ratio_path_company004";
+    private static final String OBS_PATH = "obs://hadoop-obs/hudi_ods/ratio_path_company005";
 
     public static void main(String[] args) throws Exception {
         Configuration configuration = new Configuration();
@@ -114,30 +115,29 @@ public class ApiJob {
                 .column("op_ts                      TIMESTAMP(3)")
                 .pk("id")
                 // common
-                .option(FlinkOptions.PATH, PATH)
-                .option(FlinkOptions.TABLE_TYPE, HoodieTableType.MERGE_ON_READ)
+                .option(PATH, OBS_PATH)
+                .option(TABLE_TYPE, HoodieTableType.MERGE_ON_READ)
                 // cdc
-                .option(FlinkOptions.CHANGELOG_ENABLED, true)
+                .option(CHANGELOG_ENABLED, true)
                 // index
-                .option(FlinkOptions.INDEX_TYPE, HoodieIndex.IndexType.BUCKET)
-                .option(FlinkOptions.BUCKET_INDEX_NUM_BUCKETS, 128)
+                .option(INDEX_TYPE, HoodieIndex.IndexType.BUCKET)
+                .option(BUCKET_INDEX_NUM_BUCKETS, 128)
                 // write
-                .option(FlinkOptions.WRITE_TASKS, 4)
-                .option(FlinkOptions.WRITE_TASK_MAX_SIZE, 512)
-                .option(FlinkOptions.WRITE_BATCH_SIZE, 8)
-                .option(FlinkOptions.WRITE_LOG_BLOCK_SIZE, 64)
-                .option(FlinkOptions.PRE_COMBINE, true)
-                .option(FlinkOptions.PRECOMBINE_FIELD, "op_ts")
+                .option(WRITE_TASKS, 4)
+                .option(WRITE_TASK_MAX_SIZE, 512)
+                .option(WRITE_BATCH_SIZE, 8)
+                .option(WRITE_LOG_BLOCK_SIZE, 64)
+                .option(PRE_COMBINE, true)
+                .option(PRECOMBINE_FIELD, "op_ts")
                 // compaction
-                .option(FlinkOptions.COMPACTION_SCHEDULE_ENABLED, true)
-                .option(FlinkOptions.COMPACTION_ASYNC_ENABLED.key(), false)
-                .option(FlinkOptions.COMPACTION_DELTA_COMMITS.key(), 30)
+                .option(COMPACTION_SCHEDULE_ENABLED, true)
+                .option(COMPACTION_ASYNC_ENABLED, false)
+                .option(COMPACTION_DELTA_COMMITS, 30)
                 // clean
-                .option(FlinkOptions.CLEAN_ASYNC_ENABLED.key(), true)
-                .option(FlinkOptions.CLEAN_RETAIN_COMMITS.key(), 2880)
+                .option(CLEAN_ASYNC_ENABLED, true)
+                .option(CLEAN_RETAIN_COMMITS, 2880)
                 // sink
                 .sink(dataStream, false);
-        //dataStream.print();
         env.execute("api-job");
     }
 }
