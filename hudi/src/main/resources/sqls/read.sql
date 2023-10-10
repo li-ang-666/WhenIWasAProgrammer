@@ -4,7 +4,7 @@ create table enterprise(
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'hudi',
-  'path' = 'obs://hadoop-obs/hudi_ods/ab_cd_ef002',
+  'path' = 'obs://hadoop-obs/hudi_ods/enterprise001',
   'table.type' = 'MERGE_ON_READ',
   -- cdc
   'changelog.enabled' = 'true',
