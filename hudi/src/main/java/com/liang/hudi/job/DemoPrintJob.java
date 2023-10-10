@@ -1,16 +1,22 @@
 package com.liang.hudi.job;
 
 
-import com.liang.hudi.basic.TableEnvironmentFactory;
 import com.liang.hudi.basic.TableFactory;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 public class DemoPrintJob {
     public static void main(String[] args) throws Exception {
         // create env
-        StreamTableEnvironment tEnv = TableEnvironmentFactory.create();
+        Configuration configuration = new Configuration();
+        configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints");
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
+        env.enableCheckpointing(1000 * 10, CheckpointingMode.EXACTLY_ONCE);
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
         // exec sql
         tEnv.executeSql(TableFactory.fromFile("read.sql"));
-        tEnv.executeSql("select id,count(1) cnt from enterprise group by id").print();
+        tEnv.executeSql("select * from enterprise").print();
     }
 }
