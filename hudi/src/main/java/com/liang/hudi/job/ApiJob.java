@@ -31,14 +31,14 @@ import static org.apache.hudi.configuration.FlinkOptions.*;
 @SuppressWarnings("unchecked")
 @Slf4j
 public class ApiJob {
-    private static final String OBS_PATH = "obs://hadoop-obs/hudi_ods/ratio_path_company005";
+    private static final String OBS_PATH = "obs://hadoop-obs/hudi_ods/ratio_path_company001";
 
     public static void main(String[] args) throws Exception {
         Configuration configuration = new Configuration();
-        configuration.setString("rest.bind-port", "54321");
-        configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints");
+        //configuration.setString("rest.bind-port", "54321");
+        //configuration.setString("state.checkpoints.dir", "file:///Users/liang/Desktop/flink-checkpoints");
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
-        env.enableCheckpointing(1000 * 30, CheckpointingMode.EXACTLY_ONCE);
+        env.enableCheckpointing(1000 * 60, CheckpointingMode.EXACTLY_ONCE);
         env.setParallelism(1);
         // kafka source
         KafkaSource<String> kafkaSource = KafkaSource.<String>builder()
