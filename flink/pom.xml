@@ -12,7 +12,7 @@
     <artifactId>flink</artifactId>
     <dependencies>
         <!--hudi-->
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.hudi</groupId>
             <artifactId>hudi-flink1.17-bundle</artifactId>
             <version>0.14.0</version>
@@ -41,7 +41,7 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-planner_2.12</artifactId>
             <version>1.17.1</version>
-        </dependency>
+        </dependency>-->
         <!--obs-->
         <dependency>
             <groupId>com.huaweicloud</groupId>
