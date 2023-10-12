@@ -37,6 +37,7 @@ public class MultiStreamJob {
                 tEnv.executeSql(sql);
             }
         }
+
 //        StreamStatementSet statementSet = tEnv.createStatementSet();
 //        statementSet.addInsertSql("insert into dwd_ratio_path_company select * from ods_ratio_path_company");
 //        statementSet.addInsertSql("insert into dwd_enterprise select * from ods_enterprise");
