@@ -10,12 +10,11 @@
     </parent>
     <artifactId>hudi</artifactId>
     <dependencies>
-        <!--read hudi-->
+        <!--hive sync-->
         <dependency>
             <groupId>org.apache.hive</groupId>
-            <artifactId>hive-common</artifactId>
+            <artifactId>hive-metastore</artifactId>
             <version>3.1.1</version>
-            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -25,9 +24,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.hive</groupId>
-            <artifactId>hive-metastore</artifactId>
+            <artifactId>hive-common</artifactId>
             <version>3.1.1</version>
-            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
