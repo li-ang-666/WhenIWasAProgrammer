@@ -9,7 +9,7 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 @Slf4j
 public class DemoJob {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         // create env
         StreamTableEnvironment tEnv = TableEnvironmentFactory.create();
         // exec sql
