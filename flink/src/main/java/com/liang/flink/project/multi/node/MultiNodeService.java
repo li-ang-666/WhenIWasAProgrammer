@@ -54,14 +54,9 @@ public class MultiNodeService {
         // 实控相关
         if ("control".equals(module)) {
             for (String type : Arrays.asList("实际控制人", "实际控制权")) {
-                Tuple3<Integer, Integer, Integer> tp3;
-                if ("实际控制人".matches(type)) {
-                    List<String> jsonList = dao.getControlJsonByCompanyId(tycUniqueEntityId);
-                    tp3 = parseJsonList(jsonList, true);
-                } else {
-                    List<String> jsonList = dao.getControlJsonByShareholderId(tycUniqueEntityId);
-                    tp3 = parseJsonList(jsonList, false);
-                }
+                Tuple3<Integer, Integer, Integer> tp3 = "实际控制人".matches(type)
+                        ? parseJsonList(dao.getControlJsonByCompanyId(tycUniqueEntityId), true)
+                        : parseJsonList(dao.getControlJsonByShareholderId(tycUniqueEntityId), false);
                 columnMap.put("controll_graph_data_application_type", type);
                 columnMap.put("total_entity_cnt_through_multi_controll_path", tp3.f0);
                 columnMap.put("min_graph_tier_through_multi_controll_path", tp3.f1);
@@ -77,14 +72,9 @@ public class MultiNodeService {
         // 受益相关
         else {
             String type = TycUtils.isUnsignedId(tycUniqueEntityId) ? "受益所有人" : "受益所有权";
-            Tuple3<Integer, Integer, Integer> tp3;
-            if ("受益所有人".matches(type)) {
-                List<String> jsonList = dao.getBenefitJsonByCompanyId(tycUniqueEntityId);
-                tp3 = parseJsonList(jsonList, true);
-            } else {
-                List<String> jsonList = dao.getBenefitJsonByShareholderId(tycUniqueEntityId);
-                tp3 = parseJsonList(jsonList, false);
-            }
+            Tuple3<Integer, Integer, Integer> tp3 = "受益所有人".matches(type)
+                    ? parseJsonList(dao.getBenefitJsonByCompanyId(tycUniqueEntityId), true)
+                    : parseJsonList(dao.getBenefitJsonByShareholderId(tycUniqueEntityId), false);
             columnMap.put("beneficiary_graph_data_application_type", type);
             columnMap.put("total_entity_cnt_through_multi_beneficiary_path", tp3.f0);
             columnMap.put("min_graph_tier_through_multi_beneficiary_path", tp3.f1);

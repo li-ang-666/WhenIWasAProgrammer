@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
@@ -50,6 +51,31 @@ public class MultiNodeJob {
         env.execute("MultiNodeJob");
     }
 
+    @RequiredArgsConstructor
+    private final static class MultiNodeSink extends RichSinkFunction<Input> {
+        private final Config config;
+        private MultiNodeService service;
+        private JdbcTemplate sink;
+
+        @Override
+        public void open(Configuration parameters) {
+            ConfigUtils.setConfig(config);
+            service = new MultiNodeService();
+            sink = new JdbcTemplate("427.test");
+        }
+
+        @Override
+        public void invoke(Input input, Context context) {
+            List<String> sqls = service.invoke(input);
+            sink.update(sqls);
+        }
+
+        @Override
+        public void close() {
+            ConfigUtils.unloadAll();
+        }
+    }
+
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
@@ -57,25 +83,5 @@ public class MultiNodeJob {
         private String module;
         private String id;
         private String name;
-    }
-
-    @RequiredArgsConstructor
-    private final static class MultiNodeSink extends RichSinkFunction<Input> {
-        private final Config config;
-        private MultiNodeService service;
-
-        @Override
-        public void open(Configuration parameters) {
-            ConfigUtils.setConfig(config);
-            service = new MultiNodeService();
-        }
-
-        @Override
-        public void invoke(Input input, Context context) {
-            List<String> sqls = service.invoke(input);
-            for (String sql : sqls) {
-                log.info("sql: {}", sql);
-            }
-        }
     }
 }
