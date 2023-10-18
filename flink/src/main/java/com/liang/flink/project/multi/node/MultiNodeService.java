@@ -31,7 +31,7 @@ public class MultiNodeService {
                     .SET("entity_name_valid = " + SqlUtils.formatValue(entityNameValid))
                     .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
                     .toString();
-            String updateSql2 = new SQL().UPDATE(CONTROL_SINK)
+            String updateSql2 = new SQL().UPDATE(BENEFIT_SINK)
                     .SET("entity_name_valid = " + SqlUtils.formatValue(entityNameValid))
                     .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
                     .toString();
