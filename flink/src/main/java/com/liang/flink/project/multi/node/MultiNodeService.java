@@ -99,20 +99,17 @@ public class MultiNodeService {
                 if (needReverse) {
                     Collections.reverse(nodes);
                 }
-                int size = nodes.size();
-                for (int i = 0; i < size; i++) {
-                    if (i == 0) {
-                        continue;
-                    }
+                // 掐掉第0层
+                for (int i = 1; i < nodes.size(); i++) {
                     Map<String, Object> node = nodes.get(i);
                     String id = String.valueOf(node.get("id"));
                     id2Levels.putIfAbsent(id, new HashSet<>());
                     id2Levels.get(id).add(i);
                 }
-                log.info("nodes: {}", nodes);
+                //log.info("nodes: {}", nodes);
             }
         }
-        log.info("id2Levels: {}", id2Levels);
+        //log.info("id2Levels: {}", id2Levels);
         AtomicInteger num = new AtomicInteger(0);
         AtomicInteger min = new AtomicInteger(Integer.MAX_VALUE);
         AtomicInteger max = new AtomicInteger(Integer.MIN_VALUE);
@@ -126,7 +123,7 @@ public class MultiNodeService {
         Tuple3<Integer, Integer, Integer> res = num.get() != 0
                 ? Tuple3.of(num.get(), min.get(), max.get())
                 : Tuple3.of(0, 0, 0);
-        log.info("res: {}", res);
+        //log.info("res: {}", res);
         return res;
     }
 }
