@@ -18,7 +18,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
 import java.util.List;
@@ -31,27 +30,23 @@ public class MultiNodeJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> dataStream = StreamFactory.create(env);
-        dataStream.rebalance().flatMap(new FlatMapFunction<SingleCanalBinlog, Input>() {
-            @Override
-            public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Input> out) {
-                String table = singleCanalBinlog.getTable();
-                Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-                if (table.equals("entity_controller_details")) {
-                    out.collect(new Input("control", String.valueOf(columnMap.get("tyc_unique_entity_id")), ""));
-                    out.collect(new Input("control", String.valueOf(columnMap.get("company_id_controlled")), ""));
-                } else if (table.equals("entity_beneficiary_details")) {
-                    out.collect(new Input("benefit", String.valueOf(columnMap.get("tyc_unique_entity_id")), ""));
-                    out.collect(new Input("benefit", String.valueOf(columnMap.get("tyc_unique_entity_id_beneficiary")), ""));
-                } else {
-                    out.collect(new Input("name", String.valueOf(columnMap.get("tyc_unique_entity_id")), String.valueOf(columnMap.get("entity_name_valid"))));
-                }
-            }
-        }).setParallelism(config.getFlinkConfig().getOtherParallel()).keyBy(new KeySelector<Input, Input>() {
-            @Override
-            public Input getKey(Input input) {
-                return input;
-            }
-        }).addSink(new MultiNodeSink(config)).setParallelism(config.getFlinkConfig().getOtherParallel());
+        dataStream
+                .rebalance()
+                .flatMap((FlatMapFunction<SingleCanalBinlog, Input>) (singleCanalBinlog, out) -> {
+                    String table = singleCanalBinlog.getTable();
+                    Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+                    if (table.equals("entity_controller_details")) {
+                        out.collect(new Input("control", String.valueOf(columnMap.get("company_id_controlled")), ""));
+                        out.collect(new Input("control", String.valueOf(columnMap.get("tyc_unique_entity_id")), ""));
+                    } else if (table.equals("entity_beneficiary_details")) {
+                        out.collect(new Input("benefit", String.valueOf(columnMap.get("tyc_unique_entity_id")), ""));
+                        out.collect(new Input("benefit", String.valueOf(columnMap.get("tyc_unique_entity_id_beneficiary")), ""));
+                    } else {
+                        out.collect(new Input("name", String.valueOf(columnMap.get("tyc_unique_entity_id")), String.valueOf(columnMap.get("entity_name_valid"))));
+                    }
+                }).returns(Input.class).setParallelism(config.getFlinkConfig().getOtherParallel())
+                .keyBy((KeySelector<Input, Input>) input -> input)
+                .addSink(new MultiNodeSink(config)).setParallelism(config.getFlinkConfig().getOtherParallel()).name("MultiNodeSink");
         env.execute("MultiNodeJob");
     }
 

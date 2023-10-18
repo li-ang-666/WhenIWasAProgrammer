@@ -36,6 +36,10 @@ class FixedMySQLDialect extends JdbcDialect {
     s"ALTER TABLE $tableName MODIFY COLUMN ${quoteIdentifier(columnName)} $newDataType"
   }
 
+  override def quoteIdentifier(colName: String): String = {
+    s"`$colName`"
+  }
+
   override def getRenameColumnQuery(tableName: String, columnName: String, newName: String, dbMajorVersion: Int): String = {
     if (dbMajorVersion >= 8) {
       s"ALTER TABLE $tableName RENAME COLUMN ${quoteIdentifier(columnName)} TO" +
@@ -44,10 +48,6 @@ class FixedMySQLDialect extends JdbcDialect {
       throw new SQLFeatureNotSupportedException(
         s"Rename column is only supported for MySQL version 8.0 and above.")
     }
-  }
-
-  override def quoteIdentifier(colName: String): String = {
-    s"`$colName`"
   }
 
   override def getUpdateColumnNullabilityQuery(tableName: String, columnName: String, isNullable: Boolean): String = {
