@@ -57,10 +57,10 @@ public class MultiNodeService {
                 Tuple3<Integer, Integer, Integer> tp3 = "实际控制人".matches(type)
                         ? parseJsonList(dao.getControlJsonByCompanyId(tycUniqueEntityId), true)
                         : parseJsonList(dao.getControlJsonByShareholderId(tycUniqueEntityId), false);
-                columnMap.put("controll_graph_data_application_type", type);
-                columnMap.put("total_entity_cnt_through_multi_controll_path", tp3.f0);
-                columnMap.put("min_graph_tier_through_multi_controll_path", tp3.f1);
-                columnMap.put("max_graph_tier_through_multi_controll_path", tp3.f2);
+                columnMap.put("control_graph_data_application_type", type);
+                columnMap.put("total_entity_cnt_through_multi_control_path", tp3.f0);
+                columnMap.put("min_graph_tier_through_multi_control_path", tp3.f1);
+                columnMap.put("max_graph_tier_through_multi_control_path", tp3.f2);
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
                 String insertSql = new SQL().INSERT_INTO(CONTROL_SINK)
                         .INTO_COLUMNS(insert.f0)
