@@ -109,10 +109,10 @@ public class MultiNodeService {
                     id2Levels.putIfAbsent(id, new HashSet<>());
                     id2Levels.get(id).add(i);
                 }
-                //log.info("nodes: {}", nodes);
+                log.info("nodes: {}", nodes);
             }
         }
-        //log.info("id2Levels: {}", id2Levels);
+        log.info("id2Levels: {}", id2Levels);
         AtomicInteger num = new AtomicInteger(0);
         AtomicInteger min = new AtomicInteger(Integer.MAX_VALUE);
         AtomicInteger max = new AtomicInteger(Integer.MIN_VALUE);
@@ -126,7 +126,7 @@ public class MultiNodeService {
         Tuple3<Integer, Integer, Integer> res = num.get() != 0
                 ? Tuple3.of(num.get(), min.get(), max.get())
                 : Tuple3.of(0, 0, 0);
-        //log.info("res: {}", res);
+        log.info("res: {}", res);
         return res;
     }
 }
