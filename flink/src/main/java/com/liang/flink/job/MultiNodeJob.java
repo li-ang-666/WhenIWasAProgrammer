@@ -62,6 +62,7 @@ public class MultiNodeJob {
             ConfigUtils.setConfig(config);
             service = new MultiNodeService();
             sink = new JdbcTemplate("463.bdp_equity");
+            sink.enableCache();
         }
 
         @Override
