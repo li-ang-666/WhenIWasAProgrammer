@@ -11,7 +11,7 @@ public class MultiNodeDao {
     private final static String CONTROL_SOURCE = "entity_controller_details";
     private final static String BENEFIT_SOURCE = "entity_beneficiary_details";
 
-    private final JdbcTemplate jdbcTemplate = new JdbcTemplate("463.bdp_equity");
+    private final JdbcTemplate bdpEquity463 = new JdbcTemplate("463.bdp_equity");
     private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
 
     public String getName(Object tycUniqueEntityId) {
@@ -27,7 +27,7 @@ public class MultiNodeDao {
                 .FROM(CONTROL_SOURCE)
                 .WHERE("company_id_controlled = " + SqlUtils.formatValue(tycUniqueEntityId))
                 .toString();
-        return jdbcTemplate.queryForList(sql, rs -> rs.getString(1));
+        return bdpEquity463.queryForList(sql, rs -> rs.getString(1));
     }
 
     public List<String> getControlJsonByShareholderId(Object tycUniqueEntityId) {
@@ -35,7 +35,7 @@ public class MultiNodeDao {
                 .FROM(CONTROL_SOURCE)
                 .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
                 .toString();
-        return jdbcTemplate.queryForList(sql, rs -> rs.getString(1));
+        return bdpEquity463.queryForList(sql, rs -> rs.getString(1));
     }
 
     public List<String> getBenefitJsonByCompanyId(Object tycUniqueEntityId) {
@@ -43,7 +43,7 @@ public class MultiNodeDao {
                 .FROM(BENEFIT_SOURCE)
                 .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
                 .toString();
-        return jdbcTemplate.queryForList(sql, rs -> rs.getString(1));
+        return bdpEquity463.queryForList(sql, rs -> rs.getString(1));
     }
 
     public List<String> getBenefitJsonByShareholderId(Object tycUniqueEntityId) {
@@ -51,6 +51,6 @@ public class MultiNodeDao {
                 .FROM(BENEFIT_SOURCE)
                 .WHERE("tyc_unique_entity_id_beneficiary = " + SqlUtils.formatValue(tycUniqueEntityId))
                 .toString();
-        return jdbcTemplate.queryForList(sql, rs -> rs.getString(1));
+        return bdpEquity463.queryForList(sql, rs -> rs.getString(1));
     }
 }
