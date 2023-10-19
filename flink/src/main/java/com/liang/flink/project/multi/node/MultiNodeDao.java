@@ -12,13 +12,14 @@ public class MultiNodeDao {
     private final static String BENEFIT_SOURCE = "entity_beneficiary_details";
 
     private final JdbcTemplate jdbcTemplate = new JdbcTemplate("463.bdp_equity");
+    private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
 
     public String getName(Object tycUniqueEntityId) {
         String sql = new SQL().SELECT("entity_name_valid")
                 .FROM(NAME_SOURCE)
                 .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
                 .toString();
-        return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+        return companyBase465.queryForObject(sql, rs -> rs.getString(1));
     }
 
     public List<String> getControlJsonByCompanyId(Object tycUniqueEntityId) {
