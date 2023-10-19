@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @SuppressWarnings("unchecked")
 public class MultiNodeService {
-    private final static String CONTROL_SINK = "entity_controller_multi_node_details";
-    private final static String BENEFIT_SINK = "entity_beneficiary_multi_node_details";
+    private final static String CONTROL_SINK = "control_graph_analysis_through_multi_control_path";
+    private final static String BENEFIT_SINK = "beneficiary_graph_analysis_through_multi_beneficiary_path";
 
     private final MultiNodeDao dao = new MultiNodeDao();
 

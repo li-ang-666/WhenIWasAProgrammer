@@ -61,7 +61,7 @@ public class MultiNodeJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             service = new MultiNodeService();
-            sink = new JdbcTemplate("427.test");
+            sink = new JdbcTemplate("463.bdp_equity");
         }
 
         @Override
