@@ -46,7 +46,7 @@ public class MultiNodeJob {
                         out.collect(new Input("name", String.valueOf(columnMap.get("tyc_unique_entity_id")), String.valueOf(columnMap.get("entity_name_valid"))));
                     }
                 }).returns(Input.class).setParallelism(config.getFlinkConfig().getOtherParallel())
-                .keyBy((KeySelector<Input, Input>) input -> input)
+                .keyBy((KeySelector<Input, String>) Input::getId)
                 .addSink(new MultiNodeSink(config)).setParallelism(config.getFlinkConfig().getOtherParallel()).name("MultiNodeSink");
         env.execute("MultiNodeJob");
     }

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class MultiNodeService {
     private final static String CONTROL_SINK = "entity_controller_multi_node_details";
     private final static String BENEFIT_SINK = "entity_beneficiary_multi_node_details";
+
     private final MultiNodeDao dao = new MultiNodeDao();
 
     public List<String> invoke(MultiNodeJob.Input input) {
@@ -53,7 +54,14 @@ public class MultiNodeService {
         columnMap.put("entity_type_id", TycUtils.isUnsignedId(tycUniqueEntityId) ? "1" : "2");
         // 实控相关
         if ("control".equals(module)) {
-            for (String type : Arrays.asList("实际控制人", "实际控制权")) {
+            List<String> types = new ArrayList<>();
+            if (TycUtils.isUnsignedId(tycUniqueEntityId)) {
+                types.add("实际控制人");
+                types.add("实际控制权");
+            } else {
+                types.add("实际控制权");
+            }
+            for (String type : types) {
                 Tuple3<Integer, Integer, Integer> tp3 = "实际控制人".matches(type)
                         ? parseJsonList(dao.getControlJsonByCompanyId(tycUniqueEntityId), true)
                         : parseJsonList(dao.getControlJsonByShareholderId(tycUniqueEntityId), false);
