@@ -5,6 +5,7 @@ import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
@@ -184,7 +185,8 @@ public class CompanyBaseInfoService {
         // 登记机关
         columnMap.put("registration_institute", ifNull(govMap, "hold_unit", null));
         // 原证书号
-        columnMap.put("original_certificate_number_public_institution", String.valueOf(govMap.get("old_cert")).replaceAll("[^0-9]", ""));
+        String originalCertificateNumberPublicInstitution = String.valueOf(govMap.get("old_cert")).replaceAll("[^0-9]", "");
+        columnMap.put("original_certificate_number_public_institution", StringUtils.isNumeric(originalCertificateNumberPublicInstitution) ? originalCertificateNumberPublicInstitution : null);
         // 工商注册号 基础数据:端上无
         columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", null));
         // 统一社会信用代码

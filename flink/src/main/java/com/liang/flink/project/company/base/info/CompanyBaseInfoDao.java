@@ -81,13 +81,13 @@ public class CompanyBaseInfoDao {
             String reg_status = rs.getString(5);
             // 清洗
             if (StringUtils.isNumeric(reg_capital_amount) && !"0".equals(reg_capital_amount)) {
-                reg_capital_currency = TycUtils.isValidName(reg_capital_currency) ? reg_capital_currency : null;
+                reg_capital_currency = TycUtils.isValidName(reg_capital_currency) ? reg_capital_currency : "人民币";
             } else {
                 reg_capital_amount = null;
                 reg_capital_currency = null;
             }
             if (StringUtils.isNumeric(actual_capital_amount) && !"0".equals(actual_capital_amount)) {
-                actual_capital_currency = TycUtils.isValidName(actual_capital_currency) ? actual_capital_currency : null;
+                actual_capital_currency = TycUtils.isValidName(actual_capital_currency) ? actual_capital_currency : "人民币";
             } else {
                 actual_capital_amount = null;
                 actual_capital_currency = null;
