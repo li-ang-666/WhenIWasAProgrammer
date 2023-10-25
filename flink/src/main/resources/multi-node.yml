@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "463.bdp_equity"
     tableName: "entity_controller_details"
     columns: "*"
-    where: "tyc_unique_entity_id = '3072193686' or company_id_controlled = '3072193686'"
+    where: "company_id_controlled = '2983339748'"
     scanMode: Direct
 #  - taskId: "222"
 #    sourceName: "463.bdp_equity"
