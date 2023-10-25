@@ -1,31 +1,19 @@
 package com.liang.flink.test;
 
-import cn.hutool.core.lang.Snowflake;
 import lombok.extern.slf4j.Slf4j;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
 
 @Slf4j
 public class FlinkTest {
-    public static void main(String[] args) {
-        new Snowflake(1);
-        new Snowflake(2);
-        new Snowflake(3);
-        new Snowflake(4);
-        new Snowflake(5);
-        new Snowflake(6);
-        new Snowflake(7);
-        new Snowflake(8);
-        new Snowflake(9);
-        new Snowflake(0);
-        new Snowflake(11);
-        new Snowflake(12);
-        new Snowflake(13);
-        new Snowflake(14);
-        new Snowflake(15);
-        new Snowflake(16);
-        new Snowflake(17);
-        new Snowflake(18);
-        new Snowflake(19);
-        new Snowflake(20);
-        new Snowflake(2100000000000L);
+    public static void main(String[] args) throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection connection = DriverManager.getConnection("jdbc:mysql://e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com:3306/prism_shareholder_path", "jdhw_d_data_dml", "2s0^tFa4SLrp72");
+        ResultSet rs = connection.prepareStatement("show tables").executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getString(1));
+        }
     }
 }
