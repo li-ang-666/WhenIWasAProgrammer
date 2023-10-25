@@ -4,6 +4,7 @@ import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple5;
 
@@ -64,16 +65,37 @@ public class CompanyBaseInfoDao {
 
     public Tuple5<String, String, String, String, String> getEquityInfo(String companyCid) {
         if (!TycUtils.isUnsignedId(companyCid)) {
-            return Tuple5.of(null, "", null, "", "");
+            return Tuple5.of(null, null, null, null, null);
         }
         String sql = new SQL()
-                .SELECT("reg_capital_amount", "ifnull(reg_capital_currency,'')", "actual_capital_amount", "ifnull(actual_capital_currency,'')", "ifnull(reg_status,'')")
+                .SELECT("reg_capital_amount", "reg_capital_currency", "actual_capital_amount", "actual_capital_currency", "reg_status")
                 .FROM("company_clean_info")
                 .WHERE("is_deleted = 0")
                 .WHERE("id = " + SqlUtils.formatValue(companyCid))
                 .toString();
-        Tuple5<String, String, String, String, String> res = prism116.queryForObject(sql, rs -> Tuple5.of(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5)));
-        return res != null ? res : Tuple5.of(null, "", null, "", "");
+        Tuple5<String, String, String, String, String> res = prism116.queryForObject(sql, rs -> {
+            String reg_capital_amount = rs.getString(1);
+            String reg_capital_currency = rs.getString(2);
+            String actual_capital_amount = rs.getString(3);
+            String actual_capital_currency = rs.getString(4);
+            String reg_status = rs.getString(5);
+            // 清洗
+            if (StringUtils.isNumeric(reg_capital_amount) && !"0".equals(reg_capital_amount)) {
+                reg_capital_currency = TycUtils.isValidName(reg_capital_currency) ? reg_capital_currency : null;
+            } else {
+                reg_capital_amount = null;
+                reg_capital_currency = null;
+            }
+            if (StringUtils.isNumeric(actual_capital_amount) && !"0".equals(actual_capital_amount)) {
+                actual_capital_currency = TycUtils.isValidName(actual_capital_currency) ? actual_capital_currency : null;
+            } else {
+                actual_capital_amount = null;
+                actual_capital_currency = null;
+            }
+            reg_status = TycUtils.isValidName(reg_status) ? reg_status : null;
+            return Tuple5.of(reg_capital_amount, reg_capital_currency, actual_capital_amount, actual_capital_currency, reg_status);
+        });
+        return res != null ? res : Tuple5.of(null, null, null, null, null);
     }
 
     public Tuple2<String, String> getProperty(String companyGid) {
@@ -90,17 +112,32 @@ public class CompanyBaseInfoDao {
         return prop != null ? Tuple2.of(res, prop) : Tuple2.of("0", dictionary.get("0"));
     }
 
-    public String getTax(String companyCid) {
-        if (!TycUtils.isUnsignedId(companyCid)) {
-            return "";
+    public Map<String, Object> getPropertyRef(String companyGid) {
+        if (!TycUtils.isUnsignedId(companyGid)) {
+            return new HashMap<>();
         }
         String sql = new SQL()
-                .SELECT("property4")
+                .SELECT("*")
+                .FROM("tyc_entity_general_property_reference")
+                .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyGid))
+                .toString();
+        List<Map<String, Object>> columnMaps = companyBase465.queryForColumnMaps(sql);
+        if (columnMaps.isEmpty()) {
+            return new HashMap<>();
+        }
+        return columnMaps.get(0);
+    }
+
+    public String getTax(String companyCid) {
+        if (!TycUtils.isUnsignedId(companyCid)) {
+            return null;
+        }
+        String sql = new SQL()
+                .SELECT("if(property1 is not null and property1 <> '', property1, property4)")
                 .FROM("company")
                 .WHERE("id = " + SqlUtils.formatValue(companyCid))
                 .toString();
-        String res = prism116.queryForObject(sql, rs -> rs.getString(1));
-        return res != null ? res : "";
+        return prism116.queryForObject(sql, rs -> rs.getString(1));
     }
 
     public Map<String, Object> queryGovInfo(String companyCid) {

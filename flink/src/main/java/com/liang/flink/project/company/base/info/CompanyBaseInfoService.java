@@ -5,7 +5,6 @@ import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
@@ -87,15 +86,22 @@ public class CompanyBaseInfoService {
         String entityPropertyId = entityPropertyTp2.f0;
         String entityPropertyName = entityPropertyTp2.f1;
         enterpriseMap.put("entity_property", entityPropertyId);
+        // 查询tyc_entity_general_property_reference, 若缺失, 双删
+        Map<String, Object> propertyRefMap = dao.getPropertyRef(companyGid);
+        if (propertyRefMap.isEmpty()) {
+            sqls.add(deleteSql1);
+            sqls.add(deleteSql2);
+            return sqls;
+        }
         // 分发处理
         String sourceFlag = String.valueOf(enterpriseMap.get("source_flag"));
         if (entityPropertyName.startsWith("工商来源") || entityPropertyName.equals("农民专业合作社")) {
-            sqls.add(getCompanySql(enterpriseMap));
+            sqls.add(getCompanySql(enterpriseMap, propertyRefMap));
         } else if (entityPropertyName.endsWith("事业单位") && sourceFlag.contains("institution")) {
-            String sql = getInstitutionSql(enterpriseMap);
+            String sql = getInstitutionSql(enterpriseMap, propertyRefMap);
             sqls.add(sql != null ? sql : deleteSql2);
         } else if (entityPropertyName.endsWith("事业单位") && sourceFlag.startsWith("org_19")) {
-            String sql = getOrgSql(enterpriseMap);
+            String sql = getOrgSql(enterpriseMap, propertyRefMap);
             sqls.add(sql != null ? sql : deleteSql2);
         } else {
             sqls.add(deleteSql1);
@@ -104,47 +110,47 @@ public class CompanyBaseInfoService {
         return sqls;
     }
 
-    private String getCompanySql(Map<String, Object> enterpriseMap) {
+    private String getCompanySql(Map<String, Object> enterpriseMap, Map<String, Object> propertyRefMap) {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
-        columnMap.put("entity_name_valid", String.valueOf(enterpriseMap.get("name")));
+        columnMap.put("entity_name_valid", String.valueOf(propertyRefMap.get("entity_name_valid")));
         Tuple5<String, String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
-        columnMap.put("register_capital_amount", StringUtils.isNumeric(equityInfo.f0) ? equityInfo.f0 : null);
+        columnMap.put("register_capital_amount", equityInfo.f0);
         columnMap.put("register_capital_currency", equityInfo.f1);
-        columnMap.put("actual_capital_amount", StringUtils.isNumeric(equityInfo.f2) ? equityInfo.f2 : null);
+        columnMap.put("actual_capital_amount", equityInfo.f2);
         columnMap.put("actual_capital_currency", equityInfo.f3);
         // 登记经营状态
         columnMap.put("entity_registration_status", equityInfo.f4);
         // 工商注册号
-        columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", ""));
+        columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", null));
         // 统一社会信用代码
-        columnMap.put("unified_social_credit_code", ifNull(enterpriseMap, "code", ""));
+        columnMap.put("unified_social_credit_code", ifNull(enterpriseMap, "code", null));
         // 实体性质
         columnMap.put("entity_property", entityProperty);
         // 实体性质原始(企业类型)
-        columnMap.put("entity_property_original", ifNull(enterpriseMap, "company_org_type", ""));
+        columnMap.put("entity_property_original", ifNull(enterpriseMap, "company_org_type", null));
         // 登记注册地址
-        columnMap.put("entity_register_address", ifNull(enterpriseMap, "reg_location", ""));
+        columnMap.put("entity_register_address", ifNull(enterpriseMap, "reg_location", null));
         // 成立日期
         columnMap.put("registration_date", TycUtils.isDateTime(enterpriseMap.get("establish_date")) ? enterpriseMap.get("establish_date") : null);
         // 经营期限
         String text = enterpriseMap.get("from_date") + "至" + enterpriseMap.get("to_date");
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(text);
-        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : null);
-        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : null);
+        columnMap.put("business_term_start_date", timeInfo.f0);
+        columnMap.put("business_term_end_date", timeInfo.f1);
         columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 经营范围
-        columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", ""));
+        columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", null));
         // 登记机关
-        columnMap.put("registration_institute", ifNull(enterpriseMap, "reg_institute", ""));
+        columnMap.put("registration_institute", ifNull(enterpriseMap, "reg_institute", null));
         // 核准日期
         columnMap.put("approval_date", TycUtils.isDateTime(enterpriseMap.get("approved_date")) ? enterpriseMap.get("approved_date") : null);
         // 组织机构代码
-        columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
+        columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", null));
         // 纳税人识别号
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
@@ -154,7 +160,7 @@ public class CompanyBaseInfoService {
                 .toString();
     }
 
-    private String getInstitutionSql(Map<String, Object> enterpriseMap) {
+    private String getInstitutionSql(Map<String, Object> enterpriseMap, Map<String, Object> propertyRefMap) {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
@@ -165,39 +171,39 @@ public class CompanyBaseInfoService {
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
-        columnMap.put("entity_name_valid", String.valueOf(enterpriseMap.get("name")));
+        columnMap.put("entity_name_valid", String.valueOf(propertyRefMap.get("entity_name_valid")));
         Tuple5<String, String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
-        columnMap.put("register_capital_amount", StringUtils.isNumeric(equityInfo.f0) ? equityInfo.f0 : null);
+        columnMap.put("register_capital_amount", equityInfo.f0);
         columnMap.put("register_capital_currency", equityInfo.f1);
         // 登记经营状态
         columnMap.put("entity_registration_status", equityInfo.f4);
         // 举办单位名称
-        columnMap.put("register_unit_public_institution", ifNull(govMap, "reg_unit_name", ""));
+        columnMap.put("register_unit_public_institution", ifNull(govMap, "reg_unit_name", null));
         // 经费来源
-        columnMap.put("public_institution_funding_source", ifNull(govMap, "expend_source", ""));
+        columnMap.put("public_institution_funding_source", ifNull(govMap, "expend_source", null));
         // 登记机关
-        columnMap.put("registration_institute", ifNull(govMap, "hold_unit", ""));
+        columnMap.put("registration_institute", ifNull(govMap, "hold_unit", null));
         // 原证书号
         columnMap.put("original_certificate_number_public_institution", String.valueOf(govMap.get("old_cert")).replaceAll("[^0-9]", ""));
         // 工商注册号 基础数据:端上无
-        columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", ""));
+        columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", null));
         // 统一社会信用代码
-        columnMap.put("unified_social_credit_code", ifNull(govMap, "us_credit_code", ""));
+        columnMap.put("unified_social_credit_code", ifNull(govMap, "us_credit_code", ifNull(enterpriseMap, "code", null)));
         // 经营期限
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(String.valueOf(govMap.get("valid_time")));
-        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : null);
-        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : null);
+        columnMap.put("business_term_start_date", timeInfo.f0);
+        columnMap.put("business_term_end_date", timeInfo.f1);
         columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 登记注册地址
-        columnMap.put("entity_register_address", ifNull(govMap, "address", ""));
+        columnMap.put("entity_register_address", ifNull(govMap, "address", null));
         // 经营范围
-        columnMap.put("business_registration_scope", ifNull(govMap, "scope", ""));
+        columnMap.put("business_registration_scope", ifNull(govMap, "scope", null));
         // 实体性质
         columnMap.put("entity_property", entityProperty);
         // 是否中央级事业单位
         columnMap.put("is_national_public_institution", "4".equals(entityProperty));
         // 组织机构代码 基础数据:端上无
-        columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
+        columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", null));
         // 纳税人识别号 基础数据:端上无
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
@@ -207,7 +213,7 @@ public class CompanyBaseInfoService {
                 .toString();
     }
 
-    private String getOrgSql(Map<String, Object> enterpriseMap) {
+    private String getOrgSql(Map<String, Object> enterpriseMap, Map<String, Object> propertyRefMap) {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
@@ -218,37 +224,37 @@ public class CompanyBaseInfoService {
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
-        columnMap.put("entity_name_valid", String.valueOf(enterpriseMap.get("name")));
+        columnMap.put("entity_name_valid", String.valueOf(propertyRefMap.get("entity_name_valid")));
         Tuple5<String, String, String, String, String> equityInfo = dao.getEquityInfo(companyCid);
         columnMap.put("register_capital_amount", equityInfo.f0);
-        columnMap.put("register_capital_currency", "人民币");
+        columnMap.put("register_capital_currency", equityInfo.f1);
         // 登记经营状态
         columnMap.put("entity_registration_status", equityInfo.f4);
         // 举办单位名称 ~
         // 经费来源 ~
         // 登记机关
-        columnMap.put("registration_institute", ifNull(orgMap, "registration_authority", ""));
+        columnMap.put("registration_institute", ifNull(orgMap, "registration_authority", null));
         // 原证书号 ~
         // 工商注册号 基础数据:端上无
-        columnMap.put("register_number", ifNull(enterpriseMap, "registration_number", ""));
+        columnMap.put("register_number", ifNull(enterpriseMap, "registration_number", null));
         // 统一社会信用代码
-        columnMap.put("unified_social_credit_code", ifNull(orgMap, "unified_social_credit_code", ""));
+        columnMap.put("unified_social_credit_code", ifNull(orgMap, "unified_social_credit_code", ifNull(enterpriseMap, "code", null)));
         // 经营期限
         String expiryDate = String.valueOf(orgMap.get("expiry_date"));
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(expiryDate);
-        columnMap.put("business_term_start_date", timeInfo.f0 != null ? timeInfo.f0 : null);
-        columnMap.put("business_term_end_date", timeInfo.f1 != null ? timeInfo.f1 : null);
+        columnMap.put("business_term_start_date", timeInfo.f0);
+        columnMap.put("business_term_end_date", timeInfo.f1);
         columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 登记注册地址
-        columnMap.put("entity_register_address", ifNull(orgMap, "address", ""));
+        columnMap.put("entity_register_address", ifNull(orgMap, "address", null));
         // 经营范围
-        columnMap.put("business_registration_scope", ifNull(orgMap, "business_scope", ""));
+        columnMap.put("business_registration_scope", ifNull(orgMap, "business_scope", null));
         // 实体性质
         columnMap.put("entity_property", entityProperty);
         // 是否中央级事业单位
         columnMap.put("is_national_public_institution", "4".equals(entityProperty));
         // 组织机构代码 基础数据:端上无
-        columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", ""));
+        columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", null));
         // 纳税人识别号 基础数据:端上无
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
@@ -260,6 +266,6 @@ public class CompanyBaseInfoService {
 
     private Object ifNull(Map<String, Object> map, String key, Object defaultValue) {
         Object value = map.get(key);
-        return value != null ? value : defaultValue;
+        return TycUtils.isValidName(value) ? value : defaultValue;
     }
 }
