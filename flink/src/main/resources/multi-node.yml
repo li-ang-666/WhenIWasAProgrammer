@@ -12,12 +12,18 @@ repairTasks:
     columns: "*"
     where: "tyc_unique_entity_id = '3457933352'"
     scanMode: Direct
-#  - taskId: "222"
-#    sourceName: "463.bdp_equity"
-#    tableName: "entity_beneficiary_details"
-#    columns: "*"
-#    where: "tyc_unique_entity_id = '22822'"
-#    scanMode: Direct
+  - taskId: "222"
+    sourceName: "463.bdp_equity"
+    tableName: "entity_beneficiary_details"
+    columns: "*"
+    where: "tyc_unique_entity_id = '22822'"
+    scanMode: Direct
+  - taskId: "333"
+    sourceName: "465.company_base"
+    tableName: "tyc_entity_general_property_reference"
+    columns: "*"
+    where: "tyc_unique_entity_id = '22822'"
+    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
