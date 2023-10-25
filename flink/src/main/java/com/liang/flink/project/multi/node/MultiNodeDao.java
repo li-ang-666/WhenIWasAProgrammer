@@ -7,7 +7,7 @@ import com.liang.common.util.SqlUtils;
 import java.util.List;
 
 public class MultiNodeDao {
-    private final static String NAME_SOURCE = "tyc_entity_main_reference";
+    private final static String NAME_SOURCE = "tyc_entity_general_property_reference";
     private final static String CONTROL_SOURCE = "entity_controller_details";
     private final static String BENEFIT_SOURCE = "entity_beneficiary_details";
 

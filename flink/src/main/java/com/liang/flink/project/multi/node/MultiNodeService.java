@@ -98,7 +98,7 @@ public class MultiNodeService {
     }
 
     private Tuple3<Integer, Integer, Integer> parseJsonList(List<String> jsonList, boolean needReverse) {
-        Map<String, Set<Integer>> id2Levels = new HashMap<>();
+        Map<String, List<Integer>> id2Levels = new HashMap<>();
         for (String json : jsonList) {
             List<Object> chains = JsonUtils.parseJsonArr(json);
             for (Object chain : chains) {
@@ -111,7 +111,7 @@ public class MultiNodeService {
                 for (int i = 1; i < nodes.size(); i++) {
                     Map<String, Object> node = nodes.get(i);
                     String id = String.valueOf(node.get("id"));
-                    id2Levels.putIfAbsent(id, new HashSet<>());
+                    id2Levels.putIfAbsent(id, new ArrayList<>());
                     id2Levels.get(id).add(i);
                 }
                 //log.info("nodes: {}", nodes);
