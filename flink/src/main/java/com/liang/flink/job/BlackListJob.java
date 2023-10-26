@@ -49,7 +49,7 @@ public class BlackListJob {
         @SneakyThrows
         public void run() {
             while (true) {
-                log.info("run");
+                log.info("run once");
                 new JdbcTemplate("116.prism").update("delete from equity_ratio where company_graph_id = 3450849811");
                 TimeUnit.SECONDS.sleep(30);
             }
