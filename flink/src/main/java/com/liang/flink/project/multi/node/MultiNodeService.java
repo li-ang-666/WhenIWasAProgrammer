@@ -12,7 +12,6 @@ import org.apache.flink.api.java.tuple.Tuple3;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Slf4j
 @SuppressWarnings("unchecked")
@@ -98,21 +97,23 @@ public class MultiNodeService {
     }
 
     private Tuple3<Integer, Integer, Integer> parseJsonList(List<String> jsonList, boolean needReverse) {
-        Map<String, List<Integer>> id2Levels = new HashMap<>();
+        Map<String, Set<Tuple2<String, Integer>>> id2Levels = new HashMap<>();
         for (String json : jsonList) {
             List<Object> chains = JsonUtils.parseJsonArr(json);
             for (Object chain : chains) {
-                List<Map<String, Object>> nodes = ((List<Map<String, Object>>) chain)
-                        .stream().filter(e -> e.containsKey("id")).collect(Collectors.toList());
+                List<Map<String, Object>> nodes = new ArrayList<>(((List<Map<String, Object>>) chain));
                 if (needReverse) {
                     Collections.reverse(nodes);
                 }
+                String linkAll = "";
                 // 掐掉第0层
-                for (int i = 1; i < nodes.size(); i++) {
+                for (int i = 2; i < nodes.size(); i += 2) {
+                    Map<String, Object> link = nodes.get(i - 1);
+                    linkAll += link;
                     Map<String, Object> node = nodes.get(i);
                     String id = String.valueOf(node.get("id"));
-                    id2Levels.putIfAbsent(id, new ArrayList<>());
-                    id2Levels.get(id).add(i);
+                    id2Levels.putIfAbsent(id, new HashSet<>());
+                    id2Levels.get(id).add(Tuple2.of(linkAll, i / 2));
                 }
                 log.debug("nodes: {}", nodes);
             }
@@ -124,8 +125,10 @@ public class MultiNodeService {
         id2Levels.forEach((k, v) -> {
             if (v.size() > 1) {
                 num.getAndIncrement();
-                min.set(Math.min(min.get(), Collections.min(v)));
-                max.set(Math.max(max.get(), Collections.max(v)));
+                v.forEach(e -> {
+                    min.set(Math.min(min.get(), e.f1));
+                    max.set(Math.max(max.get(), e.f1));
+                });
             }
         });
         Tuple3<Integer, Integer, Integer> res = num.get() != 0
