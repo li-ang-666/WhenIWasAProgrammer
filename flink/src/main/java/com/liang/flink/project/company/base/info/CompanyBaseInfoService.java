@@ -97,7 +97,8 @@ public class CompanyBaseInfoService {
         // 分发处理
         String sourceFlag = String.valueOf(enterpriseMap.get("source_flag"));
         if (entityPropertyName.startsWith("工商来源") || entityPropertyName.equals("农民专业合作社")) {
-            sqls.add(getCompanySql(enterpriseMap, propertyRefMap));
+            String sql = getCompanySql(enterpriseMap, propertyRefMap);
+            sqls.add(sql != null ? sql : deleteSql1);
         } else if (entityPropertyName.endsWith("事业单位") && sourceFlag.contains("institution")) {
             String sql = getInstitutionSql(enterpriseMap, propertyRefMap);
             sqls.add(sql != null ? sql : deleteSql2);
@@ -115,6 +116,10 @@ public class CompanyBaseInfoService {
         String companyCid = String.valueOf(enterpriseMap.get("id"));
         String companyGid = String.valueOf(enterpriseMap.get("graph_id"));
         String entityProperty = String.valueOf(enterpriseMap.get("entity_property"));
+        Map<String, Object> companyMap = dao.queryCompanyInfo(companyCid);
+        if (companyMap.isEmpty()) {
+            return null;
+        }
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("id", companyCid);
         columnMap.put("tyc_unique_entity_id", companyGid);
@@ -127,31 +132,31 @@ public class CompanyBaseInfoService {
         // 登记经营状态
         columnMap.put("entity_registration_status", equityInfo.f4);
         // 工商注册号
-        columnMap.put("register_number", ifNull(enterpriseMap, "reg_number", null));
+        columnMap.put("register_number", ifNull(companyMap, "reg_number", null));
         // 统一社会信用代码
-        columnMap.put("unified_social_credit_code", ifNull(enterpriseMap, "code", null));
+        columnMap.put("unified_social_credit_code", ifNull(companyMap, "property1", null));
         // 实体性质
         columnMap.put("entity_property", entityProperty);
         // 实体性质原始(企业类型)
-        columnMap.put("entity_property_original", ifNull(enterpriseMap, "company_org_type", null));
+        columnMap.put("entity_property_original", ifNull(companyMap, "company_org_type", null));
         // 登记注册地址
-        columnMap.put("entity_register_address", ifNull(enterpriseMap, "reg_location", null));
+        columnMap.put("entity_register_address", ifNull(companyMap, "reg_location", null));
         // 成立日期
-        columnMap.put("registration_date", TycUtils.isDateTime(enterpriseMap.get("establish_date")) ? enterpriseMap.get("establish_date") : null);
+        columnMap.put("registration_date", TycUtils.isDateTime(companyMap.get("establish_time")) ? companyMap.get("establish_time") : null);
         // 经营期限
-        String text = enterpriseMap.get("from_date") + "至" + enterpriseMap.get("to_date");
+        String text = companyMap.get("from_date") + "至" + companyMap.get("to_date");
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(text);
         columnMap.put("business_term_start_date", timeInfo.f0);
         columnMap.put("business_term_end_date", timeInfo.f1);
         columnMap.put("business_term_is_permanent", timeInfo.f2);
         // 经营范围
-        columnMap.put("business_registration_scope", ifNull(enterpriseMap, "business_scope", null));
+        columnMap.put("business_registration_scope", ifNull(companyMap, "business_scope", null));
         // 登记机关
-        columnMap.put("registration_institute", ifNull(enterpriseMap, "reg_institute", null));
+        columnMap.put("registration_institute", ifNull(companyMap, "reg_institute", null));
         // 核准日期
-        columnMap.put("approval_date", TycUtils.isDateTime(enterpriseMap.get("approved_date")) ? enterpriseMap.get("approved_date") : null);
+        columnMap.put("approval_date", TycUtils.isDateTime(companyMap.get("approved_time")) ? companyMap.get("approved_time") : null);
         // 组织机构代码
-        columnMap.put("organization_code", ifNull(enterpriseMap, "org_number", null));
+        columnMap.put("organization_code", ifNull(companyMap, "org_number", null));
         // 纳税人识别号
         columnMap.put("taxpayer_identification_code", dao.getTax(companyCid));
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);

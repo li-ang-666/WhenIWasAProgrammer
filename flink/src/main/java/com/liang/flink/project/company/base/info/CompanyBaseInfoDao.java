@@ -140,6 +140,22 @@ public class CompanyBaseInfoDao {
         return prism116.queryForObject(sql, rs -> rs.getString(1));
     }
 
+    public Map<String, Object> queryCompanyInfo(String companyCid) {
+        if (!TycUtils.isUnsignedId(companyCid)) {
+            return new HashMap<>();
+        }
+        String sql = new SQL()
+                .SELECT("*")
+                .FROM("company")
+                .WHERE("id = " + SqlUtils.formatValue(companyCid))
+                .toString();
+        List<Map<String, Object>> columnMaps = prism116.queryForColumnMaps(sql);
+        if (columnMaps.isEmpty()) {
+            return new HashMap<>();
+        }
+        return columnMaps.get(0);
+    }
+
     public Map<String, Object> queryGovInfo(String companyCid) {
         if (!TycUtils.isUnsignedId(companyCid)) {
             return new HashMap<>();
