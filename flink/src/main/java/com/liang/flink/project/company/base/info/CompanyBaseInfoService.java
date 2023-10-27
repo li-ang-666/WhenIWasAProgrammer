@@ -142,9 +142,9 @@ public class CompanyBaseInfoService {
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(companyMap, "reg_location", null));
         // 成立日期
-        columnMap.put("registration_date", TycUtils.isDateTime(companyMap.get("establish_time")) ? companyMap.get("establish_time") : null);
+        columnMap.put("registration_date", TycUtils.isDateTime(companyMap.get("estiblish_time")) ? companyMap.get("estiblish_time") : null);
         // 经营期限
-        String text = companyMap.get("from_date") + "至" + companyMap.get("to_date");
+        String text = StringUtils.substring(String.valueOf(companyMap.get("from_time")), 0, 10) + "至" + StringUtils.substring(String.valueOf(companyMap.get("to_time")), 0, 10);
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(text);
         columnMap.put("business_term_start_date", timeInfo.f0);
         columnMap.put("business_term_end_date", timeInfo.f1);
