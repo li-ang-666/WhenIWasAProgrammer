@@ -53,8 +53,9 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
             case "1": // 人
                 Human human = TycUtils.cid2Human(investorId);
                 String pid = TycUtils.gid2Pid(company.getGid(), human.getGid());
+                String s = TycUtils.pid2Name(pid);
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", pid);
-                resultMap.put("annual_report_entity_name_valid_shareholder", human.getName());
+                resultMap.put("annual_report_entity_name_valid_shareholder", s);
                 resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 break;
             case "2": // 公司

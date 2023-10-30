@@ -136,12 +136,11 @@ public class TycUtils {
         if (!isUnsignedId(cid)) {
             return new Company();
         }
-        String sql = new SQL().SELECT("graph_id", "name")
-                .FROM("enterprise")
-                .WHERE("deleted = 0")
+        String sql = new SQL().SELECT("tyc_unique_entity_id", "entity_name_valid")
+                .FROM("tyc_entity_general_property_reference")
                 .WHERE("id = " + formatValue(cid))
                 .toString();
-        Tuple2<String, String> tuple2 = new JdbcTemplate("464.prism").queryForObject(sql,
+        Tuple2<String, String> tuple2 = new JdbcTemplate("465.company_base").queryForObject(sql,
                 rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
         if (tuple2 == null) {
             return new Company();
@@ -191,5 +190,18 @@ public class TycUtils {
                 .toString();
         String res = new JdbcTemplate("157.prism_boss").queryForObject(sql, rs -> rs.getString(1));
         return isTycUniqueEntityId(res) ? res : "0";
+    }
+
+    @NonNull
+    public static String pid2Name(Object humanPid) {
+        if (!TycUtils.isTycUniqueEntityId(humanPid) || String.valueOf(humanPid).length() != 17) {
+            return "";
+        }
+        String sql = new SQL().SELECT("entity_name_valid")
+                .FROM("tyc_entity_main_reference")
+                .WHERE("tyc_unique_entity_id = " + formatValue(humanPid))
+                .toString();
+        String res = new JdbcTemplate("465.company_base").queryForObject(sql, rs -> rs.getString(1));
+        return isValidName(res) ? res : "";
     }
 }

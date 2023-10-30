@@ -24,15 +24,6 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
 
-/**
- * 文档:
- * https://b3sh6jivuw.feishu.cn/wiki/DkOHwNuB0idH0tkGdFGciLzOnRV
- * 文档-表3: 116实例.prism.report_equity_change_info  -> gauss实例.company_base.entity_annual_report_shareholder_equity_change_details
- * 文档-表4: 116实例.prism.report_shareholder         -> gauss实例.company_base.entity_annual_report_shareholder_equity_details
- * 文档-表6: 116实例.prism.report_outbound_investment -> gauss实例.company_base.entity_annual_report_investment_details
- * 文档-表7: 116实例.prism.report_webinfo             -> gauss实例.company_base.entity_annual_report_ebusiness_details
- * 464实例.prism.enterprise                          -> 负责更新以上四张表的最新主体名称
- */
 @Slf4j
 @LocalConfigFile("annual-report.yml")
 public class AnnualReportJob {
@@ -45,6 +36,7 @@ public class AnnualReportJob {
                 .with("report_shareholder", e -> e.getColumnMap().get("id").toString())
                 .with("report_outbound_investment", e -> e.getColumnMap().get("id").toString())
                 .with("report_webinfo", e -> e.getColumnMap().get("id").toString())
+                .with("tyc_entity_main_reference", e -> e.getColumnMap().get("id").toString())
                 .with("enterprise", e -> e.getColumnMap().get("id").toString());
         stream
                 .keyBy(distributor)
@@ -59,6 +51,7 @@ public class AnnualReportJob {
             ReportShareholder.class,
             ReportOutboundInvestment.class,
             ReportWebinfo.class,
+            TycEntityMainReference.class,
             Enterprise.class
     })
     private final static class AnnualReportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
