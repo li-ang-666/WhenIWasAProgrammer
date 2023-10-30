@@ -36,8 +36,7 @@ public class AnnualReportJob {
                 .with("report_shareholder", e -> e.getColumnMap().get("id").toString())
                 .with("report_outbound_investment", e -> e.getColumnMap().get("id").toString())
                 .with("report_webinfo", e -> e.getColumnMap().get("id").toString())
-                .with("tyc_entity_main_reference", e -> e.getColumnMap().get("id").toString())
-                .with("enterprise", e -> e.getColumnMap().get("id").toString());
+                .with("tyc_entity_general_property_reference", e -> e.getColumnMap().get("id").toString());
         stream
                 .keyBy(distributor)
                 .addSink(new AnnualReportSink(config)).name("AnnualReportSink").setParallelism(config.getFlinkConfig().getOtherParallel());
@@ -51,8 +50,7 @@ public class AnnualReportJob {
             ReportShareholder.class,
             ReportOutboundInvestment.class,
             ReportWebinfo.class,
-            TycEntityMainReference.class,
-            Enterprise.class
+            TycEntityGeneralPropertyReference.class
     })
     private final static class AnnualReportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TycEntityMainReference extends AbstractDataUpdate<String> {
+public class TycEntityGeneralPropertyReference extends AbstractDataUpdate<String> {
     private final AnnualReportDao dao = new AnnualReportDao();
 
     @Override
