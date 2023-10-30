@@ -4,24 +4,36 @@ import com.liang.repair.service.ConfigHolder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
+import java.util.Comparator;
 
 @Slf4j
 public class Test extends ConfigHolder {
-    private final static long MIN = 1L;
-    private final static long MAX = 56412887084662L;
-
     @SneakyThrows
     public static void main(String[] args) throws Exception {
-        Class.forName("com.mysql.jdbc.Driver");
-        Connection connection = DriverManager.getConnection("jdbc:mysql://be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com:3306/data_es", "jdhw_d_data_dml", "2s0^tFa4SLrp72");
-        for (long i = MIN; i <= MAX; i += 1024) {
-            String sql = String.format("update company_patent_basic_info_index set update_time = date_add(update_time, interval 1 second) where %s <= id and id <= %s", i, i + 1024);
-            log.info("sql: {}", sql);
-            connection.prepareStatement(sql).executeUpdate();
-            TimeUnit.SECONDS.sleep(3);
-        }
+        String text = "  427.test: { host: \"9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"test\",user: \"jdtest_d_data_ddl\",password: \"dwjIFAmM39Y2O98cKu\" }\n" +
+                "  436.judicial_risk: { host: \"393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"judicial_risk\" }\n" +
+                "  435.company_base: { host: \"ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"company_base\" }\n" +
+                "  040.human_base: { host: \"36c607bfd9174d4e81512aa73375f0fain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"human_base\" }\n" +
+                "  446.operating_risk: { host: \"b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"operating_risk\" }\n" +
+                "  463.bdp_equity: { host: \"48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"bdp_equity\" }\n" +
+                "  457.prism_shareholder_path: { host: \"e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"prism_shareholder_path\" }\n" +
+                "  008.bigdata_online: { host: \"140f5010b84c4d9abfc4d13bc597a2ebin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"bigdata_online\" }\n" +
+                "  157.prism1: { host: \"9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"prism1\" }\n" +
+                "  110.data_listed_company: { host: \"7d89cf1613024a3d9b0511a21743806ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"data_listed_company\" }\n" +
+                "  430.graph_data: { host: \"1ae09b20e4504ae2a39b6d209b49f269in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"graph_data\" }\n" +
+                "  116.prism: { host: \"0bb0147d82fe49e6953138da0eea61dbin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"prism\" }\n" +
+                "  111.data_experience_situation: { host: \"886a213ba5de451eb4add2e0d1fb2ef6in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"data_experience_situation\" }\n" +
+                "  464.prism: { host: \"5673658675c84a3ba5ae7577850f1ed2in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"prism\" }\n" +
+                "  465.company_base: { host: \"c8ce5ba3cd8b49ca8f57c945ef51d45cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"company_base\" }\n" +
+                "  157.prism_boss: { host: \"9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"prism_boss\" }\n" +
+                "  108.data_judicial_risk: { host: \"43283515096042b8bbd9704a4fdbbcd4in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"data_judicial_risk\" }\n" +
+                "  150.data_index: { host: \"be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"data_index\" }\n" +
+                "  469.entity_operation_development: { host: \"01ddd99760f64c8cbe2d396ebc64345ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com\",database: \"entity_operation_development\" }";
+        Arrays.stream(text.split("\n"))
+                .map(String::trim)
+                .sorted(Comparator.comparingInt(s -> Integer.parseInt(s.split("\\.")[0])))
+                .forEach(System.out::println);
+
     }
 }

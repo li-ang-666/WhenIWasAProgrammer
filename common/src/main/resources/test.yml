@@ -1,0 +1,21 @@
+dbConfigs:
+  008.bigdata_online: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  040.human_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "human_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  108.data_judicial_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  110.data_listed_company: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  111.data_experience_situation: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_experience_situation",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  116.prism: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  150.data_index: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_index",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  157.prism1: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  157.prism_boss: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_boss",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  427.test: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "test",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  430.graph_data: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "graph_data",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  435.company_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  436.judicial_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  446.operating_risk: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  457.prism_shareholder_path: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  463.bdp_equity: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  464.prism: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  465.company_base: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  469.entity_operation_development: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "entity_operation_development",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
+  gauss: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
