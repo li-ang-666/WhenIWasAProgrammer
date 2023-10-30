@@ -8,11 +8,9 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
-import com.liang.flink.project.company.base.info.CompanyBaseInfoDao;
 import com.liang.flink.project.company.base.info.CompanyBaseInfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -23,7 +21,6 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,42 +31,16 @@ public class CompanyBaseInfoJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         Distributor distributor = new Distributor()
-                .with("tyc_entity_general_property_reference", e -> String.valueOf(e.getColumnMap().get("company_cid")))
+                .with("tyc_entity_general_property_reference", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("enterprise", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("company", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("company_clean_info", e -> String.valueOf(e.getColumnMap().get("id")))
                 .with("organization_info", e -> String.valueOf(e.getColumnMap().get("company_id")))
                 .with("gov_unit", e -> String.valueOf(e.getColumnMap().get("company_id")));
         stream
-                .rebalance()
-                .map(new CompanyBaseInfoMap(config)).name("CompanyBaseInfoMap").setParallelism(config.getFlinkConfig().getOtherParallel())
                 .keyBy(distributor)
                 .addSink(new CompanyBaseInfoSink(config, distributor)).name("CompanyBaseInfoSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("CompanyBaseInfoJob");
-    }
-
-    @Slf4j
-    @RequiredArgsConstructor
-    private final static class CompanyBaseInfoMap extends RichMapFunction<SingleCanalBinlog, SingleCanalBinlog> {
-        private final Config config;
-        private CompanyBaseInfoDao dao;
-
-        @Override
-        public void open(Configuration parameters) {
-            ConfigUtils.setConfig(config);
-            dao = new CompanyBaseInfoDao();
-        }
-
-        @Override
-        public SingleCanalBinlog map(SingleCanalBinlog singleCanalBinlog) {
-            if (singleCanalBinlog.getTable().equals("tyc_entity_general_property_reference")) {
-                Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-                String tycUniqueEntityId = String.valueOf(columnMap.get("tyc_unique_entity_id"));
-                String companyCid = dao.gid2Cid(tycUniqueEntityId);
-                columnMap.put("company_cid", companyCid);
-            }
-            return singleCanalBinlog;
-        }
     }
 
     @Slf4j
