@@ -45,7 +45,8 @@ public class MultiNodeService {
         sqls.add(deleteSQL);
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("tyc_unique_entity_id", tycUniqueEntityId);
-        String name = TycUtils.isUnsignedId(tycUniqueEntityId) ? dao.getName(tycUniqueEntityId) : dao.getHumanName(tycUniqueEntityId);
+        // 最新名字
+        String name = dao.getName(tycUniqueEntityId);
         if (!TycUtils.isValidName(name)) {
             return sqls;
         }

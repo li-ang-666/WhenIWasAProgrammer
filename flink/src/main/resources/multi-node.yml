@@ -31,6 +31,6 @@ kafkaConfigs:
     topics:
       - "48e2e.proto.bdp_equity.entity_controller_details"
       - "48e2e.proto.bdp_equity.entity_beneficiary_details"
-      - "c8ce5.proto.company_base.tyc_entity_general_property_reference"
+      - "c8ce5.proto.company_base.tyc_entity_main_reference"
     groupId: "multi-node-job"
-    startFrom: "1"
+    startFrom: "2"

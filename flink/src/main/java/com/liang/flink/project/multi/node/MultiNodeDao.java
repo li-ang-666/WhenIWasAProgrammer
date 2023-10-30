@@ -7,8 +7,7 @@ import com.liang.common.util.SqlUtils;
 import java.util.List;
 
 public class MultiNodeDao {
-    private final static String NAME_SOURCE = "tyc_entity_general_property_reference";
-    private final static String HUMAN_NAME_SOURCE = "tyc_entity_main_reference";
+    private final static String NAME_SOURCE = "tyc_entity_main_reference";
     private final static String CONTROL_SOURCE = "entity_controller_details";
     private final static String BENEFIT_SOURCE = "entity_beneficiary_details";
 
@@ -18,14 +17,6 @@ public class MultiNodeDao {
     public String getName(Object tycUniqueEntityId) {
         String sql = new SQL().SELECT("entity_name_valid")
                 .FROM(NAME_SOURCE)
-                .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
-                .toString();
-        return companyBase465.queryForObject(sql, rs -> rs.getString(1));
-    }
-
-    public String getHumanName(Object tycUniqueEntityId) {
-        String sql = new SQL().SELECT("entity_name_valid")
-                .FROM(HUMAN_NAME_SOURCE)
                 .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
                 .toString();
         return companyBase465.queryForObject(sql, rs -> rs.getString(1));
