@@ -2,10 +2,10 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.DaemonExecutor;
+import com.liang.common.service.SQL;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
-import com.liang.common.util.TycUtils;
-import com.liang.flink.basic.Distributor;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -13,6 +13,8 @@ import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -20,7 +22,9 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.util.Collector;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,14 +37,63 @@ public class RatioPathCompanyJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
-                .keyBy(new Distributor().with("investment_relation", e -> String.valueOf(e.getColumnMap().get("company_id_invested"))))
+                .flatMap(new RatioPathCompanyFlatMap(config)).setParallelism(config.getFlinkConfig().getOtherParallel())
+                .keyBy(e -> e)
                 .addSink(new RatioPathCompanySink(config)).name("RatioPathCompanySink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("RatioPathCompanyJob");
     }
 
     @Slf4j
     @RequiredArgsConstructor
-    private final static class RatioPathCompanySink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
+    private final static class RatioPathCompanyFlatMap extends RichFlatMapFunction<SingleCanalBinlog, Long> {
+        private final Config config;
+        private JdbcTemplate jdbcTemplate;
+
+        @Override
+        public void open(Configuration parameters) {
+            ConfigUtils.setConfig(config);
+            jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");
+        }
+
+        @Override
+        public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Long> out) {
+            HashSet<Long> result = new HashSet<>();
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
+            if (StringUtils.isNumeric(companyIdString)) {
+                result.add(Long.parseLong(companyIdString));
+            }
+            String companyEntityInlink = String.valueOf(columnMap.get("company_entity_inlink"));
+            String[] split = companyEntityInlink.split(":");
+            String shareholderIdString = split[split.length - 2];
+            if (StringUtils.isNumeric(shareholderIdString)) {
+                result.add(Long.parseLong(shareholderIdString));
+            }
+            String sql = new SQL()
+                    .SELECT("company_id,shareholder_id")
+                    .FROM("ratio_path_company")
+                    .WHERE(String.format("company_id in ('%s','%s')", companyIdString, shareholderIdString))
+                    .OR()
+                    .WHERE(String.format("shareholder_id in ('%s','%s')", companyIdString, shareholderIdString))
+                    .toString();
+            jdbcTemplate.queryForList(sql, rs -> {
+                String companyId = rs.getString(1);
+                if (StringUtils.isNumeric(companyId)) {
+                    result.add(Long.parseLong(companyId));
+                }
+                String shareholderId = rs.getString(2);
+                if (StringUtils.isNumeric(shareholderId)) {
+                    result.add(Long.parseLong(shareholderId));
+                }
+                return null;
+            });
+            result.forEach(out::collect);
+        }
+    }
+
+    @Slf4j
+    @RequiredArgsConstructor
+    private final static class RatioPathCompanySink extends RichSinkFunction<Long> implements CheckpointedFunction {
         private final static int INTERVAL = 1000 * 60;
         private final static int SIZE = 64;
         private final Set<Long> companyIds = ConcurrentHashMap.newKeySet();
@@ -81,14 +134,9 @@ public class RatioPathCompanyJob {
         }
 
         @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
-            if (TycUtils.isUnsignedId(companyIdString)) {
-                Long companyId = Long.parseLong(companyIdString);
-                synchronized (companyIds) {
-                    companyIds.add(companyId);
-                }
+        public void invoke(Long companyId, Context context) {
+            synchronized (companyIds) {
+                companyIds.add(companyId);
             }
         }
 

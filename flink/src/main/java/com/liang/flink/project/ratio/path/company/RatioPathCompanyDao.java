@@ -19,6 +19,7 @@ public class RatioPathCompanyDao {
 
     private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
     private final JdbcTemplate bdpEquity = new JdbcTemplate("463.bdp_equity");
+    private final JdbcTemplate companyBase = new JdbcTemplate("465.company_base");
 
     public void deleteAll(Long companyId) {
         //删除ratio_path_company
@@ -42,6 +43,16 @@ public class RatioPathCompanyDao {
                 .toString();
         prismShareholderPath.update(sql0);
         bdpEquity.update(sql1, sql2, sql3);
+    }
+
+    public boolean isPartnership(Object companyId) {
+        String sql = new SQL().SELECT("1")
+                .FROM("tyc_entity_general_property_reference")
+                .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("entity_property in (15,16)")
+                .toString();
+        String res = companyBase.queryForObject(sql, rs -> rs.getString(1));
+        return res != null;
     }
 
     public void replaceIntoRatioPathCompany(Map<String, Object> columnMap) {
