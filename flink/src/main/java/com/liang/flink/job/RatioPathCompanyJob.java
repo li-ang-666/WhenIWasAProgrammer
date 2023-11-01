@@ -57,7 +57,7 @@ public class RatioPathCompanyJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Long> out) {
-            HashSet<Long> result = new HashSet<>();
+            Set<Long> result = new HashSet<>();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
             if (StringUtils.isNumeric(companyIdString)) {
@@ -70,20 +70,14 @@ public class RatioPathCompanyJob {
                 result.add(Long.parseLong(shareholderIdString));
             }
             String sql = new SQL()
-                    .SELECT("company_id,shareholder_id")
+                    .SELECT("distinct company_id")
                     .FROM("ratio_path_company")
-                    .WHERE(String.format("company_id in ('%s','%s')", companyIdString, shareholderIdString))
-                    .OR()
                     .WHERE(String.format("shareholder_id in ('%s','%s')", companyIdString, shareholderIdString))
                     .toString();
             jdbcTemplate.queryForList(sql, rs -> {
                 String companyId = rs.getString(1);
                 if (StringUtils.isNumeric(companyId)) {
                     result.add(Long.parseLong(companyId));
-                }
-                String shareholderId = rs.getString(2);
-                if (StringUtils.isNumeric(shareholderId)) {
-                    result.add(Long.parseLong(shareholderId));
                 }
                 return null;
             });
