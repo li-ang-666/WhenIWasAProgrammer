@@ -19,7 +19,7 @@ public class RatioPathCompanyRepair {
         ConfigUtils.setConfig(config);
         JdbcTemplate jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");
         Set<String> companyIds = new HashSet<>(Arrays.asList(
-                "2357807615"
+                "3089206239"
         ));
         Set<Long> allCompanyIds = companyIds.stream().flatMap(e -> {
             HashSet<Long> res = new HashSet<>();
