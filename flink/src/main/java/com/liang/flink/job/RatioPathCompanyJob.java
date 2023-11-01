@@ -6,6 +6,7 @@ import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -63,13 +64,10 @@ public class RatioPathCompanyJob {
             if (StringUtils.isNumeric(companyIdString)) {
                 result.add(Long.parseLong(companyIdString));
             }
-            String companyEntityInlink = String.valueOf(columnMap.get("company_entity_inlink"));
-            String[] split = companyEntityInlink.split(":");
-            String shareholderIdString = split[split.length - 2];
             String sql = new SQL()
                     .SELECT("distinct company_id")
                     .FROM("ratio_path_company")
-                    .WHERE(String.format("shareholder_id in ('%s','%s')", companyIdString, shareholderIdString))
+                    .WHERE("shareholder_id = " + SqlUtils.formatValue(companyIdString))
                     .toString();
             jdbcTemplate.queryForList(sql, rs -> {
                 String companyId = rs.getString(1);
