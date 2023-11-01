@@ -33,6 +33,7 @@ public class InvestmentRelationJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         Distributor distributor = new Distributor()
+                .with("equity_ratio", e -> String.valueOf(e.getColumnMap().get("company_graph_id")))
                 .with("company_equity_relation_details", e -> String.valueOf(e.getColumnMap().get("company_id_invested")))
                 .with("company_index", e -> String.valueOf(e.getColumnMap().get("company_id")))
                 .with("enterprise", e -> String.valueOf(e.getColumnMap().get("graph_id")))
