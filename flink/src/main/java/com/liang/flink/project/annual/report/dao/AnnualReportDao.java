@@ -76,13 +76,13 @@ public class AnnualReportDao {
         String sql1 = new SQL()
                 .UPDATE("report_equity_change_info")
                 .SET("createTime = date_add(createTime, interval 1 second)")
-                .WHERE("investor_id = 2")
+                .WHERE("investor_type = 2")
                 .WHERE("investor_id = " + formatValue(companyCid))
                 .toString();
         String sql2 = new SQL()
                 .UPDATE("report_shareholder")
                 .SET("createTime = date_add(createTime, interval 1 second)")
-                .WHERE("investor_id = 2")
+                .WHERE("investor_type = 2")
                 .WHERE("investor_id = " + formatValue(companyCid))
                 .toString();
         String sql3 = new SQL()
