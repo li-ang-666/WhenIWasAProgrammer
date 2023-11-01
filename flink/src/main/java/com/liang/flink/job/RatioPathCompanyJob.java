@@ -85,8 +85,8 @@ public class RatioPathCompanyJob {
     @Slf4j
     @RequiredArgsConstructor
     private final static class RatioPathCompanySink extends RichSinkFunction<Long> implements CheckpointedFunction {
-        private final static int INTERVAL = 1000 * 60;
-        private final static int SIZE = 64;
+        private final static int INTERVAL = 1000 * 30;
+        private final static int SIZE = 8;
         private final Set<Long> companyIds = ConcurrentHashMap.newKeySet();
         private final Config config;
         private RatioPathCompanyService service;
