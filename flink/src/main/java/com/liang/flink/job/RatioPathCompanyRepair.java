@@ -26,20 +26,14 @@ public class RatioPathCompanyRepair {
             if (StringUtils.isNumeric(e)) {
                 res.add(Long.parseLong(e));
             }
-            String sql = new SQL().SELECT("company_id,shareholder_id")
+            String sql = new SQL().SELECT("distinct company_id")
                     .FROM("ratio_path_company")
-                    .WHERE(String.format("company_id  = " + SqlUtils.formatValue(e)))
-                    .OR()
                     .WHERE(String.format("shareholder_id  = " + SqlUtils.formatValue(e)))
                     .toString();
             jdbcTemplate.queryForList(sql, rs -> {
                 String companyId = rs.getString(1);
                 if (StringUtils.isNumeric(companyId)) {
                     res.add(Long.parseLong(companyId));
-                }
-                String shareholderId = rs.getString(2);
-                if (StringUtils.isNumeric(shareholderId)) {
-                    res.add(Long.parseLong(shareholderId));
                 }
                 return null;
             });
