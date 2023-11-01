@@ -66,22 +66,6 @@ public class InvestmentRelationJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            // enterprise数据量有点大
-            if (singleCanalBinlog.getTable().equals("enterprise")) {
-                String beforeName = String.valueOf(singleCanalBinlog.getBeforeColumnMap().get("name"));
-                String afterName = String.valueOf(singleCanalBinlog.getAfterColumnMap().get("name"));
-                if (beforeName.equals(afterName)) {
-                    return;
-                }
-            }
-            // company_index数据量有点大
-            if (singleCanalBinlog.getTable().equals("company_index")) {
-                String beforeName = String.valueOf(singleCanalBinlog.getBeforeColumnMap().get("company_name"));
-                String afterName = String.valueOf(singleCanalBinlog.getAfterColumnMap().get("company_name"));
-                if (beforeName.equals(afterName)) {
-                    return;
-                }
-            }
             String key = distributor.getKey(singleCanalBinlog);
             synchronized (companyIds) {
                 companyIds.add(key);

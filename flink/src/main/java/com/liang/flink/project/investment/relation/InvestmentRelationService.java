@@ -116,10 +116,7 @@ public class InvestmentRelationService {
         // 查询 company_bond_plates (是否上市)
         String isListed = dao.getIsListed(companyGid);
         // 查询 stock_actual_controller (上市公司实际控制人)
-        String listedController = "";
-        if ("1".equals(isListed)) {
-            listedController = dao.listedController(companyGid);
-        }
+        String listedController = "1".equals(isListed) ? dao.listedController(companyGid) : "";
         HashMap<String, Object> infoMap = new HashMap<>();
         infoMap.put("id", companyGid);
         infoMap.put("name", name);
