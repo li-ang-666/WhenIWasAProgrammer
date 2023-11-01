@@ -66,9 +66,6 @@ public class RatioPathCompanyJob {
             String companyEntityInlink = String.valueOf(columnMap.get("company_entity_inlink"));
             String[] split = companyEntityInlink.split(":");
             String shareholderIdString = split[split.length - 2];
-            if (StringUtils.isNumeric(shareholderIdString)) {
-                result.add(Long.parseLong(shareholderIdString));
-            }
             String sql = new SQL()
                     .SELECT("distinct company_id")
                     .FROM("ratio_path_company")
