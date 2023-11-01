@@ -1,21 +1,52 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.SQL;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RatioPathCompanyRepair {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
-        Set<Long> companyIds = new HashSet<>(Arrays.asList(
-                3000842913L
+        JdbcTemplate jdbcTemplate = new JdbcTemplate("457.prism_shareholder_path");
+        Set<String> companyIds = new HashSet<>(Arrays.asList(
+                "2357807615"
         ));
-        new RatioPathCompanyService().invoke(companyIds);
+        Set<Long> allCompanyIds = companyIds.stream().flatMap(e -> {
+            HashSet<Long> res = new HashSet<>();
+            if (StringUtils.isNumeric(e)) {
+                res.add(Long.parseLong(e));
+            }
+            String sql = new SQL().SELECT("company_id,shareholder_id")
+                    .FROM("ratio_path_company")
+                    .WHERE(String.format("company_id  = " + SqlUtils.formatValue(e)))
+                    .OR()
+                    .WHERE(String.format("shareholder_id  = " + SqlUtils.formatValue(e)))
+                    .toString();
+            jdbcTemplate.queryForList(sql, rs -> {
+                String companyId = rs.getString(1);
+                if (StringUtils.isNumeric(companyId)) {
+                    res.add(Long.parseLong(companyId));
+                }
+                String shareholderId = rs.getString(2);
+                if (StringUtils.isNumeric(shareholderId)) {
+                    res.add(Long.parseLong(shareholderId));
+                }
+                return null;
+            });
+            return res.stream();
+        }).collect(Collectors.toSet());
+
+        new RatioPathCompanyService().invoke(allCompanyIds);
         ConfigUtils.unloadAll();
     }
 }
