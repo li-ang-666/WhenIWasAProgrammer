@@ -3,6 +3,7 @@ package com.liang.flink.project.ratio.path.company;
 import com.alibaba.fastjson.JSONArray;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.tyc.QueryAllShareHolderFromCompanyIdObj;
 import org.tyc.bdpequity.BuildTab3Path;
@@ -16,6 +17,7 @@ import org.tyc.utils.PathFormatter;
 
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class RatioPathCompanyService {
@@ -95,7 +97,8 @@ public class RatioPathCompanyService {
                         dao.replaceIntoRatioPathCompany(columnMap);
                         sqls.addAll(updateWithReturn(columnMap));
                     });
-            dao.updateAll(sqls);
+            dao.updateAll(sqls.stream().filter(e -> !StringUtils.isNumeric(e)).collect(Collectors.toList()));
+            sqls.stream().filter(StringUtils::isNumeric).forEach(e -> dao.deleteAll(Long.parseLong(e)));
         } catch (Exception e) {
             log.error("invoke({}) error", companyIds);
         }
@@ -122,8 +125,7 @@ public class RatioPathCompanyService {
         columnMap.put("company_name", dao.getEntityName(companyId));
         columnMap.put("shareholder_name", dao.getEntityName(shareholderId));
         if (!TycUtils.isValidName(String.valueOf(columnMap.get("company_name"))) || !TycUtils.isValidName(String.valueOf(columnMap.get("shareholder_name")))) {
-            dao.deleteAll(Long.parseLong(companyId));
-            return new ArrayList<>();
+            return Collections.singletonList(companyId);
         }
         //path_node
         String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
