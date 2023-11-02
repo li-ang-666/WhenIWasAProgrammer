@@ -2,6 +2,7 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -35,9 +36,7 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
-            //if(singleCanalBinlog.getEventType()== CanalEntry.EventType.DELETE){
-            System.out.println(singleCanalBinlog);
-            //}
+            System.out.println(DateTimeUtils.fromUnixTime(singleCanalBinlog.getExecuteMilliseconds() / 1000));
         }
     }
 }

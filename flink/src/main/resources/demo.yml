@@ -17,6 +17,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "9349c.json.prism.enterprise"
+      - "e1d4c.proto.prism_shareholder_path.investment_relation"
     groupId: "demo-job"
-    startFrom: "1"
+    startFrom: "2"
