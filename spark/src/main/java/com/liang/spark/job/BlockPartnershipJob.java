@@ -23,7 +23,7 @@ public class BlockPartnershipJob {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         String sql1 = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
                 .FROM("ads.ads_bdp_equity_shareholder_identity_type_details")
-                .WHERE("pt = '20231101' and (entity_name_valid is null or entity_name_valid = '')")
+                .WHERE("pt = '20231101' and (entity_name_valid is null or entity_name_valid = '' or entity_name_valid_with_shareholder_identity_type is null or entity_name_valid_with_shareholder_identity_type = '')")
                 .toString();
         String sql2 = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
                 .FROM("ads.ads_company_base_tyc_entity_general_property_reference_df")
