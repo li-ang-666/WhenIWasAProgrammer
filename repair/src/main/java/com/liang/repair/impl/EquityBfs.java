@@ -49,7 +49,7 @@ public class EquityBfs extends ConfigHolder {
                 for (Node chainNewShareholder : chainNewShareholders) {
                     // 链路是否归档(不再继续穿透)
                     boolean archive;
-                    // 与新股东融合后的链路
+                    // 加入or不加入新股东后的链路
                     Chain newChain;
                     // 要加入的新股权比例
                     BigDecimal newRatio;
