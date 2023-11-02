@@ -1,6 +1,7 @@
 package com.liang.flink.project.ratio.path.company;
 
 import com.alibaba.fastjson.JSONArray;
+import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.tyc.QueryAllShareHolderFromCompanyIdObj;
@@ -120,6 +121,10 @@ public class RatioPathCompanyService {
         //名字
         columnMap.put("company_name", dao.getEntityName(companyId));
         columnMap.put("shareholder_name", dao.getEntityName(shareholderId));
+        if (!TycUtils.isValidName(String.valueOf(columnMap.get("company_name"))) || !TycUtils.isValidName(String.valueOf(columnMap.get("shareholder_name")))) {
+            dao.deleteAll(Long.parseLong(companyId));
+            return new ArrayList<>();
+        }
         //path_node
         String equityHoldingPath = String.valueOf(columnMap.get("equity_holding_path"));
         BuildTab3Path.PathNode pathNode = BuildTab3Path.buildTab3PathSafe(shareholderId, equityHoldingPath);
