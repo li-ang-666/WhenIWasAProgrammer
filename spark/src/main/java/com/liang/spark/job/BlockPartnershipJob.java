@@ -6,6 +6,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
+import com.liang.spark.basic.TableFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
@@ -21,18 +22,22 @@ import java.util.stream.Collectors;
 public class BlockPartnershipJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
+        //table
+        TableFactory.jdbc(spark, "463.bdp_equity", "shareholder_identity_type_details")
+                .createOrReplaceTempView("t_shareholder_identity_type_details");
+        TableFactory.jdbc(spark, "465.company_base", "tyc_entity_general_property_reference")
+                .createOrReplaceTempView("t_tyc_entity_general_property_reference");
+        //sql
         String sql1 = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
-                .FROM("ads.ads_bdp_equity_shareholder_identity_type_details")
-                .WHERE("pt = '20231101' and (entity_name_valid is null or entity_name_valid = '' or entity_name_valid_with_shareholder_identity_type is null or entity_name_valid_with_shareholder_identity_type = '')")
+                .FROM("t_shareholder_identity_type_details")
                 .toString();
         String sql2 = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
-                .FROM("ads.ads_company_base_tyc_entity_general_property_reference_df")
-                .WHERE("pt = '20231101'")
+                .FROM("t_tyc_entity_general_property_reference")
                 .WHERE("entity_property in (15,16)")
                 .toString();
-
+        //exec
         spark.sql(sql1).unionAll(spark.sql(sql2))
-                .persist(StorageLevel.DISK_ONLY())
+                .persist(StorageLevel.MEMORY_AND_DISK())
                 .createOrReplaceTempView("t");
         long count = spark.sql("select 1 from t").count();
         spark.sql("select company_id from t").repartition(new BigDecimal(count / 128L).intValue())
@@ -44,7 +49,7 @@ public class BlockPartnershipJob {
         private final Config config;
 
         @Override
-        public void call(Iterator<Row> t) throws Exception {
+        public void call(Iterator<Row> t) {
             ConfigUtils.setConfig(config);
             List<String> ids = new ArrayList<>();
             while (t.hasNext()) {
