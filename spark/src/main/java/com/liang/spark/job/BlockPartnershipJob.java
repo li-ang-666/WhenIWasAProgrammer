@@ -8,6 +8,7 @@ import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import com.liang.spark.basic.TableFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -45,6 +46,7 @@ public class BlockPartnershipJob {
                 .foreachPartition(new BlockPartnershipSink(ConfigUtils.getConfig()));
     }
 
+    @Slf4j
     @RequiredArgsConstructor
     private final static class BlockPartnershipSink implements ForeachPartitionFunction<Row> {
         private final Config config;
@@ -57,11 +59,14 @@ public class BlockPartnershipJob {
                 String companyId = String.valueOf(JsonUtils.parseJsonObj(t.next().json()).get("company_id"));
                 ids.add(companyId);
             }
-            String sql = new SQL().UPDATE("investment_relation")
-                    .SET("update_time = date_add(update_time, interval 1 second)")
-                    .WHERE("company_id_invested in " + ids.stream().collect(Collectors.joining(",", "(", ")")))
-                    .toString();
-            new JdbcTemplate("457.prism_shareholder_path").update(sql);
+            log.info("ids: {}", ids);
+            if (!ids.isEmpty()) {
+                String sql = new SQL().UPDATE("investment_relation")
+                        .SET("update_time = now()")
+                        .WHERE("company_id_invested in " + ids.stream().collect(Collectors.joining(",", "(", ")")))
+                        .toString();
+                new JdbcTemplate("457.prism_shareholder_path").update(sql);
+            }
         }
     }
 }
