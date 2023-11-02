@@ -27,7 +27,7 @@ public class EquityBfs extends ConfigHolder {
         LinkedHashMap<String, LinkedHashSet<Chain>> shareholder2Chains = new LinkedHashMap<>();
         //股东持股明细
         LinkedHashMap<String, BigDecimal> shareholder2Ratio = new LinkedHashMap<>();
-        String root = "2318455639";
+        String root = "26515626";
         bfsQueue.addLast(new Chain(new Node(root, new BigDecimal(1))));
         int level = 1;
         while (level <= 100 && !bfsQueue.isEmpty()) {
@@ -71,12 +71,14 @@ public class EquityBfs extends ConfigHolder {
                         newChain = chain.copy().add(chainNewShareholder);
                         newRatio = newChain.getRatio();
                     }
-                    // 是自然人, 更新链路✅, 更新持股✅
+                    // 是自然人、001、注吊销, 更新链路✅, 更新持股✅
                     else if (TycUtils.isTycUniqueEntityId(chainNewShareholder.getId()) && chainNewShareholder.getId().length() == 17) {
                         archive = true;
                         newChain = chain.copy().add(chainNewShareholder);
                         newRatio = newChain.getRatio();
-                    } else {
+                    }
+                    // 其他正常情况
+                    else {
                         archive = false;
                         newChain = chain.copy().add(chainNewShareholder);
                         newRatio = newChain.getRatio();
