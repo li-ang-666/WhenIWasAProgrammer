@@ -30,6 +30,7 @@ public class BlockPartnershipJob {
         //sql
         String sql1 = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
                 .FROM("t_shareholder_identity_type_details")
+                .WHERE("entity_name_valid is null or entity_name_valid = '' or entity_name_valid_with_shareholder_identity_type is null or entity_name_valid_with_shareholder_identity_type = ''")
                 .toString();
         String sql2 = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
                 .FROM("t_tyc_entity_general_property_reference")
