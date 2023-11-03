@@ -20,7 +20,7 @@ import java.util.Set;
 public class RatioPathCompanyJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        spark.sql("select distinct tyc_unique_entity_id from ads.ads_bdp_equity_shareholder_identity_type_details")
+        spark.sql("select distinct tyc_unique_entity_id company_id from ads.ads_bdp_equity_shareholder_identity_type_details")
                 .repartition(3600)
                 .foreachPartition(new RatioPathCompanyForeach(ConfigUtils.getConfig()));
     }
@@ -38,7 +38,7 @@ public class RatioPathCompanyJob {
             while (iterator.hasNext()) {
                 String json = iterator.next().json();
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(json);
-                String companyIdInvested = String.valueOf(columnMap.get("company_id_invested"));
+                String companyIdInvested = String.valueOf(columnMap.get("company_id"));
                 if (StringUtils.isNumeric(companyIdInvested) && !"0".equals(companyIdInvested)) {
                     set.add(Long.parseLong(companyIdInvested));
                 }
