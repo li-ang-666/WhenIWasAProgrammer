@@ -71,7 +71,7 @@ public class InvestmentRelationJob {
             synchronized (companyIds) {
                 companyIds.add(key);
             }
-            if (companyIds.size() >= 16) {
+            if (companyIds.size() >= 128) {
                 flush();
             }
         }

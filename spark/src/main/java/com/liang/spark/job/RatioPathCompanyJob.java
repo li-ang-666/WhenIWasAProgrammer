@@ -1,6 +1,7 @@
 package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.SQL;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
@@ -20,7 +21,11 @@ import java.util.Set;
 public class RatioPathCompanyJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        spark.sql("select distinct tyc_unique_entity_id company_id from ads.ads_bdp_equity_shareholder_identity_type_details")
+        String sql = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
+                .FROM("ads.ads_bdp_equity_shareholder_identity_type_details")
+                .WHERE("pt = '20231101'")
+                .toString();
+        spark.sql(sql)
                 .repartition(3600)
                 .foreachPartition(new RatioPathCompanyForeach(ConfigUtils.getConfig()));
     }
@@ -42,7 +47,7 @@ public class RatioPathCompanyJob {
                 if (StringUtils.isNumeric(companyIdInvested) && !"0".equals(companyIdInvested)) {
                     set.add(Long.parseLong(companyIdInvested));
                 }
-                if (set.size() >= 64) {
+                if (set.size() >= 128) {
                     service.invoke(set);
                     set.clear();
                 }
