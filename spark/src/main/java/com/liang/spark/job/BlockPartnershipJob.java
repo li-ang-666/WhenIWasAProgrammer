@@ -46,7 +46,7 @@ public class BlockPartnershipJob {
         //exec
         spark.sql(sql1).unionAll(spark.sql(sql2)).unionAll(spark.sql(sql3))
                 .createOrReplaceTempView("t");
-        spark.sql("select company_id from t")
+        spark.sql("select distinct company_id from t")
                 .repartition(10240000 / 128)
                 .foreachPartition(new BlockPartnershipSink(ConfigUtils.getConfig()));
     }
