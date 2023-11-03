@@ -850,7 +850,6 @@ public class InvestUtil {
      * @return 是否需要停止
      */
     public static Integer shouldStop(InvestmentRelation investmentRelation, int curLevel, Map<String, InvestmentRelation> resultMap, InvestmentRelation newInvestmentRelation, Long companyId) {
-
         // 注吊销公司打断穿透
         String regStatus = new JdbcTemplate("435.company_base")
                 .queryForObject("select company_registation_status from company_index where company_id = " + SqlUtils.formatValue(investmentRelation.getShareholderNameId()), rs -> rs.getString(1));
