@@ -7,10 +7,10 @@ flinkConfig:
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "prismShareholderPath"
+    sourceName: "457.prism_shareholder_path"
     tableName: "ratio_path_company"
     columns: "*"
-    where: "id = 93532862"
+    where: "company_id = '2325045040'"
     scanMode: Direct
 
 kafkaConfigs:

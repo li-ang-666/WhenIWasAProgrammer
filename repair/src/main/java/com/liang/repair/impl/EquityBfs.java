@@ -27,7 +27,7 @@ public class EquityBfs extends ConfigHolder {
         LinkedHashMap<String, LinkedHashSet<Chain>> shareholder2Chains = new LinkedHashMap<>();
         //股东持股明细
         LinkedHashMap<String, BigDecimal> shareholder2Ratio = new LinkedHashMap<>();
-        String root = "26515626";
+        String root = "154213205";
         bfsQueue.addLast(new Chain(new Node(root, new BigDecimal(1))));
         int level = 1;
         while (level <= 100 && !bfsQueue.isEmpty()) {

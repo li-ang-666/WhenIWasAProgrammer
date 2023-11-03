@@ -3,6 +3,7 @@ package com.liang.flink.project.ratio.path.company;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
+import com.liang.common.util.TycUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.ArrayList;
@@ -19,7 +20,9 @@ public class RatioPathCompanyDao {
 
     private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
     private final JdbcTemplate bdpEquity = new JdbcTemplate("463.bdp_equity");
-    private final JdbcTemplate companyBase = new JdbcTemplate("465.company_base");
+    private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
+    private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
+    private final JdbcTemplate humanBase = new JdbcTemplate("040.human_base");
 
     public void deleteAll(Long companyId) {
         //删除ratio_path_company
@@ -51,7 +54,7 @@ public class RatioPathCompanyDao {
                 .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("entity_property in (15,16)")
                 .toString();
-        String res = companyBase.queryForObject(sql, rs -> rs.getString(1));
+        String res = companyBase465.queryForObject(sql, rs -> rs.getString(1));
         return res != null;
     }
 
@@ -65,12 +68,21 @@ public class RatioPathCompanyDao {
     }
 
     public String getEntityName(String entityId) {
+        if (TycUtils.isUnsignedId(entityId)) {
+            String sql = new SQL()
+                    .SELECT("company_name")
+                    .FROM("company_index")
+                    .WHERE("company_id = " + formatValue(entityId))
+                    .toString();
+            String res = companyBase435.queryForObject(sql, rs -> rs.getString(1));
+            return res != null ? res : "";
+        }
         String sql = new SQL()
-                .SELECT("entity_name_valid")
-                .FROM("tyc_entity_main_reference")
-                .WHERE("tyc_unique_entity_id = " + formatValue(entityId))
+                .SELECT("human_name")
+                .FROM("human")
+                .WHERE("human_id = " + formatValue(entityId))
                 .toString();
-        String res = companyBase.queryForObject(sql, rs -> rs.getString(1));
+        String res = humanBase.queryForObject(sql, rs -> rs.getString(1));
         return res != null ? res : "";
     }
 

@@ -1,5 +1,7 @@
 package org.tyc.utils;
 
+import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.util.SqlUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -852,6 +854,11 @@ public class InvestUtil {
         if (newInvestmentRelation.ifShareholderPercentLessThan005() || newInvestmentRelation.getShareholderNameId().equals(companyId))
             return ShareHolderStopEnum.STOP_NOT_ADD; // 不加到构造的路径上 不加比例
         if (investmentRelation.ifInvestorIsPerson() || investmentRelation.ifInvestorIn001())
+            return ShareHolderStopEnum.STOP_ADD_PATH_RATIO; // 加入到构造的路径中 加比例
+        // 注吊销公司打断穿透
+        String regStatus = new JdbcTemplate("435.company_base")
+                .queryForObject("select company_registation_status from company_index where company_id = " + SqlUtils.formatValue(investmentRelation.getShareholderNameId()), rs -> rs.getString(1));
+        if (StringUtils.containsAny(regStatus, "注销", "吊销"))
             return ShareHolderStopEnum.STOP_ADD_PATH_RATIO; // 加入到构造的路径中 加比例
         if (cyclicReferenceDetected(resultMap, newInvestmentRelation, companyId))
             return ShareHolderStopEnum.STOP_ADD_PATH_ONLY; // 加入到构造的路径中 不加比例
