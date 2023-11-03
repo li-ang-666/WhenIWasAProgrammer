@@ -72,7 +72,7 @@ public class BlockPartnershipJob {
                         .WHERE("company_id_invested in " + ids.stream().collect(Collectors.joining(",", "(", ")")))
                         .toString();
                 new JdbcTemplate("457.prism_shareholder_path").update(sql);
-                TimeUnit.SECONDS.sleep(3);
+                TimeUnit.SECONDS.sleep(1);
             }
         }
     }
