@@ -13,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.storage.StorageLevel;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -47,11 +45,9 @@ public class BlockPartnershipJob {
                 .toString();
         //exec
         spark.sql(sql1).unionAll(spark.sql(sql2)).unionAll(spark.sql(sql3))
-                .persist(StorageLevel.MEMORY_AND_DISK())
                 .createOrReplaceTempView("t");
-        long count = spark.sql("select 1 from t").count();
         spark.sql("select company_id from t")
-                .repartition(new BigDecimal(count / 128L).intValue())
+                .repartition(10240000 / 128)
                 .foreachPartition(new BlockPartnershipSink(ConfigUtils.getConfig()));
     }
 
@@ -76,7 +72,7 @@ public class BlockPartnershipJob {
                         .WHERE("company_id_invested in " + ids.stream().collect(Collectors.joining(",", "(", ")")))
                         .toString();
                 new JdbcTemplate("457.prism_shareholder_path").update(sql);
-                TimeUnit.SECONDS.sleep(30);
+                TimeUnit.SECONDS.sleep(3);
             }
         }
     }
