@@ -8,6 +8,7 @@ import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import com.liang.spark.basic.TableFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class BlockPartnershipJob {
@@ -28,6 +30,8 @@ public class BlockPartnershipJob {
                 .createOrReplaceTempView("t_shareholder_identity_type_details");
         TableFactory.jdbc(spark, "465.company_base", "tyc_entity_general_property_reference")
                 .createOrReplaceTempView("t_tyc_entity_general_property_reference");
+        TableFactory.jdbc(spark, "457.prism_shareholder_path", "investment_relation")
+                .createOrReplaceTempView("t_investment_relation");
         //sql
         String sql1 = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
                 .FROM("t_shareholder_identity_type_details")
@@ -37,12 +41,17 @@ public class BlockPartnershipJob {
                 .FROM("t_tyc_entity_general_property_reference")
                 .WHERE("entity_property in (15,16)")
                 .toString();
+        String sql3 = new SQL().SELECT("distinct company_id_invested company_id")
+                .FROM("t_investment_relation")
+                .WHERE("'2023-10-30 00:00:00' <= update_time and update_time <= '2023-11-03 23:00:00'")
+                .toString();
         //exec
-        spark.sql(sql1).unionAll(spark.sql(sql2))
+        spark.sql(sql1).unionAll(spark.sql(sql2)).unionAll(spark.sql(sql3))
                 .persist(StorageLevel.MEMORY_AND_DISK())
                 .createOrReplaceTempView("t");
         long count = spark.sql("select 1 from t").count();
-        spark.sql("select company_id from t").repartition(new BigDecimal(count / 128L).intValue())
+        spark.sql("select company_id from t")
+                .repartition(new BigDecimal(count / 128L).intValue())
                 .foreachPartition(new BlockPartnershipSink(ConfigUtils.getConfig()));
     }
 
@@ -52,6 +61,7 @@ public class BlockPartnershipJob {
         private final Config config;
 
         @Override
+        @SneakyThrows
         public void call(Iterator<Row> t) {
             ConfigUtils.setConfig(config);
             List<String> ids = new ArrayList<>();
@@ -66,6 +76,7 @@ public class BlockPartnershipJob {
                         .WHERE("company_id_invested in " + ids.stream().collect(Collectors.joining(",", "(", ")")))
                         .toString();
                 new JdbcTemplate("457.prism_shareholder_path").update(sql);
+                TimeUnit.SECONDS.sleep(30);
             }
         }
     }
