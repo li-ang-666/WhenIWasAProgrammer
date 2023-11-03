@@ -851,14 +851,15 @@ public class InvestUtil {
      */
     public static Integer shouldStop(InvestmentRelation investmentRelation, int curLevel, Map<String, InvestmentRelation> resultMap, InvestmentRelation newInvestmentRelation, Long companyId) {
 
-        if (newInvestmentRelation.ifShareholderPercentLessThan005() || newInvestmentRelation.getShareholderNameId().equals(companyId))
-            return ShareHolderStopEnum.STOP_NOT_ADD; // 不加到构造的路径上 不加比例
-        if (investmentRelation.ifInvestorIsPerson() || investmentRelation.ifInvestorIn001())
-            return ShareHolderStopEnum.STOP_ADD_PATH_RATIO; // 加入到构造的路径中 加比例
         // 注吊销公司打断穿透
         String regStatus = new JdbcTemplate("435.company_base")
                 .queryForObject("select company_registation_status from company_index where company_id = " + SqlUtils.formatValue(investmentRelation.getShareholderNameId()), rs -> rs.getString(1));
         if (StringUtils.containsAny(regStatus, "注销", "吊销"))
+            return ShareHolderStopEnum.STOP_NOT_ADD; // 不加到构造的路径上 不加比例
+        // 国旺的逻辑
+        if (newInvestmentRelation.ifShareholderPercentLessThan005() || newInvestmentRelation.getShareholderNameId().equals(companyId))
+            return ShareHolderStopEnum.STOP_NOT_ADD; // 不加到构造的路径上 不加比例
+        if (investmentRelation.ifInvestorIsPerson() || investmentRelation.ifInvestorIn001())
             return ShareHolderStopEnum.STOP_ADD_PATH_RATIO; // 加入到构造的路径中 加比例
         if (cyclicReferenceDetected(resultMap, newInvestmentRelation, companyId))
             return ShareHolderStopEnum.STOP_ADD_PATH_ONLY; // 加入到构造的路径中 不加比例
