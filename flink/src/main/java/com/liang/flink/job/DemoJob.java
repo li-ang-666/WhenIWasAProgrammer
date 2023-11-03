@@ -2,7 +2,6 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DateTimeUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -12,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @LocalConfigFile("demo.yml")
@@ -28,15 +29,16 @@ public class DemoJob {
     @RequiredArgsConstructor
     private final static class DemoSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
+        private final AtomicLong atomicLong = new AtomicLong();
 
         @Override
-        public void open(Configuration parameters) throws Exception {
+        public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
         }
 
         @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
-            System.out.println(DateTimeUtils.fromUnixTime(singleCanalBinlog.getExecuteMilliseconds() / 1000));
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
+            log.info("num: {}", atomicLong.getAndIncrement());
         }
     }
 }
