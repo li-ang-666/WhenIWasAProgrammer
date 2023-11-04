@@ -43,11 +43,21 @@ public class BlockPartnershipJob {
                 .FROM("t_investment_relation")
                 .WHERE("'2023-10-30 00:00:00' <= update_time and update_time <= '2023-11-03 23:00:00'")
                 .toString();
+        String sql4 = "with t as(\n" +
+                "    select tyc_unique_entity_id company_id from ads.ads_bdp_equity_shareholder_identity_type_details where pt in (20231030,20231031,20231101,20231103) group by tyc_unique_entity_id having count(distinct pt) <> 4\n" +
+                "),\n" +
+                "tt as(\n" +
+                "    select distinct company_id_invested company_id from t_investment_relation where '2023-10-30 00:00:00' <= update_time and update_time <= '2023-11-03 23:00:00'\n" +
+                ")\n" +
+                "select t.company_id from t left join tt on t.company_id = tt.company_id where tt.company_id is null";
         //exec
-        spark.sql(sql1).unionAll(spark.sql(sql2)).unionAll(spark.sql(sql3))
-                .createOrReplaceTempView("t");
-        spark.sql("select distinct company_id from t")
-                .repartition(10240000 / 128)
+//        spark.sql(sql1).unionAll(spark.sql(sql2)).unionAll(spark.sql(sql3))
+//                .createOrReplaceTempView("t");
+//        spark.sql("select distinct company_id from t")
+//                .repartition(10240000 / 128)
+//                .foreachPartition(new BlockPartnershipSink(ConfigUtils.getConfig()));
+        spark.sql(sql4)
+                .repartition(8000)
                 .foreachPartition(new BlockPartnershipSink(ConfigUtils.getConfig()));
     }
 
@@ -72,7 +82,7 @@ public class BlockPartnershipJob {
                         .WHERE("company_id_invested in " + ids.stream().collect(Collectors.joining(",", "(", ")")))
                         .toString();
                 new JdbcTemplate("457.prism_shareholder_path").update(sql);
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(2);
             }
         }
     }
