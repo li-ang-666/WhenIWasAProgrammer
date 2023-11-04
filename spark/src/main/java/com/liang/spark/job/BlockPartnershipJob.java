@@ -49,7 +49,7 @@ public class BlockPartnershipJob {
                 "tt as(\n" +
                 "    select distinct company_id_invested company_id from t_investment_relation where '2023-10-30 00:00:00' <= update_time and update_time <= '2023-11-03 23:00:00'\n" +
                 ")\n" +
-                "select t.company_id from t left join tt on t.company_id = tt.company_id where tt.company_id is null";
+                "select t.company_id company_id from t left join tt on t.company_id = tt.company_id where tt.company_id is null";
         //exec
 //        spark.sql(sql1).unionAll(spark.sql(sql2)).unionAll(spark.sql(sql3))
 //                .createOrReplaceTempView("t");
