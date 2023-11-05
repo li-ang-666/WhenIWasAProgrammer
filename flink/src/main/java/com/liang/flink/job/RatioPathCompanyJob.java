@@ -2,9 +2,11 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.DaemonExecutor;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -62,18 +64,18 @@ public class RatioPathCompanyJob {
             if (StringUtils.isNumeric(companyIdString)) {
                 result.add(Long.parseLong(companyIdString));
             }
-//            String sql = new SQL()
-//                    .SELECT("distinct company_id")
-//                    .FROM("ratio_path_company")
-//                    .WHERE("shareholder_id = " + SqlUtils.formatValue(companyIdString))
-//                    .toString();
-//            jdbcTemplate.queryForList(sql, rs -> {
-//                String companyId = rs.getString(1);
-//                if (StringUtils.isNumeric(companyId)) {
-//                    result.add(Long.parseLong(companyId));
-//                }
-//                return null;
-//            });
+            String sql = new SQL()
+                    .SELECT("distinct company_id")
+                    .FROM("ratio_path_company")
+                    .WHERE("shareholder_id = " + SqlUtils.formatValue(companyIdString))
+                    .toString();
+            jdbcTemplate.queryForList(sql, rs -> {
+                String companyId = rs.getString(1);
+                if (StringUtils.isNumeric(companyId)) {
+                    result.add(Long.parseLong(companyId));
+                }
+                return null;
+            });
             result.forEach(out::collect);
         }
     }

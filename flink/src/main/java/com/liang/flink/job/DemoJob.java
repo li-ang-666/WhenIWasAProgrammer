@@ -38,7 +38,7 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            log.info("num: {}", atomicLong.getAndIncrement());
+            log.info("pojo: {}", singleCanalBinlog);
         }
     }
 }
