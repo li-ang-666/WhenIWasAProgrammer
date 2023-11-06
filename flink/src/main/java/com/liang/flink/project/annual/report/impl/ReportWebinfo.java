@@ -7,6 +7,7 @@ import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.Collections;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class ReportWebinfo extends AbstractDataUpdate<String> {
     private final static String TABLE_NAME = "entity_annual_report_ebusiness_details";
     private final AnnualReportDao dao = new AnnualReportDao();
@@ -33,6 +35,14 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
         Tuple2<Company, String> companyAndYear = dao.getCompanyAndYear(reportId);
         Company company = companyAndYear.f0;
         String year = companyAndYear.f1;
+        if (!TycUtils.isYear(year)) {
+            log.error("report_webinfo, id: {}, 路由不到正确年份", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
+        if (!TycUtils.isUnsignedId(company.getGid()) || !TycUtils.isValidName(company.getName())) {
+            log.error("report_webinfo, id: {}, 路由不到正确实体", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
         // 公司
         resultMap.put("id", id);
         resultMap.put("annual_report_year", year);
@@ -51,19 +61,17 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
                 resultMap.put("annual_report_ebusiness_type", "网页");
                 break;
             default:
-                resultMap.put("annual_report_ebusiness_type", "其它");
-                resultMap.put("delete_status", 1);
-                break;
+                log.error("report_webinfo, id: {}, 非法的网上运营类型(网站、网店、网页)", id);
+                return deleteWithReturn(singleCanalBinlog);
+            //resultMap.put("annual_report_ebusiness_type", "其它");
+            //resultMap.put("delete_status", 1);
+            //break;
         }
         resultMap.put("annual_report_ebusiness_name", TycUtils.isValidName(name) ? name : null);
         resultMap.put("annual_report_ebusiness_website", TycUtils.isValidName(website) ? website : null);
         // 两个都是空, 代表脏数据
         if (!TycUtils.isValidName(name) && !TycUtils.isValidName(website)) {
-            resultMap.put("delete_status", 1);
-        }
-        // 检测脏数据
-        checkMap(resultMap);
-        if ("1".equals(String.valueOf(resultMap.get("delete_status")))) {
+            log.error("report_webinfo, id: {}, 网上运营产品名称 & 网上运营产品网址 同时不合法", id);
             return deleteWithReturn(singleCanalBinlog);
         }
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
@@ -80,15 +88,5 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
                 .WHERE("id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
                 .toString();
         return Collections.singletonList(sql);
-    }
-
-    private void checkMap(Map<String, Object> resultMap) {
-        if (TycUtils.isTycUniqueEntityId(resultMap.get("tyc_unique_entity_id")) &&
-                TycUtils.isValidName(resultMap.get("entity_name_valid")) &&
-                TycUtils.isYear(resultMap.get("annual_report_year"))
-        ) {
-        } else {
-            resultMap.put("delete_status", 1);
-        }
     }
 }

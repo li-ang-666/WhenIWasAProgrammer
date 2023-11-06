@@ -42,6 +42,14 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         Tuple2<Company, String> companyAndYear = dao.getCompanyAndYear(reportId);
         Company company = companyAndYear.f0;
         String year = companyAndYear.f1;
+        if (!TycUtils.isYear(year)) {
+            log.error("report_equity_change_info, id: {}, 路由不到正确年份", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
+        if (!TycUtils.isUnsignedId(company.getGid()) || !TycUtils.isValidName(company.getName())) {
+            log.error("report_equity_change_info, id: {}, 路由不到正确实体", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
         // 公司
         resultMap.put("id", id);
         resultMap.put("annual_report_year", year);
@@ -55,32 +63,38 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
                 Human human = TycUtils.cid2Human(investorId);
                 String pid = TycUtils.gid2Pid(company.getGid(), human.getGid());
                 String s = TycUtils.pid2Name(pid);
+                if (!TycUtils.isTycUniqueEntityId(pid) || !TycUtils.isValidName(s)) {
+                    log.error("report_equity_change_info, id: {}, 路由不到正确股东", id);
+                    return deleteWithReturn(singleCanalBinlog);
+                }
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", pid);
                 resultMap.put("annual_report_entity_name_valid_shareholder", s);
                 resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 break;
             case "2": // 公司
                 Company investor = TycUtils.cid2Company(investorId);
+                if (!TycUtils.isUnsignedId(investor.getGid()) || !TycUtils.isValidName(investor.getName())) {
+                    log.error("report_equity_change_info, id: {}, 路由不到正确股东", id);
+                    return deleteWithReturn(singleCanalBinlog);
+                }
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investor.getGid());
                 resultMap.put("annual_report_entity_name_valid_shareholder", investor.getName());
                 resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
             default: // 非人非公司 or 其它
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
-                resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
-                resultMap.put("annual_report_entity_type_id_shareholder", 3);
-                break;
-        }
-        // 检测脏数据
-        checkMap(resultMap);
-        if ("1".equals(String.valueOf(resultMap.get("delete_status")))) {
-            return deleteWithReturn(singleCanalBinlog);
+                log.error("report_equity_change_info, id: {}, 股东非人非公司", id);
+                return deleteWithReturn(singleCanalBinlog);
+            //resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
+            //resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
+            //resultMap.put("annual_report_entity_type_id_shareholder", 3);
+            //break;
         }
         // 股权变更
         String bef = parse(id, ratioBefore);
         String aft = parse(id, ratioAfter);
         // 股权比例脏数据, 跳出
         if (bef.contains("-") || aft.contains("-")) {
+            log.error("report_equity_change_info, id: {}, 非法的股权比例", id);
             return deleteWithReturn(singleCanalBinlog);
         }
         resultMap.put("annual_report_equity_ratio_before_change", bef);
@@ -88,6 +102,7 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         String checkedChangeTime = TycUtils.isDateTime(changeTime) ? changeTime : null;
         // 变更时间脏数据, 跳出
         if (checkedChangeTime == null) {
+            log.error("report_equity_change_info, id: {}, 非法的变更时间", id);
             return deleteWithReturn(singleCanalBinlog);
         }
         resultMap.put("annual_report_equity_ratio_change_time", checkedChangeTime);
@@ -133,19 +148,6 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
         } catch (Exception e) {
             log.warn("股权变更解析异常, id = {}, percent = {}", id, percent, e);
             return "-1";
-        }
-    }
-
-    private void checkMap(Map<String, Object> resultMap) {
-        if (TycUtils.isTycUniqueEntityId(resultMap.get("tyc_unique_entity_id")) &&
-                TycUtils.isValidName(resultMap.get("entity_name_valid")) &&
-                TycUtils.isTycUniqueEntityId(resultMap.get("annual_report_tyc_unique_entity_id_shareholder")) &&
-                TycUtils.isValidName(resultMap.get("annual_report_entity_name_valid_shareholder")) &&
-                TycUtils.isValidName(resultMap.get("annual_report_entity_name_register_shareholder")) &&
-                TycUtils.isYear(resultMap.get("annual_report_year"))
-        ) {
-        } else {
-            resultMap.put("delete_status", 1);
         }
     }
 }

@@ -41,6 +41,14 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         Tuple2<Company, String> companyAndYear = dao.getCompanyAndYear(reportId);
         Company company = companyAndYear.f0;
         String year = companyAndYear.f1;
+        if (!TycUtils.isYear(year)) {
+            log.error("report_shareholder, id: {}, 路由不到正确年份", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
+        if (!TycUtils.isUnsignedId(company.getGid()) || !TycUtils.isValidName(company.getName())) {
+            log.error("report_shareholder, id: {}, 路由不到正确实体", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
         // 公司
         resultMap.put("data_source_trace_id", id);
         resultMap.put("annual_report_year", year);
@@ -54,26 +62,31 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 Human human = TycUtils.cid2Human(investorId);
                 String pid = TycUtils.gid2Pid(company.getGid(), human.getGid());
                 String s = TycUtils.pid2Name(pid);
+                if (!TycUtils.isTycUniqueEntityId(pid) || !TycUtils.isValidName(s)) {
+                    log.error("report_shareholder, id: {}, 路由不到正确股东", id);
+                    return deleteWithReturn(singleCanalBinlog);
+                }
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", pid);
                 resultMap.put("annual_report_entity_name_valid_shareholder", s);
                 resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 break;
             case "2": // 公司
                 Company investor = TycUtils.cid2Company(investorId);
+                if (!TycUtils.isUnsignedId(investor.getGid()) || !TycUtils.isValidName(investor.getName())) {
+                    log.error("report_shareholder, id: {}, 路由不到正确股东", id);
+                    return deleteWithReturn(singleCanalBinlog);
+                }
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investor.getGid());
                 resultMap.put("annual_report_entity_name_valid_shareholder", investor.getName());
                 resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
             default: // 非人非公司 or 其它
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
-                resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
-                resultMap.put("annual_report_entity_type_id_shareholder", 3);
-                break;
-        }
-        // 检测脏数据
-        checkMap(resultMap);
-        if ("1".equals(String.valueOf(resultMap.get("delete_status")))) {
-            return deleteWithReturn(singleCanalBinlog);
+                log.error("report_shareholder, id: {}, 股东非人非公司", id);
+                return deleteWithReturn(singleCanalBinlog);
+            //resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
+            //resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
+            //resultMap.put("annual_report_entity_type_id_shareholder", 3);
+            //break;
         }
         // 认缴
         HashMap<String, Object> resultMap1 = new HashMap<>(resultMap);
@@ -90,6 +103,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         // 认缴时间脏数据, 跳出
         String checkedSubscribeTime = TycUtils.isDateTime(subscribeTime) ? subscribeTime : null;
         if (checkedSubscribeTime == null) {
+            log.error("report_shareholder, id: {}, 非法的认缴时间", id);
             return deleteWithReturn(singleCanalBinlog);
         }
         resultMap1.put("annual_report_shareholder_equity_valid_date", checkedSubscribeTime);
@@ -115,6 +129,7 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
         // 实缴时间脏数据, 跳出
         String checkedPaidTime = TycUtils.isDateTime(paidTime) ? paidTime : null;
         if (checkedPaidTime == null) {
+            log.error("report_shareholder, id: {}, 非法的实缴时间", id);
             return deleteWithReturn(singleCanalBinlog);
         }
         resultMap2.put("annual_report_shareholder_equity_valid_date", checkedPaidTime);
@@ -134,19 +149,6 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 .WHERE("data_source_trace_id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
                 .toString();
         return Collections.singletonList(sql);
-    }
-
-    private void checkMap(Map<String, Object> resultMap) {
-        if (TycUtils.isTycUniqueEntityId(resultMap.get("tyc_unique_entity_id")) &&
-                TycUtils.isValidName(resultMap.get("entity_name_valid")) &&
-                TycUtils.isTycUniqueEntityId(resultMap.get("annual_report_tyc_unique_entity_id_shareholder")) &&
-                TycUtils.isValidName(resultMap.get("annual_report_entity_name_valid_shareholder")) &&
-                TycUtils.isValidName(resultMap.get("annual_report_entity_name_register_shareholder")) &&
-                TycUtils.isYear(resultMap.get("annual_report_year"))
-        ) {
-        } else {
-            resultMap.put("delete_status", 1);
-        }
     }
 
     private Tuple2<String, String> formatEquity(String dataSourceTraceId, Tuple2<String, String> tuple2) {

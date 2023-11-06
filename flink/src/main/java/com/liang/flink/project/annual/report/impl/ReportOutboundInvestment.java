@@ -7,6 +7,7 @@ import com.liang.common.util.TycUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.annual.report.dao.AnnualReportDao;
 import com.liang.flink.service.data.update.AbstractDataUpdate;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.Collections;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
     private final static String TABLE_NAME = "entity_annual_report_investment_details";
     private final AnnualReportDao dao = new AnnualReportDao();
@@ -32,6 +34,14 @@ public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
         Tuple2<Company, String> companyAndYear = dao.getCompanyAndYear(reportId);
         Company company = companyAndYear.f0;
         String year = companyAndYear.f1;
+        if (!TycUtils.isYear(year)) {
+            log.error("report_outbound_investment, id: {}, 路由不到正确年份", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
+        if (!TycUtils.isUnsignedId(company.getGid()) || !TycUtils.isValidName(company.getName())) {
+            log.error("report_outbound_investment, id: {}, 路由不到正确实体", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
         // 公司
         resultMap.put("id", id);
         resultMap.put("annual_report_year", year);
@@ -40,14 +50,13 @@ public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
         resultMap.put("entity_type_id", 1);
         // 投资对象
         Company outCompany = TycUtils.cid2Company(outcompanyId);
+        if (!TycUtils.isUnsignedId(outCompany.getGid()) || !TycUtils.isValidName(outCompany.getName())) {
+            log.error("report_outbound_investment, id: {}, 路由不到正确对外投资对象", id);
+            return deleteWithReturn(singleCanalBinlog);
+        }
         resultMap.put("annual_report_company_id_invested", outCompany.getGid());
         resultMap.put("annual_report_company_name_invested", outCompany.getName());
         resultMap.put("annual_report_company_name_invested_register_name", outCompanyName);
-        // 检测脏数据
-        checkMap(resultMap);
-        if ("1".equals(String.valueOf(resultMap.get("delete_status")))) {
-            return deleteWithReturn(singleCanalBinlog);
-        }
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert.f0)
@@ -62,18 +71,5 @@ public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
                 .WHERE("id = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("id")))
                 .toString();
         return Collections.singletonList(sql);
-    }
-
-    private void checkMap(Map<String, Object> resultMap) {
-        if (TycUtils.isTycUniqueEntityId(resultMap.get("tyc_unique_entity_id")) &&
-                TycUtils.isValidName(resultMap.get("entity_name_valid")) &&
-                TycUtils.isTycUniqueEntityId(resultMap.get("annual_report_company_id_invested")) &&
-                TycUtils.isValidName(resultMap.get("annual_report_company_name_invested")) &&
-                TycUtils.isValidName(resultMap.get("annual_report_company_name_invested_register_name")) &&
-                TycUtils.isYear(resultMap.get("annual_report_year"))
-        ) {
-        } else {
-            resultMap.put("delete_status", 1);
-        }
     }
 }
