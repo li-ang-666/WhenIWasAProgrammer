@@ -49,7 +49,7 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
         resultMap.put("entity_name_valid", company.getName());
         resultMap.put("entity_type_id", 1);
         // 网上运营
-        resultMap.put("annual_report_ebusiness_type", TycUtils.isValidName(webType) ? website : null);
+        resultMap.put("annual_report_ebusiness_type", TycUtils.isValidName(webType) ? webType : null);
         resultMap.put("annual_report_ebusiness_name", TycUtils.isValidName(name) ? name : null);
         resultMap.put("annual_report_ebusiness_website", TycUtils.isValidName(website) ? website : null);
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
