@@ -142,7 +142,7 @@ public class CompanyBaseInfoService {
         // 登记注册地址
         columnMap.put("entity_register_address", ifNull(companyMap, "reg_location", null));
         // 成立日期
-        columnMap.put("registration_date", TycUtils.isDateTimeByNow(companyMap.get("estiblish_time")) ? companyMap.get("estiblish_time") : null);
+        columnMap.put("registration_date", TycUtils.isDateTime(companyMap.get("estiblish_time")) ? companyMap.get("estiblish_time") : null);
         // 经营期限
         String text = StringUtils.substring(String.valueOf(companyMap.get("from_time")), 0, 10) + "至" + StringUtils.substring(String.valueOf(companyMap.get("to_time")), 0, 10);
         Tuple3<String, String, Boolean> timeInfo = getTimeInfo(text);
@@ -154,7 +154,7 @@ public class CompanyBaseInfoService {
         // 登记机关
         columnMap.put("registration_institute", ifNull(companyMap, "reg_institute", null));
         // 核准日期
-        columnMap.put("approval_date", TycUtils.isDateTimeByNow(companyMap.get("approved_time")) ? companyMap.get("approved_time") : null);
+        columnMap.put("approval_date", TycUtils.isDateTime(companyMap.get("approved_time")) ? companyMap.get("approved_time") : null);
         // 组织机构代码
         columnMap.put("organization_code", ifNull(companyMap, "org_number", null));
         // 纳税人识别号

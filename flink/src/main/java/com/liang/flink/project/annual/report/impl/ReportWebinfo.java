@@ -36,8 +36,7 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
         Company company = companyAndYear.f0;
         String year = companyAndYear.f1;
         if (!TycUtils.isYear(year)) {
-            log.error("report_webinfo, id: {}, 路由不到正确年份", id);
-            return deleteWithReturn(singleCanalBinlog);
+            year = null;
         }
         if (!TycUtils.isUnsignedId(company.getGid()) || !TycUtils.isValidName(company.getName())) {
             log.error("report_webinfo, id: {}, 路由不到正确实体", id);
