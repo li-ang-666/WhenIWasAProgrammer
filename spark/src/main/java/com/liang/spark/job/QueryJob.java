@@ -3,7 +3,6 @@ package com.liang.spark.job;
 import com.liang.common.util.ApolloUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hudi.DataSourceReadOptions;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
@@ -13,14 +12,7 @@ import java.util.List;
 public class QueryJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        String apollo = ApolloUtils.get("spark");
-        spark.read()
-                .format("hudi")
-                .option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_SNAPSHOT_OPT_VAL())
-                //.option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_READ_OPTIMIZED_OPT_VAL())
-                .load(apollo.split(";")[0])
-                .createOrReplaceTempView("hudi_table");
-        String sql = apollo.split(";")[1];
+        String sql = ApolloUtils.get("spark");
         log.info("sql: {}", sql);
         List<Row> rows = spark.sql(sql).collectAsList();
         for (Row row : rows) {
