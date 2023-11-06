@@ -27,7 +27,7 @@ public class PxCheckJob {
                 .createOrReplaceTempView("t_3");
         TableFactory.jdbc(spark, "gauss", "entity_annual_report_shareholder_equity_details")
                 .createOrReplaceTempView("t_4");
-        TableFactory.jdbc(spark, "gauss", "entity_annual_report_inøvestment_details")
+        TableFactory.jdbc(spark, "gauss", "entity_annual_report_investment_details")
                 .createOrReplaceTempView("t_6");
         TableFactory.jdbc(spark, "gauss", "entity_annual_report_ebusiness_details")
                 .createOrReplaceTempView("t_7");
