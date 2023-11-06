@@ -70,7 +70,6 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                     resultMap.put("annual_report_entity_name_valid_shareholder", s);
                     resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 }
-
                 break;
             case "2": // 公司
                 Company investor = TycUtils.cid2Company(investorId);
