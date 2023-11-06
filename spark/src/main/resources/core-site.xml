@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <property>
+    <!--<property>
         <name>fs.defaultFS</name>
         <value>obs://hadoop-obs/</value>
     </property>
@@ -19,5 +19,5 @@
     <property>
         <name>fs.obs.endpoint</name>
         <value>obs.cn-north-4.myhuaweicloud.com</value>
-    </property>
+    </property>-->
 </configuration>

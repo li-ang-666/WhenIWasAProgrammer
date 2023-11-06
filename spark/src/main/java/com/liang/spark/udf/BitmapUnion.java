@@ -30,7 +30,7 @@ public class BitmapUnion extends Aggregator<byte[], Roaring64Bitmap, byte[]> {
 
     @Override
     public Encoder<Roaring64Bitmap> bufferEncoder() {
-        return Encoders.bean(Roaring64Bitmap.class);
+        return Encoders.javaSerialization(Roaring64Bitmap.class);
     }
 
     @Override
