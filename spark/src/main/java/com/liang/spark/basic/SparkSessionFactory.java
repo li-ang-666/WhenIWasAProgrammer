@@ -9,7 +9,6 @@ import com.liang.spark.udf.ToBitmap;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Encoders;
-import org.apache.spark.sql.RuntimeConfig;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
 import org.apache.spark.sql.types.DataTypes;
@@ -34,20 +33,14 @@ public class SparkSessionFactory {
     private static SparkSession initSpark() {
         SparkSession spark;
         try {
-            spark = SparkSession
-                    .builder()
+            spark = ConfigSparkBuilder(SparkSession.builder())
                     .enableHiveSupport()
                     .getOrCreate();
         } catch (Exception e) {
-            spark = SparkSession.builder()
+            spark = ConfigSparkBuilder(SparkSession.builder())
                     .master("local[*]")
                     .getOrCreate();
         }
-        RuntimeConfig conf = spark.conf();
-        conf.set("spark.debug.maxToStringFields", "256");
-        conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-        conf.set("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension");
-        conf.set("spark.kryo.registrator", "org.apache.spark.HoodieSparkKryoRegistrar");
         // udf
         spark.udf().register("to_bitmap", new ToBitmap(), DataTypes.BinaryType);
         spark.udf().register("bitmap_count", new BitmapCount(), DataTypes.LongType);
@@ -55,5 +48,13 @@ public class SparkSessionFactory {
         spark.udf().register("collect_bitmap", functions.udaf(new CollectBitmap(), Encoders.LONG()));
         spark.udf().register("bitmap_union", functions.udaf(new BitmapUnion(), Encoders.BINARY()));
         return spark;
+    }
+
+    private SparkSession.Builder ConfigSparkBuilder(SparkSession.Builder builder) {
+        return builder
+                .config("spark.debug.maxToStringFields", "256")
+                .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+                .config("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension")
+                .config("spark.kryo.registrator", "org.apache.spark.HoodieSparkKryoRegistrar");
     }
 }
