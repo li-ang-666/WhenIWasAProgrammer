@@ -82,29 +82,24 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
                 resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
             default: // 非人非公司 or 其它
-                log.error("report_equity_change_info, id: {}, 股东非人非公司", id);
-                return deleteWithReturn(singleCanalBinlog);
-            //resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
-            //resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
-            //resultMap.put("annual_report_entity_type_id_shareholder", 3);
-            //break;
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
+                resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
+                resultMap.put("annual_report_entity_type_id_shareholder", 3);
+                break;
         }
         // 股权变更
         String bef = parse(id, ratioBefore);
         String aft = parse(id, ratioAfter);
-        // 股权比例脏数据, 跳出
-        if (bef.contains("-") || aft.contains("-")) {
-            log.error("report_equity_change_info, id: {}, 非法的股权比例", id);
-            return deleteWithReturn(singleCanalBinlog);
+        // 股权比例脏数据
+        if (bef.contains("-")) {
+            bef = null;
+        }
+        if (aft.contains("-")) {
+            aft = null;
         }
         resultMap.put("annual_report_equity_ratio_before_change", bef);
         resultMap.put("annual_report_equity_ratio_after_change", aft);
         String checkedChangeTime = TycUtils.isDateTime(changeTime) ? changeTime : null;
-        // 变更时间脏数据, 跳出
-        if (checkedChangeTime == null) {
-            log.error("report_equity_change_info, id: {}, 非法的变更时间", id);
-            return deleteWithReturn(singleCanalBinlog);
-        }
         resultMap.put("annual_report_equity_ratio_change_time", checkedChangeTime);
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL()

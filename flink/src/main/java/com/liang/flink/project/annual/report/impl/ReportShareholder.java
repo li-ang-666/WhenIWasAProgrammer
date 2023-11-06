@@ -81,12 +81,10 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
                 resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
             default: // 非人非公司 or 其它
-                log.error("report_shareholder, id: {}, 股东非人非公司", id);
-                return deleteWithReturn(singleCanalBinlog);
-            //resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
-            //resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
-            //resultMap.put("annual_report_entity_type_id_shareholder", 3);
-            //break;
+                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
+                resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
+                resultMap.put("annual_report_entity_type_id_shareholder", 3);
+                break;
         }
         // 认缴
         HashMap<String, Object> resultMap1 = new HashMap<>(resultMap);
@@ -100,12 +98,8 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
             resultMap1.put("annual_report_shareholder_equity_amt", numberAndUnit1.f0);
             resultMap1.put("annual_report_shareholder_equity_currency", numberAndUnit1.f1);
         }
-        // 认缴时间脏数据, 跳出
+        // 认缴时间脏数据
         String checkedSubscribeTime = TycUtils.isDateTime(subscribeTime) ? subscribeTime : null;
-        if (checkedSubscribeTime == null) {
-            log.error("report_shareholder, id: {}, 非法的认缴时间", id);
-            return deleteWithReturn(singleCanalBinlog);
-        }
         resultMap1.put("annual_report_shareholder_equity_valid_date", checkedSubscribeTime);
         resultMap1.put("annual_report_shareholder_equity_submission_method", TycUtils.isValidName(subscribeType) ? subscribeType : null);
         Tuple2<String, String> insert1 = SqlUtils.columnMap2Insert(resultMap1);
@@ -126,12 +120,8 @@ public class ReportShareholder extends AbstractDataUpdate<String> {
             resultMap2.put("annual_report_shareholder_equity_amt", numberAndUnit2.f0);
             resultMap2.put("annual_report_shareholder_equity_currency", numberAndUnit2.f1);
         }
-        // 实缴时间脏数据, 跳出
+        // 实缴时间脏数据
         String checkedPaidTime = TycUtils.isDateTime(paidTime) ? paidTime : null;
-        if (checkedPaidTime == null) {
-            log.error("report_shareholder, id: {}, 非法的实缴时间", id);
-            return deleteWithReturn(singleCanalBinlog);
-        }
         resultMap2.put("annual_report_shareholder_equity_valid_date", checkedPaidTime);
         resultMap2.put("annual_report_shareholder_equity_submission_method", TycUtils.isValidName(paidType) ? paidType : null);
         Tuple2<String, String> insert2 = SqlUtils.columnMap2Insert(resultMap2);
