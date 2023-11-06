@@ -117,7 +117,7 @@ public class EvaluationInstitutionCandidateService {
         // 财产名称
         resultMap.put("enforcement_object_name", formatString(String.valueOf(evaluate.get("subjectname")).replaceAll("\\s", "")));
         // 摇号日期
-        resultMap.put("lottery_date_to_candidate_evaluation_institution", TycUtils.isDateTime(evaluate.get("insertTime")) ? evaluate.get("insertTime") : null);
+        resultMap.put("lottery_date_to_candidate_evaluation_institution", TycUtils.isDateTimeByNow(evaluate.get("insertTime")) ? evaluate.get("insertTime") : null);
         // 是否最终选定的机构
         resultMap.put("is_evaluation_institution_candidate", 0);
         // 被执行人与候选机构, 是否包含国家机关

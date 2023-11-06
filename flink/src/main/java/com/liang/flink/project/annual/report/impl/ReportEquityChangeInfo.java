@@ -135,10 +135,10 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
                     .divide(new BigDecimal(100), 12, RoundingMode.DOWN)
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
-            if (plainString.compareTo("1.0000000000000") > 0) {
-                log.warn("股权变更解析异常, id = {}, percent = {}", id, percent);
-                return "-1";
-            }
+            //if (plainString.compareTo("1.0000000000000") > 0) {
+            //    log.warn("股权变更解析异常, id = {}, percent = {}", id, percent);
+            //    return "-1";
+            //}
             return plainString;
         } catch (Exception e) {
             log.warn("股权变更解析异常, id = {}, percent = {}", id, percent, e);

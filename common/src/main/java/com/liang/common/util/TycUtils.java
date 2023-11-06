@@ -56,10 +56,16 @@ public class TycUtils {
         return 1900 <= i && i <= Long.parseLong(DateTimeUtils.currentDate().substring(0, 4));
     }
 
-    public static boolean isDateTime(Object datetime) {
+    public static boolean isDateTimeByNow(Object datetime) {
         String str = String.valueOf(datetime);
         return str.matches("\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2}:\\d{2}.*)?")
                 && "1900-01-01".compareTo(str) <= 0 && str.compareTo(DateTimeUtils.currentDatetime() + ".999999999") <= 0;
+    }
+
+    public static boolean isDateTime(Object datetime) {
+        String str = String.valueOf(datetime);
+        return str.matches("\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2}:\\d{2}.*)?")
+                && "1900-01-01".compareTo(str) <= 0 && str.compareTo("9999-12-31 23:59:59.999999999") <= 0;
     }
 
     @NonNull
