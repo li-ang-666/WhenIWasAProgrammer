@@ -63,22 +63,26 @@ public class ReportEquityChangeInfo extends AbstractDataUpdate<String> {
                 String pid = TycUtils.gid2Pid(company.getGid(), human.getGid());
                 String s = TycUtils.pid2Name(pid);
                 if (!TycUtils.isTycUniqueEntityId(pid) || !TycUtils.isValidName(s)) {
-                    log.error("report_equity_change_info, id: {}, 路由不到正确股东", id);
-                    return deleteWithReturn(singleCanalBinlog);
+                    resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
+                    resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
+                    resultMap.put("annual_report_entity_type_id_shareholder", 3);
+                } else {
+                    resultMap.put("annual_report_tyc_unique_entity_id_shareholder", pid);
+                    resultMap.put("annual_report_entity_name_valid_shareholder", s);
+                    resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 }
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", pid);
-                resultMap.put("annual_report_entity_name_valid_shareholder", s);
-                resultMap.put("annual_report_entity_type_id_shareholder", 2);
                 break;
             case "2": // 公司
                 Company investor = TycUtils.cid2Company(investorId);
                 if (!TycUtils.isUnsignedId(investor.getGid()) || !TycUtils.isValidName(investor.getName())) {
-                    log.error("report_equity_change_info, id: {}, 路由不到正确股东", id);
-                    return deleteWithReturn(singleCanalBinlog);
+                    resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);
+                    resultMap.put("annual_report_entity_name_valid_shareholder", investorName);
+                    resultMap.put("annual_report_entity_type_id_shareholder", 3);
+                } else {
+                    resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investor.getGid());
+                    resultMap.put("annual_report_entity_name_valid_shareholder", investor.getName());
+                    resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 }
-                resultMap.put("annual_report_tyc_unique_entity_id_shareholder", investor.getGid());
-                resultMap.put("annual_report_entity_name_valid_shareholder", investor.getName());
-                resultMap.put("annual_report_entity_type_id_shareholder", 1);
                 break;
             default: // 非人非公司 or 其它
                 resultMap.put("annual_report_tyc_unique_entity_id_shareholder", 0);

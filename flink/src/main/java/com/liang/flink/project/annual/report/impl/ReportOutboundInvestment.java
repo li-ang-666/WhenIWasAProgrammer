@@ -50,12 +50,14 @@ public class ReportOutboundInvestment extends AbstractDataUpdate<String> {
         // 投资对象
         Company outCompany = TycUtils.cid2Company(outcompanyId);
         if (!TycUtils.isUnsignedId(outCompany.getGid()) || !TycUtils.isValidName(outCompany.getName())) {
-            log.error("report_outbound_investment, id: {}, 路由不到正确对外投资对象", id);
-            return deleteWithReturn(singleCanalBinlog);
+            resultMap.put("annual_report_company_id_invested", 0);
+            resultMap.put("annual_report_company_name_invested", outCompanyName);
+            resultMap.put("annual_report_company_name_invested_register_name", outCompanyName);
+        } else {
+            resultMap.put("annual_report_company_id_invested", outCompany.getGid());
+            resultMap.put("annual_report_company_name_invested", outCompany.getName());
+            resultMap.put("annual_report_company_name_invested_register_name", outCompanyName);
         }
-        resultMap.put("annual_report_company_id_invested", outCompany.getGid());
-        resultMap.put("annual_report_company_name_invested", outCompany.getName());
-        resultMap.put("annual_report_company_name_invested_register_name", outCompanyName);
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert.f0)

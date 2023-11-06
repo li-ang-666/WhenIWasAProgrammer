@@ -60,19 +60,11 @@ public class ReportWebinfo extends AbstractDataUpdate<String> {
                 resultMap.put("annual_report_ebusiness_type", "网页");
                 break;
             default:
-                log.error("report_webinfo, id: {}, 非法的网上运营类型(网站、网店、网页)", id);
-                return deleteWithReturn(singleCanalBinlog);
-            //resultMap.put("annual_report_ebusiness_type", "其它");
-            //resultMap.put("delete_status", 1);
-            //break;
+                resultMap.put("annual_report_ebusiness_type", "其他");
+                break;
         }
         resultMap.put("annual_report_ebusiness_name", TycUtils.isValidName(name) ? name : null);
         resultMap.put("annual_report_ebusiness_website", TycUtils.isValidName(website) ? website : null);
-        // 两个都是空, 代表脏数据
-        if (!TycUtils.isValidName(name) && !TycUtils.isValidName(website)) {
-            log.error("report_webinfo, id: {}, 网上运营产品名称 & 网上运营产品网址 同时不合法", id);
-            return deleteWithReturn(singleCanalBinlog);
-        }
         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
         String sql = new SQL().REPLACE_INTO(TABLE_NAME)
                 .INTO_COLUMNS(insert.f0)
