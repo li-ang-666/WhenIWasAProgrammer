@@ -15,6 +15,7 @@
         <module>spark</module>
         <module>repair</module>
         <module>hudi</module>
+        <module>hive-udf</module>
     </modules>
     <dependencyManagement>
         <dependencies>
