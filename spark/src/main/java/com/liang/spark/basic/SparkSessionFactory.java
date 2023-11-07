@@ -33,7 +33,7 @@ public class SparkSessionFactory {
                     .master("local[*]")
                     .getOrCreate();
         }
-        spark.udf().register("count_distinct", functions.udaf(new CountDistinct(), Encoders.javaSerialization(Object.class)));
+        spark.udf().register("count_distinct", functions.udaf(new CountDistinct(), Encoders.STRING()));
         return spark;
     }
 

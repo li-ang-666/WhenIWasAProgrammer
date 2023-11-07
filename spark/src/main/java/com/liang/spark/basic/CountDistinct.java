@@ -7,16 +7,16 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.math.BigDecimal;
 
-public class CountDistinct extends Aggregator<Object, Roaring64Bitmap, Long> {
+public class CountDistinct extends Aggregator<String, Roaring64Bitmap, Long> {
     @Override
     public Roaring64Bitmap zero() {
         return new Roaring64Bitmap();
     }
 
     @Override
-    public Roaring64Bitmap reduce(Roaring64Bitmap b, Object a) {
+    public Roaring64Bitmap reduce(Roaring64Bitmap b, String a) {
         try {
-            b.addLong(new BigDecimal(String.valueOf(a)).longValue());
+            b.addLong(new BigDecimal(a).longValue());
             return b;
         } catch (Exception e) {
             throw new RuntimeException(e);

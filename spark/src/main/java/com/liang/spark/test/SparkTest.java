@@ -11,7 +11,6 @@ public class SparkTest {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         TableFactory.csv(spark, "tb.csv").createOrReplaceTempView("t");
         spark.sql("select count(distinct id) cnt from t").show();
-        spark.sql("select bitmap_count(collect_bitmap(cast(id as bigint))) cnt from t").show();
-        spark.sql("select bitmap_count(bitmap_union(to_bitmap(cast(id as bigint)))) cnt from t").show();
+        spark.sql("select count_distinct(id) cnt from t").show();
     }
 }
