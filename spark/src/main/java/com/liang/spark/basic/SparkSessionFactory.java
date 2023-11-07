@@ -12,9 +12,6 @@ public class SparkSessionFactory {
     public static SparkSession createSpark(String[] args) {
         String file = (args != null && args.length > 0) ? args[0] : null;
         initConfig(file);
-        // 自定义JdbcDialect
-        //JdbcDialects.unregisterDialect(JdbcDialects.get("jdbc:mysql"));
-        //JdbcDialects.registerDialect(new FixedMySQLDialect());
         return initSpark();
     }
 
