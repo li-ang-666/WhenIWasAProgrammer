@@ -2,16 +2,9 @@ package com.liang.spark.basic;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
-import com.liang.spark.udf.BitmapCount;
-import com.liang.spark.udf.BitmapUnion;
-import com.liang.spark.udf.CollectBitmap;
-import com.liang.spark.udf.ToBitmap;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
-import org.apache.spark.sql.types.DataTypes;
 
 @Slf4j
 @UtilityClass
@@ -41,12 +34,6 @@ public class SparkSessionFactory {
                     .master("local[*]")
                     .getOrCreate();
         }
-        // udf
-        spark.udf().register("to_bitmap", new ToBitmap(), DataTypes.BinaryType);
-        spark.udf().register("bitmap_count", new BitmapCount(), DataTypes.LongType);
-        // udaf
-        spark.udf().register("collect_bitmap", functions.udaf(new CollectBitmap(), Encoders.LONG()));
-        spark.udf().register("bitmap_union", functions.udaf(new BitmapUnion(), Encoders.BINARY()));
         return spark;
     }
 
