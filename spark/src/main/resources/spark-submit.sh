@@ -21,6 +21,7 @@ nohup spark-submit \
   --conf spark.yarn.cluster.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps" \
   --files log4j-all.properties,config.yml \
   --conf spark.yarn.maxAppAttempts=1 \
+  --conf spark.yarn.priority=5 \
   --conf spark.sql.shuffle.partitions=1200 \
   --conf spark.shuffle.io.maxRetries=10 \
   --conf spark.sql.autoBroadcastJoinThreshold=104857600 \
