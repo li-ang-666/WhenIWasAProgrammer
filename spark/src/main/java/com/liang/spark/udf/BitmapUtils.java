@@ -13,19 +13,19 @@ import java.io.DataOutputStream;
 public class BitmapUtils {
     @SneakyThrows
     public static byte[] serialize(Roaring64Bitmap roaring64Bitmap) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             DataOutputStream dos = new DataOutputStream(bos)) {
-            roaring64Bitmap.serialize(dos);
-            return bos.toByteArray();
-        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        roaring64Bitmap.serialize(dos);
+        dos.close();
+        return bos.toByteArray();
     }
 
     @SneakyThrows
     public static Roaring64Bitmap deserialize(byte[] bytes) {
-        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes))) {
-            Roaring64Bitmap roaring64Bitmap = new Roaring64Bitmap();
-            roaring64Bitmap.deserialize(in);
-            return roaring64Bitmap;
-        }
+        Roaring64Bitmap roaring64Bitmap = new Roaring64Bitmap();
+        DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes));
+        roaring64Bitmap.deserialize(in);
+        in.close();
+        return roaring64Bitmap;
     }
 }
