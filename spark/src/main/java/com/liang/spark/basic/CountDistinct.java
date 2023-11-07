@@ -16,6 +16,8 @@ public class CountDistinct extends Aggregator<String, Roaring64Bitmap, Long> {
     @Override
     public Roaring64Bitmap reduce(Roaring64Bitmap b, String a) {
         try {
+            if (a == null)
+                return b;
             b.addLong(new BigDecimal(a).longValue());
             return b;
         } catch (Exception e) {
