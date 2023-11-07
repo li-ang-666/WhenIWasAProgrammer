@@ -1,6 +1,5 @@
 package com.liang.hive.udf;
 
-
 import java.io.*;
 
 public class BitmapValueUtil {

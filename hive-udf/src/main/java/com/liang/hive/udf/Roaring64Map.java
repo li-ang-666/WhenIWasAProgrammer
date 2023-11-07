@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
-
 /**
  * forked version 0.8.13
  * major change as below :
