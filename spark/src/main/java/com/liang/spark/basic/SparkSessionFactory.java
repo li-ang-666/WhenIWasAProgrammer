@@ -4,7 +4,9 @@ import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.functions;
 
 @Slf4j
 @UtilityClass
@@ -31,6 +33,7 @@ public class SparkSessionFactory {
                     .master("local[*]")
                     .getOrCreate();
         }
+        spark.udf().register("count_distinct", functions.udaf(new CountDistinct(), Encoders.javaSerialization(Object.class)));
         return spark;
     }
 
