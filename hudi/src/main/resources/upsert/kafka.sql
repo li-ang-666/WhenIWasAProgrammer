@@ -10,9 +10,10 @@ CREATE TABLE ods (
   is_big_shareholder         SMALLINT,
   is_controlling_shareholder SMALLINT,
   equity_holding_path        STRING,
-  create_time                TIMESTAMP(0),
-  update_time                TIMESTAMP(0),
+  create_time                TIMESTAMP(3),
+  update_time                TIMESTAMP(3),
   is_deleted                 SMALLINT,
+  op_ts                      TIMESTAMP(3) METADATA FROM 'timestamp' VIRTUAL,
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'kafka',

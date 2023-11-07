@@ -13,7 +13,7 @@ CREATE TABLE ods (
   create_time                TIMESTAMP(3),
   update_time                TIMESTAMP(3),
   is_deleted                 SMALLINT,
-  op_ts TIMESTAMP(3) METADATA FROM 'op_ts' VIRTUAL,
+  op_ts                      TIMESTAMP(3) METADATA FROM 'op_ts' VIRTUAL,
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'mysql-cdc',

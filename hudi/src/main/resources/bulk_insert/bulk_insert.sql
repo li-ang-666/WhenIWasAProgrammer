@@ -46,7 +46,7 @@ create table dwd(
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'hudi',
-  'path' = 'obs://hadoop-obs/hudi_ods/ratio_path_company_tmp',
+  'path' = 'obs://hadoop-obs/hudi_ods/ratio_path_company',
   'table.type' = 'MERGE_ON_READ',
   -- index
   'index.type' = 'BUCKET',
@@ -66,7 +66,7 @@ create table dwd(
   -- hive
   'hive_sync.enabled' = 'true',
   'hive_sync.db' = 'hudi_ods',
-  'hive_sync.table' = 'ratio_path_company_tmp',
+  'hive_sync.table' = 'ratio_path_company',
   'hive_sync.metastore.uris' = 'thrift://10.99.202.153:9083',
   'hive_sync.mode' = 'hms',
   'hive_sync.skip_ro_suffix' = 'true'
