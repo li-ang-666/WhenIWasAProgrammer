@@ -14,26 +14,26 @@ public class CountDistinct extends Aggregator<String, Roaring64Bitmap, Long> {
     }
 
     @Override
-    public Roaring64Bitmap reduce(Roaring64Bitmap b, String a) {
+    public Roaring64Bitmap reduce(Roaring64Bitmap buffer, String elem) {
         try {
-            if (a == null)
-                return b;
-            b.addLong(new BigDecimal(a).longValue());
-            return b;
+            if (elem == null)
+                return buffer;
+            buffer.addLong(new BigDecimal(elem).longValue());
+            return buffer;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public Roaring64Bitmap merge(Roaring64Bitmap b1, Roaring64Bitmap b2) {
-        b1.or(b2);
-        return b2;
+    public Roaring64Bitmap merge(Roaring64Bitmap buffer1, Roaring64Bitmap buffer2) {
+        buffer1.or(buffer2);
+        return buffer2;
     }
 
     @Override
-    public Long finish(Roaring64Bitmap reduction) {
-        return reduction.getLongCardinality();
+    public Long finish(Roaring64Bitmap buffer) {
+        return buffer.getLongCardinality();
     }
 
     @Override
