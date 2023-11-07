@@ -1,4 +1,4 @@
-package com.liang.hive.hdf;
+package com.liang.hive.udf;
 
 
 import org.apache.hadoop.hive.ql.exec.Description;

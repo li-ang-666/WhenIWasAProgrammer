@@ -1,4 +1,4 @@
-package com.liang.hive.hdf;
+package com.liang.hive.udf;
 
 import java.io.DataInput;
 import java.io.DataOutput;

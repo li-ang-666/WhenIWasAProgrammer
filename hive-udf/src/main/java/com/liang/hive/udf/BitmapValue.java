@@ -1,4 +1,4 @@
-package com.liang.hive.hdf;
+package com.liang.hive.udf;
 
 import org.roaringbitmap.Util;
 
