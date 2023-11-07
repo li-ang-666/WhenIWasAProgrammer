@@ -5,35 +5,32 @@ import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.expressions.Aggregator;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-public class CollectBitmap extends Aggregator<Long, byte[], byte[]> {
+public class CollectBitmap extends Aggregator<Long, Roaring64Bitmap, byte[]> {
     @Override
-    public byte[] zero() {
-        return BitmapUtils.serialize(new Roaring64Bitmap());
+    public Roaring64Bitmap zero() {
+        return new Roaring64Bitmap();
     }
 
     @Override
-    public byte[] reduce(byte[] b, Long a) {
-        Roaring64Bitmap bitmap = BitmapUtils.deserialize(b);
-        bitmap.addLong(a);
-        return BitmapUtils.serialize(bitmap);
+    public Roaring64Bitmap reduce(Roaring64Bitmap b, Long a) {
+        b.addLong(a);
+        return b;
     }
 
     @Override
-    public byte[] merge(byte[] b1, byte[] b2) {
-        Roaring64Bitmap bitmap1 = BitmapUtils.deserialize(b1);
-        Roaring64Bitmap bitmap2 = BitmapUtils.deserialize(b2);
-        bitmap1.or(bitmap2);
-        return BitmapUtils.serialize(bitmap1);
+    public Roaring64Bitmap merge(Roaring64Bitmap b1, Roaring64Bitmap b2) {
+        b1.or(b2);
+        return b1;
     }
 
     @Override
-    public byte[] finish(byte[] reduction) {
-        return reduction;
+    public byte[] finish(Roaring64Bitmap reduction) {
+        return BitmapUtils.serialize(reduction);
     }
 
     @Override
-    public Encoder<byte[]> bufferEncoder() {
-        return Encoders.BINARY();
+    public Encoder<Roaring64Bitmap> bufferEncoder() {
+        return Encoders.javaSerialization(Roaring64Bitmap.class);
     }
 
     @Override
