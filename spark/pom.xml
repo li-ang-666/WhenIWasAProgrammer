@@ -11,26 +11,6 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
-        <!--obs-->
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-huaweicloud</artifactId>
-            <version>3.1.1-hw-45</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!--hudi-->
-        <dependency>
-            <groupId>org.apache.hudi</groupId>
-            <artifactId>hudi-spark3.1-bundle_2.12</artifactId>
-            <version>0.14.0</version>
-        </dependency>
-
         <!--apollo-->
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>
@@ -54,13 +34,6 @@
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
         </dependency>
-
-        <!--hive udf-->
-        <!--<dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-exec</artifactId>
-            <version>3.1.1</version>
-        </dependency>-->
 
         <!--flink Tuple-->
         <dependency>
