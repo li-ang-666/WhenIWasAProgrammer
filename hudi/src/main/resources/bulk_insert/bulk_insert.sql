@@ -17,7 +17,7 @@ CREATE TABLE ods(
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'jdbc',
-  'url' = 'jdbc:mysql://e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com:3306/prism_shareholder_path',
+  'url' = 'jdbc:mysql://e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com:3306/prism_shareholder_path?zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false',
   'table-name' = 'ratio_path_company',
   'username' = 'jdhw_d_data_dml',
   'password' = '2s0^tFa4SLrp72',
