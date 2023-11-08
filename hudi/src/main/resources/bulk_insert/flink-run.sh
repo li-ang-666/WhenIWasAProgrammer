@@ -32,7 +32,7 @@ export restoreDir=$(if [[ $1 == hdfs* ]] ; then echo '-s '$1 ; else echo '' ; fi
 ####################################
 /home/hive/hudi/flink-1.17.1/bin/flink run-application -t yarn-application ${restoreDir} \
   -D jobmanager.memory.process.size=1g \
-  -D taskmanager.memory.process.size=3g \
+  -D taskmanager.memory.process.size=4g \
   -D taskmanager.numberOfTaskSlots=8 \
   -D parallelism.default=16 \
   -D state.checkpoints.dir=hdfs:///hudi/flink-checkpoints/${folderName} \
