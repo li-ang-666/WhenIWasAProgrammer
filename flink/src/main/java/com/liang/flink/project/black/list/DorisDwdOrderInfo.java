@@ -3,7 +3,9 @@ package com.liang.flink.project.black.list;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.util.DateTimeUtils;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class DorisDwdOrderInfo {
     public static DorisOneRow get() {
         String datetime = DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000 + 1800);

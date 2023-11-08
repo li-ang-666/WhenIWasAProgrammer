@@ -3,6 +3,7 @@ package com.liang.flink.job;
 import com.liang.common.dto.Config;
 import com.liang.common.service.DaemonExecutor;
 import com.liang.common.service.database.template.DorisTemplate;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
@@ -11,6 +12,7 @@ import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.project.black.list.DorisDwdAppActive;
 import com.liang.flink.project.black.list.DorisDwdOrderInfo;
 import com.liang.flink.project.black.list.DorisDwdUserRegisterDetails;
+import com.liang.flink.project.black.list.RatioPathCompany;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +51,7 @@ public class BlackListJob {
     @Slf4j
     private final static class BlackList implements Runnable {
         private final DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
+        private final JdbcTemplate prismShareholderPath457 = new JdbcTemplate("457.prism_shareholder_path");
 
         @Override
         @SneakyThrows
@@ -57,6 +60,7 @@ public class BlackListJob {
                 dorisTemplate.update(DorisDwdAppActive.get());
                 dorisTemplate.update(DorisDwdUserRegisterDetails.get());
                 dorisTemplate.update(DorisDwdOrderInfo.get());
+                prismShareholderPath457.update(RatioPathCompany.get());
                 TimeUnit.SECONDS.sleep(30);
             }
         }
