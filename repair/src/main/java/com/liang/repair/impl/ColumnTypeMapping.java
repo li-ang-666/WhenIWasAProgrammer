@@ -22,9 +22,20 @@ public class ColumnTypeMapping extends ConfigHolder {
             maxColumnLength.set(Math.max(maxColumnLength.get(), columnName.length()));
             return Tuple2.of(columnName, mappingToFlinkSqlType(columnType));
         });
-        String str = list.stream().map(e -> e.f0 + StringUtils.repeat(" ", maxColumnLength.get() + 1 - e.f0.length()) + e.f1)
+        String createTable = list.stream().map(e -> e.f0 + StringUtils.repeat(" ", maxColumnLength.get() + 1 - e.f0.length()) + e.f1)
                 .collect(Collectors.joining(",\n", "", ","));
-        System.out.println(str);
+        list.add(Tuple2.of("op_ts", "TIMESTAMP(3)"));
+        String sql = list.stream().map(e -> {
+            if (e.f1.equals("TIMESTAMP(3)"))
+                return String.format("CAST(CONVERT_TZ(CAST(%s AS STRING), 'Asia/Shanghai', 'UTC') AS TIMESTAMP(3)) %s", e.f0, e.f0);
+            else
+                return e.f0;
+        }).collect(Collectors.joining(",", "insert into dwd select\n", "\nfrom ods"));
+        System.out.println(StringUtils.repeat("-", 100));
+        System.out.println(createTable);
+        System.out.println(StringUtils.repeat("-", 100));
+        System.out.println(sql);
+        System.out.println(StringUtils.repeat("-", 100));
     }
 
     private static String mappingToFlinkSqlType(String mysqlType) {
