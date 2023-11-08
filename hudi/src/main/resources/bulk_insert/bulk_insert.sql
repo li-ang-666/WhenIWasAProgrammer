@@ -22,9 +22,9 @@ CREATE TABLE ods(
   'username' = 'jdhw_d_data_dml',
   'password' = '2s0^tFa4SLrp72',
   'scan.partition.column' = 'id',
-  'scan.partition.num' = '40000',
   'scan.partition.lower-bound' = '1',
   'scan.partition.upper-bound' = '700000000',
+  'scan.partition.num' = '40000',
   'scan.fetch-size' = '2048'
 );
 create table dwd(
