@@ -6,6 +6,7 @@ import com.liang.common.util.DateTimeUtils;
 
 public class DorisDwdAppActive {
     public static DorisOneRow get() {
+        String datetime = DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000 + 3600);
         DorisSchema schema = DorisSchema.builder()
                 .database("dwd")
                 .tableName("dwd_app_active")
@@ -20,8 +21,8 @@ public class DorisDwdAppActive {
                 .put("idfv", "NULL")
                 .put("type", "0")
                 .put("umeng_channel", "MIUI")
-                .put("create_time", DateTimeUtils.currentDatetime())
+                .put("create_time", datetime)
                 .put("app_version", "Android 13.8.22")
-                .put("update_time", DateTimeUtils.currentDatetime());
+                .put("update_time", datetime);
     }
 }

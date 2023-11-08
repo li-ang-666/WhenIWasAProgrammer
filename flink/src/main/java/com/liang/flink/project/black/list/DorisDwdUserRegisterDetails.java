@@ -6,6 +6,7 @@ import com.liang.common.util.DateTimeUtils;
 
 public class DorisDwdUserRegisterDetails {
     public static DorisOneRow get() {
+        String datetime = DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000 + 3600);
         DorisSchema schema = DorisSchema.builder()
                 .database("dwd")
                 .tableName("dwd_user_register_details")
@@ -13,11 +14,11 @@ public class DorisDwdUserRegisterDetails {
         return new DorisOneRow(schema)
                 .put("tyc_user_id", "623")
                 .put("mobile", "15952876989")
-                .put("register_time", DateTimeUtils.currentDatetime())
+                .put("register_time", datetime)
                 .put("vip_from_time", "NULL")
                 .put("vip_to_time", "NULL")
                 .put("user_type", "2")
-                .put("create_time", DateTimeUtils.currentDatetime())
-                .put("update_time", DateTimeUtils.currentDatetime());
+                .put("create_time", datetime)
+                .put("update_time", datetime);
     }
 }

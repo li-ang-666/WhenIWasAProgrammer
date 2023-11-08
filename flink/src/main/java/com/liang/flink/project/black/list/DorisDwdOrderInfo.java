@@ -6,6 +6,7 @@ import com.liang.common.util.DateTimeUtils;
 
 public class DorisDwdOrderInfo {
     public static DorisOneRow get() {
+        String datetime = DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000 + 3600);
         DorisSchema schema = DorisSchema.builder()
                 .database("dwd")
                 .tableName("dwd_order_info")
@@ -27,7 +28,7 @@ public class DorisDwdOrderInfo {
                 .put("platform_name", "Other")
                 .put("pay_way", "其他")
                 .put("pay_point_id", "")
-                .put("create_time", DateTimeUtils.currentDatetime())
-                .put("update_time", DateTimeUtils.currentDatetime());
+                .put("create_time", datetime)
+                .put("update_time", datetime);
     }
 }
