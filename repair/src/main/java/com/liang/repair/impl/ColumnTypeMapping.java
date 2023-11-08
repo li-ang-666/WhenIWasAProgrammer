@@ -13,7 +13,11 @@ public class ColumnTypeMapping extends ConfigHolder {
     public static void main(String[] args) {
         // config
         JdbcTemplate jdbcTemplate = new JdbcTemplate("463.bdp_equity");
-        String tableName = "entity_controller_details";
+        String tableName = "shareholder_identity_type_details";
+        // calculate
+        String min = jdbcTemplate.queryForObject("select min(id) from " + tableName, rs -> rs.getString(1));
+        String max = jdbcTemplate.queryForObject("select max(id) from " + tableName, rs -> rs.getString(1));
+        int partitions = (Integer.parseInt(max) - Integer.parseInt(min)) / 10240;
         // mapping
         AtomicInteger maxColumnLength = new AtomicInteger(Integer.MIN_VALUE);
         List<Tuple2<String, String>> list = jdbcTemplate.queryForList("desc " + tableName, rs -> {
@@ -22,8 +26,8 @@ public class ColumnTypeMapping extends ConfigHolder {
             maxColumnLength.set(Math.max(maxColumnLength.get(), columnName.length()));
             return Tuple2.of(columnName, mappingToFlinkSqlType(columnType));
         });
-        String createTable = list.stream().map(e -> e.f0 + StringUtils.repeat(" ", maxColumnLength.get() + 1 - e.f0.length()) + e.f1)
-                .collect(Collectors.joining(",\n", "", ","));
+        String createTable = list.stream().map(e -> "  " + e.f0 + StringUtils.repeat(" ", maxColumnLength.get() + 1 - e.f0.length()) + e.f1 + ",")
+                .collect(Collectors.joining("\n"));
         list.add(Tuple2.of("op_ts", "TIMESTAMP(3)"));
         String sql = list.stream().map(e -> {
             if (e.f1.equals("TIMESTAMP(3)"))
@@ -31,6 +35,8 @@ public class ColumnTypeMapping extends ConfigHolder {
             else
                 return e.f0;
         }).collect(Collectors.joining(",", "insert into dwd select\n", "\nfrom ods"));
+        System.out.println(StringUtils.repeat("-", 100));
+        System.out.println(min + " " + max + " " + partitions);
         System.out.println(StringUtils.repeat("-", 100));
         System.out.println(createTable);
         System.out.println(StringUtils.repeat("-", 100));
