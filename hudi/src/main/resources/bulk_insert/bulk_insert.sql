@@ -24,8 +24,8 @@ CREATE TABLE ods(
   'scan.partition.column' = 'id',
   'scan.partition.num' = '40000',
   'scan.partition.lower-bound' = '1',
-  'scan.partition.upper-bound' = '400000000',
-  'scan.fetch-size' = '1024'
+  'scan.partition.upper-bound' = '700000000',
+  'scan.fetch-size' = '2048'
 );
 create table dwd(
   id                         DECIMAL(20, 0),
