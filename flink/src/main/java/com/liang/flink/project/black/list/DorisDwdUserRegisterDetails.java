@@ -6,7 +6,7 @@ import com.liang.common.util.DateTimeUtils;
 
 public class DorisDwdUserRegisterDetails {
     public static DorisOneRow get() {
-        String datetime = DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000 + 3600);
+        String datetime = DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000 + 1800);
         DorisSchema schema = DorisSchema.builder()
                 .database("dwd")
                 .tableName("dwd_user_register_details")
