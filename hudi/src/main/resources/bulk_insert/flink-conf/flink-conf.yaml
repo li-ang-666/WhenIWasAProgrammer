@@ -17,7 +17,7 @@ taskmanager.memory.framework.off-heap.size: 128m
 taskmanager.memory.task.off-heap.size: 0m
 # 网络
 taskmanager.memory.network.fraction: 0.1
-taskmanager.memory.network.max: 160m
+taskmanager.memory.network.max: 192m
 # RocksDB
 taskmanager.memory.managed.size: 0m
 # JVM
@@ -32,11 +32,12 @@ parallelism.default: 1
 
 # YARN
 yarn.application.queue: offline
+yarn.application.priority: 999
 
 # Jobmanager内存
 jobmanager.memory.enable-jvm-direct-memory-limit: false
 jobmanager.memory.off-heap.size: 0m
 jobmanager.memory.jvm-metaspace.size: 192m
 jobmanager.memory.jvm-overhead.fraction: 0.1
-jobmanager.memory.jvm-overhead.max: 256m
+jobmanager.memory.jvm-overhead.max: 192m
 jobmanager.memory.jvm-overhead.min: 128m

@@ -36,7 +36,6 @@ export restoreDir=$(if [[ $1 == hdfs* ]] ; then echo '-s '$1 ; else echo '' ; fi
   -D taskmanager.numberOfTaskSlots=8 \
   -D parallelism.default=16 \
   -D state.checkpoints.dir=hdfs:///hudi/flink-checkpoints/${folderName} \
-  -D yarn.application.priority=5 \
   -D yarn.ship-files=${configName} \
   -D yarn.application.name=HudiTest \
   -c com.liang.hudi.job.${className} hudi-1.0.jar ${configName}
