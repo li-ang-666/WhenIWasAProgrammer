@@ -57,7 +57,7 @@ public class BlackListJob {
                 dorisTemplate.update(DorisDwdAppActive.get());
                 dorisTemplate.update(DorisDwdUserRegisterDetails.get());
                 dorisTemplate.update(DorisDwdOrderInfo.get());
-                TimeUnit.SECONDS.sleep(5);
+                TimeUnit.SECONDS.sleep(30);
             }
         }
     }
