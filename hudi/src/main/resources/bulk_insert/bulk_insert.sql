@@ -24,7 +24,7 @@ CREATE TABLE ods(
   'scan.partition.column' = 'id',
   'scan.partition.lower-bound' = '1',
   'scan.partition.upper-bound' = '700000000',
-  'scan.partition.num' = '40000',
+  'scan.partition.num' = '70000',
   'scan.fetch-size' = '2048'
 );
 create table dwd(
