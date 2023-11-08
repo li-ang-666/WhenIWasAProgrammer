@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 public class ColumnTypeMapping extends ConfigHolder {
     public static void main(String[] args) {
         // config
-        JdbcTemplate jdbcTemplate = new JdbcTemplate("463.bdp_equity");
-        String tableName = "shareholder_identity_type_details";
+        JdbcTemplate jdbcTemplate = new JdbcTemplate("464.prism");
+        String tableName = "enterprise";
         // calculate
         String min = jdbcTemplate.queryForObject("select min(id) from " + tableName, rs -> rs.getString(1));
         String max = jdbcTemplate.queryForObject("select max(id) from " + tableName, rs -> rs.getString(1));
-        int partitions = (Integer.parseInt(max) - Integer.parseInt(min)) / 10240;
+        int partitions = (int) ((Long.parseLong(max) - Long.parseLong(min)) / 10240);
         // mapping
         AtomicInteger maxColumnLength = new AtomicInteger(Integer.MIN_VALUE);
         List<Tuple2<String, String>> list = jdbcTemplate.queryForList("desc " + tableName, rs -> {
