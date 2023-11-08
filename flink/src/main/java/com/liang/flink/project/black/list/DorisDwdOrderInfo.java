@@ -24,7 +24,7 @@ public class DorisDwdOrderInfo {
                 .put("actual_amount", "0")
                 .put("invite_code", "")
                 .put("pay_date", "NULL")
-                .put("create_date", "2016-10-30 20:46:31")
+                .put("create_date", datetime.substring(0, 10))
                 .put("platform_name", "Other")
                 .put("pay_way", "其他")
                 .put("pay_point_id", "")
