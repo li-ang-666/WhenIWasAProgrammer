@@ -13,10 +13,10 @@ import java.util.Map;
 import static com.liang.common.util.SqlUtils.formatValue;
 
 public class RatioPathCompanyDao {
-    private final static String SINK_RATIO_PATH_COMPANY = "ratio_path_company";
-    private final static String SINK_ENTITY_BENEFICIARY_DETAILS = "entity_beneficiary_details";
-    private final static String SINK_ENTITY_CONTROLLER_DETAILS = "entity_controller_details";
-    private final static String SINK_SHAREHOLDER_IDENTITY_TYPE_DETAILS = "shareholder_identity_type_details";
+    private final static String SINK_RATIO_PATH_COMPANY = "ratio_path_company_tmp";
+    private final static String SINK_ENTITY_BENEFICIARY_DETAILS = "entity_beneficiary_details_tmp";
+    private final static String SINK_ENTITY_CONTROLLER_DETAILS = "entity_controller_details_tmp";
+    private final static String SINK_SHAREHOLDER_IDENTITY_TYPE_DETAILS = "shareholder_identity_type_details_tmp";
 
     private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
     private final JdbcTemplate bdpEquity = new JdbcTemplate("463.bdp_equity");

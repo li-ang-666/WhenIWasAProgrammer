@@ -6,6 +6,7 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
 import com.liang.spark.basic.SparkSessionFactory;
+import com.liang.spark.basic.TableFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,9 +22,10 @@ import java.util.Set;
 public class RatioPathCompanyJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        String sql = new SQL().SELECT("distinct tyc_unique_entity_id company_id")
-                .FROM("ads.ads_bdp_equity_shareholder_identity_type_details")
-                .WHERE("pt = '20231101'")
+        TableFactory.jdbc(spark, "457.prism_shareholder_path", "investment_relation")
+                .createOrReplaceTempView("t");
+        String sql = new SQL().SELECT("distinct company_id_invested company_id")
+                .FROM("t")
                 .toString();
         spark.sql(sql)
                 .repartition(3600)
