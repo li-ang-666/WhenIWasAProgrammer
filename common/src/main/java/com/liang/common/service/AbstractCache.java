@@ -54,8 +54,7 @@ public abstract class AbstractCache<K, V> {
                             continue;
                         }
                         // 大小触发
-                        long count = cache.values().stream().filter(queue -> queue.size() >= cacheRecords).count();
-                        if (count > 0) {
+                        if (cache.values().stream().anyMatch(queue -> queue.size() >= cacheRecords)) {
                             synchronized (cache) {
                                 // 遍历, 剔除
                                 cache.forEach((key, queue) -> {
