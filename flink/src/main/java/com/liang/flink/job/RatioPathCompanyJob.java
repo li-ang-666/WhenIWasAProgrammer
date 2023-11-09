@@ -58,7 +58,8 @@ public class RatioPathCompanyJob {
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Long> out) {
             Set<Long> result = new HashSet<>();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyIdString = String.valueOf(columnMap.get("company_id_invested"));
+            String table = singleCanalBinlog.getTable();
+            String companyIdString = String.valueOf("investment_relation".equals(table) ? columnMap.get("company_id_invested") : columnMap.get("company_id"));
             if (StringUtils.isNumeric(companyIdString)) {
                 result.add(Long.parseLong(companyIdString));
             }
