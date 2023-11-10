@@ -1,20 +1,18 @@
 package com.liang.study.sort;
 
-import org.junit.Test;
-
-public class ShellSort {
-    @Test
-    public void test() {
-        ArrayUtils.testSort(this::sort);
+public class ShellSort implements ISort {
+    public static void main(String[] args) {
+        ArrayUtils.testSort(new ShellSort());
     }
 
+    @Override
     public void sort(int[] arr) {
-        int n = arr.length;
-        for (int incr = n / 2; incr >= 1; incr /= 2) {
-            for (int i = incr; i <= n - 1; i++) {
-                //直接插入排序的incr恒等于1而已
-                for (int j = i; j - incr >= 0 && arr[j - incr] > arr[j]; j -= incr) {
-                    ArrayUtils.swap(arr, j - incr, j);
+        int len = arr.length;
+        int k = 3;
+        for (int gap = len / k; gap >= 1; gap /= k) {
+            for (int i = 0; i < len; i++) {
+                for (int j = i; j - gap >= 0 && arr[j - gap] > arr[j]; j -= gap) {
+                    ArrayUtils.swap(arr, j - gap, j);
                 }
             }
         }

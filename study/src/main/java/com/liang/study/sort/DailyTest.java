@@ -10,9 +10,12 @@ public class DailyTest {
 
     public void sort(int[] arr) {
         int len = arr.length;
-        for (int i = 0; i < len; i++) {
-            for (int j = i; j - 1 >= 0 && arr[j - 1] > arr[j]; j--) {
-                ArrayUtils.swap(arr, j - 1, j);
+        int k = 3;
+        for (int gap = len / k; gap >= 1; gap /= k) {
+            for (int i = 0; i < len; i++) {
+                for (int j = i; j - gap >= 0 && arr[j - gap] > arr[j]; j -= gap) {
+                    ArrayUtils.swap(arr, j - gap, j);
+                }
             }
         }
     }
