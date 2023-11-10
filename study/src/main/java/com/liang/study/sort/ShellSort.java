@@ -5,9 +5,6 @@ public class ShellSort implements ISort {
         ArrayUtils.testSort(new ShellSort());
     }
 
-    /**
-     *
-     */
     @Override
     public void sort(int[] arr) {
         int len = arr.length;
