@@ -8,8 +8,8 @@ import java.util.List;
 
 public class MultiNodeDao {
     private final static String NAME_SOURCE = "tyc_entity_main_reference";
-    private final static String CONTROL_SOURCE = "entity_controller_details_tmp";
-    private final static String BENEFIT_SOURCE = "entity_beneficiary_details_tmp";
+    private final static String CONTROL_SOURCE = "entity_controller_details";
+    private final static String BENEFIT_SOURCE = "entity_beneficiary_details";
 
     private final JdbcTemplate bdpEquity463 = new JdbcTemplate("463.bdp_equity");
     private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
