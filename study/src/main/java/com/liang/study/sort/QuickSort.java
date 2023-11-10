@@ -39,7 +39,6 @@ public class QuickSort {
                 ArrayUtils.swap(arr, p1, p2);
             else
                 ArrayUtils.swap(arr, start, p1);
-
         }
         sort(arr, start, p1 - 1);
         sort(arr, p1 + 1, end);
