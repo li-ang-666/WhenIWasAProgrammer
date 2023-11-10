@@ -1,46 +1,39 @@
 package com.liang.study.sort;
 
-import org.junit.Test;
-
-public class QuickSort {
-    @Test
-    public void test() {
-        ArrayUtils.testSort(this::sort);
+public class QuickSort implements ISort {
+    public static void main(String[] args) {
+        ArrayUtils.testSort(new QuickSort());
     }
 
+    @Override
     public void sort(int[] arr) {
-        sort(arr, 0, arr.length - 1);
+        quickSort(arr, 0, arr.length - 1);
     }
 
-    /**
-     * 快速排序是
-     * 1、跳出
-     * 2、p1=... p2=... pivot=... 复杂计算
-     * 3、递归左边
-     * 4、递归右边
-     */
-    public void sort(int[] arr, int start, int end) {
-        if (start >= end) {
+    private void quickSort(int[] arr, int l, int r) {
+        if (l >= r) {
             return;
         }
-        int p1 = start, p2 = end, pivot = arr[start];
+        int p1 = l, p2 = r, pivot = arr[l];
+        // 1.以最左为pivot, 需要从右指针开始动
         while (p1 < p2) {
-            //右指针向内移动, 直到重合或者找一个比他小的
-            //易错点, 左边为pivot, 右指针先动
-            while (p1 < p2 && arr[p2] >= pivot)
+            while (p1 < p2 && arr[p2] >= pivot) {
                 p2--;
-            //左指针向内移动, 直到重合或者找一个比他大的
-            while (p1 < p2 && arr[p1] <= pivot)
+            }
+            while (p1 < p2 && arr[p1] <= pivot) {
                 p1++;
-            //两个指针停止的时候, 只有2种情况
-            //1、没重合, 交换两个指针指向的值
-            //2、重合, 交换基准值和指针指向的值
-            if (p1 < p2)
+            }
+            // 2.如果两个指针没有重合, 交换两个值
+            if (p1 < p2) {
                 ArrayUtils.swap(arr, p1, p2);
-            else
-                ArrayUtils.swap(arr, start, p1);
+            }
+            // 3.如果两个指针重合, 此时p1、p2的位置就是pivot最终的位置
+            else {
+                ArrayUtils.swap(arr, p1, l);
+            }
         }
-        sort(arr, start, p1 - 1);
-        sort(arr, p1 + 1, end);
+        //递归 pivot左边 与 pivot右边
+        quickSort(arr, l, p1 - 1);
+        quickSort(arr, p1 + 1, r);
     }
 }
