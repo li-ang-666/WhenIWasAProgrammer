@@ -3,10 +3,10 @@ package com.liang.study.sort;
 import java.util.Arrays;
 
 public class ArrayUtils {
-    public static void swap(int[] arr, int i, int j) {
-        int temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
+    public static void swap(int[] arr, int index1, int index2) {
+        int temp = arr[index1];
+        arr[index1] = arr[index2];
+        arr[index2] = temp;
     }
 
     public static void testSort(ISort iSort) {
