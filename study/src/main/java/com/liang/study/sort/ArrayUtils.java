@@ -2,11 +2,6 @@ package com.liang.study.sort;
 
 import java.util.Arrays;
 
-@FunctionalInterface
-interface ISort {
-    void sort(int[] arr);
-}
-
 public class ArrayUtils {
     public static void swap(int[] arr, int i, int j) {
         int temp = arr[i];
