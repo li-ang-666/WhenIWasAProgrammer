@@ -12,7 +12,7 @@ public class DailyTest {
         quickSort(arr, 0, arr.length - 1);
     }
 
-    public void quickSort(int[] arr, int l, int r) {
+    public void quickSort(int[] arr, final int l, final int r) {
         if (l >= r) {
             return;
         }
