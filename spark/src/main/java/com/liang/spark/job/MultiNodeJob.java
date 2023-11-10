@@ -22,10 +22,10 @@ public class MultiNodeJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         Config config = ConfigUtils.getConfig();
-        TableFactory.jdbc(spark, "463.bdp_equity", "entity_controller_details_tmp")
+        TableFactory.jdbc(spark, "463.bdp_equity", "entity_controller_details")
                 .persist(StorageLevel.DISK_ONLY())
                 .createOrReplaceTempView("t_control");
-        TableFactory.jdbc(spark, "463.bdp_equity", "entity_beneficiary_details_tmp")
+        TableFactory.jdbc(spark, "463.bdp_equity", "entity_beneficiary_details")
                 .persist(StorageLevel.DISK_ONLY())
                 .createOrReplaceTempView("t_benefit");
         MultiNodeJobForeachPartitionFunc sinkFunc = new MultiNodeJobForeachPartitionFunc(config);
