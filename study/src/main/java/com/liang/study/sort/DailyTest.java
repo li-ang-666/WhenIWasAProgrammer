@@ -11,14 +11,15 @@ public class DailyTest {
     public void sort(int[] arr) {
         int length = arr.length;
         for (int i = 0; i < length; i++) {
-            int min = i;
-            for (int j = i + 1; j < length; j++) {
-                if (arr[j] < arr[min]) {
-                    min = j;
+            boolean changed = false;
+            for (int j = 0; j < length - i - 1; j++) {
+                if (arr[j + 1] < arr[j]) {
+                    ArrayUtils.swap(arr, j, j + 1);
+                    changed = true;
                 }
             }
-            if (min != i) {
-                ArrayUtils.swap(arr, min, i);
+            if (!changed) {
+                break;
             }
         }
     }
