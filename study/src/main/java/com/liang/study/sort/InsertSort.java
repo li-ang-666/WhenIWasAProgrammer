@@ -5,7 +5,7 @@ import org.junit.Test;
 public class InsertSort {
     @Test
     public void test() {
-        ArrayUtils.test(this::sort);
+        ArrayUtils.testSort(this::sort);
     }
 
     public void sort(int[] arr) {

@@ -7,7 +7,7 @@ import static com.liang.study.sort.ArrayUtils.swap;
 public class DailyTest {
     @Test
     public void test() {
-        ArrayUtils.test(this::sort);
+        ArrayUtils.testSort(this::sort);
     }
 
     public void sort(int[] arr) {
