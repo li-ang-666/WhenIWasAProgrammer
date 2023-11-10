@@ -5,6 +5,13 @@ public class SelectSort implements ISort {
         ArrayUtils.testSort(new SelectSort());
     }
 
+    /**
+     * 遍历[0, length), 最小值放在arr[0]
+     * 遍历[1, length), 最小值放在arr[1]
+     * 遍历[2, length), 最小值放在arr[2]
+     * 遍历[3, length), 最小值放在arr[3]
+     * 以此类推...
+     */
     @Override
     public void sort(int[] arr) {
         int length = arr.length;
