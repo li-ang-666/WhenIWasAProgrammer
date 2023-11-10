@@ -41,7 +41,6 @@ public class PxCheckJob {
             spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_shareholder_equity_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t_4");
             spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_investment_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t_6");
             spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_ebusiness_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t_7");
-
         }
         // 工商 x 2
         if (argString.contains("工商")) {
@@ -51,7 +50,6 @@ public class PxCheckJob {
                     .createOrReplaceTempView("t_gov");
             spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_mainland_general_registration_info_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t_company");
             spark.sql("insert overwrite table ads.ads_entity_operation_development_entity_mainland_public_institution_registration_info_details partition(pt = '" + pt + "') select /*+ REPARTITION(180) */ * from t_gov");
-
         }
     }
 }
