@@ -18,7 +18,7 @@ public class SelectSort implements ISort {
         for (int i = 0; i < len; i++) {
             int min = i;
             for (int j = i + 1; j < len; j++) {
-                if (arr[j] < arr[min]) {
+                if (arr[min] > arr[j]) {
                     min = j;
                 }
             }
