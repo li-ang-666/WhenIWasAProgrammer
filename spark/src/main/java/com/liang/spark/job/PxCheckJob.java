@@ -9,7 +9,7 @@ public class PxCheckJob {
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        //股东
+        //股东 x 4
         TableFactory.jdbc(spark, "457.prism_shareholder_path", "ratio_path_company")
                 .createOrReplaceTempView("t1");
         TableFactory.jdbc(spark, "463.bdp_equity", "entity_controller_details")
@@ -22,7 +22,7 @@ public class PxCheckJob {
         spark.sql("insert overwrite table ads.ads_bdp_equity_entity_controller_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t2");
         spark.sql("insert overwrite table ads.ads_bdp_equity_entity_beneficiary_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t3");
         spark.sql("insert overwrite table ads.ads_bdp_equity_shareholder_identity_type_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t4");
-        //年报
+        //年报 x 4
         TableFactory.jdbc(spark, "gauss", "entity_annual_report_shareholder_equity_change_details")
                 .createOrReplaceTempView("t_3");
         TableFactory.jdbc(spark, "gauss", "entity_annual_report_shareholder_equity_details")
@@ -35,7 +35,7 @@ public class PxCheckJob {
         spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_shareholder_equity_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t_4");
         spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_investment_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t_6");
         spark.sql("insert overwrite table ads.ads_company_base_entity_annual_report_ebusiness_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t_7");
-        // 工商
+        // 工商 x 2
         TableFactory.jdbc(spark, "469.entity_operation_development", "entity_mainland_general_registration_info_details")
                 .createOrReplaceTempView("t_company");
         TableFactory.jdbc(spark, "469.entity_operation_development", "entity_mainland_public_institution_registration_info_details")
