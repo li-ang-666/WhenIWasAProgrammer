@@ -9,7 +9,7 @@ public class PxCheckJob {
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
         SparkSession spark = SparkSessionFactory.createSpark(args);
-        //股东 x 4
+        // 股东 x 4
         TableFactory.jdbc(spark, "457.prism_shareholder_path", "ratio_path_company")
                 .createOrReplaceTempView("t1");
         TableFactory.jdbc(spark, "463.bdp_equity", "entity_controller_details")
@@ -22,7 +22,7 @@ public class PxCheckJob {
         spark.sql("insert overwrite table ads.ads_bdp_equity_entity_controller_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t2");
         spark.sql("insert overwrite table ads.ads_bdp_equity_entity_beneficiary_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t3");
         spark.sql("insert overwrite table ads.ads_bdp_equity_shareholder_identity_type_details partition(pt = '" + pt + "') select /*+ REPARTITION(360) */ * from t4");
-        //年报 x 4
+        // 年报 x 4
         TableFactory.jdbc(spark, "gauss", "entity_annual_report_shareholder_equity_change_details")
                 .createOrReplaceTempView("t_3");
         TableFactory.jdbc(spark, "gauss", "entity_annual_report_shareholder_equity_details")
