@@ -14,7 +14,7 @@ public class HeapSort implements ISort {
         }
         // 每次去尾
         for (int i = len - 1; i >= 0; i--) {
-            ArrayUtils.swap(arr, i, 0);
+            ArrayUtils.swap(arr, 0, i);
             heapify(arr, 0, i);
         }
     }
