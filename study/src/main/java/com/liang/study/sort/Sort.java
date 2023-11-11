@@ -7,6 +7,6 @@ public class Sort implements ISort {
 
     @Override
     public void sort(int[] arr) {
-
+        
     }
 }
