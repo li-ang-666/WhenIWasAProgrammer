@@ -1,39 +1,34 @@
 package com.liang.study.sort;
 
-import org.junit.Test;
-
-public class HeapSort {
-    @Test
-    public void test() {
-        ArrayUtils.testSort(this::sort);
+public class HeapSort implements ISort {
+    public static void main(String[] args) {
+        ArrayUtils.testSort(new HeapSort());
     }
 
+    @Override
     public void sort(int[] arr) {
-        //建堆
-        int n = arr.length;
-        for (int i = (n - 2) / 2; i >= 0; i--) {
-            heapify(arr, n, i);
+        int len = arr.length;
+        for (int i = (len - 2) / 2; i >= 0; i--) {
+            heapify(arr, i, len);
         }
-        //排序
-        for (int i = arr.length - 1; i >= 1; i--) {
-            //起始是成型堆, 交换顶和尾, 对堆顶heapify, 数组去一个尾, 进入下次循环
-            ArrayUtils.swap(arr, 0, i);
-            heapify(arr, i, 0);
+        for (int i = len - 1; i >= 0; i--) {
+            ArrayUtils.swap(arr, i, 0);
+            heapify(arr, 0, i);
         }
     }
 
-    public void heapify(int[] arr, int n, int i) {
-        int max = i;
-        int l = 2 * i + 1;
-        int r = 2 * i + 2;
-        if (l <= n - 1 && arr[l] > arr[max])
+    private void heapify(int[] arr, int idx, int len) {
+        int max = idx;
+        int l = idx * 2 + 1, r = idx * 2 + 2;
+        if (l < len && arr[max] < arr[l]) {
             max = l;
-        if (r <= n - 1 && arr[r] > arr[max])
+        }
+        if (r < len && arr[max] < arr[r]) {
             max = r;
-        //如果发生变化, i变为正确, max变为未知, 继续往下heapify
-        if (max != i) {
-            ArrayUtils.swap(arr, max, i);
-            heapify(arr, n, max);
+        }
+        if (max != idx) {
+            ArrayUtils.swap(arr, max, idx);
+            heapify(arr, max, len);
         }
     }
 }
