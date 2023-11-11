@@ -8,9 +8,11 @@ public class HeapSort implements ISort {
     @Override
     public void sort(int[] arr) {
         int len = arr.length;
+        // 建堆
         for (int i = (len - 2) / 2; i >= 0; i--) {
             heapify(arr, i, len);
         }
+        // 每次去尾
         for (int i = len - 1; i >= 0; i--) {
             ArrayUtils.swap(arr, i, 0);
             heapify(arr, 0, i);
