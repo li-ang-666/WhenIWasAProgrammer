@@ -13,7 +13,7 @@ public class MergeSort implements ISort {
         mergeSort(arr, 0, arr.length - 1, new int[arr.length]);
     }
 
-    private void mergeSort(int[] arr, int l, int r, int[] tmp) {
+    private void mergeSort(int[] arr, final int l, final int r, final int[] tmp) {
         if (l >= r) {
             return;
         }
