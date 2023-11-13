@@ -27,7 +27,7 @@ public class BubbleSort implements Consumer<int[]> {
                 }
             }
             if (!changed) {
-                break;
+                return;
             }
         }
     }
