@@ -1,6 +1,5 @@
-package com.liang.study.base;
+package com.liang.study.base.sort;
 
-import com.liang.study.base.sort.SortUtils;
 import org.junit.Test;
 
 public class SortTest {
