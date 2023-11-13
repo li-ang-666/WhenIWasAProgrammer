@@ -15,7 +15,7 @@ public class DorisDwdAppActive {
                 .build();
         return new DorisOneRow(schema)
                 .put("app_id2", "29c72a2af7c16f32")
-                .put("pt", "2023-10-09")
+                .put("pt", datetime.substring(0, 10))
                 .put("android_id", "29c72a2af7c16f32")
                 .put("imei", "NULL")
                 .put("oaid", "b3765e1436a52d6a")
