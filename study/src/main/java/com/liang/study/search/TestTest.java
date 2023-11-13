@@ -2,10 +2,9 @@ package com.liang.study.search;
 
 import org.junit.Test;
 
-public class DailyTest {
+public class TestTest {
     @Test
     public void test() {
 
     }
-
 }
