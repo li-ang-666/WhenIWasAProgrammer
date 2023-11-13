@@ -1,18 +1,20 @@
-package com.liang.study.sort;
+package com.liang.study.base.sort;
 
-public class MergeSort implements ISort {
+import java.util.function.Consumer;
+
+public class MergeSort implements Consumer<int[]> {
     public static void main(String[] args) {
-        ArrayUtils.testSort(new MergeSort());
+        SortUtils.testSort(new MergeSort());
+    }
+
+    @Override
+    public void accept(int[] arr) {
+        mergeSort(arr, 0, arr.length - 1, new int[arr.length]);
     }
 
     /**
      * arr[p1]<=arr[p2] 时是稳定排序
      */
-    @Override
-    public void sort(int[] arr) {
-        mergeSort(arr, 0, arr.length - 1, new int[arr.length]);
-    }
-
     private void mergeSort(int[] arr, final int l, final int r, final int[] tmp) {
         if (l >= r) {
             return;

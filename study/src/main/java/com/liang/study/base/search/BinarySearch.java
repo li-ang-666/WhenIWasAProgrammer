@@ -1,4 +1,4 @@
-package com.liang.study.search;
+package com.liang.study.base.search;
 
 import org.junit.Test;
 

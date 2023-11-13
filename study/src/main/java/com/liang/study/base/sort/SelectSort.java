@@ -1,8 +1,12 @@
-package com.liang.study.sort;
+package com.liang.study.base.sort;
 
-public class SelectSort implements ISort {
+import cn.hutool.core.util.ArrayUtil;
+
+import java.util.function.Consumer;
+
+public class SelectSort implements Consumer<int[]> {
     public static void main(String[] args) {
-        ArrayUtils.testSort(new SelectSort());
+        SortUtils.testSort(new SelectSort());
     }
 
     /**
@@ -13,7 +17,7 @@ public class SelectSort implements ISort {
      * 以此类推...
      */
     @Override
-    public void sort(int[] arr) {
+    public void accept(int[] arr) {
         int len = arr.length;
         for (int i = 0; i < len; i++) {
             int min = i;
@@ -23,7 +27,7 @@ public class SelectSort implements ISort {
                 }
             }
             if (min != i) {
-                ArrayUtils.swap(arr, min, i);
+                ArrayUtil.swap(arr, min, i);
             }
         }
     }
