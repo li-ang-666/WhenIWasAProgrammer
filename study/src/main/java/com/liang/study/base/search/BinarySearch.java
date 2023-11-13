@@ -1,13 +1,7 @@
 package com.liang.study.base.search;
 
-import org.junit.Test;
-
-/**
- * https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/?favorite=2cktkvj
- */
 public class BinarySearch {
-    @Test
-    public void test() {
+    public static void main(String[] args) {
         System.out.println(find(new int[]{1, 3, 5, 7, 9}, 1));
         System.out.println(find(new int[]{1, 3, 5, 7, 9}, 2));
         System.out.println(find(new int[]{1, 3, 5, 7, 9}, 3));
@@ -15,13 +9,13 @@ public class BinarySearch {
         System.out.println(find(new int[]{1, 3, 5, 7, 9}, 5));
     }
 
-    public int find(int[] arr, int i) {
+    public static int find(int[] arr, int num) {
         int l = 0, r = arr.length - 1;
         while (l <= r) {
             int mid = (l + r) / 2;
-            if (i == arr[mid]) {
+            if (num == arr[mid]) {
                 return mid;
-            } else if (i < arr[mid]) {
+            } else if (num < arr[mid]) {
                 r = mid - 1;
             } else {
                 l = mid + 1;
