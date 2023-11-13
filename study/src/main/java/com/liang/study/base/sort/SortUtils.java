@@ -1,8 +1,11 @@
 package com.liang.study.base.sort;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.Arrays;
 import java.util.function.Consumer;
 
+@UtilityClass
 public class SortUtils {
 
     private final static int[][] arrays = {

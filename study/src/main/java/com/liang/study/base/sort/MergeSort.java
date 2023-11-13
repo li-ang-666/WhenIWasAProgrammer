@@ -13,7 +13,7 @@ public class MergeSort implements Consumer<int[]> {
     }
 
     /**
-     * arr[p1]<=arr[p2] 时是稳定排序
+     * 相等时候先提取左边, 则为稳定排序
      */
     private void mergeSort(int[] arr, final int l, final int r, final int[] tmp) {
         if (l >= r) {
