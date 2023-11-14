@@ -8,6 +8,7 @@ import com.liang.repair.service.ConfigHolder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 public class DorisTemplateTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
@@ -46,5 +47,6 @@ public class DorisTemplateTest extends ConfigHolder {
 
         dorisTemplate.update(row1, row2);
         dorisTemplate.update(dorisOneRows);
+        TimeUnit.SECONDS.sleep(10);
     }
 }
