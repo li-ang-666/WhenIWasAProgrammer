@@ -6,31 +6,32 @@ import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.repair.service.ConfigHolder;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class HbaseTemplateTest extends ConfigHolder {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         HbaseTemplate hbaseTemplate = new HbaseTemplate("hbaseSink");
         hbaseTemplate.enableCache(5000, 1024);
 
         HbaseSchema schema1 = HbaseSchema.builder()
-                .namespace("test")
-                .tableName("data_concat")
+                .namespace("prism_c")
+                .tableName("human_all_count")
+                .columnFamily("cf")
                 .rowKeyReverse(false)
-                .columnFamily("cf1")
                 .build();
 
         HbaseSchema schema2 = HbaseSchema.builder()
-                .namespace("test")
-                .tableName("data_concat_offline")
-                .rowKeyReverse(false)
-                .columnFamily("cf1")
+                .namespace("prism_c")
+                .tableName("company_all_count")
+                .columnFamily("count")
+                .rowKeyReverse(true)
                 .build();
 
-        HbaseOneRow row1 = new HbaseOneRow(schema1, "111")
+        HbaseOneRow row1 = new HbaseOneRow(schema1, "abc")
                 .put("id", 1)
                 .put("name", "tom");
 
-        HbaseOneRow row2 = new HbaseOneRow(schema2, "111")
+        HbaseOneRow row2 = new HbaseOneRow(schema2, "abc")
                 .put("id", 1)
                 .put("name", "jerry");
 
@@ -41,5 +42,6 @@ public class HbaseTemplateTest extends ConfigHolder {
 
         hbaseTemplate.update(row1, row2);
         hbaseTemplate.update(hbaseOneRows);
+        TimeUnit.SECONDS.sleep(10);
     }
 }
