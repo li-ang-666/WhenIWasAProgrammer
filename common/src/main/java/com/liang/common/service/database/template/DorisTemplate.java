@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
+    private final static int BUFFER_MAX_MB = 32;
     private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
     private final static int DEFAULT_CACHE_RECORDS = 10240;
     private final HttpClientBuilder httpClientBuilder = HttpClients
@@ -55,7 +56,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private final Random random = new Random();
 
     public DorisTemplate(String name) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
+        super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
         DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
         fe = dorisDbConfig.getFe();
         auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());

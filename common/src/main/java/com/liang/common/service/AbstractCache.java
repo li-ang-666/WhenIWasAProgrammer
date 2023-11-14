@@ -11,16 +11,21 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public abstract class AbstractCache<K, V> {
     private final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
     private final KeySelector<K, V> keySelector;
+    private final AtomicLong bufferUsed;
+    private final long bufferMax;
     private int cacheMilliseconds;
     private int cacheRecords;
     private boolean enableCache = false;
 
-    protected AbstractCache(int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
+    protected AbstractCache(int bufferMaxMb, int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
+        this.bufferUsed = new AtomicLong(0);
+        this.bufferMax = bufferMaxMb * 1024L * 1024L;
         this.cacheMilliseconds = cacheMilliseconds;
         this.cacheRecords = cacheRecords;
         this.keySelector = keySelector;
@@ -41,29 +46,14 @@ public abstract class AbstractCache<K, V> {
                 @SneakyThrows(InterruptedException.class)
                 public void run() {
                     while (true) {
-                        TimeUnit.MILLISECONDS.sleep(10);
+                        TimeUnit.MILLISECONDS.sleep(100);
                         // 时间触发
-                        long currentTime = System.currentTimeMillis();
-                        if (currentTime - lastSendTime >= cacheMilliseconds && !cache.isEmpty()) {
-                            synchronized (cache) {
-                                // 遍历, 清空
-                                cache.forEach((key, queue) -> updateImmediately(key, queue));
-                                cache.clear();
-                            }
-                            lastSendTime = currentTime;
-                            // 时间触发的当轮,不判断大小
-                            continue;
+                        if (System.currentTimeMillis() - lastSendTime >= cacheMilliseconds) {
+                            flush();
+                            lastSendTime = System.currentTimeMillis();
                         }
                         // 大小触发
-                        if (cache.values().stream().anyMatch(queue -> queue.size() >= cacheRecords)) {
-                            synchronized (cache) {
-                                // 遍历, 剔除
-                                cache.forEach((key, queue) -> {
-                                    if (queue.size() >= cacheRecords) updateImmediately(key, queue);
-                                });
-                                cache.entrySet().removeIf(entry -> entry.getValue().size() >= cacheRecords);
-                            }
-                        }
+                        else if (cache.values().stream().anyMatch(queue -> queue.size() >= cacheRecords)) flush();
                     }
                 }
             });
@@ -73,42 +63,42 @@ public abstract class AbstractCache<K, V> {
 
     @SuppressWarnings("unchecked")
     public final void update(V... values) {
-        if (values == null || values.length == 0) {
-            return;
-        }
+        if (values == null || values.length == 0) return;
         update(Arrays.asList(values));
     }
 
     public final void update(Collection<V> values) {
-        if (values == null || values.isEmpty()) {
-            return;
-        }
-        // 同一批次的写入,不拆开
+        if (values == null || values.isEmpty()) return;
+        // 保证内存不超出限制
+        long pre, after;
+        do {
+            pre = bufferUsed.get();
+            after = pre;
+            for (V value : values) after += ObjectSizeCalculator.getObjectSize(value);
+        } while (after <= bufferMax && bufferUsed.compareAndSet(pre, after));
+        // 同一批次的写入, 不拆开
         synchronized (cache) {
             for (V value : values) {
-                if (value == null) {
-                    continue;
-                }
-                log.info("object size: {}", ObjectSizeCalculator.getObjectSize(value));
+                if (value == null) continue;
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
                 cache.get(key).add(value);
             }
         }
-        if (!enableCache) {
-            // 遍历, 清空
-            cache.forEach(this::updateImmediately);
-            cache.clear();
-        }
+        if (!enableCache) flush();
     }
 
     public final void flush() {
-        if (!cache.isEmpty()) {
-            synchronized (cache) {
-                // 遍历, 清空
-                cache.forEach(this::updateImmediately);
-                cache.clear();
+        synchronized (cache) {
+            long size = 0;
+            for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
+                K key = entry.getKey();
+                Queue<V> values = entry.getValue();
+                for (V value : values) size += ObjectSizeCalculator.getObjectSize(value);
+                updateImmediately(key, values);
             }
+            cache.clear();
+            bufferUsed.getAndAdd(-size);
         }
     }
 
