@@ -70,8 +70,10 @@ public abstract class AbstractCache<K, V> {
     public final void update(Collection<V> values) {
         if (values == null || values.isEmpty()) return;
         // 保证内存不超出限制
-        long pre, after;
+        long pre, after, i = 0;
         do {
+            i++;
+            if (i > 999) throw new RuntimeException("AbstractCache loop too many times");
             pre = bufferUsed.get();
             after = pre;
             for (V value : values) after += ObjectSizeCalculator.getObjectSize(value);
