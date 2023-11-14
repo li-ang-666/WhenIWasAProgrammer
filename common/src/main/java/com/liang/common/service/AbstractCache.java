@@ -78,7 +78,6 @@ public abstract class AbstractCache<K, V> {
             after = pre;
             for (V value : values) after += ObjectSizeCalculator.getObjectSize(value);
         } while (after > bufferMax || !bufferUsed.compareAndSet(pre, after));
-        System.out.println("add, " + bufferUsed);
         // 同一批次的写入, 不拆开
         synchronized (cache) {
             for (V value : values) {
@@ -102,7 +101,6 @@ public abstract class AbstractCache<K, V> {
             }
             cache.clear();
             bufferUsed.getAndAdd(-size);
-            System.out.println("clear, " + bufferUsed);
         }
     }
 
