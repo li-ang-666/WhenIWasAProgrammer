@@ -14,11 +14,11 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class AbstractCache<K, V> {
-    protected final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
-    protected final KeySelector<K, V> keySelector;
-    protected int cacheMilliseconds;
-    protected int cacheRecords;
-    protected boolean enableCache = false;
+    private final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
+    private final KeySelector<K, V> keySelector;
+    private int cacheMilliseconds;
+    private int cacheRecords;
+    private boolean enableCache = false;
 
     protected AbstractCache(int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
         this.cacheMilliseconds = cacheMilliseconds;

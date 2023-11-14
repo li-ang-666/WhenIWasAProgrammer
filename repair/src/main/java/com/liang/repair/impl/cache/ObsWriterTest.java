@@ -11,7 +11,7 @@ public class ObsWriterTest extends ConfigHolder {
     public static void main(String[] args) {
         ObsWriter writer = new ObsWriter("obs://hadoop-obs/flink/tb1/");
         writer.enableCache();
-        String row = StringUtils.repeat(UUID.randomUUID().toString(), 5);
+        String row = StringUtils.repeat(UUID.randomUUID().toString(), 10);
         ArrayList<String> rows = new ArrayList<>();
         for (int i = 1; i <= 10240; i++) {
             rows.add(row);
