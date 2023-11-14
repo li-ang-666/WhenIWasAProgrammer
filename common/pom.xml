@@ -141,6 +141,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
+
+        <!--jol-->
+        <dependency>
+            <groupId>org.openjdk.jol</groupId>
+            <artifactId>jol-core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
