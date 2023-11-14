@@ -1,5 +1,6 @@
 package com.liang.common.service;
 
+import com.liang.common.util.ObjectSizeCalculator;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -88,6 +89,7 @@ public abstract class AbstractCache<K, V> {
                 if (value == null) {
                     continue;
                 }
+                log.info("object size: {}", ObjectSizeCalculator.getObjectSize(value));
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
                 cache.get(key).add(value);
