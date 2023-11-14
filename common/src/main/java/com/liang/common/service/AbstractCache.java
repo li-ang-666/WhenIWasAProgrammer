@@ -75,7 +75,7 @@ public abstract class AbstractCache<K, V> {
             pre = bufferUsed.get();
             after = pre;
             for (V value : values) after += ObjectSizeCalculator.getObjectSize(value);
-        } while (after <= bufferMax && bufferUsed.compareAndSet(pre, after));
+        } while (after > bufferMax || !bufferUsed.compareAndSet(pre, after));
         // 同一批次的写入, 不拆开
         synchronized (cache) {
             for (V value : values) {
