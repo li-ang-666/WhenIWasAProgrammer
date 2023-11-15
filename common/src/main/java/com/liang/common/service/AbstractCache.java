@@ -35,7 +35,7 @@ public abstract class AbstractCache<K, V> {
 
     public final void enableCache(int cacheMilliseconds, int cacheRecords) {
         if (!enableCache.get()) {
-            synchronized (this) {
+            synchronized (cache) {
                 if (!enableCache.get()) {
                     this.cacheMilliseconds = cacheMilliseconds;
                     this.cacheRecords = cacheRecords;
@@ -86,7 +86,7 @@ public abstract class AbstractCache<K, V> {
             after = pre + sizeOfValues;
         } while (after > bufferMax || !bufferUsed.compareAndSet(pre, after));
         // 同一批次的写入, 不拆开
-        synchronized (this) {
+        synchronized (cache) {
             for (V value : values) {
                 if (value == null) continue;
                 K key = keySelector.selectKey(value);
@@ -98,7 +98,8 @@ public abstract class AbstractCache<K, V> {
     }
 
     public final void flush() {
-        synchronized (this) {
+        if (cache.isEmpty()) return;
+        synchronized (cache) {
             if (cache.isEmpty()) return;
             long sizeOfValues = 0;
             for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
