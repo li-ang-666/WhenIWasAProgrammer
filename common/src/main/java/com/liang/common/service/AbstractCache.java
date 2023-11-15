@@ -67,19 +67,17 @@ public abstract class AbstractCache<K, V> {
     public final void update(Collection<V> values) {
         // 拦截空值
         if (values == null || values.isEmpty()) return;
-        // 同一批次的写入, 不拆开
         lock.lock();
         try {
             // 限制内存
-            long sizeOfValues = values.stream()
-                    .map(ObjectSizeCalculator::getObjectSize)
-                    .reduce(0L, Long::sum);
+            long sizeOfValues = values.stream().mapToLong(ObjectSizeCalculator::getObjectSize).sum();
             while (bufferUsed.get() + sizeOfValues > bufferMax) {
                 // 内存不足, 唤醒sender, 自身进入等待队列
                 LockSupport.unpark(sender);
                 condition.await();
             }
             bufferUsed.getAndAdd(sizeOfValues);
+            // 同一批次的写入, 不拆开
             for (V value : values) {
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());

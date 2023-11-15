@@ -10,6 +10,6 @@ import java.util.UUID;
 @Slf4j
 public class Test extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        System.out.println(ObjectSizeCalculator.getObjectSize(StringUtils.repeat(UUID.randomUUID().toString(), 13)));
+        System.out.println(ObjectSizeCalculator.getObjectSize(UUID.randomUUID() + StringUtils.repeat(" ", 455)));
     }
 }

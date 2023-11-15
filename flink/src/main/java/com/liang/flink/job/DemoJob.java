@@ -30,8 +30,8 @@ public class DemoJob {
 
     @RequiredArgsConstructor
     private final static class DemoSink extends RichSinkFunction<SingleCanalBinlog> {
-        private static DemoTemplate demoTemplate;
         private final Config config;
+        private DemoTemplate demoTemplate;
 
         @Override
         public void open(Configuration parameters) {
@@ -42,8 +42,8 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            // 976B/条
-            demoTemplate.update(StringUtils.repeat(UUID.randomUUID().toString(), 13));
+            // 1KB/条
+            demoTemplate.update(UUID.randomUUID() + StringUtils.repeat(" ", 455));
         }
     }
 }
