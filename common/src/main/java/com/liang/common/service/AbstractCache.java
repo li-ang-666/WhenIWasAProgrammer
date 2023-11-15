@@ -79,6 +79,7 @@ public abstract class AbstractCache<K, V> {
             bufferUsed.getAndAdd(sizeOfValues);
             // 同一批次的写入, 不拆开
             for (V value : values) {
+                if (value == null) continue;
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
                 Queue<V> queue = cache.get(key);
@@ -102,8 +103,8 @@ public abstract class AbstractCache<K, V> {
                 K key = entry.getKey();
                 Queue<V> values = entry.getValue();
                 updateImmediately(key, values);
+                values.clear();
             }
-            cache.clear();
             bufferUsed.set(0);
             condition.signalAll();
         } finally {
