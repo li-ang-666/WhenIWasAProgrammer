@@ -9,16 +9,19 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractCache<K, V> {
-    private final Lock lock = new ReentrantLock();
+    private final Lock lock = new ReentrantLock(true);
+    private final Queue<Condition> waiters = new ConcurrentLinkedDeque<>();
     private final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
     private final KeySelector<K, V> keySelector;
     // buffer
@@ -72,7 +75,11 @@ public abstract class AbstractCache<K, V> {
             long sizeOfValues = values.stream()
                     .map(ObjectSizeCalculator::getObjectSize)
                     .reduce(0L, Long::sum);
-            while (bufferUsed.get() + sizeOfValues > bufferMax) lock.newCondition().await();
+            Condition condition = lock.newCondition();
+            while (bufferUsed.get() + sizeOfValues > bufferMax) {
+                waiters.offer(condition);
+                condition.await();
+            }
             bufferUsed.getAndAdd(sizeOfValues);
             for (V value : values) {
                 K key = keySelector.selectKey(value);
@@ -101,7 +108,8 @@ public abstract class AbstractCache<K, V> {
             }
             cache.clear();
             bufferUsed.set(0);
-            lock.newCondition().signalAll();
+            Condition condition = waiters.poll();
+            if (condition != null) condition.signal();
         } finally {
             lock.unlock();
         }

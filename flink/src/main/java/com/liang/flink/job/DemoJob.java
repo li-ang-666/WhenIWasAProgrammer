@@ -30,8 +30,8 @@ public class DemoJob {
 
     @RequiredArgsConstructor
     private final static class DemoSink extends RichSinkFunction<SingleCanalBinlog> {
+        private static DemoTemplate demoTemplate;
         private final Config config;
-        private DemoTemplate demoTemplate;
 
         @Override
         public void open(Configuration parameters) {
