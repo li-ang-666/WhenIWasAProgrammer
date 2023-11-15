@@ -1,16 +1,16 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
-  otherParallel: 1
+  otherParallel: 3
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "457.prism_shareholder_path"
-    tableName: "investment_relation"
+    sourceName: "gauss"
+    tableName: "ratio_path_company"
     columns: "*"
-    where: "update_time >= '2023-10-30'"
+    where: "1=1"
     scanMode: TumblingWindow
 
 kafkaConfigs:
@@ -18,6 +18,5 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "ee59d.proto.company_base.company_index"
-      #- "48e2e.proto.bdp_equity.entity_controller_details"
     groupId: "demo-job"
     startFrom: "2"

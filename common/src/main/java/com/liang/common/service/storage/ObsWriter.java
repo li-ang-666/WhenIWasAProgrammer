@@ -1,4 +1,4 @@
-package com.liang.common.service.filesystem;
+package com.liang.common.service.storage;
 
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;

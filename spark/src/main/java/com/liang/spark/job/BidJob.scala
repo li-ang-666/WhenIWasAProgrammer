@@ -1,6 +1,6 @@
 package com.liang.spark.job
 
-import com.liang.common.service.filesystem.ObsWriter
+import com.liang.common.service.storage.ObsWriter
 import org.apache.spark.api.java.function.ForeachPartitionFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Row, SparkSession}
