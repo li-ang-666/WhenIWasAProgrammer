@@ -83,7 +83,7 @@ public abstract class AbstractCache<K, V> {
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
                 Queue<V> queue = cache.get(key);
                 queue.add(value);
-                // cacheRecords满足, 唤醒sender
+                // 有分区达到条数阈值, 唤醒sender
                 if (queue.size() >= cacheRecords) LockSupport.unpark(sender);
             }
             if (sender == null) flush();
