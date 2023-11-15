@@ -4,10 +4,7 @@ import com.liang.common.util.ObjectSizeCalculator;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -74,10 +71,14 @@ public abstract class AbstractCache<K, V> {
     }
 
     public final void update(Collection<V> values) {
+        // 拦截空值
         if (values == null || values.isEmpty()) return;
+        values.removeIf(Objects::isNull);
         // 保证内存不超出限制
         long pre, after, i = 0;
-        long sizeOfValues = values.stream().map(ObjectSizeCalculator::getObjectSize).reduce(0L, Long::sum);
+        long sizeOfValues = values.stream()
+                .map(ObjectSizeCalculator::getObjectSize)
+                .reduce(0L, Long::sum);
         do {
             if (i++ > 999) throw new RuntimeException("CAS loop too many times");
             pre = bufferUsed.get();
