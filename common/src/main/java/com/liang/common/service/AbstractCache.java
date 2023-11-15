@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -21,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public abstract class AbstractCache<K, V> {
     private final Lock lock = new ReentrantLock(true);
-    private final Queue<Condition> waiters = new ConcurrentLinkedDeque<>();
+    private final Condition condition = lock.newCondition();
     private final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
     private final KeySelector<K, V> keySelector;
     // buffer
@@ -75,9 +74,9 @@ public abstract class AbstractCache<K, V> {
             long sizeOfValues = values.stream()
                     .map(ObjectSizeCalculator::getObjectSize)
                     .reduce(0L, Long::sum);
-            Condition condition = lock.newCondition();
             while (bufferUsed.get() + sizeOfValues > bufferMax) {
-                waiters.offer(condition);
+                // 内存不足, 唤醒sender, 自身进入等待队列
+                LockSupport.unpark(sender);
                 condition.await();
             }
             bufferUsed.getAndAdd(sizeOfValues);
@@ -86,6 +85,7 @@ public abstract class AbstractCache<K, V> {
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
                 Queue<V> queue = cache.get(key);
                 queue.add(value);
+                // cacheRecords满足, 唤醒sender
                 if (queue.size() >= cacheRecords) LockSupport.unpark(sender);
             }
             if (sender == null) flush();
@@ -108,8 +108,7 @@ public abstract class AbstractCache<K, V> {
             }
             cache.clear();
             bufferUsed.set(0);
-            Condition condition = waiters.poll();
-            if (condition != null) condition.signal();
+            condition.signalAll();
         } finally {
             lock.unlock();
         }
