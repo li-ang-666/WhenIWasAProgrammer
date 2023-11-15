@@ -6,7 +6,7 @@ import java.util.Queue;
 
 @Slf4j
 public class DemoTemplate extends AbstractCache<String, String> {
-    private final static int BUFFER_MAX_MB = 2;
+    private final static int BUFFER_MAX_MB = 16;
     private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
     private final static int DEFAULT_CACHE_RECORDS = 10240;
 

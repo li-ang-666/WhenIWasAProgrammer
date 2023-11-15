@@ -42,7 +42,7 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            demoTemplate.update(StringUtils.repeat(UUID.randomUUID().toString(), 5));
+            demoTemplate.update(StringUtils.repeat(UUID.randomUUID().toString(), 1));
         }
     }
 }

@@ -4,13 +4,15 @@ import com.liang.common.util.ObjectSizeCalculator;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
@@ -18,14 +20,16 @@ public abstract class AbstractCache<K, V> {
     private final Lock lock = new ReentrantLock();
     private final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
     private final KeySelector<K, V> keySelector;
-    private final AtomicBoolean enableCache = new AtomicBoolean(false);
-    private final AtomicLong bufferUsed;
+    // buffer
     private final long bufferMax;
-    private int cacheMilliseconds;
-    private int cacheRecords;
+    private long bufferUsed;
+    // cache
+    private volatile int cacheMilliseconds;
+    private volatile int cacheRecords;
+    private volatile Thread sender;
 
     protected AbstractCache(int bufferMaxMb, int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
-        this.bufferUsed = new AtomicLong(0);
+        this.bufferUsed = 0L;
         this.bufferMax = bufferMaxMb * 1024L * 1024L;
         this.cacheMilliseconds = cacheMilliseconds;
         this.cacheRecords = cacheRecords;
@@ -37,34 +41,17 @@ public abstract class AbstractCache<K, V> {
     }
 
     public final void enableCache(int cacheMilliseconds, int cacheRecords) {
-        if (enableCache.get()) return;
-        lock.lock();
-        try {
-            if (enableCache.get()) return;
+        if (sender != null) return;
+        synchronized (this) {
+            if (sender != null) return;
             this.cacheMilliseconds = cacheMilliseconds;
             this.cacheRecords = cacheRecords;
-            DaemonExecutor.launch("AbstractCacheThread", new Runnable() {
-                private long lastSendTime = System.currentTimeMillis();
-
-                @Override
-                @SneakyThrows(InterruptedException.class)
-                public void run() {
-                    while (true) {
-                        TimeUnit.MILLISECONDS.sleep(100);
-                        if (!cache.isEmpty() && System.currentTimeMillis() - lastSendTime >= cacheMilliseconds) {
-                            // 时间触发
-                            flush();
-                            lastSendTime = System.currentTimeMillis();
-                        } else if (cache.values().stream().anyMatch(queue -> queue.size() >= cacheRecords)) {
-                            // 大小触发
-                            flush();
-                        }
-                    }
+            this.sender = DaemonExecutor.launch("AbstractCacheThread", () -> {
+                while (true) {
+                    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(cacheMilliseconds));
+                    flush();
                 }
             });
-            enableCache.set(true);
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -74,49 +61,55 @@ public abstract class AbstractCache<K, V> {
         update(Arrays.asList(values));
     }
 
+    @SneakyThrows
     public final void update(Collection<V> values) {
         // 拦截空值
-        if (values == null) return;
-        values.removeIf(Objects::isNull);
-        if (values.isEmpty()) return;
+        if (values == null || values.isEmpty()) return;
         // 保证内存不超出限制
-        long pre, after;
-        long sizeOfValues = values.stream()
-                .map(ObjectSizeCalculator::getObjectSize)
-                .reduce(0L, Long::sum);
-        do {
-            pre = bufferUsed.get();
-            after = pre + sizeOfValues;
-        } while (after > bufferMax || !bufferUsed.compareAndSet(pre, after));
+        //long pre, after;
+        //long sizeOfValues = values.stream()
+        //        .map(ObjectSizeCalculator::getObjectSize)
+        //        .reduce(0L, Long::sum);
+        //do {
+        //    pre = bufferUsed.get();
+        //    after = pre + sizeOfValues;
+        //} while (after > bufferMax || !bufferUsed.compareAndSet(pre, after));
         // 同一批次的写入, 不拆开
         lock.lock();
         try {
+            long sizeOfValues = values.stream()
+                    .map(ObjectSizeCalculator::getObjectSize)
+                    .reduce(0L, Long::sum);
+            while (bufferUsed + sizeOfValues > bufferMax) lock.newCondition().await();
+            bufferUsed += sizeOfValues;
             for (V value : values) {
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
-                cache.get(key).add(value);
+                Queue<V> queue = cache.get(key);
+                queue.add(value);
+                if (queue.size() >= cacheRecords) LockSupport.unpark(sender);
             }
-            if (!enableCache.get()) flush();
+            if (sender == null) flush();
         } finally {
             lock.unlock();
         }
     }
 
+    @SneakyThrows
     public final void flush() {
         if (cache.isEmpty()) return;
         lock.lock();
         try {
             if (cache.isEmpty()) return;
-            long sizeOfValues = 0;
             for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
                 K key = entry.getKey();
                 Queue<V> values = entry.getValue();
-                // updateImmediately或许会改变value, 所以要在之前记录大小
-                sizeOfValues += values.stream().map(ObjectSizeCalculator::getObjectSize).reduce(0L, Long::sum);
                 updateImmediately(key, values);
+                log.info("size: {}", values.size());
             }
             cache.clear();
-            bufferUsed.getAndAdd(-sizeOfValues);
+            bufferUsed = 0L;
+            lock.newCondition().signalAll();
         } finally {
             lock.unlock();
         }

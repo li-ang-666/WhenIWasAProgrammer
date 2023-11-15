@@ -11,6 +11,5 @@ public class Test extends ConfigHolder {
     public static void main(String[] args) throws Exception {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         ReentrantLock lock = new ReentrantLock();
-        lock.newCondition().await();
     }
 }
