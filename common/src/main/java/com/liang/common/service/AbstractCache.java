@@ -11,17 +11,18 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public abstract class AbstractCache<K, V> {
     private final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
     private final KeySelector<K, V> keySelector;
+    private final AtomicBoolean enableCache = new AtomicBoolean(false);
     private final AtomicLong bufferUsed;
     private final long bufferMax;
     private int cacheMilliseconds;
     private int cacheRecords;
-    private boolean enableCache = false;
 
     protected AbstractCache(int bufferMaxMb, int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
         this.bufferUsed = new AtomicLong(0);
@@ -36,28 +37,33 @@ public abstract class AbstractCache<K, V> {
     }
 
     public final void enableCache(int cacheMilliseconds, int cacheRecords) {
-        if (!enableCache) {
-            this.cacheMilliseconds = cacheMilliseconds;
-            this.cacheRecords = cacheRecords;
-            DaemonExecutor.launch("AbstractCacheThread", new Runnable() {
-                private long lastSendTime = System.currentTimeMillis();
+        if (!enableCache.get()) {
+            synchronized (this) {
+                if (!enableCache.get()) {
+                    this.cacheMilliseconds = cacheMilliseconds;
+                    this.cacheRecords = cacheRecords;
+                    DaemonExecutor.launch("AbstractCacheThread", new Runnable() {
+                        private long lastSendTime = System.currentTimeMillis();
 
-                @Override
-                @SneakyThrows(InterruptedException.class)
-                public void run() {
-                    while (true) {
-                        TimeUnit.MILLISECONDS.sleep(100);
-                        // 时间触发
-                        if (System.currentTimeMillis() - lastSendTime >= cacheMilliseconds) {
-                            flush();
-                            lastSendTime = System.currentTimeMillis();
+                        @Override
+                        @SneakyThrows(InterruptedException.class)
+                        public void run() {
+                            while (true) {
+                                TimeUnit.MILLISECONDS.sleep(100);
+                                // 时间触发
+                                if (System.currentTimeMillis() - lastSendTime >= cacheMilliseconds) {
+                                    flush();
+                                    lastSendTime = System.currentTimeMillis();
+                                }
+                                // 大小触发
+                                else if (cache.values().stream().anyMatch(queue -> queue.size() >= cacheRecords))
+                                    flush();
+                            }
                         }
-                        // 大小触发
-                        else if (cache.values().stream().anyMatch(queue -> queue.size() >= cacheRecords)) flush();
-                    }
+                    });
+                    enableCache.set(true);
                 }
-            });
-            enableCache = true;
+            }
         }
     }
 
@@ -78,19 +84,19 @@ public abstract class AbstractCache<K, V> {
             after = pre + sizeOfValues;
         } while (after > bufferMax || !bufferUsed.compareAndSet(pre, after));
         // 同一批次的写入, 不拆开
-        synchronized (cache) {
+        synchronized (this) {
             for (V value : values) {
                 if (value == null) continue;
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
                 cache.get(key).add(value);
             }
+            if (!enableCache.get()) flush();
         }
-        if (!enableCache) flush();
     }
 
     public final void flush() {
-        synchronized (cache) {
+        synchronized (this) {
             long sizeOfValues = 0;
             for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
                 K key = entry.getKey();
