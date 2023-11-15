@@ -47,14 +47,14 @@ public abstract class AbstractCache<K, V> {
                         public void run() {
                             while (true) {
                                 TimeUnit.MILLISECONDS.sleep(100);
-                                // 时间触发
-                                if (System.currentTimeMillis() - lastSendTime >= cacheMilliseconds) {
+                                if (!cache.isEmpty() && System.currentTimeMillis() - lastSendTime >= cacheMilliseconds) {
+                                    // 时间触发
                                     flush();
                                     lastSendTime = System.currentTimeMillis();
-                                }
-                                // 大小触发
-                                else if (cache.values().stream().anyMatch(queue -> queue.size() >= cacheRecords))
+                                } else if (cache.values().stream().anyMatch(queue -> queue.size() >= cacheRecords)) {
+                                    // 大小触发
                                     flush();
+                                }
                             }
                         }
                     });
@@ -72,8 +72,9 @@ public abstract class AbstractCache<K, V> {
 
     public final void update(Collection<V> values) {
         // 拦截空值
-        if (values == null || values.isEmpty()) return;
+        if (values == null) return;
         values.removeIf(Objects::isNull);
+        if (values.isEmpty()) return;
         // 保证内存不超出限制
         long pre, after, i = 0;
         long sizeOfValues = values.stream()
@@ -98,6 +99,7 @@ public abstract class AbstractCache<K, V> {
 
     public final void flush() {
         synchronized (this) {
+            if (cache.isEmpty()) return;
             long sizeOfValues = 0;
             for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
                 K key = entry.getKey();
