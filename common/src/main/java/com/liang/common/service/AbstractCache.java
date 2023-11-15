@@ -71,12 +71,11 @@ public abstract class AbstractCache<K, V> {
         if (values == null || values.isEmpty()) return;
         // 保证内存不超出限制
         long pre, after, i = 0;
+        long sizeOfValues = values.stream().map(ObjectSizeCalculator::getObjectSize).reduce(0L, Long::sum);
         do {
-            i++;
-            if (i > 999) throw new RuntimeException("AbstractCache loop too many times");
+            if (i++ > 999) throw new RuntimeException("CAS loop too many times");
             pre = bufferUsed.get();
-            after = pre;
-            for (V value : values) after += ObjectSizeCalculator.getObjectSize(value);
+            after = pre + sizeOfValues;
         } while (after > bufferMax || !bufferUsed.compareAndSet(pre, after));
         // 同一批次的写入, 不拆开
         synchronized (cache) {
@@ -92,15 +91,16 @@ public abstract class AbstractCache<K, V> {
 
     public final void flush() {
         synchronized (cache) {
-            long size = 0;
+            long sizeOfValues = 0;
             for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
                 K key = entry.getKey();
                 Queue<V> values = entry.getValue();
-                for (V value : values) size += ObjectSizeCalculator.getObjectSize(value);
+                // updateImmediately或许会改变value, 所以要在之前记录大小
+                sizeOfValues += values.stream().map(ObjectSizeCalculator::getObjectSize).reduce(0L, Long::sum);
                 updateImmediately(key, values);
             }
             cache.clear();
-            bufferUsed.getAndAdd(-size);
+            bufferUsed.getAndAdd(-sizeOfValues);
         }
     }
 
