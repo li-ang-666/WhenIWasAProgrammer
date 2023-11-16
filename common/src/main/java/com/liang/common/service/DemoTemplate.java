@@ -12,7 +12,7 @@ public class DemoTemplate extends AbstractCache<String, String> {
 
     public DemoTemplate() {
         super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS,
-                e -> e.substring(0, 10));
+                e -> String.valueOf(Math.abs(e.hashCode()) % 5));
     }
 
     @Override

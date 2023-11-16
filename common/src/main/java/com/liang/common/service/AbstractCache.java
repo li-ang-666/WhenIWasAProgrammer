@@ -51,8 +51,6 @@ public abstract class AbstractCache<K, V> {
                 while (true) {
                     LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(this.cacheMilliseconds));
                     flush();
-                    // flush后, 清空一下permit
-                    LockSupport.parkNanos(1);
                 }
             });
         }
@@ -95,10 +93,8 @@ public abstract class AbstractCache<K, V> {
     }
 
     public final void flush() {
-        if (cache.isEmpty()) return;
         lock.lock();
         try {
-            if (cache.isEmpty()) return;
             for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
                 Queue<V> values = entry.getValue();
                 if (values.isEmpty()) continue;
