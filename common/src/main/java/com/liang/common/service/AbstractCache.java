@@ -52,6 +52,8 @@ public abstract class AbstractCache<K, V> {
                 while (true) {
                     LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(this.cacheMilliseconds));
                     flush();
+                    // 清空一下permit
+                    LockSupport.parkNanos(1);
                 }
             });
         }
@@ -63,7 +65,7 @@ public abstract class AbstractCache<K, V> {
         update(Arrays.asList(values));
     }
 
-    @SneakyThrows
+    @SneakyThrows(InterruptedException.class)
     public final void update(Collection<V> values) {
         // 拦截空值
         if (values == null || values.isEmpty()) return;
@@ -71,6 +73,7 @@ public abstract class AbstractCache<K, V> {
         try {
             // 限制内存
             long sizeOfValues = values.stream().mapToLong(ObjectSizeCalculator::getObjectSize).sum();
+            if (sizeOfValues > bufferMax) throw new RuntimeException("values too large");
             while (bufferUsed.get() + sizeOfValues > bufferMax) {
                 // 内存不足, 唤醒sender, 自身进入等待队列
                 LockSupport.unpark(sender);

@@ -1,20 +1,28 @@
 package com.liang.repair.test;
 
-import com.liang.common.util.ObjectSizeCalculator;
 import com.liang.repair.service.ConfigHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
 public class Test extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        System.out.println(ObjectSizeCalculator.getObjectSize(UUID.randomUUID() + StringUtils.repeat(" ", 455)));
-        synchronized (ConfigHolder.class) {
-            ConfigHolder.class.wait(1000);
+        Thread thread = Thread.currentThread();
+        thread.interrupt();
+        System.out.println(thread.isInterrupted());
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (Exception ignore) {
         }
-        new ReentrantLock().newCondition();
+        System.out.println(thread.isInterrupted());
+        System.out.println(1);
+
+
+        LockSupport.unpark(thread);
+        LockSupport.park();
+        System.out.println(2);
+        new Thread().interrupt();
     }
 }
