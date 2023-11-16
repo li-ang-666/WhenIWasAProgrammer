@@ -103,7 +103,7 @@ public abstract class AbstractCache<K, V> {
                 K key = entry.getKey();
                 Queue<V> values = entry.getValue();
                 updateImmediately(key, values);
-                log.info("values size: {}", values.size());
+                // log.info("values size: {}", values.size());
                 values.clear();
             }
             bufferUsed.set(0);
