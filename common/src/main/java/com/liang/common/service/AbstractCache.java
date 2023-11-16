@@ -100,8 +100,9 @@ public abstract class AbstractCache<K, V> {
         try {
             if (cache.isEmpty()) return;
             for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
-                K key = entry.getKey();
                 Queue<V> values = entry.getValue();
+                if (values.isEmpty()) continue;
+                K key = entry.getKey();
                 updateImmediately(key, values);
                 // log.info("values size: {}", values.size());
                 values.clear();

@@ -11,7 +11,8 @@ public class DemoTemplate extends AbstractCache<String, String> {
     private final static int DEFAULT_CACHE_RECORDS = 10240;
 
     public DemoTemplate() {
-        super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, e -> "");
+        super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS,
+                e -> e.substring(0, 10));
     }
 
     @Override
