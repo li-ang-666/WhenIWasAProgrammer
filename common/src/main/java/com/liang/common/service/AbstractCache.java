@@ -1,7 +1,6 @@
 package com.liang.common.service;
 
 import com.liang.common.util.ObjectSizeCalculator;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -65,7 +64,6 @@ public abstract class AbstractCache<K, V> {
         update(Arrays.asList(values));
     }
 
-    @SneakyThrows(InterruptedException.class)
     public final void update(Collection<V> values) {
         // 拦截空值
         if (values == null || values.isEmpty()) return;
@@ -77,7 +75,7 @@ public abstract class AbstractCache<K, V> {
             while (bufferUsed.get() + sizeOfValues > bufferMax) {
                 // 内存不足, 唤醒sender, 自身进入等待队列
                 LockSupport.unpark(sender);
-                condition.await();
+                condition.awaitUninterruptibly();
             }
             bufferUsed.getAndAdd(sizeOfValues);
             // 同一批次的写入, 不拆开
@@ -96,7 +94,6 @@ public abstract class AbstractCache<K, V> {
         }
     }
 
-    @SneakyThrows
     public final void flush() {
         if (cache.isEmpty()) return;
         lock.lock();
