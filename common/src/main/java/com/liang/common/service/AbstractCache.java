@@ -51,7 +51,7 @@ public abstract class AbstractCache<K, V> {
                 while (true) {
                     LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(this.cacheMilliseconds));
                     flush();
-                    // 清空一下permit
+                    // flush后, 清空一下permit
                     LockSupport.parkNanos(1);
                 }
             });
