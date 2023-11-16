@@ -104,7 +104,6 @@ public abstract class AbstractCache<K, V> {
                 if (values.isEmpty()) continue;
                 K key = entry.getKey();
                 updateImmediately(key, values);
-                // log.info("values size: {}", values.size());
                 values.clear();
             }
             bufferUsed.set(0);
