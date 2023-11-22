@@ -1,6 +1,6 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Repair
+  sourceType: Kafka
   sourceParallel: 1
   otherParallel: 10
 
@@ -17,6 +17,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "ee59d.proto.company_base.company_index"
+      - "77699.proto.strategy_algorithm.history_shareholders_mirror_xxx"
     groupId: "demo-job"
-    startFrom: "2"
+    startFrom: "1"

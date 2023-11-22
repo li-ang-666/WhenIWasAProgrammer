@@ -9,12 +9,9 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.high.level.api.StreamFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-
-import java.util.UUID;
 
 @Slf4j
 @LocalConfigFile("demo.yml")
@@ -43,7 +40,11 @@ public class DemoJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             // 1KB/条
-            demoTemplate.update(UUID.randomUUID() + StringUtils.repeat(" ", 455));
+            //demoTemplate.update(UUID.randomUUID() + StringUtils.repeat(" ", 455));
+            String string = singleCanalBinlog.toString();
+            if (string.contains("changed_time=2023-11-1")) {
+                System.out.println(singleCanalBinlog);
+            }
         }
     }
 }
