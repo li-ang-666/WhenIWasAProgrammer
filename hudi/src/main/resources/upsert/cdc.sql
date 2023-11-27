@@ -53,8 +53,7 @@ CREATE TABLE dwd(
   -- write
   'write.tasks' = '4',
   'write.task.max.size' = '512',
-  'write.batch.size' = '8',
-  'write.log_block.size' = '64',
+  'write.merge.max_memory' = '0',
   'write.precombine' = 'true',
   'write.precombine.field' = 'op_ts',
   -- compaction
@@ -64,10 +63,10 @@ CREATE TABLE dwd(
   'clean.retain_commits' = '0',
   -- hive
   'hive_sync.enabled' = 'true',
-  'hive_sync.db' = 'hudi_ods',
-  'hive_sync.table' = 'ratio_path_company',
+  'hive_sync.mode' = 'hms',
   'hive_sync.metastore.uris' = 'thrift://10.99.202.153:9083',
-  'hive_sync.mode' = 'hms'
+  'hive_sync.db' = 'hudi_ods',
+  'hive_sync.table' = 'ratio_path_company'
 );
 insert into dwd
 select
