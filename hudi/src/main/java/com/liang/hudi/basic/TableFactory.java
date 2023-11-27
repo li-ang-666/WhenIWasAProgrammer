@@ -13,7 +13,7 @@ public class TableFactory {
     public static String fromFile(String fileName) {
         try {
             InputStream stream = TableFactory.class.getClassLoader()
-                    .getResourceAsStream("sqls/" + fileName);
+                    .getResourceAsStream(fileName);
             assert stream != null;
             return IOUtils.toString(stream, StandardCharsets.UTF_8);
         } catch (Exception e) {

@@ -18,6 +18,6 @@ public class DemoPrintJob {
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
         // exec sql
         tEnv.executeSql(TableFactory.fromFile("read.sql"));
-        tEnv.executeSql("select * from enterprise").print();
+        tEnv.executeSql("select * from ods").print();
     }
 }
