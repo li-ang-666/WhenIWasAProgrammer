@@ -62,10 +62,11 @@ CREATE TABLE dwd(
   'clean.retain_commits' = '0',
   -- hive
   'hive_sync.enabled' = 'true',
-  'hive_sync.mode' = 'hms',
-  'hive_sync.metastore.uris' = 'thrift://10.99.202.153:9083',
   'hive_sync.db' = 'hudi_ods',
-  'hive_sync.table' = 'ratio_path_company'
+  'hive_sync.table' = 'ratio_path_company',
+  'hive_sync.metastore.uris' = 'thrift://10.99.202.153:9083',
+  'hive_sync.mode' = 'hms',
+  'hive_sync.skip_ro_suffix' = 'true'
 );
 insert into dwd
 select

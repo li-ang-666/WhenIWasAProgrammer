@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 public class ColumnTypeMapping extends ConfigHolder {
     public static void main(String[] args) {
         // config
-        JdbcTemplate jdbcTemplate = new JdbcTemplate("464.prism");
-        String tableName = "enterprise";
+        JdbcTemplate jdbcTemplate = new JdbcTemplate("435.company_base");
+        String tableName = "company_index";
         // calculate
         String min = jdbcTemplate.queryForObject("select min(id) from " + tableName, rs -> rs.getString(1));
         String max = jdbcTemplate.queryForObject("select max(id) from " + tableName, rs -> rs.getString(1));
