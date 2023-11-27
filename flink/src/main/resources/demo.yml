@@ -17,6 +17,7 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "77699.proto.strategy_algorithm.history_shareholders_mirror_xxx"
+      - "kafka_all_search_foreign_investment_2"
+      - "kafka_add_search_foreign_investment"
     groupId: "demo-job"
     startFrom: "1"
