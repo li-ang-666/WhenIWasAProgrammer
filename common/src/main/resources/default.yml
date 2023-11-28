@@ -1,13 +1,16 @@
 dbConfigs:
   008.bigdata_online: { host: "140f5010b84c4d9abfc4d13bc597a2ebin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online" }
   040.human_base: { host: "36c607bfd9174d4e81512aa73375f0fain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "human_base" }
+  041.listed_base: { host: "22d1c920ce434c35acf33e1fcbc7256din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "listed_base" }
   108.data_judicial_risk: { host: "43283515096042b8bbd9704a4fdbbcd4in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_judicial_risk" }
   110.data_listed_company: { host: "7d89cf1613024a3d9b0511a21743806ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company" }
   111.data_experience_situation: { host: "886a213ba5de451eb4add2e0d1fb2ef6in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_experience_situation" }
   116.prism: { host: "0bb0147d82fe49e6953138da0eea61dbin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
   150.data_index: { host: "be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_index" }
+  157.prism: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
   157.prism1: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1" }
   157.prism_boss: { host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_boss" }
+  157.listed_base: { host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "listed_base" }
   225.prism_shareholder_path: { host: "45be16af451d41a5aa2d16c15ee00070in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path" }
   427.test: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "test",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
   430.graph_data: { host: "1ae09b20e4504ae2a39b6d209b49f269in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "graph_data" }
