@@ -52,6 +52,7 @@ public class TableFactory {
         });
         String createTable = list.stream().map(e -> "  " + e.f0 + StringUtils.repeat(" ", maxColumnLength.get() + 1 - e.f0.length()) + e.f1 + ",")
                 .collect(Collectors.joining("\n", "\n", ""));
+        // sql
         list.add(Tuple2.of("op_ts", "TIMESTAMP(3)"));
         String sql = list.stream().map(e -> {
             if (e.f1.equals("TIMESTAMP(3)"))
@@ -59,6 +60,7 @@ public class TableFactory {
             else
                 return e.f0;
         }).collect(Collectors.joining(", ", "insert into dwd select\n", "\nfrom ods"));
+        // 拼接
         if (writeOperationType == WriteOperationType.BULK_INSERT) {
             InputStream stream = TableFactory.class.getClassLoader()
                     .getResourceAsStream("bulk_insert/bulk_insert.sql");
