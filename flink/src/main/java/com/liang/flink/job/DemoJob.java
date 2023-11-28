@@ -4,12 +4,11 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.DemoTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
-import com.liang.flink.basic.KafkaSourceFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.high.level.api.StreamFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
@@ -20,12 +19,12 @@ public class DemoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        env.fromSource(KafkaSourceFactory.create(String::new), WatermarkStrategy.noWatermarks(), "KafkaSource")
-                .map(e -> e.getValue())
-                .print();
-        //StreamFactory.create(env)
-        //        .rebalance()
-        //        .addSink(new DemoSink(config)).name("DemoSink").setParallelism(config.getFlinkConfig().getOtherParallel());
+        //env.fromSource(KafkaSourceFactory.create(String::new), WatermarkStrategy.noWatermarks(), "KafkaSource")
+        //        .map(e -> e.getValue())
+        //        .print();
+        StreamFactory.create(env)
+                .rebalance()
+                .addSink(new DemoSink(config)).name("DemoSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("DemoJob");
     }
 
@@ -43,7 +42,7 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            System.out.println(singleCanalBinlog);
+            System.out.println(singleCanalBinlog.getEventType());
         }
     }
 }
