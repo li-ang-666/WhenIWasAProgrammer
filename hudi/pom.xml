@@ -10,6 +10,12 @@
     </parent>
     <artifactId>hudi</artifactId>
     <dependencies>
+        <!--druid-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+        </dependency>
+
         <!--hive sync-->
         <dependency>
             <groupId>org.apache.commons</groupId>
