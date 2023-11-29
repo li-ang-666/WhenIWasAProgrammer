@@ -30,11 +30,6 @@ CREATE TABLE dwd(%s
   'write.tasks' = '64',
   'write.precombine' = 'true',
   'write.precombine.field' = 'op_ts',
-  -- compaction
-  'compaction.schedule.enabled' = 'false',
-  'compaction.async.enabled' = 'false',
-  -- clean
-  'clean.async.enabled' = 'false',
   -- hive
   'hive_sync.enabled' = 'true',
   'hive_sync.mode' = 'hms',
