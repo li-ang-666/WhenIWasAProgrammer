@@ -43,6 +43,7 @@ CREATE TABLE dwd(%s
   'hive_sync.metastore.uris' = 'thrift://10.99.202.153:9083',
   'hive_sync.db' = 'hudi_ods',
   'hive_sync.table' = '%s',
+  'hive_sync.table.strategy' = 'RO',
   'hive_sync.skip_ro_suffix' = 'true'
 );
 %s;
