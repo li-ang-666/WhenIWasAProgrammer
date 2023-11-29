@@ -9,7 +9,7 @@ CREATE TABLE ods (%s
   'password' = '2s0^tFa4SLrp72',
   'database-name' = '%s',
   'table-name' = '%s',
-  'server-id' = '6000-6127',
+  'server-id' = '%s',
   'scan.startup.mode' = 'earliest-offset'
 );
 CREATE TABLE dwd(%s
