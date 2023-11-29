@@ -33,9 +33,9 @@ CREATE TABLE dwd(%s
   'compaction.async.enabled' = 'false',
   'compaction.delta_commits' = '30',
   -- clean & archive
-  'clean.retain_commits' = '100',
-  'archive.min_commits' = '110',
-  'archive.max_commits' = '120',
+  'clean.retain_commits' = '3000',
+  'archive.min_commits' = '3010',
+  'archive.max_commits' = '3020',
   -- hive
   'hive_sync.enabled' = 'true',
   'hive_sync.mode' = 'hms',
