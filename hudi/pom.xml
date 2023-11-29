@@ -10,6 +10,12 @@
     </parent>
     <artifactId>hudi</artifactId>
     <dependencies>
+        <!--hutool-->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+        </dependency>
+
         <!--druid-->
         <dependency>
             <groupId>com.alibaba</groupId>
