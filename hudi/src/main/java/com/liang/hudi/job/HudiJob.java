@@ -20,22 +20,21 @@ public class HudiJob {
         Configuration configuration = tEnv.getConfig().getConfiguration();
         WriteOperationType writeOperationType = WriteOperationType.valueOf(args[0]);
         if (writeOperationType == BULK_INSERT) {
-            configuration.setString("taskmanager.numberOfTaskSlots", "8");
-            configuration.setString("parallelism.default", "16");
+            configuration.setInteger("taskmanager.numberOfTaskSlots", 8);
+            configuration.setInteger("parallelism.default", 16);
         } else if (writeOperationType == UPSERT) {
-            configuration.setString("taskmanager.memory.network.max", "64");
+            configuration.setString("taskmanager.memory.network.max", "64m");
         }
         // exec sql
         StreamStatementSet statementSet = tEnv.createStatementSet();
         String sqls = TableFactory.fromTemplate(writeOperationType, args[1], args[2]);
         for (String sql : sqls.split(";")) {
-            if (StringUtils.isNotBlank(sql)) {
-                log.info("sql: {}", sql);
-                if (sql.toLowerCase().contains("insert into"))
-                    statementSet.addInsertSql(sql);
-                else
-                    tEnv.executeSql(sql);
-            }
+            if (StringUtils.isBlank(sql)) continue;
+            log.info("sql: {}", sql);
+            if (sql.toLowerCase().contains("insert into"))
+                statementSet.addInsertSql(sql);
+            else
+                tEnv.executeSql(sql);
         }
         statementSet.execute();
     }
