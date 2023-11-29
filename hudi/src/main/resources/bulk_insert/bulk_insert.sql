@@ -13,7 +13,7 @@ CREATE TABLE ods(%s
   'scan.partition.num' = '%s',
   'scan.fetch-size' = '1024'
 );
-create table dwd(%s
+CREATE TABLE dwd(%s
   op_ts TIMESTAMP(3),
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (

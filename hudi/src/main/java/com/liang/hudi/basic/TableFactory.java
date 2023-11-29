@@ -59,7 +59,7 @@ public class TableFactory {
                 return String.format("CAST(CONVERT_TZ(CAST(%s AS STRING), 'Asia/Shanghai', 'UTC') AS TIMESTAMP(3)) %s", e.f0, e.f0);
             else
                 return e.f0;
-        }).collect(Collectors.joining(", ", "insert into dwd select\n", "\nfrom ods"));
+        }).collect(Collectors.joining(", ", "INSERT INTO dwd SELECT\n", "\nFROM ods"));
         // 拼接
         if (writeOperationType == WriteOperationType.BULK_INSERT) {
             InputStream stream = TableFactory.class.getClassLoader()
