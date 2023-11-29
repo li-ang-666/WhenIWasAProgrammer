@@ -30,6 +30,13 @@ CREATE TABLE dwd(%s
   'write.tasks' = '64',
   'write.precombine' = 'true',
   'write.precombine.field' = 'op_ts',
+  -- compaction
+  'compaction.async.enabled' = 'false',
+  'compaction.delta_commits' = '30',
+  -- clean & archive
+  'clean.retain_commits' = '100',
+  'archive.min_commits' = '110',
+  'archive.max_commits' = '120',
   -- hive
   'hive_sync.enabled' = 'true',
   'hive_sync.mode' = 'hms',
