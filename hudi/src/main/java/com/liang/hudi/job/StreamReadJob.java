@@ -7,7 +7,7 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
-public class DemoPrintJob {
+public class StreamReadJob {
     public static void main(String[] args) {
         // create env
         Configuration configuration = new Configuration();
