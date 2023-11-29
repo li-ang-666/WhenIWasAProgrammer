@@ -31,8 +31,8 @@ CREATE TABLE dwd(%s
   -- compaction
   'compaction.async.enabled' = 'false',
   'compaction.delta_commits' = '30',
-  -- clean
-  'clean.retain_commits' = '0',
+  -- clean & archive
+  'clean.async.enabled' = 'false',
   -- hive
   'hive_sync.enabled' = 'true',
   'hive_sync.mode' = 'hms',
