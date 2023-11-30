@@ -8,6 +8,8 @@ import org.apache.flink.table.api.bridge.java.StreamStatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.hudi.common.model.WriteOperationType;
 
+import static org.apache.hudi.common.model.WriteOperationType.BULK_INSERT;
+
 @Slf4j
 public class HudiJob {
     public static void main(String[] args) {
@@ -15,11 +17,15 @@ public class HudiJob {
         StreamTableEnvironment tEnv = TableEnvironmentFactory.create();
         // exec sql
         StreamStatementSet statementSet = tEnv.createStatementSet();
-        for (String sql : TableFactory.fromTemplate(WriteOperationType.valueOf(args[0]), args[1], args[2]).split(";")) {
+        WriteOperationType writeOperationType = WriteOperationType.valueOf(args[0]);
+        if (writeOperationType == BULK_INSERT) {
+            tEnv.getConfig().getConfiguration()
+                    .setInteger("execution.checkpointing.interval", 1000 * 30);
+        }
+        for (String sql : TableFactory.fromTemplate(writeOperationType, args[1], args[2]).split(";")) {
             if (StringUtils.isBlank(sql)) continue;
             if (sql.toLowerCase().contains("insert into")) {
-                sql += " WHERE ";
-                sql += args.length > 3 ? args[3] : "id > 0";
+                sql += args.length > 3 ? " WHERE " + args[3] : "";
                 statementSet.addInsertSql(sql);
             } else {
                 tEnv.executeSql(sql);
