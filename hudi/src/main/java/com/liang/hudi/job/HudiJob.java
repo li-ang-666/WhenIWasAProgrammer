@@ -17,13 +17,13 @@ public class HudiJob {
         StreamStatementSet statementSet = tEnv.createStatementSet();
         for (String sql : TableFactory.fromTemplate(WriteOperationType.valueOf(args[0]), args[1], args[2]).split(";")) {
             if (StringUtils.isBlank(sql)) continue;
-            log.info("sql: {}", sql);
             if (sql.toLowerCase().contains("insert into")) {
-                String where = args.length > 3 ? args[3] : "id > 0";
-                statementSet.addInsertSql(sql + " WHERE " + where);
+                sql += args.length > 3 ? args[3] : "id > 0";
+                statementSet.addInsertSql(sql);
             } else {
                 tEnv.executeSql(sql);
             }
+            log.info("sql: {}", sql);
         }
         statementSet.execute();
     }
