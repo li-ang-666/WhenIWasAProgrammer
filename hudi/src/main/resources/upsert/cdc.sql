@@ -21,7 +21,7 @@ CREATE TABLE dwd(%s
   'table.type' = 'MERGE_ON_READ',
   -- index
   'index.type' = 'BUCKET',
-  'hoodie.bucket.index.num.buckets' = '64',
+  'hoodie.bucket.index.num.buckets' = '32',
   -- write
   'write.tasks' = '4',
   'write.task.max.size' = '512',
