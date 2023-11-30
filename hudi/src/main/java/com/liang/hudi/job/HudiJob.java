@@ -18,6 +18,7 @@ public class HudiJob {
         for (String sql : TableFactory.fromTemplate(WriteOperationType.valueOf(args[0]), args[1], args[2]).split(";")) {
             if (StringUtils.isBlank(sql)) continue;
             if (sql.toLowerCase().contains("insert into")) {
+                sql += " WHERE ";
                 sql += args.length > 3 ? args[3] : "id > 0";
                 statementSet.addInsertSql(sql);
             } else {
