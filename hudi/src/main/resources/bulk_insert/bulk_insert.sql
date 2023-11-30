@@ -22,7 +22,7 @@ CREATE TABLE dwd(%s
   'table.type' = 'MERGE_ON_READ',
   -- index
   'index.type' = 'BUCKET',
-  'hoodie.bucket.index.num.buckets' = '128',
+  'hoodie.bucket.index.num.buckets' = '64',
   -- write
   'write.operation' = 'bulk_insert',
   'write.bulk_insert.shuffle_input' = 'false',
@@ -33,11 +33,11 @@ CREATE TABLE dwd(%s
   'changelog.enabled' = 'true',
   -- compaction
   'compaction.async.enabled' = 'false',
-  'compaction.delta_commits' = '30',
+  'compaction.delta_commits' = '3',
   -- clean & archive
-  'clean.retain_commits' = '3000',
-  'archive.min_commits' = '3010',
-  'archive.max_commits' = '3020',
+  'clean.retain_commits' = '300',
+  'archive.min_commits' = '310',
+  'archive.max_commits' = '320',
   -- hive
   'hive_sync.enabled' = 'true',
   'hive_sync.mode' = 'hms',

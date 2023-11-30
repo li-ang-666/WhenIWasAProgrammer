@@ -14,7 +14,7 @@ import static org.apache.flink.streaming.api.environment.CheckpointConfig.Extern
 @Slf4j
 @UtilityClass
 public class TableEnvironmentFactory {
-    private final static long CHECKPOINT_INTERVAL = 1000 * 60;
+    private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 10;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 30;
 
     public static StreamTableEnvironment create() {
