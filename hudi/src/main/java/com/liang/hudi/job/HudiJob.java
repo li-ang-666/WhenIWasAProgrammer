@@ -19,7 +19,7 @@ public class HudiJob {
             if (StringUtils.isBlank(sql)) continue;
             log.info("sql: {}", sql);
             if (sql.toLowerCase().contains("insert into")) {
-                String where = args.length > 3 ? args[3] : "1 = 1";
+                String where = args.length > 3 ? args[3] : "id > 0";
                 statementSet.addInsertSql(sql + " WHERE " + where);
             } else {
                 tEnv.executeSql(sql);
