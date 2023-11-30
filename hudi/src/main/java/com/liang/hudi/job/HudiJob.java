@@ -18,10 +18,12 @@ public class HudiJob {
         for (String sql : TableFactory.fromTemplate(WriteOperationType.valueOf(args[0]), args[1], args[2]).split(";")) {
             if (StringUtils.isBlank(sql)) continue;
             log.info("sql: {}", sql);
-            if (sql.toLowerCase().contains("insert into"))
-                statementSet.addInsertSql(sql);
-            else
+            if (sql.toLowerCase().contains("insert into")) {
+                String where = args.length > 3 ? args[3] : "1 = 1";
+                statementSet.addInsertSql(sql + " WHERE " + where);
+            } else {
                 tEnv.executeSql(sql);
+            }
         }
         statementSet.execute();
     }
