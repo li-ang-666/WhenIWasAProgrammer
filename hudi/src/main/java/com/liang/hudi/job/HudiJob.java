@@ -21,7 +21,7 @@ public class HudiJob {
         WriteOperationType writeOperationType = WriteOperationType.valueOf(args[0]);
         if (writeOperationType == BULK_INSERT) {
             Configuration configuration = tEnv.getConfig().getConfiguration();
-            configuration.setInteger("execution.checkpointing.interval", 1000 * 30);
+            configuration.setInteger("execution.checkpointing.interval", 1000 * 10);
             configuration.setInteger("execution.checkpointing.min-pause", 0);
         }
         for (String sql : TableFactory.fromTemplate(writeOperationType, args[1], args[2]).split(";")) {
