@@ -27,7 +27,7 @@ CREATE TABLE dwd(%s
   'write.operation' = 'bulk_insert',
   'write.bulk_insert.shuffle_input' = 'false',
   'write.bulk_insert.sort_input' = 'false',
-  'write.tasks' = '64',
+  'write.tasks' = '32',
   'write.precombine' = 'true',
   'write.precombine.field' = 'op_ts',
   'changelog.enabled' = 'true',
