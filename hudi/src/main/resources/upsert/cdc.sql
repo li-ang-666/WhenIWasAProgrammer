@@ -28,14 +28,13 @@ CREATE TABLE dwd(%s
   'write.merge.max_memory' = '0',
   'write.precombine' = 'true',
   'write.precombine.field' = 'op_ts',
-  'changelog.enabled' = 'true',
   -- compaction
   'compaction.async.enabled' = 'false',
   'compaction.delta_commits' = '3',
   -- clean & archive
-  'clean.retain_commits' = '300',
-  'archive.min_commits' = '310',
-  'archive.max_commits' = '320',
+  'clean.retain_commits' = '10',
+  'archive.min_commits' = '20',
+  'archive.max_commits' = '30',
   -- hive
   'hive_sync.enabled' = 'true',
   'hive_sync.mode' = 'hms',
