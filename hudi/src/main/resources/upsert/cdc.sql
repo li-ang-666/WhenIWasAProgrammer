@@ -30,8 +30,12 @@ CREATE TABLE dwd(%s
   'write.precombine.field' = 'op_ts',
   -- compaction
   'compaction.async.enabled' = 'false',
+  'compaction.schedule.enabled' = 'true',
+  'compaction.trigger.strategy' = 'num_or_time',
   'compaction.delta_commits' = '3',
+  'compaction.delta_seconds' = '3600',
   -- clean & archive
+  'clean.async.enabled' = 'true',
   'clean.retain_commits' = '10',
   'archive.min_commits' = '20',
   'archive.max_commits' = '30',
