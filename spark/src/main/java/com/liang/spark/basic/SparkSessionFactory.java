@@ -40,6 +40,8 @@ public class SparkSessionFactory {
     private SparkSession.Builder ConfigSparkBuilder(SparkSession.Builder builder) {
         return builder
                 .config("spark.debug.maxToStringFields", "256")
+                .config("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension")
+                .config("spark.kryo.registrator", "org.apache.spark.HoodieSparkKryoRegistrar")
                 .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     }
 }

@@ -33,7 +33,7 @@ public class CooperationPartnerJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         for (String hudiTable : HUDI_TABLES) {
-            String path = String.format("obs://hadoop-obs/hudi_ods/%s/", hudiTable);
+            String path = String.format("obs://hadoop-obs/hudi_ods/%s", hudiTable);
             log.info("load hudi: {} -> {}", hudiTable, path);
             spark.read().format("hudi")
                     .option(QUERY_TYPE().key(), QUERY_TYPE_READ_OPTIMIZED_OPT_VAL())
