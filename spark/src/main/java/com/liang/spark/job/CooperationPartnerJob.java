@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.hudi.DataSourceReadOptions.QUERY_TYPE;
-import static org.apache.hudi.DataSourceReadOptions.QUERY_TYPE_SNAPSHOT_OPT_VAL;
+import static org.apache.hudi.DataSourceReadOptions.QUERY_TYPE_READ_OPTIMIZED_OPT_VAL;
 
 @Slf4j
 public class CooperationPartnerJob {
@@ -36,7 +36,7 @@ public class CooperationPartnerJob {
             String path = String.format("obs://hadoop-obs/hudi_ods/%s/", hudiTable);
             log.info("load hudi: {} -> {}", hudiTable, path);
             spark.read().format("hudi")
-                    .option(QUERY_TYPE().key(), QUERY_TYPE_SNAPSHOT_OPT_VAL())
+                    .option(QUERY_TYPE().key(), QUERY_TYPE_READ_OPTIMIZED_OPT_VAL())
                     .load(path)
                     .createOrReplaceTempView(hudiTable);
         }
