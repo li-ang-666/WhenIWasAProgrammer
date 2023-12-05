@@ -16,15 +16,18 @@ public class HudiJob {
     public static void main(String[] args) {
         // create env
         StreamTableEnvironment tEnv = TableEnvironmentFactory.create();
+        Configuration configuration = tEnv.getConfig().getConfiguration();
         // exec sql
         StreamStatementSet statementSet = tEnv.createStatementSet();
         WriteOperationType writeOperationType = WriteOperationType.valueOf(args[0]);
+        String dbSource = args[1];
+        String tbName = args[2];
+        configuration.setString("pipeline.name", String.format("%s.%s", dbSource, tbName));
         if (writeOperationType == BULK_INSERT) {
-            Configuration configuration = tEnv.getConfig().getConfiguration();
             configuration.setInteger("execution.checkpointing.interval", 1000 * 10);
             configuration.setInteger("execution.checkpointing.min-pause", 0);
         }
-        for (String sql : TableFactory.fromTemplate(writeOperationType, args[1], args[2]).split(";")) {
+        for (String sql : TableFactory.fromTemplate(writeOperationType, dbSource, tbName).split(";")) {
             if (StringUtils.isBlank(sql)) continue;
             if (sql.toLowerCase().contains("insert into")) {
                 sql += args.length > 3 ? " WHERE " + args[3] : "";
