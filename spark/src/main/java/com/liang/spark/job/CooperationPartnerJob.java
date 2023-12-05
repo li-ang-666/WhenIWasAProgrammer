@@ -4,31 +4,38 @@ import com.liang.common.util.ApolloUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hudi.DataSourceReadOptions;
 import org.apache.spark.sql.SparkSession;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.apache.hudi.DataSourceReadOptions.QUERY_TYPE;
+import static org.apache.hudi.DataSourceReadOptions.QUERY_TYPE_SNAPSHOT_OPT_VAL;
 
 @Slf4j
 public class CooperationPartnerJob {
-    private final static String[] HUDI_TABLES = new String[]{
-            // 主要人员
-            "company_human_relation",
-            "company_bond_plates",
-            "senior_executive",
-            "personnel",
-            // 股东
-            "company_equity_relation_details",
-            // 法人
-            "company_legal_person",
-            // 维表
-            "company_index"
-    };
+    private final static List<String> HUDI_TABLES = new ArrayList<>();
+
+    static {
+        // 主要人员
+        HUDI_TABLES.add("company_human_relation");
+        HUDI_TABLES.add("company_bond_plates");
+        HUDI_TABLES.add("senior_executive");
+        HUDI_TABLES.add("personnel");
+        // 股东
+        HUDI_TABLES.add("company_equity_relation_details");
+        // 法人
+        HUDI_TABLES.add("company_legal_person");
+        // 维表
+        HUDI_TABLES.add("company_index");
+    }
 
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         for (String hudiTable : HUDI_TABLES) {
             spark.read().format("hudi")
-                    .option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_SNAPSHOT_OPT_VAL())
-                    .load("obs://hadoop-obs/hudi_ods/" + hudiTable)
+                    .option(QUERY_TYPE().key(), QUERY_TYPE_SNAPSHOT_OPT_VAL())
+                    .load("obs://hadoop-obs/hudi_ods/" + hudiTable + "/")
                     .createOrReplaceGlobalTempView(hudiTable);
         }
         String sqls = ApolloUtils.get("cooperation-partner.sql");
