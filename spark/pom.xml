@@ -11,6 +11,13 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
+        <!--hudi-->
+        <dependency>
+            <groupId>org.apache.hudi</groupId>
+            <artifactId>hudi-spark3.1-bundle_2.12</artifactId>
+            <version>0.14.0</version>
+        </dependency>
+
         <!--apollo-->
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>
