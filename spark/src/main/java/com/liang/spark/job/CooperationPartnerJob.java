@@ -33,10 +33,12 @@ public class CooperationPartnerJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         for (String hudiTable : HUDI_TABLES) {
+            String path = String.format("obs://hadoop-obs/hudi_ods/%s/", hudiTable);
+            log.info("load hudi: {} -> {}", hudiTable, path);
             spark.read().format("hudi")
                     .option(QUERY_TYPE().key(), QUERY_TYPE_SNAPSHOT_OPT_VAL())
-                    .load("obs://hadoop-obs/hudi_ods/" + hudiTable + "/")
-                    .createOrReplaceGlobalTempView(hudiTable);
+                    .load(path)
+                    .createOrReplaceTempView(hudiTable);
         }
         String sqls = ApolloUtils.get("cooperation-partner.sql");
         for (String sql : sqls.split(";")) {
