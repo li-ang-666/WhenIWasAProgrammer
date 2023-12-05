@@ -4,6 +4,7 @@ import com.liang.common.util.ApolloUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hudi.DataSourceReadOptions;
 import org.apache.spark.sql.SparkSession;
 
 @Slf4j
@@ -26,6 +27,7 @@ public class CooperationPartnerJob {
         SparkSession spark = SparkSessionFactory.createSpark(args);
         for (String hudiTable : HUDI_TABLES) {
             spark.read().format("hudi")
+                    .option(DataSourceReadOptions.QUERY_TYPE().key(), DataSourceReadOptions.QUERY_TYPE_SNAPSHOT_OPT_VAL())
                     .load("obs://hadoop-obs/hudi_ods/" + hudiTable)
                     .createOrReplaceGlobalTempView(hudiTable);
         }
