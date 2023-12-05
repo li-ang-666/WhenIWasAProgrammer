@@ -18,7 +18,7 @@ public class SparkSessionFactory {
     public static SparkSession createSparkWithHudi(String[] args) {
         SparkSession spark = createSpark(args);
         for (Row row : spark.sql("show tables from hudi_ods").collectAsList()) {
-            String tabName = row.getAs("tab_name");
+            String tabName = row.getAs("tableName");
             String path = String.format("obs://hadoop-obs/hudi_ods/%s", tabName);
             log.info("load hudi: {} -> {}", tabName, path);
             spark.read().format("hudi")
