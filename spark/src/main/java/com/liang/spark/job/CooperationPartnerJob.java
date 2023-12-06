@@ -42,7 +42,7 @@ public class CooperationPartnerJob {
         }
         // hive 表替换
         spark.sql("drop table if exists hudi_ads.cooperation_partner");
-        spark.sql("alter table hudi_ads.cooperation_partner_tmp rename hudi_ads.cooperation_partner");
+        spark.sql("alter table hudi_ads.cooperation_partner_tmp rename to hudi_ads.cooperation_partner");
         // overwrite gauss 临时表
         jdbcTemplate.update("drop table if exists company_base.cooperation_partner_tmp");
         jdbcTemplate.update("create table if not exists company_base.cooperation_partner_tmp like company_base.cooperation_partner");
