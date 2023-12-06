@@ -30,7 +30,7 @@ public class CooperationPartnerJob {
         Config config = ConfigUtils.getConfig();
         JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
         spark.udf().register("fmt", new FormatIdentity(), DataTypes.StringType);
-        // 写入hive临时表
+        // 写入 hive 临时表
         String sqls = ApolloUtils.get("cooperation-partner.sql");
         for (String sql : sqls.split(";")) {
             if (StringUtils.isBlank(sql)) continue;
@@ -40,8 +40,8 @@ public class CooperationPartnerJob {
         Dataset<Row> tmp = spark.table("hudi_ads.cooperation_partner_tmp")
                 .where("multi_cooperation_dense_rank <= 20");
         tmp.createOrReplaceTempView("tmp");
-        long count = tmp.count();
         // hive 临时表 数据量检查
+        long count = tmp.count();
         if (count < 700_000_000L) {
             log.error("hive tmp 表, 数据量不合理");
             return;
