@@ -2,8 +2,8 @@ package com.liang.study.test;
 
 public class Test {
     public static void main(String[] args) throws Exception {
-        String s = "、ab、";
+        String s = "ab、、、";
         System.out.println(s);
-        System.out.println(s.replaceAll("(^、)|(、$)", ""));
+        System.out.println(s.replaceAll("、+", "、"));
     }
 }
