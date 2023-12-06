@@ -25,11 +25,13 @@ public class CooperationPartnerJob {
         @Override
         public String call(String identity) {
             return identity
+                    .replaceAll("未知", "主要人员")
                     .replaceAll("\\s", "")
                     .replaceAll("（", "(")
                     .replaceAll("）", ")")
                     .replaceAll("。|\\.|；|;|，|,|\\\\|(、+)", "、")
-                    .replaceAll("(^、)|(、$)", "");
+                    .replaceAll("(^、)|(、$)", "")
+                    .replaceAll("(.*?)(股东\\(持股\\d)、(.*)", "$1$2.$3");
         }
     }
 }
