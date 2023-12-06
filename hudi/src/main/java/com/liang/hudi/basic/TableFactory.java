@@ -68,13 +68,13 @@ public class TableFactory {
         // 拼接
         if (writeOperationType == WriteOperationType.BULK_INSERT) {
             InputStream stream = TableFactory.class.getClassLoader()
-                    .getResourceAsStream("bulk_insert/bulk_insert.sql");
+                    .getResourceAsStream("sql/bulk_insert.sql");
             assert stream != null;
             String template = IOUtils.toString(stream, StandardCharsets.UTF_8);
             return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, min, max, partitions, createTable, tableName, tableName, sql);
         } else if (writeOperationType == WriteOperationType.UPSERT) {
             InputStream stream = TableFactory.class.getClassLoader()
-                    .getResourceAsStream("upsert/cdc.sql");
+                    .getResourceAsStream("sql/cdc.sql");
             assert stream != null;
             String template = IOUtils.toString(stream, StandardCharsets.UTF_8);
             return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, 5400 + IdUtil.getSnowflakeNextId() % 1000, createTable, tableName, tableName, sql);
