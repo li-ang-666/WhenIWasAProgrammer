@@ -10,10 +10,8 @@ import com.liang.common.util.SqlUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
-import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
@@ -30,32 +28,31 @@ public class CooperationPartnerJob {
         Config config = ConfigUtils.getConfig();
         JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
         spark.udf().register("fmt", new FormatIdentity(), DataTypes.StringType);
-        // 写入 hive 临时表
-        String sqls = ApolloUtils.get("cooperation-partner.sql");
-        for (String sql : sqls.split(";")) {
-            if (StringUtils.isBlank(sql)) continue;
-            log.info("sql: {}", sql);
-            spark.sql(sql);
-        }
-        Dataset<Row> tmp = spark.table("hudi_ads.cooperation_partner_tmp")
-                .where("multi_cooperation_dense_rank <= 20");
-        tmp.createOrReplaceTempView("tmp");
+        // overwrite hive 临时表
+        spark.sql("drop table if exists hudi_ads.cooperation_partner_tmp");
+        spark.sql("create table hudi_ads.cooperation_partner_tmp like hudi_ads.cooperation_partner");
+        spark.sql(ApolloUtils.get("cooperation-partner.sql"));
         // hive 临时表 数据量检查
-        long count = tmp.count();
-        if (count < 700_000_000L) {
+        long count = spark.table("hudi_ads.cooperation_partner_tmp")
+                .where("multi_cooperation_dense_rank <= 20")
+                .count();
+        if (count < 750_000_000L) {
             log.error("hive tmp 表, 数据量不合理");
             return;
         }
-        // hive 临时表 覆盖主表
-        spark.sql("insert overwrite table hudi_ads.cooperation_partner select * from tmp");
-        // 重建 gauss 临时表
+        // hive 表替换
+        spark.sql("drop table if exists hudi_ads.cooperation_partner");
+        spark.sql("alter table hudi_ads.cooperation_partner_tmp rename hudi_ads.cooperation_partner");
+        // overwrite gauss 临时表
         jdbcTemplate.update("drop table if exists company_base.cooperation_partner_tmp");
         jdbcTemplate.update("create table if not exists company_base.cooperation_partner_tmp like company_base.cooperation_partner");
-        // 写入 gauss 临时表
-        tmp.repartition(256).foreachPartition(new CooperationPartnerSink(config));
-        Long maxId = jdbcTemplate.queryForObject("select max(id) from company_base.cooperation_partner_tmp", rs -> rs.getLong(1));
+        spark.table("hudi_ads.cooperation_partner")
+                .where("multi_cooperation_dense_rank <= 20")
+                .repartition(256)
+                .foreachPartition(new CooperationPartnerSink(config));
         // gauss 临时表 数据量检查
-        if (maxId < 700_000_000L) {
+        Long maxId = jdbcTemplate.queryForObject("select max(id) from company_base.cooperation_partner_tmp", rs -> rs.getLong(1));
+        if (maxId < 750_000_000L) {
             log.error("gauss tmp 表, 数据量不合理");
             return;
         }
@@ -64,6 +61,7 @@ public class CooperationPartnerJob {
                 "drop table if exists company_base.cooperation_partner",
                 "alter table company_base.cooperation_partner_tmp rename company_base.cooperation_partner"
         ));
+        log.info("SUCCESS!");
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
@@ -97,7 +95,7 @@ public class CooperationPartnerJob {
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
-            jdbcTemplate.enableCache();
+            jdbcTemplate.enableCache(3000, 256);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
