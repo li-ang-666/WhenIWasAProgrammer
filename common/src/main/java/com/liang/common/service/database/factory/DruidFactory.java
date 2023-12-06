@@ -32,8 +32,10 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 dbConfig.getHost() + ":" + dbConfig.getPort() + "/" + dbConfig.getDatabase() +
                 // 时区
                 "?serverTimezone=GMT%2B8" +
-                // 时间字段处理
+                // datetime 字段处理
                 "&zeroDateTimeBehavior=convertToNull" +
+                // tinyint(1) 字段处理
+                "&tinyInt1isBit=false" +
                 // 编码
                 "&useUnicode=true" +
                 "&characterEncoding=UTF-8" +
