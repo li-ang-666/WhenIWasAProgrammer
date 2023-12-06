@@ -10,10 +10,10 @@ nohup spark-submit \
   --deploy-mode cluster \
   --driver-memory 2g --driver-cores 1 \
   --conf spark.driver.memoryOverhead=512m \
-  --executor-memory 8g --num-executors 8 --executor-cores 4 \
+  --executor-memory 5g --num-executors 8 --executor-cores 4 \
   --conf spark.executor.memoryOverhead=512m \
-  --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=512m \
-  --queue default \
+  --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=1g \
+  --queue offline \
   --conf spark.memory.fraction=0.8 \
   --conf spark.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps" \
   --conf spark.executor.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps" \
@@ -21,8 +21,8 @@ nohup spark-submit \
   --conf spark.yarn.cluster.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps" \
   --files log4j-all.properties,config.yml \
   --conf spark.yarn.maxAppAttempts=1 \
-  --conf spark.yarn.priority=5 \
-  --conf spark.sql.shuffle.partitions=1200 \
+  --conf spark.yarn.priority=999 \
+  --conf spark.sql.shuffle.partitions=1024 \
   --conf spark.shuffle.io.maxRetries=10 \
   --conf spark.sql.autoBroadcastJoinThreshold=104857600 \
   ./spark-1.0-jar-with-dependencies.jar config.yml >log 2>&1 &
