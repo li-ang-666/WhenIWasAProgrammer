@@ -11,6 +11,13 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
+        <!--jol-->
+        <dependency>
+            <groupId>org.openjdk.jol</groupId>
+            <artifactId>jol-core</artifactId>
+            <version>0.17</version>
+        </dependency>
+
         <!--obs-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
