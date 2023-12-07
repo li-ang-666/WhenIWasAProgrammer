@@ -32,9 +32,12 @@ public class CooperationPartnerJob {
         // overwrite hive 分区
         spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
         // hive 分区 数据量检查
-        if (table.count() < 750_000_000L) {
-            log.error("hive 分区, 数据量不合理");
+        long count = table.count();
+        if (count < 750_000_000L) {
+            log.error("hive 分区 {}, 数据量 {}, 不合理", pt, count);
             return;
+        } else {
+            log.info("hive 分区 {}, 数据量 {}, 合理", pt, count);
         }
         // overwrite gauss 临时表
         jdbcTemplate.update("drop table if exists company_base.cooperation_partner_tmp");
