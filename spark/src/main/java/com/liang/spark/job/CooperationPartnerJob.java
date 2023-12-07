@@ -39,7 +39,9 @@ public class CooperationPartnerJob {
         // overwrite gauss 临时表
         jdbcTemplate.update("drop table if exists company_base.cooperation_partner_tmp");
         jdbcTemplate.update("create table if not exists company_base.cooperation_partner_tmp like company_base.cooperation_partner");
-        table.repartition(256).foreachPartition(new CooperationPartnerSink(config));
+        table.drop("pt")
+                .repartition(256)
+                .foreachPartition(new CooperationPartnerSink(config));
         // gauss 表替换
         jdbcTemplate.update("drop table if exists company_base.cooperation_partner",
                 "alter table company_base.cooperation_partner_tmp rename company_base.cooperation_partner");
@@ -80,7 +82,6 @@ public class CooperationPartnerJob {
             jdbcTemplate.enableCache(3000, 10240);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
-                columnMap.remove("pt");
                 columnMap.put("id", SnowflakeUtils.nextId());
                 String currentDatetime = DateTimeUtils.currentDatetime();
                 columnMap.put("create_time", currentDatetime);
