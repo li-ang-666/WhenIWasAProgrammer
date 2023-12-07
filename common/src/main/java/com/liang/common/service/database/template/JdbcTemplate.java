@@ -55,7 +55,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
             logging.afterExecute("updateBatch", sqls.size() + "条");
         } catch (Exception e) {
             // 归还的时候, DruidDataSource.recycle 会自动 rollback 一次
-            logging.ifError("updateBatch", "\nmysql> " + String.join("\nmysql> ", sqls) + "\n", e);
+            logging.ifError("updateBatch", sqls.size() + "条", e);
             getException = true;
         }
         if (getException) {
