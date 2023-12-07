@@ -15,7 +15,6 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.types.DataTypes;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -26,13 +25,13 @@ public class CooperationPartnerJob {
         Config config = ConfigUtils.getConfig();
         JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
         spark.udf().register("fmt", new FormatIdentity(), DataTypes.StringType);
-        // overwrite hive 分区
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
-        spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
-        // hive 分区 数据量检查
         Dataset<Row> table = spark.table("hudi_ads.cooperation_partner")
                 .where("pt = " + pt)
                 .where("multi_cooperation_dense_rank <= 20");
+        // overwrite hive 分区
+        spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
+        // hive 分区 数据量检查
         if (table.count() < 750_000_000L) {
             log.error("hive 分区, 数据量不合理");
             return;
@@ -42,11 +41,8 @@ public class CooperationPartnerJob {
         jdbcTemplate.update("create table if not exists company_base.cooperation_partner_tmp like company_base.cooperation_partner");
         table.repartition(256).foreachPartition(new CooperationPartnerSink(config));
         // gauss 表替换
-        jdbcTemplate.update(Arrays.asList(
-                "drop table if exists company_base.cooperation_partner",
-                "alter table company_base.cooperation_partner_tmp rename company_base.cooperation_partner"
-        ));
-        log.info("SUCCESS!");
+        jdbcTemplate.update("drop table if exists company_base.cooperation_partner",
+                "alter table company_base.cooperation_partner_tmp rename company_base.cooperation_partner");
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
