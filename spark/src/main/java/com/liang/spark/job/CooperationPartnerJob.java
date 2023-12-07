@@ -79,7 +79,7 @@ public class CooperationPartnerJob {
             ConfigUtils.setConfig(config);
             SnowflakeUtils.init("CooperationPartnerJob");
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
-            jdbcTemplate.enableCache(3000, 10240);
+            jdbcTemplate.enableCache(1000 * 30, 10240);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 columnMap.put("id", SnowflakeUtils.nextId());

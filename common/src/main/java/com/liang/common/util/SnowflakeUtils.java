@@ -2,13 +2,10 @@ package com.liang.common.util;
 
 import cn.hutool.core.lang.Snowflake;
 import com.liang.common.service.database.template.RedisTemplate;
-import lombok.SneakyThrows;
-import lombok.Synchronized;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @UtilityClass
@@ -23,6 +20,8 @@ public class SnowflakeUtils {
     private final static boolean USE_THIRD_CLOCK = true;
     // 不允许时间回退
     private final static long ALLOW_BACK_MILLI = 0L;
+    // 低频时(毫秒内无冲突) SEQUENCE_MASK 随机值的上界
+    private final static long LOW_FREQUENCY_SEQUENCE_MASK_LIMIT = 2048L;
     // 单例
     private static volatile Snowflake SNOWFLAKE;
 
@@ -43,22 +42,13 @@ public class SnowflakeUtils {
                     long workerId = incr % MAX_WORKER_NUM;
                     redisTemplate.unlock(lockKey);
                     log.info("Snowflake init, dataCenterId: {}, workerId: {}", dataCenterId, workerId);
-                    SNOWFLAKE = new Snowflake(START_DATE,
-                            workerId, dataCenterId,
-                            USE_THIRD_CLOCK, ALLOW_BACK_MILLI);
+                    SNOWFLAKE = new Snowflake(START_DATE, workerId, dataCenterId, USE_THIRD_CLOCK, ALLOW_BACK_MILLI, LOW_FREQUENCY_SEQUENCE_MASK_LIMIT);
                 }
             }
         }
     }
 
-    /**
-     * 又是锁, 又是休眠, 叠满buff, 不重复最重要
-     */
-    @Synchronized
-    @SneakyThrows(InterruptedException.class)
     public static Long nextId() {
-        // 1毫秒允许产生1000条Id
-        TimeUnit.MICROSECONDS.sleep(1);
         return SNOWFLAKE.nextId();
     }
 }
