@@ -21,7 +21,7 @@ public class SnowflakeUtils {
     // 不允许时间回退
     private final static long ALLOW_BACK_MILLI = 0L;
     // 低频时(毫秒内无冲突) SEQUENCE_MASK 随机值的上界
-    private final static long LOW_FREQUENCY_SEQUENCE_MASK_LIMIT = 2048L;
+    private final static long LOW_FREQUENCY_SEQUENCE_MASK_LIMIT = 7L;
     // 单例
     private static volatile Snowflake SNOWFLAKE;
 
