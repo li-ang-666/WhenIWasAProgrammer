@@ -87,7 +87,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setUsePingMethod(false);
         druidDataSource.setAsyncInit(true);
         // 隔离级别
-        druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_NONE);
         // 设置sql超时, 避免断电未提交的事务导致其它sql lock wait timeout
         List<String> initSqls = Arrays.asList(
                 "set wait_timeout = 120", "set interactive_timeout = 120");
