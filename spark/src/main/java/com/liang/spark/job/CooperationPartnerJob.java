@@ -1,7 +1,6 @@
 package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.*;
 import com.liang.spark.basic.SparkSessionFactory;
@@ -15,7 +14,9 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.types.DataTypes;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -80,18 +81,23 @@ public class CooperationPartnerJob {
             ConfigUtils.setConfig(config);
             SnowflakeUtils.init("CooperationPartnerJob");
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
-            jdbcTemplate.enableCache(1000 * 10, 2048);
+            //jdbcTemplate.enableCache(1000 * 10, 2048);
+            List<Map<String, Object>> columnMaps = new ArrayList<>();
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 columnMap.put("id", SnowflakeUtils.nextId());
-                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-                String sql = new SQL().INSERT_INTO("company_base.cooperation_partner_tmp")
-                        .INTO_COLUMNS(insert.f0)
-                        .INTO_VALUES(insert.f1)
-                        .toString();
-                jdbcTemplate.update(sql);
+                columnMaps.add(columnMap);
+                if (columnMaps.size() >= 2048) {
+                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                    String sql = String.format("insert into company_base.cooperation_partner_tmp (%s) values %s", insert.f0, insert.f1);
+                    jdbcTemplate.update(sql);
+                    columnMaps.clear();
+                }
             }
-            jdbcTemplate.flush();
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+            String sql = String.format("insert into company_base.cooperation_partner_tmp (%s) values %s", insert.f0, insert.f1);
+            jdbcTemplate.update(sql);
+            columnMaps.clear();
         }
     }
 }
