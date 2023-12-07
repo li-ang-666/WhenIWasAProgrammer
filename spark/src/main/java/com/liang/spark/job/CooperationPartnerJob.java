@@ -30,7 +30,7 @@ public class CooperationPartnerJob {
                 .where("pt = " + pt)
                 .where("multi_cooperation_dense_rank <= 20");
         // overwrite hive 分区
-        spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
+        //spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
         // hive 分区 数据量检查
         long count = table.count();
         if (count < 750_000_000L) {
