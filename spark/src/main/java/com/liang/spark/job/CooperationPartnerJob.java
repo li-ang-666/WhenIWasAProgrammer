@@ -32,7 +32,7 @@ public class CooperationPartnerJob {
                 .where("pt = " + pt)
                 .where("multi_cooperation_dense_rank <= 20");
         // overwrite hive 分区
-        spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
+        //spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
         // hive 分区 数据量检查
         long count = table.count();
         if (count < 750_000_000L) {
@@ -87,7 +87,7 @@ public class CooperationPartnerJob {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 columnMap.put("id", SnowflakeUtils.nextId());
                 columnMaps.add(columnMap);
-                if (columnMaps.size() >= 8192) {
+                if (columnMaps.size() >= 4096) {
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                     String sql = new SQL().INSERT_INTO("company_base.cooperation_partner_tmp")
                             .INTO_COLUMNS(insert.f0)
