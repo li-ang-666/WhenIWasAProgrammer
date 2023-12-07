@@ -81,13 +81,12 @@ public class CooperationPartnerJob {
             ConfigUtils.setConfig(config);
             SnowflakeUtils.init("CooperationPartnerJob");
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
-            //jdbcTemplate.enableCache(1000 * 10, 2048);
             List<Map<String, Object>> columnMaps = new ArrayList<>();
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 columnMap.put("id", SnowflakeUtils.nextId());
                 columnMaps.add(columnMap);
-                if (columnMaps.size() >= 2048) {
+                if (columnMaps.size() >= 20480) {
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                     String sql = String.format("insert into company_base.cooperation_partner_tmp (%s) values %s", insert.f0, insert.f1);
                     jdbcTemplate.update(sql);
