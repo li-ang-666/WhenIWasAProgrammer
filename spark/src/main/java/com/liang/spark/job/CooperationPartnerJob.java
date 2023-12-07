@@ -86,7 +86,7 @@ public class CooperationPartnerJob {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 columnMap.put("id", SnowflakeUtils.nextId());
                 columnMaps.add(columnMap);
-                if (columnMaps.size() >= 20480) {
+                if (columnMaps.size() >= 4096) {
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                     String sql = String.format("insert into company_base.cooperation_partner_tmp (%s) values %s", insert.f0, insert.f1);
                     jdbcTemplate.update(sql);
