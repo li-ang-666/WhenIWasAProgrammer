@@ -3,15 +3,13 @@ package com.liang.spark.job;
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
-import com.liang.common.util.ApolloUtils;
-import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
-import com.liang.common.util.SqlUtils;
+import com.liang.common.util.*;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
+import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
@@ -28,34 +26,21 @@ public class CooperationPartnerJob {
         Config config = ConfigUtils.getConfig();
         JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
         spark.udf().register("fmt", new FormatIdentity(), DataTypes.StringType);
-        // overwrite hive 临时表
-        spark.sql("drop table if exists hudi_ads.cooperation_partner_tmp");
-        spark.sql("create table hudi_ads.cooperation_partner_tmp like hudi_ads.cooperation_partner");
-        spark.sql(ApolloUtils.get("cooperation-partner.sql"));
-        // hive 临时表 数据量检查
-        long count = spark.table("hudi_ads.cooperation_partner_tmp")
-                .where("multi_cooperation_dense_rank <= 20")
-                .count();
-        if (count < 750_000_000L) {
-            log.error("hive tmp 表, 数据量不合理");
+        // overwrite hive 分区
+        String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
+        spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
+        // hive 分区 数据量检查
+        Dataset<Row> table = spark.table("hudi_ads.cooperation_partner")
+                .where("pt = " + pt)
+                .where("multi_cooperation_dense_rank <= 20");
+        if (table.count() < 750_000_000L) {
+            log.error("hive 分区, 数据量不合理");
             return;
         }
-        // hive 表替换
-        spark.sql("drop table if exists hudi_ads.cooperation_partner");
-        spark.sql("alter table hudi_ads.cooperation_partner_tmp rename to hudi_ads.cooperation_partner");
         // overwrite gauss 临时表
         jdbcTemplate.update("drop table if exists company_base.cooperation_partner_tmp");
         jdbcTemplate.update("create table if not exists company_base.cooperation_partner_tmp like company_base.cooperation_partner");
-        spark.table("hudi_ads.cooperation_partner")
-                .where("multi_cooperation_dense_rank <= 20")
-                .repartition(256)
-                .foreachPartition(new CooperationPartnerSink(config));
-        // gauss 临时表 数据量检查
-        Long maxId = jdbcTemplate.queryForObject("select max(id) from company_base.cooperation_partner_tmp", rs -> rs.getLong(1));
-        if (maxId < 750_000_000L) {
-            log.error("gauss tmp 表, 数据量不合理");
-            return;
-        }
+        table.repartition(256).foreachPartition(new CooperationPartnerSink(config));
         // gauss 表替换
         jdbcTemplate.update(Arrays.asList(
                 "drop table if exists company_base.cooperation_partner",
@@ -94,10 +79,15 @@ public class CooperationPartnerJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
+            SnowflakeUtils.init("CooperationPartnerJob");
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
-            jdbcTemplate.enableCache(3000, 256);
+            jdbcTemplate.enableCache(3000, 10240);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
+                columnMap.put("id", SnowflakeUtils.nextId());
+                String currentDatetime = DateTimeUtils.currentDatetime();
+                columnMap.put("create_time", currentDatetime);
+                columnMap.put("update_time", currentDatetime);
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
                 String sql = new SQL().INSERT_INTO("company_base.cooperation_partner_tmp")
                         .INTO_COLUMNS(insert.f0)
