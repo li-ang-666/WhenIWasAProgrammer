@@ -80,6 +80,7 @@ public class CooperationPartnerJob {
             jdbcTemplate.enableCache(3000, 10240);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
+                columnMap.remove("pt");
                 columnMap.put("id", SnowflakeUtils.nextId());
                 String currentDatetime = DateTimeUtils.currentDatetime();
                 columnMap.put("create_time", currentDatetime);
