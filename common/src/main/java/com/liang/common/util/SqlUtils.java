@@ -57,12 +57,12 @@ public class SqlUtils {
             for (String key : keys) {
                 oneRowValues.add(formatValue(columnMap.get(key)));
             }
-            allRowValues.add("(" + String.join(", ", oneRowValues) + ")");
+            allRowValues.add(String.join(", ", oneRowValues));
             oneRowValues.clear();
         }
         return Tuple2.of(
                 String.join(", ", formatKeys),
-                String.join(", ", allRowValues)
+                String.join("), (", allRowValues)
         );
     }
 

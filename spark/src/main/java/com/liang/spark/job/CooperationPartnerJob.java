@@ -1,6 +1,7 @@
 package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.*;
 import com.liang.spark.basic.SparkSessionFactory;
@@ -31,7 +32,7 @@ public class CooperationPartnerJob {
                 .where("pt = " + pt)
                 .where("multi_cooperation_dense_rank <= 20");
         // overwrite hive 分区
-        //spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
+        spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
         // hive 分区 数据量检查
         long count = table.count();
         if (count < 750_000_000L) {
@@ -86,17 +87,22 @@ public class CooperationPartnerJob {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 columnMap.put("id", SnowflakeUtils.nextId());
                 columnMaps.add(columnMap);
-                if (columnMaps.size() >= 4096) {
+                if (columnMaps.size() >= 8192) {
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                    String sql = String.format("insert into company_base.cooperation_partner_tmp (%s) values %s", insert.f0, insert.f1);
+                    String sql = new SQL().INSERT_INTO("company_base.cooperation_partner_tmp")
+                            .INTO_COLUMNS(insert.f0)
+                            .INTO_VALUES(insert.f1)
+                            .toString();
                     jdbcTemplate.update(sql);
                     columnMaps.clear();
                 }
             }
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-            String sql = String.format("insert into company_base.cooperation_partner_tmp (%s) values %s", insert.f0, insert.f1);
+            String sql = new SQL().INSERT_INTO("company_base.cooperation_partner_tmp")
+                    .INTO_COLUMNS(insert.f0)
+                    .INTO_VALUES(insert.f1)
+                    .toString();
             jdbcTemplate.update(sql);
-            columnMaps.clear();
         }
     }
 }
