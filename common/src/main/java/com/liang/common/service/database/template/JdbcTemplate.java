@@ -32,13 +32,6 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         logging = new Logging(this.getClass().getSimpleName(), name);
     }
 
-    // just for MemJdbcTemplate
-    protected JdbcTemplate(DruidDataSource pool, Logging logging) {
-        super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> "");
-        this.pool = pool;
-        this.logging = logging;
-    }
-
     @Override
     @SneakyThrows(InterruptedException.class)
     protected void updateImmediately(String ignore, Queue<String> sqls) {

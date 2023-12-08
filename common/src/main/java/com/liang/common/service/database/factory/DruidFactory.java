@@ -11,13 +11,11 @@ import java.util.List;
 
 @Slf4j
 public class DruidFactory implements IFactory<DruidDataSource> {
-    public static final String MEMORY_DRUID = "mem";
 
     @Override
     public DruidDataSource createPool(String name) {
         try {
-            boolean isMem = MEMORY_DRUID.equals(name);
-            DruidDataSource druidDataSource = isMem ? createMem() : createNormal(name);
+            DruidDataSource druidDataSource = createNormal(name);
             configDruid(druidDataSource);
             log.info("druid 加载: {}", name);
             return druidDataSource;
@@ -49,21 +47,6 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setUrl(url);
         druidDataSource.setUsername(dbConfig.getUser());
         druidDataSource.setPassword(dbConfig.getPassword());
-        return druidDataSource;
-    }
-
-    private DruidDataSource createMem() {
-        DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setDriverClassName("org.h2.Driver");
-        druidDataSource.setUrl("jdbc:h2:mem:db" +
-                ";MODE=MySQL" +
-                ";DATABASE_TO_LOWER=TRUE" +
-                ";CASE_INSENSITIVE_IDENTIFIERS=TRUE" +
-                ";IGNORECASE=TRUE" +
-                ";AUTO_RECONNECT=TRUE" +
-                ";DB_CLOSE_ON_EXIT=FALSE" +
-                ";DB_CLOSE_DELAY=-1"
-        );
         return druidDataSource;
     }
 
