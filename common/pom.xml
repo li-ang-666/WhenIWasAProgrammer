@@ -48,12 +48,6 @@
             <artifactId>esdk-obs-java</artifactId>
         </dependency>
 
-        <!--h2-->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-        </dependency>
-
         <!--log4j1 + log4j2 究极方案-->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

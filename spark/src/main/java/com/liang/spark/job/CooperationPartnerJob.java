@@ -35,7 +35,7 @@ public class CooperationPartnerJob {
         // step1 写 hive
         if (argString.contains("step1")) {
             // overwrite hive 分区
-            spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
+            spark.sql(ApolloUtils.get("cooperation-partner.sql").replace("${pt}", pt));
         }
         // step2 写 gauss
         if (argString.contains("step2")) {
