@@ -87,7 +87,7 @@ public class CooperationPartnerJob {
 //            SnowflakeUtils.init("CooperationPartnerJob");
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
             List<Map<String, Object>> columnMaps = new ArrayList<>(1024);
-            List<String> sqls = new ArrayList<>(8);
+            List<String> sqls = new ArrayList<>(4);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
 //                columnMap.put("id", SnowflakeUtils.nextId());
@@ -101,7 +101,7 @@ public class CooperationPartnerJob {
                     sqls.add(sql);
                     columnMaps.clear();
                 }
-                if (sqls.size() >= 8) {
+                if (sqls.size() >= 4) {
                     jdbcTemplate.update(sqls);
                     sqls.clear();
                 }
