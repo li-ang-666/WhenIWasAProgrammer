@@ -84,26 +84,18 @@ public class CooperationPartnerJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-//            SnowflakeUtils.init("CooperationPartnerJob");
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
             List<Map<String, Object>> columnMaps = new ArrayList<>(1024);
-            List<String> sqls = new ArrayList<>(4);
             while (iterator.hasNext()) {
-                Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
-//                columnMap.put("id", SnowflakeUtils.nextId());
-                columnMaps.add(columnMap);
+                columnMaps.add(JsonUtils.parseJsonObj(iterator.next().json()));
                 if (columnMaps.size() >= 1024) {
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                     String sql = new SQL().INSERT_INTO("company_base.cooperation_partner_tmp")
                             .INTO_COLUMNS(insert.f0)
                             .INTO_VALUES(insert.f1)
                             .toString();
-                    sqls.add(sql);
+                    jdbcTemplate.update(sql);
                     columnMaps.clear();
-                }
-                if (sqls.size() >= 4) {
-                    jdbcTemplate.update(sqls);
-                    sqls.clear();
                 }
             }
             // flush
@@ -113,12 +105,8 @@ public class CooperationPartnerJob {
                         .INTO_COLUMNS(insert.f0)
                         .INTO_VALUES(insert.f1)
                         .toString();
-                sqls.add(sql);
+                jdbcTemplate.update(sql);
                 columnMaps.clear();
-            }
-            if (!sqls.isEmpty()) {
-                jdbcTemplate.update(sqls);
-                sqls.clear();
             }
         }
     }
