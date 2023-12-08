@@ -1,7 +1,6 @@
 package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.*;
 import com.liang.spark.basic.SparkSessionFactory;
@@ -15,9 +14,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.types.DataTypes;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class CooperationPartnerJob {
@@ -48,16 +45,16 @@ public class CooperationPartnerJob {
                 log.info("hive 分区 {}, 数据量 {}, 合理", pt, count);
             }
             // overwrite gauss 临时表
-            jdbcTemplate.update("drop table if exists company_base.cooperation_partner_0_tmp");
-            jdbcTemplate.update("drop table if exists company_base.cooperation_partner_1_tmp");
-            jdbcTemplate.update("create table if not exists company_base.cooperation_partner_0_tmp like company_base.cooperation_partner_0");
-            jdbcTemplate.update("create table if not exists company_base.cooperation_partner_1_tmp like company_base.cooperation_partner_1");
+            for (int i = 0; i < 10; i++) {
+                jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i + "_tmp");
+                jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
+            }
             table.repartition(256).foreachPartition(new CooperationPartnerSink(config));
             // gauss 表替换
-            jdbcTemplate.update("drop table if exists company_base.cooperation_partner_0");
-            jdbcTemplate.update("drop table if exists company_base.cooperation_partner_1");
-            jdbcTemplate.update("alter table company_base.cooperation_partner_0_tmp rename company_base.cooperation_partner_0");
-            jdbcTemplate.update("alter table company_base.cooperation_partner_1_tmp rename company_base.cooperation_partner_1");
+            for (int i = 0; i < 10; i++) {
+                jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i);
+                jdbcTemplate.update("alter table company_base.cooperation_partner_" + i + "_tmp rename company_base.cooperation_partner_" + i);
+            }
         }
     }
 
@@ -92,19 +89,30 @@ public class CooperationPartnerJob {
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
-            jdbcTemplate.enableCache(1000 * 5, 1024);
+            HashMap<String, List<Map<String, Object>>> tableId2ColumnMaps = new HashMap<>();
+            for (int i = 0; i < 10; i++) {
+                tableId2ColumnMaps.put(String.valueOf(i), new ArrayList<>(1024));
+            }
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
-                int tableId = Integer.parseInt(String.valueOf(columnMap.remove("table_id")));
-                String tableName = String.format("company_base.cooperation_partner_%s_tmp", tableId);
-                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-                String sql = new SQL().INSERT_INTO(tableName)
-                        .INTO_COLUMNS(insert.f0)
-                        .INTO_VALUES(insert.f1)
-                        .toString();
-                jdbcTemplate.update(sql);
+                String tableId = String.valueOf(columnMap.remove("table_id"));
+                List<Map<String, Object>> columnMaps = tableId2ColumnMaps.get(tableId);
+                columnMaps.add(columnMap);
+                if (columnMaps.size() >= 1024) {
+                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                    String sql = String.format("insert into company_base.cooperation_partner_%s_tmp (%s) values (%s)", tableId, insert.f0, insert.f1);
+                    jdbcTemplate.update(sql);
+                    columnMaps.clear();
+                }
             }
-            jdbcTemplate.flush();
+            tableId2ColumnMaps.forEach((k, v) -> {
+                if (!v.isEmpty()) {
+                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(v);
+                    String sql = String.format("insert into company_base.cooperation_partner_%s_tmp (%s) values (%s)", k, insert.f0, insert.f1);
+                    jdbcTemplate.update(sql);
+                    v.clear();
+                }
+            });
         }
     }
 }
