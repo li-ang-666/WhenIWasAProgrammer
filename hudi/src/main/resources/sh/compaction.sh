@@ -1,4 +1,6 @@
 #!/bin/bash
+hdfs dfs -rm -r /user/hive/.flink/*
+hdfs dfs -rm -r /user/hive/.Trash/Current/user/hive/.flink/*
 yarn app -list | grep hudi_compaction_${1}
 export p=`yarn app -list | grep hudi_compaction_${1}`
 if [[ ${p} == application_* ]] ; then echo 'exists, exit' && exit 0 ; else echo 'not exists, continue' ; fi
