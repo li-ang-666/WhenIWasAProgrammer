@@ -15,10 +15,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.types.DataTypes;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class CooperationPartnerJob {
@@ -31,23 +28,30 @@ public class CooperationPartnerJob {
         Dataset<Row> table = spark.table("hudi_ads.cooperation_partner")
                 .where("pt = " + pt)
                 .where("multi_cooperation_dense_rank <= 20");
-        // overwrite hive 分区
-        spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
-        // hive 分区 数据量检查
-        long count = table.count();
-        if (count < 750_000_000L) {
-            log.error("hive 分区 {}, 数据量 {}, 不合理", pt, count);
-            return;
-        } else {
-            log.info("hive 分区 {}, 数据量 {}, 合理", pt, count);
+        String argString = Arrays.toString(args);
+        // step1 写 hive
+        if (argString.contains("step1")) {
+            // overwrite hive 分区
+            spark.sql(String.format(ApolloUtils.get("cooperation-partner.sql"), pt));
         }
-        // overwrite gauss 临时表
-        jdbcTemplate.update("drop table if exists company_base.cooperation_partner_tmp");
-        jdbcTemplate.update("create table if not exists company_base.cooperation_partner_tmp like company_base.cooperation_partner");
-        table.repartition(256).foreachPartition(new CooperationPartnerSink(config));
-        // gauss 表替换
-        jdbcTemplate.update("drop table if exists company_base.cooperation_partner",
-                "alter table company_base.cooperation_partner_tmp rename company_base.cooperation_partner");
+        // step2 写 gauss
+        if (argString.contains("step2")) {
+            // hive 分区 数据量检查
+            long count = table.count();
+            if (count < 750_000_000L) {
+                log.error("hive 分区 {}, 数据量 {}, 不合理", pt, count);
+                return;
+            } else {
+                log.info("hive 分区 {}, 数据量 {}, 合理", pt, count);
+            }
+            // overwrite gauss 临时表
+            jdbcTemplate.update("drop table if exists company_base.cooperation_partner_tmp");
+            jdbcTemplate.update("create table if not exists company_base.cooperation_partner_tmp like company_base.cooperation_partner");
+            table.repartition(256).foreachPartition(new CooperationPartnerSink(config));
+            // gauss 表替换
+            jdbcTemplate.update("drop table if exists company_base.cooperation_partner",
+                    "alter table company_base.cooperation_partner_tmp rename company_base.cooperation_partner");
+        }
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
