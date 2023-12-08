@@ -54,12 +54,10 @@ public class CooperationPartnerJob {
             jdbcTemplate.update("create table if not exists company_base.cooperation_partner_1_tmp like company_base.cooperation_partner_1");
             table.repartition(256).foreachPartition(new CooperationPartnerSink(config));
             // gauss 表替换
-            jdbcTemplate.update(
-                    "drop table if exists company_base.cooperation_partner_0",
-                    "drop table if exists company_base.cooperation_partner_1",
-                    "alter table company_base.cooperation_partner_0_tmp rename company_base.cooperation_partner_0",
-                    "alter table company_base.cooperation_partner_1_tmp rename company_base.cooperation_partner_1"
-            );
+            jdbcTemplate.update("drop table if exists company_base.cooperation_partner_0");
+            jdbcTemplate.update("drop table if exists company_base.cooperation_partner_1");
+            jdbcTemplate.update("alter table company_base.cooperation_partner_0_tmp rename company_base.cooperation_partner_0");
+            jdbcTemplate.update("alter table company_base.cooperation_partner_1_tmp rename company_base.cooperation_partner_1");
         }
     }
 
