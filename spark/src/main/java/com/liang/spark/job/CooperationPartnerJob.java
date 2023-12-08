@@ -86,7 +86,8 @@ public class CooperationPartnerJob {
             ConfigUtils.setConfig(config);
             SnowflakeUtils.init("CooperationPartnerJob");
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
-            List<Map<String, Object>> columnMaps = new ArrayList<>();
+            List<Map<String, Object>> columnMaps = new ArrayList<>(1024);
+            List<String> sqls = new ArrayList<>(8);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 columnMap.put("id", SnowflakeUtils.nextId());
@@ -97,16 +98,28 @@ public class CooperationPartnerJob {
                             .INTO_COLUMNS(insert.f0)
                             .INTO_VALUES(insert.f1)
                             .toString();
-                    jdbcTemplate.update(sql);
+                    sqls.add(sql);
                     columnMaps.clear();
                 }
+                if (sqls.size() >= 8) {
+                    jdbcTemplate.update(sqls);
+                    sqls.clear();
+                }
             }
-            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-            String sql = new SQL().INSERT_INTO("company_base.cooperation_partner_tmp")
-                    .INTO_COLUMNS(insert.f0)
-                    .INTO_VALUES(insert.f1)
-                    .toString();
-            jdbcTemplate.update(sql);
+            // flush
+            if (!columnMaps.isEmpty()) {
+                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                String sql = new SQL().INSERT_INTO("company_base.cooperation_partner_tmp")
+                        .INTO_COLUMNS(insert.f0)
+                        .INTO_VALUES(insert.f1)
+                        .toString();
+                sqls.add(sql);
+                columnMaps.clear();
+            }
+            if (!sqls.isEmpty()) {
+                jdbcTemplate.update(sqls);
+                sqls.clear();
+            }
         }
     }
 }
