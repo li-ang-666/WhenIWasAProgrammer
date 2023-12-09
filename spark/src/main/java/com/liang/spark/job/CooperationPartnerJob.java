@@ -52,7 +52,7 @@ public class CooperationPartnerJob {
             for (int i = 0; i < 10; i++) {
                 table.drop("pt")
                         .where("table_id = " + i)
-                        .repartition(32)
+                        .repartition(256)
                         .sortWithinPartitions("boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
                         .foreachPartition(new CooperationPartnerSink(config));
             }
