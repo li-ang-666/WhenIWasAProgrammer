@@ -26,6 +26,7 @@ public class CooperationPartnerJob {
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
         Dataset<Row> table = spark
                 .table("hudi_ads.cooperation_partner")
+                .drop("pt")
                 .where("pt = " + pt)
                 .where("multi_cooperation_dense_rank <= 20");
         String argString = Arrays.toString(args);
@@ -49,10 +50,8 @@ public class CooperationPartnerJob {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i + "_tmp");
                 jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
             }
-            table.drop("pt")
+            table
                     .orderBy("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
-                    .coalesce(256)
-                    .sortWithinPartitions("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
                     .foreachPartition(new CooperationPartnerSink(config));
             // gauss 表替换
             for (int i = 0; i < 10; i++) {
@@ -87,6 +86,7 @@ public class CooperationPartnerJob {
 
     @RequiredArgsConstructor
     private final static class CooperationPartnerSink implements ForeachPartitionFunction<Row> {
+        private final static int BATCH_SIZE = 4096;
         private final Config config;
 
         @Override
@@ -95,14 +95,14 @@ public class CooperationPartnerJob {
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
             HashMap<String, List<Map<String, Object>>> tableId2ColumnMaps = new HashMap<>();
             for (int i = 0; i < 10; i++) {
-                tableId2ColumnMaps.put(String.valueOf(i), new ArrayList<>(4096));
+                tableId2ColumnMaps.put(String.valueOf(i), new ArrayList<>(BATCH_SIZE));
             }
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 String tableId = String.valueOf(columnMap.remove("table_id"));
                 List<Map<String, Object>> columnMaps = tableId2ColumnMaps.get(tableId);
                 columnMaps.add(columnMap);
-                if (columnMaps.size() >= 2048) {
+                if (columnMaps.size() >= BATCH_SIZE) {
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                     String sql = String.format("insert into company_base.cooperation_partner_%s_tmp (%s) values (%s)", tableId, insert.f0, insert.f1);
                     jdbcTemplate.update(sql);
