@@ -86,7 +86,7 @@ public class CooperationPartnerJob {
 
     @RequiredArgsConstructor
     private final static class CooperationPartnerSink implements ForeachPartitionFunction<Row> {
-        private final static int BATCH_SIZE = 4096;
+        private final static int BATCH_SIZE = 2048;
         private final Config config;
 
         @Override
