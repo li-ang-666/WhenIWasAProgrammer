@@ -41,10 +41,10 @@ public class CooperationPartnerJob {
             // hive 分区 数据量检查
             long hiveCount = table.count();
             if (hiveCount < 700_000_000L) {
-                log.error("hive 分区 {}, 数据量 {}, 不合理", pt, hiveCount);
+                log.error("hive 分区 pt={}, 数据量 {}, 不合理", pt, hiveCount);
                 return;
             } else {
-                log.info("hive 分区 {}, 数据量 {}, 合理", pt, hiveCount);
+                log.info("hive 分区 pt={}, 数据量 {}, 合理", pt, hiveCount);
             }
             // overwrite gauss 临时表
             for (int i = 0; i < 10; i++) {
@@ -64,10 +64,10 @@ public class CooperationPartnerJob {
             for (int i = 0; i < 10; i++) {
                 long gaussCount = jdbcTemplate.queryForObject("select max(id) from company_base.cooperation_partner_" + i + "_tmp", rs -> rs.getLong(1));
                 if (gaussCount < 70_000_000L) {
-                    log.error("gauss 分表 {}, 数据量 {}, 不合理", i, gaussCount);
+                    log.error("gauss 分表 cooperation_partner_{}_tmp, 数据量 {}, 不合理", i, gaussCount);
                     return;
                 } else {
-                    log.info("gauss 分表 {}, 数据量 {}, 合理", i, gaussCount);
+                    log.info("gauss 分表 cooperation_partner_{}_tmp, 数据量 {}, 合理", i, gaussCount);
                 }
             }
             // gauss 表替换
