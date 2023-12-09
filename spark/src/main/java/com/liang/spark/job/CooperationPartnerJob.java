@@ -49,13 +49,11 @@ public class CooperationPartnerJob {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i + "_tmp");
                 jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
             }
-            for (int i = 0; i < 10; i++) {
-                table.drop("pt")
-                        .where("table_id = " + i)
-                        .repartition(256)
-                        .sortWithinPartitions("boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
-                        .foreachPartition(new CooperationPartnerSink(config));
-            }
+            table.drop("pt")
+                    .sort("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
+                    .coalesce(256)
+                    .sortWithinPartitions("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
+                    .foreachPartition(new CooperationPartnerSink(config));
             // gauss 表替换
             for (int i = 0; i < 10; i++) {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i);
@@ -97,7 +95,7 @@ public class CooperationPartnerJob {
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
             HashMap<String, List<Map<String, Object>>> tableId2ColumnMaps = new HashMap<>();
             for (int i = 0; i < 10; i++) {
-                tableId2ColumnMaps.put(String.valueOf(i), new ArrayList<>(2048));
+                tableId2ColumnMaps.put(String.valueOf(i), new ArrayList<>(4096));
             }
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
