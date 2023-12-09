@@ -27,9 +27,9 @@ public class CooperationPartnerJob {
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
         Dataset<Row> table = spark
                 .table("hudi_ads.cooperation_partner")
-                .drop("pt")
                 .where("pt = " + pt)
-                .where("multi_cooperation_dense_rank <= 20");
+                .where("multi_cooperation_dense_rank <= 20")
+                .drop("pt");
         String argString = Arrays.toString(args);
         // step1 写 hive
         if (argString.contains("step1")) {
