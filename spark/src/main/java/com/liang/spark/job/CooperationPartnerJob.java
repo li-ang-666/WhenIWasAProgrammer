@@ -61,14 +61,13 @@ public class CooperationPartnerJob {
                     .sortWithinPartitions(columns)
                     .foreachPartition(new CooperationPartnerSink(config));
             // gauss 分表 数据量检查
-            long gaussCount = 0;
             for (int i = 0; i < 10; i++) {
-                gaussCount += jdbcTemplate.queryForObject("select max(id) from cooperation_partner_" + i + "_tmp", rs -> rs.getLong(1));
+                long gaussCount = jdbcTemplate.queryForObject("select max(id) from cooperation_partner_" + i + "_tmp", rs -> rs.getLong(1));
                 if (gaussCount < 70_000_000L) {
-                    log.error("gauss 分表 {}, 数据量 {}, 不合理", i, hiveCount);
+                    log.error("gauss 分表 {}, 数据量 {}, 不合理", i, gaussCount);
                     return;
                 } else {
-                    log.info("gauss 分表 {}, 数据量 {}, 合理", i, hiveCount);
+                    log.info("gauss 分表 {}, 数据量 {}, 合理", i, gaussCount);
                 }
             }
             // gauss 表替换
