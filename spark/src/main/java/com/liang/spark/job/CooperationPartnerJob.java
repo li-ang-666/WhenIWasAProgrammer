@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -50,8 +51,14 @@ public class CooperationPartnerJob {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i + "_tmp");
                 jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
             }
+            Column[] columns = new Column[]{
+                    new Column("table_id"),
+                    new Column("boss_human_pid"), new Column("partner_human_pid"),
+                    new Column("single_cooperation_row_number")
+            };
             table
-                    .orderBy("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
+                    .repartition(columns)
+                    .sortWithinPartitions(columns)
                     .foreachPartition(new CooperationPartnerSink(config));
             // gauss 表替换
             for (int i = 0; i < 10; i++) {
@@ -86,7 +93,7 @@ public class CooperationPartnerJob {
 
     @RequiredArgsConstructor
     private final static class CooperationPartnerSink implements ForeachPartitionFunction<Row> {
-        private final static int BATCH_SIZE = 2048;
+        private final static int BATCH_SIZE = 1024;
         private final Config config;
 
         @Override
