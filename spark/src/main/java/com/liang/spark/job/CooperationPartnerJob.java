@@ -51,6 +51,7 @@ public class CooperationPartnerJob {
             }
             table.drop("pt")
                     .orderBy("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
+                    .coalesce(256)
                     .sortWithinPartitions("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
                     .foreachPartition(new CooperationPartnerSink(config));
             // gauss 表替换
