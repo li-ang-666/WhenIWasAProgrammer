@@ -49,10 +49,13 @@ public class CooperationPartnerJob {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i + "_tmp");
                 jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
             }
-            table.drop("pt")
-                    .repartition(256)
-                    .sortWithinPartitions("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
-                    .foreachPartition(new CooperationPartnerSink(config));
+            for (int i = 0; i < 10; i++) {
+                table.drop("pt")
+                        .where("table_id = " + i)
+                        .repartition(32)
+                        .sortWithinPartitions("boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
+                        .foreachPartition(new CooperationPartnerSink(config));
+            }
             // gauss 表替换
             for (int i = 0; i < 10; i++) {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i);
