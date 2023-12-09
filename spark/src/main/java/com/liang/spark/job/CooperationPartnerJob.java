@@ -39,12 +39,12 @@ public class CooperationPartnerJob {
         // step2 写 gauss
         if (argString.contains("step2")) {
             // hive 分区 数据量检查
-            long count = table.count();
-            if (count < 750_000_000L) {
-                log.error("hive 分区 {}, 数据量 {}, 不合理", pt, count);
+            long hiveCount = table.count();
+            if (hiveCount < 750_000_000L) {
+                log.error("hive 分区 {}, 数据量 {}, 不合理", pt, hiveCount);
                 return;
             } else {
-                log.info("hive 分区 {}, 数据量 {}, 合理", pt, count);
+                log.info("hive 分区 {}, 数据量 {}, 合理", pt, hiveCount);
             }
             // overwrite gauss 临时表
             for (int i = 0; i < 10; i++) {
@@ -61,6 +61,16 @@ public class CooperationPartnerJob {
                     .sortWithinPartitions(columns)
                     .foreachPartition(new CooperationPartnerSink(config));
             // gauss 表替换
+            long gaussCount = 0;
+            for (int i = 0; i < 10; i++) {
+                gaussCount += jdbcTemplate.queryForObject("select max(id) from cooperation_partner_" + i + "_tmp", rs -> rs.getLong(1));
+                if (gaussCount < 750_000_000L) {
+                    log.error("gauss 分表 {}, 数据量 {}, 不合理", i, hiveCount);
+                    return;
+                } else {
+                    log.info("gauss 分表 {}, 数据量 {}, 合理", i, hiveCount);
+                }
+            }
             for (int i = 0; i < 10; i++) {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i);
                 jdbcTemplate.update("alter table company_base.cooperation_partner_" + i + "_tmp rename company_base.cooperation_partner_" + i);
