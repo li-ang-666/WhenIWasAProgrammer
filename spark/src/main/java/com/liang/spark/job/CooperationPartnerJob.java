@@ -50,8 +50,7 @@ public class CooperationPartnerJob {
                 jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
             }
             table.drop("pt")
-                    .sort("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
-                    .coalesce(256)
+                    .orderBy("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
                     .sortWithinPartitions("table_id", "boss_human_pid", "partner_human_pid", "single_cooperation_row_number")
                     .foreachPartition(new CooperationPartnerSink(config));
             // gauss 表替换
