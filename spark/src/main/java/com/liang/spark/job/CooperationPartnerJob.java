@@ -53,8 +53,8 @@ public class CooperationPartnerJob {
             }
             Column[] columns = new Column[]{
                     new Column("table_id"),
-                    new Column("boss_human_pid"), new Column("partner_human_pid"),
-                    new Column("single_cooperation_row_number")
+                    new Column("boss_human_pid")/*, new Column("partner_human_pid"),
+                    new Column("single_cooperation_row_number")*/
             };
             table
                     .repartition(columns)
