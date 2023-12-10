@@ -51,11 +51,7 @@ public class CooperationPartnerJob {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i + "_tmp");
                 jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
             }
-            Column[] columns = new Column[]{
-                    new Column("table_id"),
-                    new Column("boss_human_pid")/*, new Column("partner_human_pid"),
-                    new Column("single_cooperation_row_number")*/
-            };
+            Column[] columns = new Column[]{new Column("table_id"), new Column("boss_human_pid")};
             table
                     .repartition(columns)
                     .sortWithinPartitions(columns)
