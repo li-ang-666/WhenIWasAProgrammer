@@ -8,7 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
-import org.apache.spark.sql.*;
+import org.apache.spark.sql.Column;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.types.DataTypes;
 
@@ -49,8 +52,7 @@ public class CooperationPartnerJob {
                 jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
             }
             table
-                    .repartition(functions.crc32(new Column("boss_human_pid")))
-                    .sortWithinPartitions(new Column("table_id"), new Column("boss_human_pid"))
+                    .orderBy(new Column("table_id"), new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("single_cooperation_row_number"))
                     .foreachPartition(new CooperationPartnerSink(config));
             // gauss 分表 数据量检查
             for (int i = 0; i < 10; i++) {
