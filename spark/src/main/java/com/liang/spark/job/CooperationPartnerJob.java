@@ -6,6 +6,7 @@ import com.liang.common.util.*;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Column;
@@ -23,7 +24,8 @@ public class CooperationPartnerJob {
         SparkSession spark = SparkSessionFactory.createSparkWithHudi(args);
         Config config = ConfigUtils.getConfig();
         JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
-        spark.udf().register("fmt", new FormatIdentity(), DataTypes.StringType);
+        spark.udf().register("format_identity", new FormatIdentity(), DataTypes.StringType);
+        spark.udf().register("format_reg_st", new formatRegSt(), DataTypes.IntegerType);
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
         Dataset<Row> table = spark
                 .table("hudi_ads.cooperation_partner")
@@ -69,6 +71,17 @@ public class CooperationPartnerJob {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i);
                 jdbcTemplate.update("alter table company_base.cooperation_partner_" + i + "_tmp rename company_base.cooperation_partner_" + i);
             }
+        }
+    }
+
+    private static final class formatRegSt implements UDF1<String, Integer> {
+        private final static String[] OK = new String[]{
+                "存续", "开业", "登记", "在业", "在营", "正常", "经营", "在营在册", "有效", "在业在册", "迁入", "迁出", "迁它县市", "成立中", "设立中", "正常执业", "仍注册", "核准设立", "设立许可", "核准许可登记", "核准认许", "核准报备"
+        };
+
+        @Override
+        public Integer call(String regSt) {
+            return StringUtils.equalsAny(String.valueOf(regSt), OK) ? 1 : 0;
         }
     }
 
