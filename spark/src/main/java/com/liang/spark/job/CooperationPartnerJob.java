@@ -76,7 +76,10 @@ public class CooperationPartnerJob {
 
     private static final class formatRegSt implements UDF1<String, Integer> {
         private final static String[] OK = new String[]{
-                "存续", "开业", "登记", "在业", "在营", "正常", "经营", "在营在册", "有效", "在业在册", "迁入", "迁出", "迁他县市", "成立中", "设立中", "正常执业", "仍注册", "核准设立", "设立许可", "核准许可登记", "核准认许", "核准报备"
+                "存续", "开业", "登记", "在业", "在营", "正常", "经营", "在营在册", "有效", "在业在册",
+                "迁入", "迁出", "迁他县市",
+                "成立中", "设立中", "正常执业", "仍注册",
+                "核准设立", "设立许可", "核准许可登记", "核准认许", "核准报备"
         };
 
         @Override
