@@ -94,9 +94,9 @@ public class CooperationPartnerJob {
             }
             return builder.toString()
                     .replace("未知", "主要人员")
+                    .replace("_", ".")
                     .replaceAll("、+", "、")
-                    .replaceAll("(^、)|(、$)", "")
-                    .replaceAll("(.*?)(股东\\(持股\\d)、(.*)", "$1$2.$3");
+                    .replaceAll("(^、)|(、$)", "");
         }
     }
 
@@ -119,10 +119,13 @@ public class CooperationPartnerJob {
 
         @Override
         public String call(Object ratio) {
-            return new BigDecimal(String.valueOf(ratio)).multiply(pivot)
+            return new BigDecimal(String.valueOf(ratio))
+                    .multiply(pivot)
                     .setScale(4, RoundingMode.DOWN)
                     .stripTrailingZeros()
-                    .toPlainString();
+                    .toPlainString()
+                    .replace(".", "_")
+                    + "%";
         }
     }
 
