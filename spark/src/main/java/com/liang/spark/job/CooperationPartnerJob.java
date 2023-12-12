@@ -16,6 +16,8 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.types.DataTypes;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @Slf4j
@@ -24,8 +26,9 @@ public class CooperationPartnerJob {
         SparkSession spark = SparkSessionFactory.createSparkWithHudi(args);
         Config config = ConfigUtils.getConfig();
         JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
+        spark.udf().register("format_reg_st", new FormatRegSt(), DataTypes.IntegerType);
         spark.udf().register("format_identity", new FormatIdentity(), DataTypes.StringType);
-        spark.udf().register("format_reg_st", new formatRegSt(), DataTypes.IntegerType);
+        spark.udf().register("format_ratio", new FormatRatio(), DataTypes.StringType);
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
         Dataset<Row> table = spark
                 .table("hudi_ads.cooperation_partner")
@@ -74,20 +77,6 @@ public class CooperationPartnerJob {
         }
     }
 
-    private static final class formatRegSt implements UDF1<String, Integer> {
-        private final static String[] OK = new String[]{
-                "存续", "开业", "登记", "在业", "在营", "正常", "经营", "在营在册", "有效", "在业在册",
-                "迁入", "迁出", "迁他县市",
-                "成立中", "设立中", "正常执业", "仍注册",
-                "核准设立", "设立许可", "核准许可登记", "核准认许", "核准报备"
-        };
-
-        @Override
-        public Integer call(String regSt) {
-            return StringUtils.equalsAny(String.valueOf(regSt), OK) ? 1 : 0;
-        }
-    }
-
     private static final class FormatIdentity implements UDF1<String, String> {
         @Override
         public String call(String identity) {
@@ -108,6 +97,32 @@ public class CooperationPartnerJob {
                     .replaceAll("、+", "、")
                     .replaceAll("(^、)|(、$)", "")
                     .replaceAll("(.*?)(股东\\(持股\\d)、(.*)", "$1$2.$3");
+        }
+    }
+
+    private static final class FormatRegSt implements UDF1<String, Integer> {
+        private final static String[] OK = new String[]{
+                "存续", "开业", "登记", "在业", "在营", "正常", "经营", "在营在册", "有效", "在业在册",
+                "迁入", "迁出", "迁他县市",
+                "成立中", "设立中", "正常执业", "仍注册",
+                "核准设立", "设立许可", "核准许可登记", "核准认许", "核准报备"
+        };
+
+        @Override
+        public Integer call(String regSt) {
+            return StringUtils.equalsAny(String.valueOf(regSt), OK) ? 1 : 0;
+        }
+    }
+
+    private static final class FormatRatio implements UDF1<Object, String> {
+        private final static BigDecimal pivot = new BigDecimal("100");
+
+        @Override
+        public String call(Object ratio) {
+            return new BigDecimal(String.valueOf(ratio)).multiply(pivot)
+                    .setScale(4, RoundingMode.DOWN)
+                    .stripTrailingZeros()
+                    .toPlainString();
         }
     }
 
