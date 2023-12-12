@@ -1,0 +1,23 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 5
+  otherParallel: 20
+
+# scanMode: Direct or TumblingWindow
+#repairTasks:
+#  - taskId: "111"
+#    sourceName: "116.prism"
+#    tableName: "company_clean_info"
+#    columns: "*"
+#    where: "id = 2440543288"
+#    scanMode: Direct
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "0bb01.json.prism.company_clean_info"
+    #      - "0bb01.proto.prism.company_clean_info"
+    groupId: "company-clean-info-patch-job"
+    startFrom: "1"

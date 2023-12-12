@@ -13,15 +13,14 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.util.Map;
+
 @Slf4j
 @LocalConfigFile("demo.yml")
 public class DemoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        //env.fromSource(KafkaSourceFactory.create(String::new), WatermarkStrategy.noWatermarks(), "KafkaSource")
-        //        .map(e -> e.getValue())
-        //        .print();
         StreamFactory.create(env)
                 .rebalance()
                 .addSink(new DemoSink(config)).name("DemoSink").setParallelism(config.getFlinkConfig().getOtherParallel());
@@ -42,7 +41,14 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            System.out.println(singleCanalBinlog.getEventType());
+            Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String id = String.valueOf(columnMap.get("id"));
+            if (id.equals("2476911709")) {
+                Object bef = beforeColumnMap.get("social_security_staff_num");
+                Object after = columnMap.get("social_security_staff_num");
+                log.info("id: {}, bef: {}, aft: {}", id, bef, after);
+            }
         }
     }
 }

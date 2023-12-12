@@ -127,7 +127,7 @@ public class BatchCanalBinlog implements Serializable {
         LinkedHashMap<String, Object> columnMap = new LinkedHashMap<>(columnList.size());
         for (CanalEntry.Column column : columnList) {
             String columnName = column.getName();
-            String columnValue = column.getValue();
+            String columnValue = column.getIsNull() ? null : column.getValue();
             columnMap.put(columnName, columnValue);
         }
         return columnMap;
