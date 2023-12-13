@@ -19,4 +19,4 @@ kafkaConfigs:
     topics:
       - "0bb01.proto.prism.company_clean_info"
     groupId: "demo-job"
-    startFrom: "2023-12-12 20:00:00"
+    startFrom: "2"
