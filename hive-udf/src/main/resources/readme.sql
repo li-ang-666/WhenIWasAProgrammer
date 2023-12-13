@@ -23,7 +23,7 @@ create temporary function bitmap_xor as 'com.liang.udf.BitmapXorUDF' USING JAR '
 
 -- 测试
 show functions;
-desc function to_bitmap;
+desc function extended to_bitmap;
 
 -- 测试
 drop table if exists test.bitmap_test;
