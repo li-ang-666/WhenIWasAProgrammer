@@ -29,10 +29,10 @@ desc function to_bitmap;
 drop table if exists test.bitmap_test;
 create table if not exists test.bitmap_test(id int, tb string, bitmap binary);
 with t as(
-  select 1 id,'company_bond_plates' tb, to_bitmap(id) bitmap from hudi_ods.company_bond_plates
+  select 1 id, 'company_bond_plates' tb, to_bitmap(id) bitmap from hudi_ods.company_bond_plates
   union all
-  select 2 id,'senior_executive' tb, to_bitmap(id) bitmap from hudi_ods.senior_executive
+  select 2 id, 'senior_executive' tb, to_bitmap(id) bitmap from hudi_ods.senior_executive
   union all
-  select 3 id,'senior_executive_hk' tb, to_bitmap(id) bitmap from hudi_ods.senior_executive_hk
+  select 3 id, 'senior_executive_hk' tb, to_bitmap(id) bitmap from hudi_ods.senior_executive_hk
 )insert overwrite table test.bitmap_test select * from t;
-select id,tb,bitmap_count(bitmap) from test.bitmap_test;
+select id, tb, bitmap_count(bitmap) from test.bitmap_test;
