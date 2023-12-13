@@ -1,5 +1,24 @@
-package com.liang.hive.udf;
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
+package com.liang.udf;
+
+import com.liang.udf.basic.BitmapValue;
+import com.liang.udf.basic.BitmapValueUtil;
 import org.apache.hadoop.hive.ql.exec.Description;
 import org.apache.hadoop.hive.ql.exec.UDFArgumentTypeException;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
@@ -7,19 +26,18 @@ import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.ql.udf.generic.AbstractGenericUDAFResolver;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFEvaluator;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
-import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorUtils;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 
 import java.io.IOException;
 
 /**
- * ToBitmap.
+ * bitmap_union.
  */
-@Description(name = "to_bitmap", value = "_FUNC_(expr) - Returns an doris bitmap representation of a column.")
-public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
+@Description(name = "bitmap_union", value = "_FUNC_(expr) - Calculate the grouped bitmap"
+        + " union , Returns an doris bitmap representation of a column.")
+public class BitmapUnionUDAF extends AbstractGenericUDAFResolver {
 
     @Override
     public GenericUDAFEvaluator getEvaluator(TypeInfo[] parameters)
@@ -35,12 +53,7 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
     //the same (desired) value.
     public static class GenericEvaluate extends GenericUDAFEvaluator {
 
-        // For PARTIAL1 and COMPLETE: ObjectInspectors for original data
-        private PrimitiveObjectInspector inputOI;
-
-        // For PARTIAL2 and FINAL: ObjectInspectors for partial aggregations
-        // (doris bitmaps)
-
+        private transient BinaryObjectInspector inputOI;
         private transient BinaryObjectInspector internalMergeOI;
 
         @Override
@@ -50,7 +63,7 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
             // init output object inspectors
             // The output of a partial aggregation is a binary
             if (m == Mode.PARTIAL1 || m == Mode.COMPLETE) {
-                inputOI = (PrimitiveObjectInspector) parameters[0];
+                this.inputOI = (BinaryObjectInspector) parameters[0];
             } else {
                 this.internalMergeOI = (BinaryObjectInspector) parameters[0];
             }
@@ -75,11 +88,11 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
             Object p = parameters[0];
             if (p != null) {
                 BitmapAgg myagg = (BitmapAgg) agg;
+                byte[] partialResult = this.inputOI.getPrimitiveJavaObject(parameters[0]);
                 try {
-                    long row = PrimitiveObjectInspectorUtils.getLong(p, inputOI);
-                    addBitmap(row, myagg);
-                } catch (NumberFormatException e) {
-                    throw new HiveException(e);
+                    myagg.bitmap.or(BitmapValueUtil.deserializeToBitmap(partialResult));
+                } catch (IOException ioException) {
+                    throw new HiveException(ioException);
                 }
             }
         }
@@ -108,10 +121,6 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
         @Override
         public Object terminatePartial(AggregationBuffer agg) {
             return terminate(agg);
-        }
-
-        private void addBitmap(long newRow, BitmapAgg myagg) {
-            myagg.bitmap.add(newRow);
         }
 
         /**
