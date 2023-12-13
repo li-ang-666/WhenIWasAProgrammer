@@ -49,11 +49,13 @@ public class BatchCanalBinlog implements Serializable {
                 eventType = CanalEntry.EventType.DELETE;
                 break;
             default:
+                // 排除非DML
                 String isDdl = String.valueOf(binlogMap.get("isDdl"));
                 String sql = String.valueOf(binlogMap.get("sql"));
                 log.warn("type: {}, isDdl: {}, sql: {}", type, isDdl, sql);
                 return;
         }
+        // 生成SingleCanalBinlog
         String db = String.valueOf(binlogMap.get("database"));
         String tb = String.valueOf(binlogMap.get("table"));
         long executeTime = Long.parseLong(String.valueOf(binlogMap.get("es")));
@@ -74,18 +76,45 @@ public class BatchCanalBinlog implements Serializable {
         }
     }
 
+    /*
+     * Entry
+     *   Header
+     *     logfileName    [binlog文件名]
+     *     logfileOffset  [binlog position]
+     *     executeTime    [binlog里记录变更发生的时间戳,精确到秒]
+     *     schemaName
+     *     tableName
+     *     eventType      [insert/update/delete类型]
+     *   entryType        [事务头BEGIN/事务尾END/数据ROWDATA]
+     *   storeValue       [byte数据,可展开，对应的类型为RowChange]
+     * --------------------------------------------------------------
+     * RowChange:
+     *   isDdl            [是否是ddl变更操作，比如create table/drop table]
+     *   rowDataList      [具体insert/update/delete的变更数据，可为多条，1个binlog event事件可对应多条变更，比如批处理]
+     *   beforeColumns    [Column类型的数组，变更前的数据字段]
+     *   afterColumns     [Column类型的数组，变更后的数据字段]
+     * --------------------------------------------------------------
+     * Column:
+     *   index
+     *   sqlType          [jdbc type]
+     *   name             [column name]
+     *   isKey            [是否为主键]
+     *   updated          [是否发生过变更]
+     *   isNull           [值是否为null]
+     *   value            [具体的内容，注意为string文本]
+     */
     private void parseProtobufMessage(byte[] kafkaRecordValue) {
         Message message = CanalMessageDeserializer.deserializer(kafkaRecordValue);
-        //判断entries
+        // 判断entries
         if (message.getId() == -1L || message.getEntries().isEmpty()) {
             return;
         }
-        //遍历entries, 判断每一个entry
+        // 遍历entries, 判断每一个entry
         for (CanalEntry.Entry entry : message.getEntries()) {
             if (entry.getEntryType() != CanalEntry.EntryType.ROWDATA) {
                 continue;
             }
-            //解析出rowChange, 判断每一个row
+            // 解析出rowChange, 判断每一个row
             CanalEntry.RowChange rowChange;
             try {
                 rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
@@ -96,12 +125,12 @@ public class BatchCanalBinlog implements Serializable {
             CanalEntry.EventType eventType = rowChange.getEventType();
             boolean isDdl = rowChange.getIsDdl();
             String sql = rowChange.getSql();
-            //官方case的排除
-            if (eventType == CanalEntry.EventType.QUERY || isDdl) {
-                log.warn("isDdl: {}, sql: {}", isDdl, sql);
+            // 排除非DML
+            if ((eventType != CanalEntry.EventType.INSERT && eventType != CanalEntry.EventType.UPDATE && eventType != CanalEntry.EventType.DELETE) || isDdl) {
+                log.warn("type: {}, isDdl: {}, sql: {}", eventType, isDdl, sql);
                 continue;
             }
-            //生成SingleCanalBinlog
+            // 生成SingleCanalBinlog
             CanalEntry.Header header = entry.getHeader();
             String db = header.getSchemaName();
             String tb = header.getTableName();
@@ -114,10 +143,8 @@ public class BatchCanalBinlog implements Serializable {
                     singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, afterColumnMap, new HashMap<>(), afterColumnMap));
                 } else if (eventType == CanalEntry.EventType.UPDATE) {
                     singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, afterColumnMap, beforeColumnMap, afterColumnMap));
-                } else if (eventType == CanalEntry.EventType.DELETE) {
-                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, beforeColumnMap, new HashMap<>()));
                 } else {
-                    log.warn("singleCanalBinlog对象非增删改,type: {}, sql: {}", eventType, sql);
+                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, beforeColumnMap, new HashMap<>()));
                 }
             }
         }
