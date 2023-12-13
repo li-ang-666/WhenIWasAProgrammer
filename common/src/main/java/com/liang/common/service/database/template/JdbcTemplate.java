@@ -45,9 +45,10 @@ public class JdbcTemplate extends AbstractCache<String, String> {
             }
             statement.executeBatch();
             connection.commit();
-            logging.afterExecute("updateBatch", sqls.size() + "条");
+            logging.afterExecute("updateBatch", sqls, sqls.size() + "条");
         } catch (Exception e) {
             // 归还的时候, DruidDataSource.recycle 会自动 rollback 一次
+            // 批量更新报错不打印明细, 单条执行报错再打印具体SQL
             logging.ifError("updateBatch", sqls.size() + "条", e);
             getException = true;
         }

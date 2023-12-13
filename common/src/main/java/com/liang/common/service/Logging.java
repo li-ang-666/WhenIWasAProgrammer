@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Logging {
+    private final static int SLOW_MILLI = 3000;
     private final Timer timer = new Timer();
     private final String errorLog;
     private final String afterLog;
@@ -24,10 +25,19 @@ public class Logging {
 
     public void afterExecute(String methodName, Object methodArg) {
         long interval = timer.getInterval();
-        if (interval > 1000L) {
+        if (interval > SLOW_MILLI) {
             log.warn(afterLog, methodName, methodArg, interval);
         } else if (log.isDebugEnabled()) {
             log.debug(afterLog, methodName, methodArg, interval);
+        }
+    }
+
+    public void afterExecute(String methodName, Object debugMethodArg, Object warnMethodArg) {
+        long interval = timer.getInterval();
+        if (interval > SLOW_MILLI) {
+            log.warn(afterLog, methodName, warnMethodArg, interval);
+        } else if (log.isDebugEnabled()) {
+            log.debug(afterLog, methodName, debugMethodArg, interval);
         }
     }
 }
