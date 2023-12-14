@@ -1,8 +1,7 @@
 #!/bin/bash
-export FLINK_HOME=/home/hive/flink/flink-1.17.1
-export FLINK_CONF_DIR=/home/hive/flink/flink-conf
-export HADOOP_CLASSPATH=`hadoop classpath`
-/home/hive/flink/flink-1.17.1/bin/flink run-application -t yarn-application \
+export FLINK_HOME=/data/liang/flink-1.17.1
+export FLINK_CONF_DIR=/data/liang/flink-conf
+/data/liang/flink-1.17.1/bin/flink run-application -t yarn-application \
   -D jobmanager.memory.process.size=1536m \
   -D taskmanager.memory.process.size=2560m \
   -D taskmanager.numberOfTaskSlots=2 \
