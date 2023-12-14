@@ -6,8 +6,7 @@ export FLINK_CONF_DIR=/data/omm/flink-conf
   -D taskmanager.memory.process.size=3g \
   -D taskmanager.numberOfTaskSlots=2 \
   -D parallelism.default=1 \
-  -D taskmanager.memory.network.min=16m \
-  -D taskmanager.memory.network.max=16m \
+  -D taskmanager.memory.network.max=64m \
   -D state.checkpoints.dir=hdfs:///hudi/flink-checkpoints/upsert/${2} \
   -D yarn.application.name=hudi_upsert_${2} \
   -c com.liang.hudi.job.HudiJob hudi-1.0.jar UPSERT ${1} ${2} "${3}"
