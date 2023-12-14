@@ -14,7 +14,7 @@ export HADOOP_CLASSPATH=`hadoop classpath`
   -D parallelism.default=1 \
   -D taskmanager.memory.network.max=64m \
   -D state.checkpoints.dir=hdfs:///hudi/flink-checkpoints/compaction/${1} \
-  -D yarn.application.name=hudi_compaction_${1} \
+  -D yarn.application.name=hudi_compaction_${1}_hi \
   -c org.apache.hudi.sink.compact.HoodieFlinkCompactor hudi-1.0.jar --path obs://hadoop-obs/hudi_ods/${1} \
   --compaction-tasks 32 --compaction-max-memory 512 \
   --clean-retain-commits 10 --archive-min-commits 20 --archive-max-commits 30
