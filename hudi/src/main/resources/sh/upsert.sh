@@ -1,9 +1,9 @@
 #!/bin/bash
-export FLINK_HOME=/data/liang/flink-1.17.1
-export FLINK_CONF_DIR=/data/liang/flink-conf
-/data/liang/flink-1.17.1/bin/flink run-application -t yarn-application \
-  -D jobmanager.memory.process.size=1536m \
-  -D taskmanager.memory.process.size=2560m \
+export FLINK_HOME=/data/omm/flink-1.17.1
+export FLINK_CONF_DIR=/data/omm/flink-conf
+/data/omm/flink-1.17.1/bin/flink run-application -t yarn-application \
+  -D jobmanager.memory.process.size=2g \
+  -D taskmanager.memory.process.size=3g \
   -D taskmanager.numberOfTaskSlots=2 \
   -D parallelism.default=1 \
   -D taskmanager.memory.network.min=16m \
