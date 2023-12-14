@@ -1,6 +1,5 @@
 -- 上传
-hdfs dfs -rm /liang/hive-udf-1.0.jar
-hdfs dfs -put ./hive-udf-1.0.jar /liang/
+!sh hdfs dfs -put -f /home/hive/liang/hive-udf-1.0.jar /liang/
 
 -- 加载
 add jar hdfs:///liang/hive-udf-1.0.jar;
