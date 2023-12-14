@@ -19,6 +19,7 @@ taskmanager.memory.framework.off-heap.size: 128m
 taskmanager.memory.task.off-heap.size: 0m
 # 网络 + 1
 taskmanager.memory.network.fraction: 0.1
+taskmanager.memory.network.min: 64m
 taskmanager.memory.network.max: 128m
 # RocksDB + 1
 taskmanager.memory.managed.fraction: 0.4
