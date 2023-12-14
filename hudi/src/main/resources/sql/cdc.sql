@@ -41,11 +41,8 @@ CREATE TABLE dwd(%s
   'archive.max_commits' = '30',
   -- hive
   'hive_sync.enabled' = 'true',
-  'hive_sync.mode' = 'jdbc',
-  'hive_sync.metastore.uris' = 'thrift://10.99.202.153:9083',
-  'hive_sync.jdbc_url' = 'jdbc:hive2://10.99.202.153:10000',
-  'hive_sync.username' = 'hive',
-  'hive_sync.password' = '',
+  'hive_sync.mode' = 'hms',
+  'hive_sync.metastore.uris' = 'thrift://10.99.202.153:9083,thrift://10.99.198.86:9083',
   'hive_sync.db' = 'hudi_ods',
   'hive_sync.table' = '%s',
   'hive_sync.table.strategy' = 'RO',
