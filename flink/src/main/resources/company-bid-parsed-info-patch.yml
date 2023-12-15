@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "448.operating_info"
     tableName: "company_bid_parsed_info"
     columns: "*"
-    where: "id <= 1000"
+    where: "id <= 10000"
     scanMode: Direct
 
 kafkaConfigs:
