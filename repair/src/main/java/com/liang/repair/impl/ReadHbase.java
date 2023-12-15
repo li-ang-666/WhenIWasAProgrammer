@@ -15,7 +15,7 @@ public class ReadHbase extends ConfigHolder {
     }
 
     public static void main(String[] args) {
-        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, "80493MK01C8FPBT57");
+        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, "6200571282");
         HbaseOneRow queryResult = query(hbaseOneRow);
         //queryResult.put("has_beneficiary", 0);
         //queryResult.put("has_controller", 0);
