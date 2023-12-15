@@ -1,8 +1,8 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -16,6 +16,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @LocalConfigFile("company-bid-parsed-info-patch.yml")
@@ -33,13 +34,11 @@ public class CompanyBidParsedInfoPatchJob {
     @RequiredArgsConstructor
     private final static class CompanyBidParsedInfoPatchSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
-        private JdbcTemplate sink;
         private CompanyBidParsedInfoPatchService service;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            sink = new JdbcTemplate("427.test");
             service = new CompanyBidParsedInfoPatchService();
         }
 
@@ -51,26 +50,31 @@ public class CompanyBidParsedInfoPatchJob {
             String uuid = String.valueOf(resultMap.get("bid_uuid"));
             String title = String.valueOf(resultMap.get("bid_title"));
             String content = String.valueOf(resultMap.get("bid_content"));
-            // owner
+            // owner 招标方
             String sourceOwner = String.valueOf(columnMap.get("purchaser"));
-            String owner = service.newJson(sourceOwner);
-            // agent
+            List<Map<String, Object>> owner = service.newJson(sourceOwner);
+            // agent 代理方
             String sourceAgent = String.valueOf(columnMap.get("proxy_unit"));
-            String agent = service.newAgentJson(sourceAgent);
-            // candidate
-            // winner
+            List<Map<String, Object>> agent = service.newAgentJson(sourceAgent);
+            // tenderer 投标方
+            // ...
+            // candidate 候选方
+            String sourceCandidate = String.valueOf(columnMap.get("bid_winner_info_json"));
+            List<Map<String, Object>> candidate = service.newJson(sourceCandidate);
+            // winner 中标方
             String sourceWinner = String.valueOf(columnMap.get("bid_winner"));
-            String winner = service.newJson(sourceWinner);
-            // winner amt
+            List<Map<String, Object>> winner = service.newJson(sourceWinner);
+            // winner amt 中标金额
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
-            String winnerAmt = service.newJson(sourceWinnerAmt);
-            // put
-            resultMap.put("owner", owner);
-            resultMap.put("agent", agent);
-            resultMap.put("candidate", "[]");
-            resultMap.put("winner", winner);
-            resultMap.put("winner_amt", winnerAmt);
-            resultMap.put("item_no", "?");
+            List<Map<String, Object>> winnerAmt = service.newJson(sourceWinnerAmt);
+            // put & sink
+            resultMap.put("owner", JsonUtils.toString(service.deduplicateGidAndName(owner)));
+            resultMap.put("agent", JsonUtils.toString(service.deduplicateGidAndName(agent)));
+            resultMap.put("tenderer", "[]");
+            resultMap.put("candidate", JsonUtils.toString(service.deduplicateGidAndName(candidate)));
+            resultMap.put("winner", JsonUtils.toString(winner));
+            resultMap.put("winner_amt", JsonUtils.toString(winnerAmt));
+            resultMap.put("item_no", "");
             resultMap.put("bid_deadline", null);
             resultMap.put("bid_download_deadline", null);
             service.sink(resultMap);
