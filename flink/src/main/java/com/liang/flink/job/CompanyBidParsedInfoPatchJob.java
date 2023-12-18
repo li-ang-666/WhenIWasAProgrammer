@@ -96,9 +96,9 @@ public class CompanyBidParsedInfoPatchJob {
                 if (map.containsValue("item_no")) {
                     resultMap.put("item_no", map.getOrDefault("clean_word", ""));
                 } else if (map.containsValue("bid_deadline")) {
-                    resultMap.put("item_no", map.getOrDefault("clean_word", null));
+                    resultMap.put("bid_deadline", map.getOrDefault("clean_word", null));
                 } else if (map.containsValue("bid_download_deadline")) {
-                    resultMap.put("item_no", map.getOrDefault("clean_word", null));
+                    resultMap.put("bid_download_deadline", map.getOrDefault("clean_word", null));
                 }
             }
             service.sink(resultMap);

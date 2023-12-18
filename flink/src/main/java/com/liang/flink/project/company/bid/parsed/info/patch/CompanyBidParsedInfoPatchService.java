@@ -91,7 +91,20 @@ public class CompanyBidParsedInfoPatchService {
             Map<String, Object> resultJson = JsonUtils.parseJsonObj(response.body());
             maps.addAll((List<Map<String, Object>>) (resultJson.getOrDefault("entities", new ArrayList<>())));
         } catch (Exception e) {
-            log.error("uuid: {}", uuid, e);
+            log.warn("uuid: {}", uuid, e);
+            try (HttpResponse response = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
+                    .form("text", content)
+                    .form("bid_uuid", uuid)
+                    .timeout(1000 * 60)
+                    .setConnectionTimeout(1000 * 60)
+                    .setReadTimeout(1000 * 60)
+                    .execute()) {
+                Map<String, Object> resultJson = JsonUtils.parseJsonObj(response.body());
+                maps.addAll((List<Map<String, Object>>) (resultJson.getOrDefault("entities", new ArrayList<>())));
+            } catch (Exception ee) {
+                log.error("uuid: {}", uuid, ee);
+
+            }
         }
         return maps;
     }
