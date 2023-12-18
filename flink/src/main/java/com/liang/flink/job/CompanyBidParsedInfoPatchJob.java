@@ -52,7 +52,10 @@ public class CompanyBidParsedInfoPatchJob {
             String content = service.getContent(mainId);
             String uuid = String.valueOf(resultMap.get("bid_uuid"));
             List<Map<String, Object>> postResult = service.post(content, uuid);
-            // newOwner 招标方
+            if (log.isDebugEnabled()) {
+                log.debug("api return: {}", JsonUtils.toString(postResult));
+            }
+            // owner 招标方
             String sourceOwner = String.valueOf(columnMap.get("purchaser"));
             List<Map<String, Object>> newOwner = service.newJson(sourceOwner);
             // agent 代理方
@@ -68,7 +71,7 @@ public class CompanyBidParsedInfoPatchJob {
                 String sourceAgent = String.valueOf(columnMap.get("proxy_unit"));
                 newAgent = service.newAgentJson(sourceAgent);
             }
-            //投标方
+            // tenderer 投标方
             List<Map<String, Object>> newTenderer = postResult.stream()
                     .filter(e -> e.containsValue("tenderer_unit") && e.containsKey("company_gid") && e.containsKey("clean_word"))
                     .map(e -> new HashMap<String, Object>() {{
@@ -76,13 +79,13 @@ public class CompanyBidParsedInfoPatchJob {
                         put("name", e.get("clean_word"));
                     }})
                     .collect(Collectors.toList());
-            // newCandidate 候选方
+            // candidate 候选方
             String sourceCandidate = String.valueOf(columnMap.get("bid_winner_info_json"));
             List<Map<String, Object>> newCandidate = service.newJson(sourceCandidate);
-            // newWinner 中标方
+            // winner 中标方
             String sourceWinner = String.valueOf(columnMap.get("bid_winner"));
             List<Map<String, Object>> newWinner = service.newJson(sourceWinner);
-            // newWinner amt 中标金额
+            // winner amt 中标金额
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
             List<Map<String, Object>> newWinnerAmt = service.newJson(sourceWinnerAmt);
             // put & sink

@@ -88,22 +88,25 @@ public class CompanyBidParsedInfoPatchService {
                 .setConnectionTimeout(1000 * 60)
                 .setReadTimeout(1000 * 60)
                 .execute()) {
-            Map<String, Object> resultJson = JsonUtils.parseJsonObj(response.body());
-            maps.addAll((List<Map<String, Object>>) (resultJson.getOrDefault("entities", new ArrayList<>())));
-        } catch (Exception e) {
-            log.warn("uuid: {}", uuid, e);
+            Map<String, Object> json = JsonUtils.parseJsonObj(response.body());
+            Map<String, Object> result = (Map<String, Object>) json.getOrDefault("result", new HashMap<String, Object>());
+            List<Map<String, Object>> entities = (List<Map<String, Object>>) result.getOrDefault("entities", new ArrayList<Map<String, Object>>());
+            maps.addAll(entities);
+        } catch (Exception ignore) {
+            log.warn("uuid: {}", uuid);
             try (HttpResponse response = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
                     .form("text", content)
                     .form("bid_uuid", uuid)
-                    .timeout(1000 * 60)
-                    .setConnectionTimeout(1000 * 60)
-                    .setReadTimeout(1000 * 60)
+                    .timeout(1000 * 60 * 3)
+                    .setConnectionTimeout(1000 * 60 * 3)
+                    .setReadTimeout(1000 * 60 * 3)
                     .execute()) {
-                Map<String, Object> resultJson = JsonUtils.parseJsonObj(response.body());
-                maps.addAll((List<Map<String, Object>>) (resultJson.getOrDefault("entities", new ArrayList<>())));
-            } catch (Exception ee) {
-                log.error("uuid: {}", uuid, ee);
-
+                Map<String, Object> json = JsonUtils.parseJsonObj(response.body());
+                Map<String, Object> result = (Map<String, Object>) json.getOrDefault("result", new HashMap<String, Object>());
+                List<Map<String, Object>> entities = (List<Map<String, Object>>) result.getOrDefault("entities", new ArrayList<Map<String, Object>>());
+                maps.addAll(entities);
+            } catch (Exception e) {
+                log.error("uuid: {}", uuid, e);
             }
         }
         return maps;
