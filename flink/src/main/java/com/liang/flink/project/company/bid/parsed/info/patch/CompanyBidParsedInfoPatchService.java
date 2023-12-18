@@ -1,10 +1,14 @@
 package com.liang.flink.project.company.bid.parsed.info.patch;
 
+import cn.hutool.http.HttpUtil;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.TycUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
+@Slf4j
+@SuppressWarnings("unchecked")
 public class CompanyBidParsedInfoPatchService {
     private final static Set<String> KEYS = new HashSet<>();
 
@@ -16,7 +20,11 @@ public class CompanyBidParsedInfoPatchService {
 
     private final CompanyBidParsedInfoPatchDao dao = new CompanyBidParsedInfoPatchDao();
 
-    @SuppressWarnings("unchecked")
+    public String getContent(String mainId) {
+        return dao.queryContent(mainId);
+    }
+
+
     public List<Map<String, Object>> newJson(Object oldJson) {
         List<Map<String, Object>> maps = new ArrayList<>();
         String oldJsonString = String.valueOf(oldJson);
@@ -68,5 +76,21 @@ public class CompanyBidParsedInfoPatchService {
 
     public void sink(Map<String, Object> columnMap) {
         dao.sink(columnMap);
+    }
+
+    public List<Map<String, Object>> post(String content, String uuid) {
+        List<Map<String, Object>> maps = new ArrayList<>();
+        try {
+            String result = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
+                    .form("text", content)
+                    .form("bid_uuid", uuid)
+                    .execute()
+                    .body();
+            Map<String, Object> resultJson = JsonUtils.parseJsonObj(result);
+            maps.addAll((List<Map<String, Object>>) (resultJson.get("entities")));
+        } catch (Exception ignore) {
+            log.error("uuid: {}", uuid);
+        }
+        return maps;
     }
 }

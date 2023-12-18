@@ -11,8 +11,19 @@ import java.util.Map;
 public class CompanyBidParsedInfoPatchDao {
     private final static String SINK_TABLE = "company_bid_parsed_info_patch";
 
+    private final JdbcTemplate source = new JdbcTemplate("104.company_bid");
     private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
     private final JdbcTemplate sink = new JdbcTemplate("427.test");
+
+    public String queryContent(String mainId) {
+        String sql = new SQL().SELECT("content")
+                .FROM("company_bid")
+                .WHERE("id = " + SqlUtils.formatValue(mainId))
+                .toString();
+        String res = source.queryForObject(sql, rs -> rs.getString(1));
+        return res != null ? res : "";
+    }
+
 
     public String getCompanyIdByName(Object companyName) {
         if (!TycUtils.isValidName(companyName)) {

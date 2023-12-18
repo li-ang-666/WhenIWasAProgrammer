@@ -18,6 +18,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @LocalConfigFile("company-bid-parsed-info-patch.yml")
 public class CompanyBidParsedInfoPatchJob {
@@ -47,36 +48,59 @@ public class CompanyBidParsedInfoPatchJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             HashMap<String, Object> resultMap = new HashMap<>(columnMap);
             // 请求接口
+            String mainId = String.valueOf(resultMap.get("main_id"));
+            String content = service.getContent(mainId);
             String uuid = String.valueOf(resultMap.get("bid_uuid"));
-            String title = String.valueOf(resultMap.get("bid_title"));
-            String content = String.valueOf(resultMap.get("bid_content"));
-            // owner 招标方
+            List<Map<String, Object>> postResult = service.post(content, uuid);
+            // newOwner 招标方
             String sourceOwner = String.valueOf(columnMap.get("purchaser"));
-            List<Map<String, Object>> owner = service.newJson(sourceOwner);
+            List<Map<String, Object>> newOwner = service.newJson(sourceOwner);
             // agent 代理方
-            String sourceAgent = String.valueOf(columnMap.get("proxy_unit"));
-            List<Map<String, Object>> agent = service.newAgentJson(sourceAgent);
-            // tenderer 投标方
-            // ...
-            // candidate 候选方
+            List<Map<String, Object>> newAgent;
+            newAgent = postResult.stream()
+                    .filter(e -> e.containsValue("proxy_unit") && e.containsKey("company_gid") && e.containsKey("clean_word"))
+                    .map(e -> new HashMap<String, Object>() {{
+                        put("gid", e.get("company_gid"));
+                        put("name", e.get("clean_word"));
+                    }})
+                    .collect(Collectors.toList());
+            if (newAgent.isEmpty()) {
+                String sourceAgent = String.valueOf(columnMap.get("proxy_unit"));
+                newAgent = service.newAgentJson(sourceAgent);
+            }
+            //投标方
+            List<Map<String, Object>> newTenderer = postResult.stream()
+                    .filter(e -> e.containsValue("tenderer_unit") && e.containsKey("company_gid") && e.containsKey("clean_word"))
+                    .map(e -> new HashMap<String, Object>() {{
+                        put("gid", e.get("company_gid"));
+                        put("name", e.get("clean_word"));
+                    }})
+                    .collect(Collectors.toList());
+            // newCandidate 候选方
             String sourceCandidate = String.valueOf(columnMap.get("bid_winner_info_json"));
-            List<Map<String, Object>> candidate = service.newJson(sourceCandidate);
-            // winner 中标方
+            List<Map<String, Object>> newCandidate = service.newJson(sourceCandidate);
+            // newWinner 中标方
             String sourceWinner = String.valueOf(columnMap.get("bid_winner"));
-            List<Map<String, Object>> winner = service.newJson(sourceWinner);
-            // winner amt 中标金额
+            List<Map<String, Object>> newWinner = service.newJson(sourceWinner);
+            // newWinner amt 中标金额
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
-            List<Map<String, Object>> winnerAmt = service.newJson(sourceWinnerAmt);
+            List<Map<String, Object>> newWinnerAmt = service.newJson(sourceWinnerAmt);
             // put & sink
-            resultMap.put("owner", JsonUtils.toString(service.deduplicateGidAndName(owner)));
-            resultMap.put("agent", JsonUtils.toString(service.deduplicateGidAndName(agent)));
-            resultMap.put("tenderer", "[]");
-            resultMap.put("candidate", JsonUtils.toString(service.deduplicateGidAndName(candidate)));
-            resultMap.put("winner", JsonUtils.toString(winner));
-            resultMap.put("winner_amt", JsonUtils.toString(winnerAmt));
-            resultMap.put("item_no", "");
-            resultMap.put("bid_deadline", null);
-            resultMap.put("bid_download_deadline", null);
+            resultMap.put("newOwner", JsonUtils.toString(service.deduplicateGidAndName(newOwner)));
+            resultMap.put("agent", JsonUtils.toString(service.deduplicateGidAndName(newAgent)));
+            resultMap.put("tenderer", JsonUtils.toString(service.deduplicateGidAndName(newTenderer)));
+            resultMap.put("newCandidate", JsonUtils.toString(service.deduplicateGidAndName(newCandidate)));
+            resultMap.put("newWinner", JsonUtils.toString(newWinner));
+            resultMap.put("winner_amt", JsonUtils.toString(newWinnerAmt));
+            for (Map<String, Object> map : postResult) {
+                if (map.containsValue("item_no")) {
+                    resultMap.put("item_no", map.getOrDefault("clean_word", ""));
+                } else if (map.containsValue("bid_deadline")) {
+                    resultMap.put("item_no", map.getOrDefault("clean_word", null));
+                } else if (map.containsValue("bid_download_deadline")) {
+                    resultMap.put("item_no", map.getOrDefault("clean_word", null));
+                }
+            }
             service.sink(resultMap);
         }
     }

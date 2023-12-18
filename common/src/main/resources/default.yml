@@ -2,6 +2,7 @@ dbConfigs:
   008.bigdata_online: { host: "140f5010b84c4d9abfc4d13bc597a2ebin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online" }
   040.human_base: { host: "36c607bfd9174d4e81512aa73375f0fain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "human_base" }
   041.listed_base: { host: "22d1c920ce434c35acf33e1fcbc7256din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "listed_base" }
+  104.company_bid: { host: "65c230d8272f4d8287ea36088ecf23adin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_bid" }
   108.data_judicial_risk: { host: "43283515096042b8bbd9704a4fdbbcd4in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_judicial_risk" }
   110.data_listed_company: { host: "7d89cf1613024a3d9b0511a21743806ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company" }
   111.data_experience_situation: { host: "886a213ba5de451eb4add2e0d1fb2ef6in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_experience_situation" }
