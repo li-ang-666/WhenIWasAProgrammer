@@ -1,5 +1,6 @@
 package com.liang.flink.project.company.bid.parsed.info.patch;
 
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.TycUtils;
@@ -80,15 +81,13 @@ public class CompanyBidParsedInfoPatchService {
 
     public List<Map<String, Object>> post(String content, String uuid) {
         List<Map<String, Object>> maps = new ArrayList<>();
-        try {
-            String result = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
-                    .form("text", content)
-                    .form("bid_uuid", uuid)
-                    .timeout(1000 * 60)
-                    .execute()
-                    .body();
-            Map<String, Object> resultJson = JsonUtils.parseJsonObj(result);
-            maps.addAll((List<Map<String, Object>>) (resultJson.get("entities")));
+        try (HttpResponse response = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
+                .form("text", content)
+                .form("bid_uuid", uuid)
+                .timeout(1000 * 60)
+                .execute()) {
+            Map<String, Object> resultJson = JsonUtils.parseJsonObj(response.body());
+            maps.addAll((List<Map<String, Object>>) (resultJson.getOrDefault("entities", new ArrayList<>())));
         } catch (Exception e) {
             log.error("uuid: {}", uuid, e);
         }
