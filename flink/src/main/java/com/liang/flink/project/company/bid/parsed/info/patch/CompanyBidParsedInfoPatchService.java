@@ -5,18 +5,32 @@ import cn.hutool.http.HttpUtil;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.flink.api.java.tuple.Tuple2;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
 @SuppressWarnings("unchecked")
 public class CompanyBidParsedInfoPatchService {
     private final static Set<String> KEYS = new HashSet<>();
+    private final static Map<String, String> CODE = new HashMap<>();
 
     static {
-        KEYS.add("gid");
-        KEYS.add("name");
-        KEYS.add("amount");
+        try {
+            // keys
+            KEYS.add("gid");
+            KEYS.add("name");
+            KEYS.add("amount");
+            // code
+            String json = IOUtils.toString(
+                    Objects.requireNonNull(JsonUtils.class.getClassLoader().getResourceAsStream("code.json")),
+                    StandardCharsets.UTF_8);
+            Map<String, Object> map = JsonUtils.parseJsonObj(json);
+            map.forEach((k, v) -> CODE.put(k, (String) v));
+        } catch (Exception ignore) {
+        }
     }
 
     private final CompanyBidParsedInfoPatchDao dao = new CompanyBidParsedInfoPatchDao();
@@ -110,5 +124,28 @@ public class CompanyBidParsedInfoPatchService {
             }
         }
         return new ArrayList<>();
+    }
+
+    public Tuple2<String, String> formatCode(String province, String city) {
+        boolean provinceMatch = province.matches("\\d{6}");
+        boolean cityMatch = city.matches("\\d{6}");
+        // 如果省、市都没数据
+        if (!provinceMatch && !cityMatch) {
+            return Tuple2.of("", "");
+        }
+        // 如果省有数据, 市没数据
+        else if (provinceMatch && !cityMatch) {
+            return Tuple2.of(CODE.getOrDefault(province, ""), "");
+        }
+        // 如果省没数据, 市有数据
+        else if (!provinceMatch) {
+            return Tuple2.of(CODE.getOrDefault(city.substring(0, 2) + "0000", ""), CODE.getOrDefault(city, ""));
+        }
+        // 如果都有数据
+        else {
+            return province.substring(0, 2).equals(city.substring(0, 2)) ?
+                    Tuple2.of(CODE.getOrDefault(province, ""), CODE.getOrDefault(city, "")) :
+                    Tuple2.of("", "");
+        }
     }
 }

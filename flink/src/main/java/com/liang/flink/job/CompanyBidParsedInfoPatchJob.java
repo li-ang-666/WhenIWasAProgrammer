@@ -10,6 +10,7 @@ import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.project.company.bid.parsed.info.patch.CompanyBidParsedInfoPatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -105,6 +106,9 @@ public class CompanyBidParsedInfoPatchJob {
                     resultMap.put("bid_download_deadline", map.getOrDefault("clean_word", null));
                 }
             }
+            Tuple2<String, String> tp2 = service.formatCode(String.valueOf(columnMap.get("bid_province")), String.valueOf(columnMap.get("bid_city")));
+            resultMap.put("province", tp2.f0);
+            resultMap.put("city", tp2.f1);
             service.sink(resultMap);
         }
     }
