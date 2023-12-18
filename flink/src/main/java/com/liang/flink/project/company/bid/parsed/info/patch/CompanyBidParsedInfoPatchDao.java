@@ -13,7 +13,7 @@ public class CompanyBidParsedInfoPatchDao {
 
     private final JdbcTemplate source = new JdbcTemplate("104.data_bid");
     private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
-    private final JdbcTemplate sink = new JdbcTemplate("427.test");
+    private final JdbcTemplate sink = new JdbcTemplate("448.operating_info");
 
     public String queryContent(String mainId) {
         String sql = new SQL().SELECT("content")

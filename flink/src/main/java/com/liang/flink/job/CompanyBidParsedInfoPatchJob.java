@@ -89,7 +89,7 @@ public class CompanyBidParsedInfoPatchJob {
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
             List<Map<String, Object>> newWinnerAmt = service.newJson(sourceWinnerAmt);
             // put & sink
-            resultMap.put("owner", JsonUtils.toString(service.deduplicateGidAndName(newOwner)));
+            resultMap.put("party_a", JsonUtils.toString(service.deduplicateGidAndName(newOwner)));
             resultMap.put("agent", JsonUtils.toString(service.deduplicateGidAndName(newAgent)));
             resultMap.put("tenderer", JsonUtils.toString(service.deduplicateGidAndName(newTenderer)));
             resultMap.put("candidate", JsonUtils.toString(service.deduplicateGidAndName(newCandidate)));
