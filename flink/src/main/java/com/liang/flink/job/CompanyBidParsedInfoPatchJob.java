@@ -53,6 +53,9 @@ public class CompanyBidParsedInfoPatchJob {
             String uuid = String.valueOf(resultMap.get("bid_uuid"));
             List<Map<String, Object>> queryResult = service.query(uuid);
             List<Map<String, Object>> result = !queryResult.isEmpty() ? queryResult : service.post(content, uuid);
+            if (log.isDebugEnabled()) {
+                log.debug("AI return: {} -> {}", uuid, JsonUtils.toString(result));
+            }
             // owner 招标方
             String sourceOwner = String.valueOf(columnMap.get("purchaser"));
             List<Map<String, Object>> newOwner = service.newJson(sourceOwner);
