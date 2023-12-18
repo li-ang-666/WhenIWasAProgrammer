@@ -86,11 +86,11 @@ public class CompanyBidParsedInfoPatchJob {
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
             List<Map<String, Object>> newWinnerAmt = service.newJson(sourceWinnerAmt);
             // put & sink
-            resultMap.put("newOwner", JsonUtils.toString(service.deduplicateGidAndName(newOwner)));
+            resultMap.put("owner", JsonUtils.toString(service.deduplicateGidAndName(newOwner)));
             resultMap.put("agent", JsonUtils.toString(service.deduplicateGidAndName(newAgent)));
             resultMap.put("tenderer", JsonUtils.toString(service.deduplicateGidAndName(newTenderer)));
-            resultMap.put("newCandidate", JsonUtils.toString(service.deduplicateGidAndName(newCandidate)));
-            resultMap.put("newWinner", JsonUtils.toString(newWinner));
+            resultMap.put("candidate", JsonUtils.toString(service.deduplicateGidAndName(newCandidate)));
+            resultMap.put("winner", JsonUtils.toString(newWinner));
             resultMap.put("winner_amt", JsonUtils.toString(newWinnerAmt));
             for (Map<String, Object> map : postResult) {
                 if (map.containsValue("item_no")) {

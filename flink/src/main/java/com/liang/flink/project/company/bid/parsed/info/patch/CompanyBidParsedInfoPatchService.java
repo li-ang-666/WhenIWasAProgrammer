@@ -84,12 +84,13 @@ public class CompanyBidParsedInfoPatchService {
             String result = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
                     .form("text", content)
                     .form("bid_uuid", uuid)
+                    .timeout(1000 * 60)
                     .execute()
                     .body();
             Map<String, Object> resultJson = JsonUtils.parseJsonObj(result);
             maps.addAll((List<Map<String, Object>>) (resultJson.get("entities")));
-        } catch (Exception ignore) {
-            log.error("uuid: {}", uuid);
+        } catch (Exception e) {
+            log.error("uuid: {}", uuid, e);
         }
         return maps;
     }
