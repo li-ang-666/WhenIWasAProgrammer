@@ -85,6 +85,8 @@ public class CompanyBidParsedInfoPatchService {
                 .form("text", content)
                 .form("bid_uuid", uuid)
                 .timeout(1000 * 60)
+                .setConnectionTimeout(1000 * 60)
+                .setReadTimeout(1000 * 60)
                 .execute()) {
             Map<String, Object> resultJson = JsonUtils.parseJsonObj(response.body());
             maps.addAll((List<Map<String, Object>>) (resultJson.getOrDefault("entities", new ArrayList<>())));
