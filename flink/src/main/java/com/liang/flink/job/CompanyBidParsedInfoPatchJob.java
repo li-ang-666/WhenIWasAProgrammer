@@ -106,7 +106,9 @@ public class CompanyBidParsedInfoPatchJob {
                     resultMap.put("bid_download_deadline", map.getOrDefault("clean_word", null));
                 }
             }
-            Tuple2<String, String> tp2 = service.formatCode(String.valueOf(columnMap.get("bid_province")), String.valueOf(columnMap.get("bid_city")));
+            Tuple2<String, String> tp2 = service.formatCode(
+                    String.valueOf(columnMap.get("bid_province")),
+                    String.valueOf(columnMap.get("bid_city")));
             resultMap.put("province", tp2.f0);
             resultMap.put("city", tp2.f1);
             service.sink(resultMap);
