@@ -2,10 +2,13 @@ package com.liang.flink.project.company.bid.parsed.info.patch;
 
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class CompanyBidParsedInfoPatchDao {
@@ -14,6 +17,7 @@ public class CompanyBidParsedInfoPatchDao {
     private final JdbcTemplate source = new JdbcTemplate("104.data_bid");
     private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
     private final JdbcTemplate sink = new JdbcTemplate("448.operating_info");
+    private final JdbcTemplate gauss = new JdbcTemplate("gauss");
 
     public String queryContent(String mainId) {
         String sql = new SQL().SELECT("content")
@@ -43,5 +47,23 @@ public class CompanyBidParsedInfoPatchDao {
                 .INTO_VALUES(insert.f1)
                 .toString();
         sink.update(sql);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> query(String uuid) {
+        List<Map<String, Object>> maps = new ArrayList<>();
+        String sql = new SQL().SELECT("entities")
+                .FROM("bid")
+                .WHERE("uuid = " + SqlUtils.formatValue(uuid))
+                .toString();
+        String res = gauss.queryForObject(sql, rs -> rs.getString(1));
+        if (res == null) {
+            return maps;
+        }
+        List<Object> objects = JsonUtils.parseJsonArr(res);
+        for (Object object : objects) {
+            maps.add((Map<String, Object>) object);
+        }
+        return maps;
     }
 }

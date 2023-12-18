@@ -78,6 +78,10 @@ public class CompanyBidParsedInfoPatchService {
         dao.sink(columnMap);
     }
 
+    public List<Map<String, Object>> query(String uuid) {
+        return dao.query(uuid);
+    }
+
     public List<Map<String, Object>> post(String content, String uuid) {
         try (HttpResponse response = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
                 .form("text", content)

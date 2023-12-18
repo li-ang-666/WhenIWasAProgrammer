@@ -47,20 +47,18 @@ public class CompanyBidParsedInfoPatchJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             HashMap<String, Object> resultMap = new HashMap<>(columnMap);
-            // 请求接口
+            // 请求AI
             String mainId = String.valueOf(resultMap.get("main_id"));
             String content = service.getContent(mainId);
             String uuid = String.valueOf(resultMap.get("bid_uuid"));
-            List<Map<String, Object>> postResult = service.post(content, uuid);
-            if (log.isDebugEnabled()) {
-                log.debug("api return: {}", JsonUtils.toString(postResult));
-            }
+            List<Map<String, Object>> queryResult = service.query(uuid);
+            List<Map<String, Object>> result = !queryResult.isEmpty() ? queryResult : service.post(content, uuid);
             // owner 招标方
             String sourceOwner = String.valueOf(columnMap.get("purchaser"));
             List<Map<String, Object>> newOwner = service.newJson(sourceOwner);
             // agent 代理方
             List<Map<String, Object>> newAgent;
-            newAgent = postResult.stream()
+            newAgent = result.stream()
                     .filter(e -> e.containsValue("proxy_unit") && e.containsKey("company_gid") && e.containsKey("clean_word"))
                     .map(e -> new HashMap<String, Object>() {{
                         put("gid", e.get("company_gid"));
@@ -72,7 +70,7 @@ public class CompanyBidParsedInfoPatchJob {
                 newAgent = service.newAgentJson(sourceAgent);
             }
             // tenderer 投标方
-            List<Map<String, Object>> newTenderer = postResult.stream()
+            List<Map<String, Object>> newTenderer = result.stream()
                     .filter(e -> e.containsValue("tenderer_unit") && e.containsKey("company_gid") && e.containsKey("clean_word"))
                     .map(e -> new HashMap<String, Object>() {{
                         put("gid", e.get("company_gid"));
@@ -95,7 +93,7 @@ public class CompanyBidParsedInfoPatchJob {
             resultMap.put("candidate", JsonUtils.toString(service.deduplicateGidAndName(newCandidate)));
             resultMap.put("winner", JsonUtils.toString(newWinner));
             resultMap.put("winner_amt", JsonUtils.toString(newWinnerAmt));
-            for (Map<String, Object> map : postResult) {
+            for (Map<String, Object> map : result) {
                 if (map.containsValue("item_no")) {
                     resultMap.put("item_no", map.getOrDefault("clean_word", ""));
                 } else if (map.containsValue("bid_deadline")) {
