@@ -24,7 +24,6 @@ public class CompanyBidParsedInfoPatchDao {
         return res != null ? res : "";
     }
 
-
     public String getCompanyIdByName(Object companyName) {
         if (!TycUtils.isValidName(companyName)) {
             return "";

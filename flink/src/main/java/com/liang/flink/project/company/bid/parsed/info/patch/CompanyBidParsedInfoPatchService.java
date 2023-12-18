@@ -25,7 +25,6 @@ public class CompanyBidParsedInfoPatchService {
         return dao.queryContent(mainId);
     }
 
-
     public List<Map<String, Object>> newJson(Object oldJson) {
         List<Map<String, Object>> maps = new ArrayList<>();
         String oldJsonString = String.valueOf(oldJson);
@@ -80,7 +79,6 @@ public class CompanyBidParsedInfoPatchService {
     }
 
     public List<Map<String, Object>> post(String content, String uuid) {
-        List<Map<String, Object>> maps = new ArrayList<>();
         try (HttpResponse response = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
                 .form("text", content)
                 .form("bid_uuid", uuid)
@@ -90,8 +88,7 @@ public class CompanyBidParsedInfoPatchService {
                 .execute()) {
             Map<String, Object> json = JsonUtils.parseJsonObj(response.body());
             Map<String, Object> result = (Map<String, Object>) json.getOrDefault("result", new HashMap<String, Object>());
-            List<Map<String, Object>> entities = (List<Map<String, Object>>) result.getOrDefault("entities", new ArrayList<Map<String, Object>>());
-            maps.addAll(entities);
+            return (List<Map<String, Object>>) result.getOrDefault("entities", new ArrayList<Map<String, Object>>());
         } catch (Exception ignore) {
             log.warn("uuid: {}", uuid);
             try (HttpResponse response = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
@@ -103,12 +100,11 @@ public class CompanyBidParsedInfoPatchService {
                     .execute()) {
                 Map<String, Object> json = JsonUtils.parseJsonObj(response.body());
                 Map<String, Object> result = (Map<String, Object>) json.getOrDefault("result", new HashMap<String, Object>());
-                List<Map<String, Object>> entities = (List<Map<String, Object>>) result.getOrDefault("entities", new ArrayList<Map<String, Object>>());
-                maps.addAll(entities);
+                return (List<Map<String, Object>>) result.getOrDefault("entities", new ArrayList<Map<String, Object>>());
             } catch (Exception e) {
                 log.error("uuid: {}", uuid, e);
             }
         }
-        return maps;
+        return new ArrayList<>();
     }
 }
