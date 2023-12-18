@@ -28,7 +28,7 @@ public class CompanyBidParsedInfoPatchJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream.rebalance()
-                .addSink(new CompanyBidParsedInfoPatchSink(config)).setParallelism(config.getFlinkConfig().getOtherParallel());
+                .addSink(new CompanyBidParsedInfoPatchSink(config)).name("CompanyBidParsedInfoPatchSink").setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("CompanyBidParsedInfoPatchJob");
     }
 
