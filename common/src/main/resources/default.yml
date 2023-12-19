@@ -1,43 +1,43 @@
-dbConfigs:
-  008.bigdata_online: { host: "140f5010b84c4d9abfc4d13bc597a2ebin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bigdata_online" }
-  040.human_base: { host: "36c607bfd9174d4e81512aa73375f0fain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "human_base" }
-  041.listed_base: { host: "22d1c920ce434c35acf33e1fcbc7256din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "listed_base" }
-  104.data_bid: { host: "65c230d8272f4d8287ea36088ecf23adin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_bid" }
-  108.data_judicial_risk: { host: "43283515096042b8bbd9704a4fdbbcd4in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_judicial_risk" }
-  110.data_listed_company: { host: "7d89cf1613024a3d9b0511a21743806ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_listed_company" }
-  111.data_experience_situation: { host: "886a213ba5de451eb4add2e0d1fb2ef6in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_experience_situation" }
-  116.prism: { host: "0bb0147d82fe49e6953138da0eea61dbin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
-  150.data_index: { host: "be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "data_index" }
-  157.prism: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
-  157.prism1: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism1" }
-  157.prism_boss: { host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_boss" }
-  157.listed_base: { host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "listed_base" }
-  225.prism_shareholder_path: { host: "45be16af451d41a5aa2d16c15ee00070in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path" }
-  427.test: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "test",user: "jdtest_d_data_ddl",password: "dwjIFAmM39Y2O98cKu" }
-  430.graph_data: { host: "1ae09b20e4504ae2a39b6d209b49f269in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "graph_data" }
-  435.company_base: { host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
-  436.judicial_risk: { host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "judicial_risk" }
-  446.operating_risk: { host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_risk" }
-  448.operating_info: { host: "028115521abd4850be5aa69f7c0ac035in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "operating_info" }
-  457.prism_shareholder_path: { host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism_shareholder_path" }
-  463.bdp_equity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "bdp_equity" }
-  464.prism: { host: "5673658675c84a3ba5ae7577850f1ed2in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "prism" }
-  465.company_base: { host: "c8ce5ba3cd8b49ca8f57c945ef51d45cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "company_base" }
-  469.entity_operation_development: { host: "01ddd99760f64c8cbe2d396ebc64345ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com",database: "entity_operation_development" }
-  localhost: { host: "127.0.0.1",database: "test",user: "root",password: "Moka20190520" }
-  doris: { host: "10.99.202.70",database: "test_db",user: "dba",password: "Tyc@1234" ,port: 6060 }
-  gauss: { host: "10.99.131.246",database: "company_base" }
+dbConfigs: 
+  008.bigdata_online: {host: "140f5010b84c4d9abfc4d13bc597a2ebin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "bigdata_online"}
+  040.human_base: {host: "36c607bfd9174d4e81512aa73375f0fain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "human_base"}
+  041.listed_base: {host: "22d1c920ce434c35acf33e1fcbc7256din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "listed_base"}
+  104.data_bid: {host: "65c230d8272f4d8287ea36088ecf23adin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "data_bid"}
+  108.data_judicial_risk: {host: "43283515096042b8bbd9704a4fdbbcd4in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "data_judicial_risk"}
+  110.data_listed_company: {host: "7d89cf1613024a3d9b0511a21743806ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "data_listed_company"}
+  111.data_experience_situation: {host: "886a213ba5de451eb4add2e0d1fb2ef6in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "data_experience_situation"}
+  116.prism: {host: "0bb0147d82fe49e6953138da0eea61dbin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism"}
+  150.data_index: {host: "be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "data_index"}
+  157.prism: {host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism"}
+  157.prism1: {host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism1"}
+  157.prism_boss: {host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism_boss"}
+  157.listed_base: {host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "listed_base"}
+  225.prism_shareholder_path: {host: "45be16af451d41a5aa2d16c15ee00070in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism_shareholder_path"}
+  427.test: {host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "test", user: "jdtest_d_data_ddl", password: "dwjIFAmM39Y2O98cKu"}
+  430.graph_data: {host: "1ae09b20e4504ae2a39b6d209b49f269in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "graph_data"}
+  435.company_base: {host: "ee59dd05fc0f4bb9a2497c8d9146a53cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "company_base"}
+  436.judicial_risk: {host: "393989a97ec2436985f5b8f689e6fe95in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "judicial_risk"}
+  446.operating_risk: {host: "b27deafffd454cb7b4c9be3dcd589beein01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "operating_risk"}
+  448.operating_info: {host: "028115521abd4850be5aa69f7c0ac035in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "operating_info"}
+  457.prism_shareholder_path: {host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism_shareholder_path"}
+  463.bdp_equity: {host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "bdp_equity"}
+  464.prism: {host: "5673658675c84a3ba5ae7577850f1ed2in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism"}
+  465.company_base: {host: "c8ce5ba3cd8b49ca8f57c945ef51d45cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "company_base"}
+  469.entity_operation_development: {host: "01ddd99760f64c8cbe2d396ebc64345ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "entity_operation_development"}
+  localhost: {host: "127.0.0.1", database: "test", user: "root", password: "Moka20190520"}
+  doris: {host: "10.99.202.70", database: "test_db", user: "dba", password: "Tyc@1234", port: 6060}
+  gauss: {host: "10.99.131.246", database: "company_base"}
 
-redisConfigs:
-  localhost: { host: "127.0.0.1",password: ~ }
-  metadata: { host: "10.99.205.87",password: "123456" }
+redisConfigs: 
+  localhost: {host: "127.0.0.1", password: ~}
+  metadata: {host: "10.99.205.87", password: "123456"}
 
-hbaseDbConfigs:
+hbaseDbConfigs: 
   hbaseSink:
-    zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
+    zookeeperQuorum: "10.99.192.246: 2181, 10.99.202.175: 2181, 10.99.204.154: 2181"
 
-dorisDbConfigs:
+dorisDbConfigs: 
   dorisSink:
-    fe: [ "10.99.197.34:8030","10.99.202.71:8030","10.99.203.88:8030" ]
+    fe: ["10.99.197.34: 8030", "10.99.202.71: 8030", "10.99.203.88: 8030"]
     user: "dba"
     password: "Tyc@1234"
