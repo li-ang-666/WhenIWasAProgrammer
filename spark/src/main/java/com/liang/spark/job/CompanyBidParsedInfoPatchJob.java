@@ -25,10 +25,10 @@ public class CompanyBidParsedInfoPatchJob {
         Config config = ConfigUtils.getConfig();
         String sql = new SQL()
                 .SELECT("bid_uuid uuid")
-                .SELECT("get_json_object(bid_json, $.result.entities) entities")
+                .SELECT("get_json_object(bid_json, '$.result.entities') entities")
                 .FROM("test.algorithm_origin_bid_html_parsed_entity_v1")
-                .WHERE("get_json_object(bid_json, $.result.entities) is not null")
-                .WHERE("uuid is not null and uuid <> ''")
+                .WHERE("get_json_object(bid_json, '$.result.entities') is not null")
+                .WHERE("bid_uuid is not null and uuid <> ''")
                 .toString();
         spark.sql(sql)
                 .orderBy(new Column("uuid"))
