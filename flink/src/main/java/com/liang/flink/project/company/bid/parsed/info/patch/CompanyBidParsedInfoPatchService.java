@@ -148,4 +148,8 @@ public class CompanyBidParsedInfoPatchService {
                     Tuple2.of("", "");
         }
     }
+
+    public void delete(String id) {
+        dao.delete(id);
+    }
 }

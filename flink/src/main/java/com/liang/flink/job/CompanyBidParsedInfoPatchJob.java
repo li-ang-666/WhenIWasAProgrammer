@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
@@ -47,6 +48,9 @@ public class CompanyBidParsedInfoPatchJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            if (singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE || !"0".equals(String.valueOf(columnMap.get("is_deleted")))) {
+                service.delete(String.valueOf(columnMap.get("id")));
+            }
             HashMap<String, Object> resultMap = new HashMap<>(columnMap);
             // 请求AI
             String mainId = String.valueOf(resultMap.get("main_id"));

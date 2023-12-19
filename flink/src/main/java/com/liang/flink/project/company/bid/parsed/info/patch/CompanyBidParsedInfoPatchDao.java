@@ -19,6 +19,10 @@ public class CompanyBidParsedInfoPatchDao {
     private final JdbcTemplate sink = new JdbcTemplate("448.operating_info");
     private final JdbcTemplate gauss = new JdbcTemplate("gauss");
 
+    {
+        sink.enableCache();
+    }
+
     public String queryContent(String mainId) {
         String sql = new SQL().SELECT("content")
                 .FROM("company_bid")
@@ -65,5 +69,12 @@ public class CompanyBidParsedInfoPatchDao {
             maps.add((Map<String, Object>) object);
         }
         return maps;
+    }
+
+    public void delete(String id) {
+        String sql = new SQL().DELETE_FROM(SINK_TABLE)
+                .WHERE("id = " + SqlUtils.formatValue(id))
+                .toString();
+        sink.update(sql);
     }
 }
