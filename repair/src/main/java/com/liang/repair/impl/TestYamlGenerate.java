@@ -15,7 +15,7 @@ public class TestYamlGenerate extends ConfigHolder {
             dbConfig.setPort(3306);
             dbConfig.setUser("jdtest_d_data_ddl");
             dbConfig.setPassword("dwjIFAmM39Y2O98cKu");
-            String format = String.format("  %s: { host: \"%s\", database: \"%s\", user: \"%s\", password: \"%s\" , port: %s }",
+            String format = String.format("  %s: { host: \"%s\", database: \"%s\", user: \"%s\", password: \"%s\", port: %s }",
                     name, dbConfig.getHost(), dbConfig.getDatabase(), dbConfig.getUser(), dbConfig.getPassword(), dbConfig.getPort());
             System.out.println(format);
         });
