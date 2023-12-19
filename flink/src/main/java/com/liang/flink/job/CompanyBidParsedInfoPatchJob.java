@@ -4,6 +4,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.LocalConfigFile;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -48,15 +49,19 @@ public class CompanyBidParsedInfoPatchJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            // 上游删除
             if (singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE || !"0".equals(String.valueOf(columnMap.get("is_deleted")))) {
                 service.delete(String.valueOf(columnMap.get("id")));
                 return;
             }
-            HashMap<String, Object> resultMap = new HashMap<>(columnMap);
+            // 无效content, 删除
+            String content = service.getContent(String.valueOf(columnMap.get("main_id")));
+            if (!TycUtils.isValidName(content)) {
+                service.delete(String.valueOf(columnMap.get("id")));
+                return;
+            }
             // 请求AI
-            String mainId = String.valueOf(resultMap.get("main_id"));
-            String content = service.getContent(mainId);
-            String uuid = String.valueOf(resultMap.get("bid_uuid"));
+            String uuid = String.valueOf(columnMap.get("bid_uuid"));
             List<Map<String, Object>> queryResult = service.query(uuid);
             List<Map<String, Object>> result = !queryResult.isEmpty() ? queryResult : service.post(content, uuid);
             if (log.isDebugEnabled()) {
@@ -96,6 +101,7 @@ public class CompanyBidParsedInfoPatchJob {
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
             List<Map<String, Object>> newWinnerAmt = service.newJson(sourceWinnerAmt);
             // put & sink
+            HashMap<String, Object> resultMap = new HashMap<>(columnMap);
             resultMap.put("party_a", JsonUtils.toString(service.deduplicateGidAndName(newOwner)));
             resultMap.put("agent", JsonUtils.toString(service.deduplicateGidAndName(newAgent)));
             resultMap.put("tenderer", JsonUtils.toString(service.deduplicateGidAndName(newTenderer)));
