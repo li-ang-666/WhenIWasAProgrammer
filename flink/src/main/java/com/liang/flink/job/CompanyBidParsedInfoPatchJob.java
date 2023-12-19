@@ -50,6 +50,7 @@ public class CompanyBidParsedInfoPatchJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             if (singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE || !"0".equals(String.valueOf(columnMap.get("is_deleted")))) {
                 service.delete(String.valueOf(columnMap.get("id")));
+                return;
             }
             HashMap<String, Object> resultMap = new HashMap<>(columnMap);
             // 请求AI
