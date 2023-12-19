@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CompanyBidParsedInfoPatchDao {
-    private final static String SINK_TABLE = "company_bid_parsed_info_patch";
+    private final static String SINK_TABLE = "operating_info.company_bid_parsed_info_patch";
 
     private final JdbcTemplate source = new JdbcTemplate("104.data_bid");
     private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
