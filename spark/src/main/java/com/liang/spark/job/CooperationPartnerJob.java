@@ -45,7 +45,7 @@ public class CooperationPartnerJob {
         if (argString.contains("step2")) {
             // hive 分区 数据量检查
             long hiveCount = table.count();
-            if (hiveCount < 700_000_000L) {
+            if (hiveCount < 700_000_000L || hiveCount > 800_000_000L) {
                 log.error("hive 分区 pt={}, 数据量 {}, 不合理", pt, hiveCount);
                 return;
             } else {
