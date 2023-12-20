@@ -62,7 +62,7 @@ public class CooperationPartnerJob {
             // gauss 分表 数据量检查
             for (int i = 0; i < 10; i++) {
                 long gaussCount = jdbcTemplate.queryForObject("select max(id) from company_base.cooperation_partner_" + i + "_tmp", rs -> rs.getLong(1));
-                if (gaussCount < 70_000_000L) {
+                if (gaussCount < 70_000_000L || gaussCount > 80_000_000L) {
                     log.error("gauss 分表 cooperation_partner_{}_tmp, 数据量 {}, 不合理", i, gaussCount);
                     return;
                 } else {
