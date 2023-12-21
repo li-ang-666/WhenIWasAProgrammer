@@ -11,8 +11,8 @@ import java.util.zip.CRC32;
 @Slf4j
 public class CooperationPartnerRepair extends ConfigHolder {
     public static void main(String[] args) {
-        String humanGraphId = "1926192666";
-        String companyGraphId = "3269402404";
+        String humanGraphId = "1774556338";
+        String companyGraphId = "2341362906";
         String queryHumanPidSql = String.format("select human_pid from company_human_relation where human_graph_id = %s and company_graph_id = %s",
                 SqlUtils.formatValue(humanGraphId), SqlUtils.formatValue(companyGraphId));
         String humanPid = new JdbcTemplate("157.prism_boss").queryForObject(queryHumanPidSql, rs -> rs.getString(1));
