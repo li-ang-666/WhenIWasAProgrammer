@@ -23,7 +23,7 @@ CREATE TABLE dwd(%s
   'index.type' = 'BUCKET',
   'hoodie.bucket.index.num.buckets' = '32',
   -- write
-  'write.tasks' = '2',
+  'write.tasks' = '4',
   'write.task.max.size' = '512',
   'write.merge.max_memory' = '0',
   'write.precombine' = 'true',

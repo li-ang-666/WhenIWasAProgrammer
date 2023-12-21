@@ -5,7 +5,7 @@ classloader.parent-first-patterns.additional: org.codehaus.;org.apache.kafka.
 
 # JVM参数
 env.java.opts.client: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps
-env.java.opts.jobmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+TraceClassLoading
+env.java.opts.jobmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+TraceClassLoading -Dsun.reflect.inflationThreshold=0
 env.java.opts.taskmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+TraceClassLoading
 
 # Checkpoint参数
@@ -31,8 +31,10 @@ taskmanager.memory.jvm-overhead.max: 256m
 taskmanager.memory.jvm-overhead.min: 128m
 
 # YARN
-yarn.application.queue: default
+yarn.application.queue: launcher-job
 yarn.application.priority: 999
+flink.yarn.nodemanager.pmem-check-enabled: false
+flink.yarn.nodemanager.vmem-check-enabled: false
 
 # Jobmanager内存
 jobmanager.memory.enable-jvm-direct-memory-limit: false
