@@ -7,7 +7,7 @@ flinkConfig:
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "gauss"
+    sourceName: "457.prism_shareholder_path"
     tableName: "ratio_path_company"
     columns: "*"
     where: "1=1"
@@ -19,4 +19,4 @@ kafkaConfigs:
     topics:
       - "9349c.proto.prism_shareholder_path.ratio_path_company"
     groupId: "demo-job"
-    startFrom: "2023-12-13 10:00:00"
+    startFrom: "2"
