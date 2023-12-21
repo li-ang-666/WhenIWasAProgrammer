@@ -115,9 +115,11 @@ public class CompanyBidParsedInfoPatchJob {
                 if (map.containsValue("item_no")) {
                     resultMap.put("item_no", map.getOrDefault("clean_word", ""));
                 } else if (map.containsValue("bid_deadline")) {
-                    resultMap.put("bid_deadline", map.getOrDefault("clean_word", null));
+                    String bidDeadline = String.valueOf(map.get("clean_word"));
+                    resultMap.put("bid_deadline", bidDeadline.matches("\\d{4}-\\d{2}-\\d{2}") ? bidDeadline : null);
                 } else if (map.containsValue("bid_download_deadline")) {
-                    resultMap.put("bid_download_deadline", map.getOrDefault("clean_word", null));
+                    String bidDownloadDeadline = String.valueOf(map.get("clean_word"));
+                    resultMap.put("bid_download_deadline", bidDownloadDeadline.matches("\\d{4}-\\d{2}-\\d{2}") ? bidDownloadDeadline : null);
                 }
             }
             Tuple2<String, String> tp2 = service.formatCode(
