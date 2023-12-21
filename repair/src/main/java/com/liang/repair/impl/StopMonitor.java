@@ -22,16 +22,7 @@ public class StopMonitor {
         HttpRequest post = HttpUtil.createPost("http://10.99.205.87:8990/flink/cancelMonitor");
         String user = "omm";
         List<String> jobs = Arrays.asList(
-                "hudi_upsert_company_bid_parsed_info",
-                "hudi_upsert_personnel",
-                "hudi_upsert_senior_executive",
-                "hudi_upsert_company_human_relation",
-                "hudi_upsert_senior_executive_hk",
-                "hudi_upsert_company_clean_info",
-                "hudi_upsert_company_equity_relation_details",
-                "hudi_upsert_company_legal_person",
-                "hudi_upsert_company_bond_plates",
-                "hudi_upsert_company_index"
+                "hudi_upsert_company_bid_parsed_info"
         );
         jobs.forEach(job -> {
             HashMap<String, Object> map = new HashMap<>(TEMPLATE_MAP);
