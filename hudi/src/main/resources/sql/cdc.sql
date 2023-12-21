@@ -10,7 +10,11 @@ CREATE TABLE ods (%s
   'database-name' = '%s',
   'table-name' = '%s',
   'server-id' = '%s',
-  'scan.startup.mode' = 'earliest-offset'
+  'scan.startup.mode' = 'earliest-offset',
+  'server-time-zone' = 'Asia/Shanghai',
+  'jdbc.properties.useSSL' = 'false',
+  'jdbc.properties.zeroDateTimeBehavior' = 'convertToNull',
+  'jdbc.properties.tinyInt1isBit' = 'false'
 );
 CREATE TABLE dwd(%s
   op_ts TIMESTAMP(3),

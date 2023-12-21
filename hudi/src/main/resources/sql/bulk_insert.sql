@@ -3,7 +3,7 @@ CREATE TABLE ods(%s
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'jdbc',
-  'url' = 'jdbc:mysql://%s:3306/%s?zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false',
+  'url' = 'jdbc:mysql://%s:3306/%s?useSSL=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false',
   'table-name' = '%s',
   'username' = 'jdhw_d_data_dml',
   'password' = '2s0^tFa4SLrp72',
