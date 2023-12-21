@@ -100,6 +100,9 @@ public class CompanyBidParsedInfoPatchJob {
             // winner amt 中标金额
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
             List<Map<String, Object>> newWinnerAmt = service.newJson(sourceWinnerAmt);
+            if (newWinnerAmt.size() != newWinner.size()) {
+                newWinnerAmt.clear();
+            }
             // put & sink
             HashMap<String, Object> resultMap = new HashMap<>(columnMap);
             resultMap.put("party_a", JsonUtils.toString(service.deduplicateGidAndName(newOwner)));
