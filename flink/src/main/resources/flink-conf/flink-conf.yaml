@@ -31,7 +31,7 @@ taskmanager.memory.jvm-overhead.max: 256m
 taskmanager.memory.jvm-overhead.min: 128m
 
 # YARN
-yarn.application.queue: launcher-job
+yarn.application.queue: default
 yarn.application.priority: 999
 flink.yarn.nodemanager.pmem-check-enabled: false
 flink.yarn.nodemanager.vmem-check-enabled: false
