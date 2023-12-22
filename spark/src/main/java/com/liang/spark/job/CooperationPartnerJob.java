@@ -25,7 +25,7 @@ public class CooperationPartnerJob {
     public static void main(String[] args) throws Exception {
         SparkSession spark = SparkSessionFactory.createSparkWithHudi(args);
         Config config = ConfigUtils.getConfig();
-        JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
+        JdbcTemplate jdbcTemplate = new JdbcTemplate("467.company_base");
         spark.udf().register("format_reg_st", new FormatRegSt(), DataTypes.IntegerType);
         spark.udf().register("format_identity", new FormatIdentity(), DataTypes.StringType);
         spark.udf().register("format_ratio", new FormatRatio(), DataTypes.StringType);
@@ -41,7 +41,7 @@ public class CooperationPartnerJob {
             // overwrite hive 分区
             spark.sql(ApolloUtils.get("cooperation-partner.sql").replace("${pt}", pt));
         }
-        // step2 写 gauss
+        // step2 写 rds
         if (argString.contains("step2")) {
             // hive 分区 数据量检查
             long hiveCount = table.count();
@@ -51,7 +51,7 @@ public class CooperationPartnerJob {
             } else {
                 log.info("hive 分区 pt={}, 数据量 {}, 合理", pt, hiveCount);
             }
-            // overwrite gauss 临时表
+            // overwrite rds 临时表
             for (int i = 0; i < 10; i++) {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i + "_tmp");
                 jdbcTemplate.update("create table if not exists company_base.cooperation_partner_" + i + "_tmp like company_base.cooperation_partner_" + i);
@@ -59,17 +59,17 @@ public class CooperationPartnerJob {
             table
                     .orderBy(new Column("table_id"), new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("single_cooperation_row_number"))
                     .foreachPartition(new CooperationPartnerSink(config));
-            // gauss 分表 数据量检查
+            // rds 分表 数据量检查
             for (int i = 0; i < 10; i++) {
-                long gaussCount = jdbcTemplate.queryForObject("select max(id) from company_base.cooperation_partner_" + i + "_tmp", rs -> rs.getLong(1));
-                if (gaussCount < 70_000_000L || gaussCount > 80_000_000L) {
-                    log.error("gauss 分表 cooperation_partner_{}_tmp, 数据量 {}, 不合理", i, gaussCount);
+                long rdsCount = jdbcTemplate.queryForObject("select max(id) from company_base.cooperation_partner_" + i + "_tmp", rs -> rs.getLong(1));
+                if (rdsCount < 70_000_000L || rdsCount > 80_000_000L) {
+                    log.error("rds 分表 cooperation_partner_{}_tmp, 数据量 {}, 不合理", i, rdsCount);
                     return;
                 } else {
-                    log.info("gauss 分表 cooperation_partner_{}_tmp, 数据量 {}, 合理", i, gaussCount);
+                    log.info("rds 分表 cooperation_partner_{}_tmp, 数据量 {}, 合理", i, rdsCount);
                 }
             }
-            // gauss 表替换
+            // rds 表替换
             for (int i = 0; i < 10; i++) {
                 jdbcTemplate.update("drop table if exists company_base.cooperation_partner_" + i);
                 jdbcTemplate.update("alter table company_base.cooperation_partner_" + i + "_tmp rename company_base.cooperation_partner_" + i);
@@ -137,7 +137,7 @@ public class CooperationPartnerJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
+            JdbcTemplate jdbcTemplate = new JdbcTemplate("467.company_base");
             HashMap<String, List<Map<String, Object>>> tableId2ColumnMaps = new HashMap<>();
             for (int i = 0; i < 10; i++) {
                 tableId2ColumnMaps.put(String.valueOf(i), new ArrayList<>(BATCH_SIZE));
