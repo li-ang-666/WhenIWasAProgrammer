@@ -27,8 +27,15 @@ public class CooperationPartnerNewJob {
         spark.udf().register("format_ratio", new FormatRatio(), DataTypes.StringType);
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
         String lastPt = DateTimeUtils.getLastNDateTime(2, "yyyyMMdd");
-        spark.sql(ApolloUtils.get("cooperation-partner-new.sql").replaceAll("\\$pt", pt));
-        spark.sql(ApolloUtils.get("cooperation-partner-diff.sql").replaceAll("\\$pt", pt).replaceAll("\\$last_pt", lastPt));
+        String sql1 = ApolloUtils.get("cooperation-partner-new.sql")
+                .replaceAll("\\$pt", pt);
+        log.info("sql1: {}", sql1);
+        spark.sql(sql1);
+        String sql2 = ApolloUtils.get("cooperation-partner-diff.sql")
+                .replaceAll("\\$pt", pt)
+                .replaceAll("\\$last_pt", lastPt);
+        log.info("sql2: {}", sql2);
+        spark.sql(sql2);
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
