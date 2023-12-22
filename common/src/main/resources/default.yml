@@ -23,6 +23,7 @@ dbConfigs:
   463.bdp_equity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "bdp_equity" }
   464.prism: { host: "5673658675c84a3ba5ae7577850f1ed2in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism" }
   465.company_base: { host: "c8ce5ba3cd8b49ca8f57c945ef51d45cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "company_base" }
+  467.company_base: { host: "4b67fcd4c19145fa87f53ad20c4a9f64in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "company_base" }
   469.entity_operation_development: { host: "01ddd99760f64c8cbe2d396ebc64345ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "entity_operation_development" }
   localhost: { host: "127.0.0.1", database: "test", user: "root", password: "Moka20190520" }
   doris: { host: "10.99.202.70", database: "test_db", user: "dba", password: "Tyc@1234", port: 6060 }
