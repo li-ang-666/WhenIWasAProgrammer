@@ -37,6 +37,7 @@ public class CooperationPartnerNewJob {
             log.info("sql1: {}", sql1);
             spark.sql(sql1);
         } while (spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).count() < 700_000_000L);
+        long count = spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).count();
         // 写入 hive diff表 当前分区
         spark.sql(String.format("alter table hudi_ads.cooperation_partner_diff drop if exists partition (pt = %s)", pt));
         do {
@@ -50,8 +51,11 @@ public class CooperationPartnerNewJob {
                 .orderBy(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
                 .foreachPartition(new CooperationPartnerSink(ConfigUtils.getConfig()));
         // 写入 hive 正式表 1号分区
-        spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
-        spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from current");
+        spark.sql("alter table hudi_ads.cooperation_partner_new drop if exists partition (pt = 1)");
+        do {
+            spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
+            spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from current");
+        } while (spark.table("hudi_ads.cooperation_partner_new").where("pt = 1").count() != count);
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
