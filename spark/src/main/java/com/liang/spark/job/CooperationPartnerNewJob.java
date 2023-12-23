@@ -50,7 +50,8 @@ public class CooperationPartnerNewJob {
                 .orderBy(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
                 .foreachPartition(new CooperationPartnerSink(ConfigUtils.getConfig()));
         // 写入 hive 正式表 1号分区
-        spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from hudi_ads.cooperation_partner_new where pt = " + pt);
+        spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
+        spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from current");
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
