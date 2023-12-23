@@ -31,31 +31,23 @@ public class CooperationPartnerNewJob {
         spark.udf().register("format_ratio", new FormatRatio(), DataTypes.StringType);
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
         // 写入 hive 正式表 当前分区
-        spark.sql(String.format("alter table hudi_ads.cooperation_partner_new drop if exists partition (pt = %s)", pt));
         do {
             String sql1 = ApolloUtils.get("cooperation-partner-new.sql").replaceAll("\\$pt", pt);
             log.info("sql1: {}", sql1);
             spark.sql(sql1);
         } while (spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).count() < 700_000_000L);
-        long count = spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).count();
         // 写入 hive diff表 当前分区
-        spark.sql(String.format("alter table hudi_ads.cooperation_partner_diff drop if exists partition (pt = %s)", pt));
-        do {
-            String sql2 = ApolloUtils.get("cooperation-partner-diff.sql").replaceAll("\\$pt", pt);
-            log.info("sql2: {}", sql2);
-            spark.sql(sql2);
-        } while (spark.table("hudi_ads.cooperation_partner_diff").where("pt = " + pt).count() < 1);
+        String sql2 = ApolloUtils.get("cooperation-partner-diff.sql").replaceAll("\\$pt", pt);
+        log.info("sql2: {}", sql2);
+        spark.sql(sql2);
         // 写入 rds
         spark.table("hudi_ads.cooperation_partner_diff")
                 .where("pt = " + pt)
                 .orderBy(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
                 .foreachPartition(new CooperationPartnerSink(ConfigUtils.getConfig()));
         // 写入 hive 正式表 1号分区
-        spark.sql("alter table hudi_ads.cooperation_partner_new drop if exists partition (pt = 1)");
-        do {
-            spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
-            spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from current");
-        } while (spark.table("hudi_ads.cooperation_partner_new").where("pt = 1").count() != count);
+        spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
+        spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from current");
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
