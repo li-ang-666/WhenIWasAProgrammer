@@ -2,13 +2,16 @@ package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
-import com.liang.common.util.*;
+import com.liang.common.util.ApolloUtils;
+import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.api.java.UDF1;
@@ -16,7 +19,8 @@ import org.apache.spark.sql.types.DataTypes;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
 
 @Slf4j
 public class CooperationPartnerNewJob {
@@ -26,16 +30,27 @@ public class CooperationPartnerNewJob {
         spark.udf().register("format_identity", new FormatIdentity(), DataTypes.StringType);
         spark.udf().register("format_ratio", new FormatRatio(), DataTypes.StringType);
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
-        String lastPt = DateTimeUtils.getLastNDateTime(2, "yyyyMMdd");
-        String sql1 = ApolloUtils.get("cooperation-partner-new.sql")
-                .replaceAll("\\$pt", pt);
-        log.info("sql1: {}", sql1);
-        spark.sql(sql1);
-        String sql2 = ApolloUtils.get("cooperation-partner-diff.sql")
-                .replaceAll("\\$pt", pt)
-                .replaceAll("\\$last_pt", lastPt);
-        log.info("sql2: {}", sql2);
-        spark.sql(sql2);
+        // 写入 hive 正式表 当前分区
+        spark.sql(String.format("alter table hudi_ads.cooperation_partner_new drop partition (pt = %s)", pt));
+        do {
+            String sql1 = ApolloUtils.get("cooperation-partner-new.sql").replaceAll("\\$pt", pt);
+            log.info("sql1: {}", sql1);
+            spark.sql(sql1);
+        } while (spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).count() < 700_000_000L);
+        // 写入 hive diff表 当前分区
+        spark.sql(String.format("alter table hudi_ads.cooperation_partner_diff drop partition (pt = %s)", pt));
+        do {
+            String sql2 = ApolloUtils.get("cooperation-partner-diff.sql").replaceAll("\\$pt", pt);
+            log.info("sql2: {}", sql2);
+            spark.sql(sql2);
+        } while (spark.table("hudi_ads.cooperation_partner_diff").where("pt = " + pt).count() < 1);
+        // 写入 rds
+        spark.table("hudi_ads.cooperation_partner_diff")
+                .where("pt = " + pt)
+                .orderBy(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
+                .foreachPartition(new CooperationPartnerSink(ConfigUtils.getConfig()));
+        // 写入 hive 正式表 1号分区
+        spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from hudi_ads.cooperation_partner_new where pt = " + pt);
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
@@ -98,31 +113,10 @@ public class CooperationPartnerNewJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate("467.company_base");
-            HashMap<String, List<Map<String, Object>>> tableId2ColumnMaps = new HashMap<>();
-            for (int i = 0; i < 10; i++) {
-                tableId2ColumnMaps.put(String.valueOf(i), new ArrayList<>(BATCH_SIZE));
-            }
+            JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
-                String tableId = String.valueOf(columnMap.remove("table_id"));
-                List<Map<String, Object>> columnMaps = tableId2ColumnMaps.get(tableId);
-                columnMaps.add(columnMap);
-                if (columnMaps.size() >= BATCH_SIZE) {
-                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                    String sql = String.format("insert into company_base.cooperation_partner_%s_tmp (%s) values (%s)", tableId, insert.f0, insert.f1);
-                    jdbcTemplate.update(sql);
-                    columnMaps.clear();
-                }
             }
-            tableId2ColumnMaps.forEach((k, v) -> {
-                if (!v.isEmpty()) {
-                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(v);
-                    String sql = String.format("insert into company_base.cooperation_partner_%s_tmp (%s) values (%s)", k, insert.f0, insert.f1);
-                    jdbcTemplate.update(sql);
-                    v.clear();
-                }
-            });
         }
     }
 }
