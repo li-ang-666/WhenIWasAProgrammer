@@ -1,16 +1,15 @@
 package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
-import com.liang.common.util.ApolloUtils;
-import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DateTimeUtils;
-import com.liang.common.util.JsonUtils;
+import com.liang.common.util.*;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
@@ -21,7 +20,9 @@ import org.apache.spark.sql.types.DataTypes;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -59,6 +60,7 @@ public class CooperationPartnerNewJob {
         // 写入 rds
         spark.table("hudi_ads.cooperation_partner_diff")
                 .where("pt = " + pt)
+                .drop("pt")
                 .orderBy(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
                 .foreachPartition(new CooperationPartnerSink(config));
         // 写入 hive 正式表 1号分区
@@ -130,8 +132,40 @@ public class CooperationPartnerNewJob {
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
             JdbcTemplate jdbcTemplate = new JdbcTemplate("gauss");
+            List<Map<String, Object>> columnMaps = new ArrayList<>(BATCH_SIZE);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
+                String bossHumanPid = String.valueOf(columnMap.get("boss_human_pid"));
+                String companyGid = String.valueOf(columnMap.get("company_gid"));
+                String partnerHumanPid = String.valueOf(columnMap.get("partner_human_pid"));
+                Object obj = columnMap.get("column_map");
+                if (obj == null) {
+                    String delete = new SQL().DELETE_FROM("cooperation_partner_new")
+                            .WHERE("boss_human_pid = " + SqlUtils.formatValue(bossHumanPid))
+                            .WHERE("company_gid = " + SqlUtils.formatValue(companyGid))
+                            .WHERE("partner_human_pid = " + SqlUtils.formatValue(partnerHumanPid))
+                            .toString();
+                    jdbcTemplate.update(delete);
+                } else {
+                    Map<String, Object> oneRowMap = JsonUtils.parseJsonObj(String.valueOf(obj));
+                    columnMaps.add(oneRowMap);
+                    if (columnMaps.size() >= BATCH_SIZE) {
+                        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                        String replace = new SQL().REPLACE_INTO("cooperation_partner_new")
+                                .INTO_COLUMNS(insert.f0)
+                                .INTO_VALUES(insert.f1)
+                                .toString();
+                        jdbcTemplate.update(replace);
+                    }
+                }
+            }
+            if (!columnMaps.isEmpty()) {
+                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                String replace = new SQL().REPLACE_INTO("cooperation_partner_new")
+                        .INTO_COLUMNS(insert.f0)
+                        .INTO_VALUES(insert.f1)
+                        .toString();
+                jdbcTemplate.update(replace);
             }
         }
     }
