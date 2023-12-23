@@ -57,7 +57,7 @@ public class CooperationPartnerNewJob {
                     .replace("未知", "主要人员")
                     .replace("_", ".")
                     .replaceAll("、+", "、")
-                    .replaceAll("(^、)|(、$)", "");
+                    .replaceAll("(^、)|(、$)|(\\d@)", "");
         }
     }
 
