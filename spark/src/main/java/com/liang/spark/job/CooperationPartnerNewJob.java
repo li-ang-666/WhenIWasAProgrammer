@@ -30,24 +30,30 @@ public class CooperationPartnerNewJob {
         spark.udf().register("format_identity", new FormatIdentity(), DataTypes.StringType);
         spark.udf().register("format_ratio", new FormatRatio(), DataTypes.StringType);
         String pt = DateTimeUtils.getLastNDateTime(1, "yyyyMMdd");
-        // 写入 hive 正式表 当前分区
-        do {
+        // step1
+        {
+            // 写入 hive 正式表 当前分区
             String sql1 = ApolloUtils.get("cooperation-partner-new.sql").replaceAll("\\$pt", pt);
             log.info("sql1: {}", sql1);
             spark.sql(sql1);
-        } while (spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).count() < 700_000_000L);
-        // 写入 hive diff表 当前分区
-        String sql2 = ApolloUtils.get("cooperation-partner-diff.sql").replaceAll("\\$pt", pt);
-        log.info("sql2: {}", sql2);
-        spark.sql(sql2);
-        // 写入 rds
-        spark.table("hudi_ads.cooperation_partner_diff")
-                .where("pt = " + pt)
-                .orderBy(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
-                .foreachPartition(new CooperationPartnerSink(ConfigUtils.getConfig()));
-        // 写入 hive 正式表 1号分区
-        spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
-        spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from current");
+            assert spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).count() > 700_000_000L;
+            // 写入 hive diff表 当前分区
+            String sql2 = ApolloUtils.get("cooperation-partner-diff.sql").replaceAll("\\$pt", pt);
+            log.info("sql2: {}", sql2);
+            spark.sql(sql2);
+            assert spark.table("hudi_ads.cooperation_partner_diff").where("pt = " + pt).count() > 0;
+        }
+        // step2
+        {
+            // 写入 rds
+            spark.table("hudi_ads.cooperation_partner_diff")
+                    .where("pt = " + pt)
+                    .orderBy(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
+                    .foreachPartition(new CooperationPartnerSink(ConfigUtils.getConfig()));
+            // 写入 hive 正式表 1号分区
+            spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
+            spark.sql("insert overwrite table hudi_ads.cooperation_partner_new partition(pt = 1) select * from current");
+        }
     }
 
     private static final class FormatIdentity implements UDF1<String, String> {
@@ -104,7 +110,7 @@ public class CooperationPartnerNewJob {
 
     @RequiredArgsConstructor
     private final static class CooperationPartnerSink implements ForeachPartitionFunction<Row> {
-        private final static int BATCH_SIZE = 512;
+        private final static int BATCH_SIZE = 1024;
         private final Config config;
 
         @Override
