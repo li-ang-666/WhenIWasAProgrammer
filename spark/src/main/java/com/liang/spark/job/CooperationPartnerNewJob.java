@@ -145,8 +145,7 @@ public class CooperationPartnerNewJob {
                             .toString();
                     jdbcTemplate.update(delete);
                 } else {
-                    Map<String, Object> oneRowMap = JsonUtils.parseJsonObj(String.valueOf(obj));
-                    columnMaps.add(oneRowMap);
+                    columnMaps.add(JsonUtils.parseJsonObj(String.valueOf(obj)));
                     if (columnMaps.size() >= BATCH_SIZE) {
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                         String replace = new SQL().REPLACE_INTO("cooperation_partner_new")
@@ -154,6 +153,7 @@ public class CooperationPartnerNewJob {
                                 .INTO_VALUES(insert.f1)
                                 .toString();
                         jdbcTemplate.update(replace);
+                        columnMaps.clear();
                     }
                 }
             }
@@ -164,6 +164,7 @@ public class CooperationPartnerNewJob {
                         .INTO_VALUES(insert.f1)
                         .toString();
                 jdbcTemplate.update(replace);
+                columnMaps.clear();
             }
         }
     }
