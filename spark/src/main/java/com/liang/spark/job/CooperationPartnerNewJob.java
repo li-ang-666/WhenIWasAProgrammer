@@ -57,7 +57,7 @@ public class CooperationPartnerNewJob {
         // step2
         redis.set(REDIS_KEY, STEP_2_START);
         // 写入 rds
-        spark.sql(String.format("select * from hudi_ads.cooperation_partner_diff where pt = %s distribute by boss_human_pid sort by boss_human_pid, partner_human_pid, company_gid", pt))
+        spark.sql(String.format("select /*+ REPARTITION(32) */ * from hudi_ads.cooperation_partner_diff where pt = %s distribute by boss_human_pid sort by boss_human_pid, partner_human_pid, company_gid", pt))
                 .foreachPartition(new CooperationPartnerSink(config));
         // 写入 hive 正式表 1号分区
         spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
