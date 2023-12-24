@@ -135,13 +135,10 @@ public class CooperationPartnerNewJob {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
                 Object obj = columnMap.get("column_map");
                 if (obj == null) {
-                    String bossHumanPid = String.valueOf(columnMap.get("boss_human_pid"));
-                    String companyGid = String.valueOf(columnMap.get("company_gid"));
-                    String partnerHumanPid = String.valueOf(columnMap.get("partner_human_pid"));
                     String delete = new SQL().DELETE_FROM("cooperation_partner_new")
-                            .WHERE("boss_human_pid = " + SqlUtils.formatValue(bossHumanPid))
-                            .WHERE("company_gid = " + SqlUtils.formatValue(companyGid))
-                            .WHERE("partner_human_pid = " + SqlUtils.formatValue(partnerHumanPid))
+                            .WHERE("boss_human_pid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("boss_human_pid"))))
+                            .WHERE("partner_human_pid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("partner_human_pid"))))
+                            .WHERE("company_gid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("company_gid"))))
                             .toString();
                     jdbcTemplate.update(delete);
                 } else {
