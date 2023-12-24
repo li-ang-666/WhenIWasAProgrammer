@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
-import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -58,10 +57,7 @@ public class CooperationPartnerNewJob {
         // step2
         redis.set(REDIS_KEY, STEP_2_START);
         // 写入 rds
-        spark.table("hudi_ads.cooperation_partner_diff")
-                .where("pt = " + pt)
-                .drop("pt")
-                .orderBy(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
+        spark.sql(String.format("select * from hudi_ads.cooperation_partner_diff where pt = %s distribute by boss_human_pid sort by boss_human_pid, partner_human_pid, company_gid", pt))
                 .foreachPartition(new CooperationPartnerSink(config));
         // 写入 hive 正式表 1号分区
         spark.table("hudi_ads.cooperation_partner_new").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");

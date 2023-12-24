@@ -65,7 +65,8 @@ public class JdbcTemplate extends AbstractCache<String, String> {
                         logging.afterExecute("updateSingle", failedLogPrefix + sql);
                         i = 0;
                     } catch (Exception ee) {
-                        logging.ifError("updateSingle", failedLogPrefix + sql, ee);
+                        String methodArg = i == 1 ? "/* Exception: " + ee.getMessage() + " */" + " " + failedLogPrefix + sql : failedLogPrefix + sql;
+                        logging.ifError("updateSingle", methodArg, ee);
                         i--;
                         TimeUnit.MILLISECONDS.sleep(50);
                     }
