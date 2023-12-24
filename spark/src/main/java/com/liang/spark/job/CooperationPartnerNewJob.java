@@ -147,7 +147,7 @@ public class CooperationPartnerNewJob {
                     columnMaps.add(oneRowMap);
                     if (columnMaps.size() >= BATCH_SIZE) {
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                        String replace = new SQL().REPLACE_INTO("cooperation_partner_new")
+                        String replace = new SQL().INSERT_INTO("cooperation_partner_new")
                                 .INTO_COLUMNS(insert.f0)
                                 .INTO_VALUES(insert.f1)
                                 .toString();
