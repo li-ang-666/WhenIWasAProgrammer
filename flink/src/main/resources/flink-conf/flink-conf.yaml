@@ -5,7 +5,7 @@ classloader.parent-first-patterns.additional: org.codehaus.;org.apache.kafka.
 
 # JVM参数
 env.java.opts.client: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps
-env.java.opts.jobmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+TraceClassLoading -Dsun.reflect.inflationThreshold=2147483647 -XX:SoftRefLRUPolicyMSPerMB=2000
+env.java.opts.jobmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+TraceClassLoading -Dsun.reflect.inflationThreshold=2147483647 -XX:SoftRefLRUPolicyMSPerMB=86400000
 env.java.opts.taskmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+TraceClassLoading
 
 # Checkpoint参数
