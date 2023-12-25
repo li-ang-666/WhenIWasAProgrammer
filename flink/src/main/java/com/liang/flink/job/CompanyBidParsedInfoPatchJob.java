@@ -12,12 +12,14 @@ import com.liang.flink.high.level.api.StreamFactory;
 import com.liang.flink.project.company.bid.parsed.info.patch.CompanyBidParsedInfoPatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,12 +105,17 @@ public class CompanyBidParsedInfoPatchJob {
             }
             // put & sink
             HashMap<String, Object> resultMap = new HashMap<>(columnMap);
-            resultMap.put("party_a", JsonUtils.toString(service.deduplicateGidAndName(newOwner)));
-            resultMap.put("agent", JsonUtils.toString(service.deduplicateGidAndName(newAgent)));
-            resultMap.put("tenderer", JsonUtils.toString(service.deduplicateGidAndName(newTenderer)));
-            resultMap.put("candidate", JsonUtils.toString(service.deduplicateGidAndName(newCandidate)));
+            List<Map<String, Object>> finalPartyA = service.deduplicateGidAndName(newOwner);
+            resultMap.put("party_a", JsonUtils.toString(finalPartyA));
+            List<Map<String, Object>> finalAgent = service.deduplicateGidAndName(newAgent);
+            resultMap.put("agent", JsonUtils.toString(finalAgent));
+            List<Map<String, Object>> finalTenderer = service.deduplicateGidAndName(newTenderer);
+            resultMap.put("tenderer", JsonUtils.toString(finalTenderer));
+            List<Map<String, Object>> finalCandidate = service.deduplicateGidAndName(newCandidate);
+            resultMap.put("candidate", JsonUtils.toString(finalCandidate));
             resultMap.put("winner", JsonUtils.toString(newWinner));
             resultMap.put("winner_amt", JsonUtils.toString(newWinnerAmt));
+            resultMap.put("mention", "[]");
             for (Map<String, Object> map : result) {
                 if (map.containsValue("item_no")) {
                     resultMap.put("item_no", map.getOrDefault("clean_word", ""));
@@ -125,6 +132,23 @@ public class CompanyBidParsedInfoPatchJob {
                     String.valueOf(columnMap.get("bid_city")));
             resultMap.put("province", tp2.f0);
             resultMap.put("city", tp2.f1);
+            // 搜索
+            String bidPublishTime = columnMap.get("bid_publish_time") + "suffix";
+            String substring = bidPublishTime.substring(0, 4);
+            resultMap.put("publish_year", StringUtils.isNumeric(substring) ? substring : null);
+            String roles =
+                    "招采方:" + finalPartyA.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                            + ";"
+                            + "代理方:" + finalAgent.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                            + ";"
+                            + "投标方:" + finalTenderer.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                            + ";"
+                            + "中标候选人:" + finalCandidate.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                            + ";"
+                            + "中标方:" + newWinner.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                            + ";"
+                            + "被提及:" + new ArrayList<Map<String, Object>>().stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","));
+            resultMap.put("roles", roles);
             service.sink(resultMap);
         }
     }

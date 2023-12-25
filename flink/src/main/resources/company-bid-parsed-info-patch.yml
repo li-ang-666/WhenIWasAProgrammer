@@ -2,7 +2,7 @@
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 1
+  otherParallel: 4
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -10,8 +10,8 @@ repairTasks:
     sourceName: "448.operating_info"
     tableName: "company_bid_parsed_info"
     columns: "*"
-    where: "bid_uuid = '754e9d60092f4154bfc83aecc6c3d326'"
-    scanMode: Direct
+    where: "1=1"
+    scanMode: TumblingWindow
 
 kafkaConfigs:
   kafkaSource:
