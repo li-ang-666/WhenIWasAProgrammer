@@ -132,7 +132,7 @@ public class CompanyBidParsedInfoPatchJob {
                     String.valueOf(columnMap.get("bid_city")));
             resultMap.put("province", tp2.f0);
             resultMap.put("city", tp2.f1);
-            // 搜索
+            // 搜索 & 被提及
             String bidPublishTime = columnMap.get("bid_publish_time") + "suffix";
             String substring = bidPublishTime.substring(0, 4);
             resultMap.put("publish_year", StringUtils.isNumeric(substring) ? substring : null);
