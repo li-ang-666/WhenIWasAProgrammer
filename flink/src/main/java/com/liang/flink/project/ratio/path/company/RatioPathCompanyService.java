@@ -159,7 +159,7 @@ public class RatioPathCompanyService {
         resultMap.put("equity_relation_path_cnt", pathNode.getCount());
         resultMap.put("beneficiary_equity_relation_path_detail", pathNode.getPathStr());
         resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
-        resultMap.put("beneficiary_validation_time_year", 2023);
+        resultMap.put("beneficiary_validation_time_year", 2024);
         resultMap.put("entity_type_id", 1);
         return dao.replaceIntoBeneficiary(resultMap);
     }
@@ -179,7 +179,7 @@ public class RatioPathCompanyService {
         resultMap.put("equity_relation_path_cnt", pathNode.getCount());
         resultMap.put("controlling_equity_relation_path_detail", pathNode.getPathStr());
         resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
-        resultMap.put("control_validation_time_year", 2023);
+        resultMap.put("control_validation_time_year", 2024);
         resultMap.put("entity_type_id", String.valueOf(columnMap.get("shareholder_entity_type")));
         // 区分实际控制人 or 实际控制权
         if ("2".equals(String.valueOf(columnMap.get("is_controller")))) {
@@ -216,7 +216,7 @@ public class RatioPathCompanyService {
         BuildTab3Path.PathNode pathNode = (BuildTab3Path.PathNode) columnMap.get("path_node");
         resultMap.put("equity_ratio_path_cnt", pathNode.getCount());
         resultMap.put("estimated_equity_ratio_total", String.valueOf(columnMap.get("investment_ratio_total")));
-        resultMap.put("shareholder_validation_time_year", 2023);
+        resultMap.put("shareholder_validation_time_year", 2024);
         List<Map<String, Object>> resultMaps = new ArrayList<>();
         for (Integer identity : identities) {
             resultMap.put("shareholder_identity_type", identity);

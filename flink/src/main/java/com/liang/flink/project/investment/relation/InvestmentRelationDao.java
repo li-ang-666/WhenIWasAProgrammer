@@ -30,7 +30,7 @@ public class InvestmentRelationDao {
         String sql = new SQL()
                 .SELECT("company_id_investor", "max(tyc_unique_entity_id_investor)", "max(equity_ratio)")
                 .FROM("company_equity_relation_details")
-                .WHERE("reference_pt_year = '2023'")
+                .WHERE("reference_pt_year = '2024'")
                 .WHERE("investor_identity_type in (1,2)")
                 .WHERE("equity_ratio >= 0.05")
                 .WHERE("company_id_investor > 0")

@@ -38,7 +38,7 @@ public class EquityBfs extends ConfigHolder {
                         .SELECT("tyc_unique_entity_id_investor", "equity_ratio")
                         .FROM("company_equity_relation_details")
                         .WHERE("equity_ratio >= 0.05")
-                        .WHERE("reference_pt_year = 2023")
+                        .WHERE("reference_pt_year = 2024")
                         // 排除root成环情况
                         .WHERE("company_id_investor <> " + SqlUtils.formatValue(root))
                         .WHERE("company_id_invested = " + SqlUtils.formatValue(chainLast.getId()))
