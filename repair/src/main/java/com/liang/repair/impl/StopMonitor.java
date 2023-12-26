@@ -14,15 +14,15 @@ public class StopMonitor {
     private final static Map<String, Object> TEMPLATE_MAP = new HashMap<>();
 
     static {
-        TEMPLATE_MAP.put("sshPassWord", "Moka20190520");
+        TEMPLATE_MAP.put("sshPassWord", "flink_tyc");
         TEMPLATE_MAP.put("isMonitored", 0);
     }
 
     public static void main(String[] args) {
         HttpRequest post = HttpUtil.createPost("http://10.99.205.87:8990/flink/cancelMonitor");
-        String user = "omm";
+        String user = "liguangwei";
         List<String> jobs = Arrays.asList(
-                "hudi_upsert_company_bid_parsed_info"
+                "company_equity_relation_details_prod"
         );
         jobs.forEach(job -> {
             HashMap<String, Object> map = new HashMap<>(TEMPLATE_MAP);
