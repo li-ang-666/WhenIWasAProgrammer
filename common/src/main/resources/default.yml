@@ -8,6 +8,7 @@ dbConfigs:
   111.data_experience_situation: { host: "886a213ba5de451eb4add2e0d1fb2ef6in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "data_experience_situation" }
   116.prism: { host: "0bb0147d82fe49e6953138da0eea61dbin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism" }
   150.data_index: { host: "be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "data_index" }
+  150.data_es: { host: "be4103034fe44e02a946cb7d543bba41in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "data_es" }
   157.prism: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism" }
   157.prism1: { host: "9b54e1db7645410eb59f467617d55590in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism1" }
   157.prism_boss: { host: "9bc47e7860284e5290a05079f54446e8in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism_boss" }

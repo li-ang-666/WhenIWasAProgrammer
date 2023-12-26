@@ -68,7 +68,7 @@ public class CompanyBidParsedInfoPatchService {
             if (nameSet.contains(name)) {
                 continue;
             }
-            if (!"".equals(gid) && gidSet.contains(gid)) {
+            if (TycUtils.isUnsignedId(gid) && gidSet.contains(gid)) {
                 continue;
             }
             res.add(map);
@@ -151,5 +151,19 @@ public class CompanyBidParsedInfoPatchService {
 
     public void delete(String id) {
         dao.delete(id);
+    }
+
+    public List<Map<String, Object>> getMention(String mainId) {
+        String mention = dao.getMention(mainId);
+        ArrayList<Map<String, Object>> maps = new ArrayList<>();
+        Arrays.stream(mention.split(";"))
+                .filter(TycUtils::isUnsignedId)
+                .distinct()
+                .forEach(e -> {
+                    HashMap<String, Object> map = new HashMap<>();
+                    map.put("gid", e);
+                    maps.add(map);
+                });
+        return maps;
     }
 }

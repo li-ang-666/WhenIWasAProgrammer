@@ -18,6 +18,7 @@ public class CompanyBidParsedInfoPatchDao {
     private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
     private final JdbcTemplate sink = new JdbcTemplate("448.operating_info");
     private final JdbcTemplate gauss = new JdbcTemplate("gauss");
+    private final JdbcTemplate dataEs = new JdbcTemplate("150.data_es");
 
     {
         sink.enableCache();
@@ -76,5 +77,14 @@ public class CompanyBidParsedInfoPatchDao {
                 .WHERE("id = " + SqlUtils.formatValue(id))
                 .toString();
         sink.update(sql);
+    }
+
+    public String getMention(String mainId) {
+        String sql = new SQL().SELECT("gids")
+                .FROM("bid_index")
+                .WHERE("main_id = " + SqlUtils.formatValue(mainId))
+                .toString();
+        String res = dataEs.queryForObject(sql, rs -> rs.getString(1));
+        return String.valueOf(res);
     }
 }

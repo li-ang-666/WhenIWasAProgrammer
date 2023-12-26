@@ -19,10 +19,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @LocalConfigFile("company-bid-parsed-info-patch.yml")
@@ -132,7 +129,19 @@ public class CompanyBidParsedInfoPatchJob {
                     String.valueOf(columnMap.get("bid_city")));
             resultMap.put("province", tp2.f0);
             resultMap.put("city", tp2.f1);
-            // 搜索 & 被提及
+            // 被提及 & 出现顺序优先级
+            HashSet<String> set = new HashSet<>();
+            priority(finalPartyA, set);
+            priority(finalAgent, set);
+            priority(finalTenderer, set);
+            priority(finalCandidate, set);
+            newWinner.forEach(e -> {
+                String gid = String.valueOf(e.get("gid"));
+                if (TycUtils.isUnsignedId(gid)) set.add(gid);
+            });
+            List<Map<String, Object>> mention = service.getMention(String.valueOf(columnMap.get("main_id")));
+            priority(mention, set);
+            // 搜索
             String bidPublishTime = columnMap.get("bid_publish_time") + "suffix";
             String substring = bidPublishTime.substring(0, 4);
             resultMap.put("publish_year", StringUtils.isNumeric(substring) ? substring : null);
@@ -147,9 +156,22 @@ public class CompanyBidParsedInfoPatchJob {
                             + ";"
                             + "中标方:" + newWinner.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
                             + ";"
-                            + "被提及:" + new ArrayList<Map<String, Object>>().stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","));
+                            + "被提及:" + mention.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","));
             resultMap.put("roles", roles);
             service.sink(resultMap);
+        }
+
+        private void priority(List<Map<String, Object>> maps, Set<String> companyGids) {
+            maps.removeIf(e -> {
+                String gid = String.valueOf(e.get("gid"));
+                if (TycUtils.isUnsignedId(gid)) {
+                    boolean contains = companyGids.contains(gid);
+                    companyGids.add(gid);
+                    return contains;
+                } else {
+                    return false;
+                }
+            });
         }
     }
 }
