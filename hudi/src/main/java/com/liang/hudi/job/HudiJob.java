@@ -24,8 +24,8 @@ public class HudiJob {
         String tbName = args[2];
         configuration.setString("pipeline.name", String.format("%s.%s", dbSource, tbName));
         if (writeOperationType == BULK_INSERT) {
-            configuration.setInteger("execution.checkpointing.interval", 1000 * 10);
-            configuration.setInteger("execution.checkpointing.min-pause", 0);
+            configuration.setInteger("execution.checkpointing.interval", 1000 * 60);
+            configuration.setInteger("execution.checkpointing.min-pause", 1000 * 60);
         }
         for (String sql : TableFactory.fromTemplate(writeOperationType, dbSource, tbName).split(";")) {
             if (StringUtils.isBlank(sql)) continue;
