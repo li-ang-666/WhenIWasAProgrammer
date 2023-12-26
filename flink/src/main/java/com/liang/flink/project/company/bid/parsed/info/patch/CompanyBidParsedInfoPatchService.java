@@ -108,7 +108,7 @@ public class CompanyBidParsedInfoPatchService {
             Map<String, Object> result = (Map<String, Object>) json.getOrDefault("result", new HashMap<String, Object>());
             return (List<Map<String, Object>>) result.getOrDefault("entities", new ArrayList<Map<String, Object>>());
         } catch (Exception ignore) {
-            log.warn("uuid: {}", uuid);
+            log.warn("请求AI接口失败, uuid: {}", uuid);
             try (HttpResponse response = HttpUtil.createPost("http://10.99.199.173:10040/linking_yuqing_rank")
                     .form("text", content)
                     .form("bid_uuid", uuid)
@@ -120,7 +120,7 @@ public class CompanyBidParsedInfoPatchService {
                 Map<String, Object> result = (Map<String, Object>) json.getOrDefault("result", new HashMap<String, Object>());
                 return (List<Map<String, Object>>) result.getOrDefault("entities", new ArrayList<Map<String, Object>>());
             } catch (Exception e) {
-                log.error("uuid: {}", uuid, e);
+                log.error("请求AI接口失败, uuid: {}", uuid, e);
             }
         }
         return new ArrayList<>();

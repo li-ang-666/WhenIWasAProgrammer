@@ -61,9 +61,10 @@ public class CompanyBidParsedInfoPatchJob {
                 service.delete(String.valueOf(columnMap.get("id")));
                 return;
             }
-            // 请求AI
+            // 先请求RDS
             String uuid = String.valueOf(columnMap.get("bid_uuid"));
             List<Map<String, Object>> queryResult = service.query(uuid);
+            // 再请求AI
             List<Map<String, Object>> result = !queryResult.isEmpty() ? queryResult : service.post(content, uuid);
             if (log.isDebugEnabled()) log.debug("AI return: {} -> {}", uuid, JsonUtils.toString(result));
             // owner 招标方
