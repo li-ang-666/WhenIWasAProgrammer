@@ -147,7 +147,7 @@ public class CompanyBidParsedInfoPatchJob {
                             + ";"
                             + "中标方:" + newWinner.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
                             + ";";
-            mention.removeIf(e -> !roles.contains(String.valueOf(e.get("gid"))));
+            mention.removeIf(e -> roles.contains(String.valueOf(e.get("gid"))));
             resultMap.put("roles", roles + "被提及:" + mention.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(",")));
             resultMap.put("mention", JsonUtils.toString(mention));
             service.sink(resultMap);
