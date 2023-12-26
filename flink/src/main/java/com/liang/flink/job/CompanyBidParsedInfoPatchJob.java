@@ -100,21 +100,48 @@ public class CompanyBidParsedInfoPatchJob {
             // winner amt 中标金额
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
             List<Map<String, Object>> newWinnerAmt = service.newJson(sourceWinnerAmt);
+            // mention 其他被提及
+            List<Map<String, Object>> mention = service.getMention(String.valueOf(columnMap.get("main_id")));
+            // 去重
+            HashMap<String, Object> resultMap = new HashMap<>(columnMap);
+            // 1、
+            List<Map<String, Object>> finalPartyA = service.deduplicateGidAndName(newOwner);
+            String partyAString = JsonUtils.toString(finalPartyA);
+            resultMap.put("party_a", partyAString);
+            // 2、
+            List<Map<String, Object>> finalAgent = service.deduplicateGidAndName(newAgent);
+            finalAgent.removeIf(e -> partyAString.contains(String.valueOf(e.get("gid"))));
+            String agentString = JsonUtils.toString(finalAgent);
+            resultMap.put("agent", agentString);
+            // 3、
+            List<Map<String, Object>> finalTenderer = service.deduplicateGidAndName(newTenderer);
+            finalTenderer.removeIf(e -> partyAString.contains(String.valueOf(e.get("gid"))) || agentString.contains(String.valueOf(e.get("gid"))));
+            String tendererString = JsonUtils.toString(finalTenderer);
+            resultMap.put("tenderer", tendererString);
+            // 4、
+            List<Map<String, Object>> finalCandidate = service.deduplicateGidAndName(newCandidate);
+            finalCandidate.removeIf(e -> partyAString.contains(String.valueOf(e.get("gid"))) || agentString.contains(String.valueOf(e.get("gid"))));
+            String candidateString = JsonUtils.toString(finalCandidate);
+            resultMap.put("candidate", candidateString);
+            // 5.1、
+            newWinner.removeIf(e -> partyAString.contains(String.valueOf(e.get("gid"))) || agentString.contains(String.valueOf(e.get("gid"))));
+            String winnerString = JsonUtils.toString(newWinner);
+            resultMap.put("winner", winnerString);
+            // 5.2、
             if (newWinnerAmt.size() != newWinner.size()) {
                 newWinnerAmt.clear();
             }
-            // 去重
-            HashMap<String, Object> resultMap = new HashMap<>(columnMap);
-            List<Map<String, Object>> finalPartyA = service.deduplicateGidAndName(newOwner);
-            resultMap.put("party_a", JsonUtils.toString(finalPartyA));
-            List<Map<String, Object>> finalAgent = service.deduplicateGidAndName(newAgent);
-            resultMap.put("agent", JsonUtils.toString(finalAgent));
-            List<Map<String, Object>> finalTenderer = service.deduplicateGidAndName(newTenderer);
-            resultMap.put("tenderer", JsonUtils.toString(finalTenderer));
-            List<Map<String, Object>> finalCandidate = service.deduplicateGidAndName(newCandidate);
-            resultMap.put("candidate", JsonUtils.toString(finalCandidate));
-            resultMap.put("winner", JsonUtils.toString(newWinner));
             resultMap.put("winner_amt", JsonUtils.toString(newWinnerAmt));
+            // 6、
+            mention.removeIf(e ->
+                    partyAString.contains(String.valueOf(e.get("gid")))
+                            || agentString.contains(String.valueOf(e.get("gid")))
+                            || tendererString.contains(String.valueOf(e.get("gid")))
+                            || candidateString.contains(String.valueOf(e.get("gid")))
+                            || winnerString.contains(String.valueOf(e.get("gid")))
+            );
+            String mentionString = JsonUtils.toString(mention);
+            resultMap.put("mention", mentionString);
             // 编号 & 时间
             for (Map<String, Object> map : result) {
                 if (map.containsValue("item_no")) {
@@ -131,26 +158,17 @@ public class CompanyBidParsedInfoPatchJob {
             Tuple2<String, String> tp2 = service.formatCode(String.valueOf(columnMap.get("bid_province")), String.valueOf(columnMap.get("bid_city")));
             resultMap.put("province", tp2.f0);
             resultMap.put("city", tp2.f1);
-            // 被提及
-            List<Map<String, Object>> mention = service.getMention(String.valueOf(columnMap.get("main_id")));
             // 搜索
             String bidPublishTime = columnMap.get("bid_publish_time") + "suffix";
             String substring = bidPublishTime.substring(0, 4);
             resultMap.put("publish_year", StringUtils.isNumeric(substring) ? substring : null);
-            String roles =
-                    "招采方:" + finalPartyA.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
-                            + ";"
-                            + "代理方:" + finalAgent.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
-                            + ";"
-                            + "投标方:" + finalTenderer.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
-                            + ";"
-                            + "中标候选人:" + finalCandidate.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
-                            + ";"
-                            + "中标方:" + newWinner.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
-                            + ";";
-            mention.removeIf(e -> roles.contains(String.valueOf(e.get("gid"))));
-            resultMap.put("roles", roles + "被提及:" + mention.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(",")));
-            resultMap.put("mention", JsonUtils.toString(mention));
+            String roles = "招采方:" + finalPartyA.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                    + ";代理方:" + finalAgent.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                    + ";投标方:" + finalTenderer.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                    + ";中标候选人:" + finalCandidate.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                    + ";中标方:" + newWinner.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","))
+                    + ";被提及:" + mention.stream().filter(e -> TycUtils.isUnsignedId(e.get("gid"))).map(e -> String.valueOf(e.get("gid"))).collect(Collectors.joining(","));
+            resultMap.put("roles", roles);
             service.sink(resultMap);
         }
     }
