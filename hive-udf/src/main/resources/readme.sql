@@ -44,4 +44,3 @@ add jar hdfs:///liang/hive-udf-1.0.jar;
 drop temporary function fff;
 create temporary function fff as 'com.liang.udf.DemoUDF' using jar 'hdfs:///liang/hive-udf-1.0.jar';
 desc function  extended fff;
-
