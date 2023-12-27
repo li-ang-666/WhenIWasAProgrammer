@@ -35,3 +35,13 @@ with t as(
   select 3 id, 'senior_executive_hk' tb, to_bitmap(id) bitmap from hudi_ods.senior_executive_hk
 )insert overwrite table test.bitmap_test select * from t;
 select id, tb, bitmap_count(bitmap) from test.bitmap_test;
+
+------------------------------------------------------------------------------------------------------------------------
+
+!sh hdfs dfs -rm /liang/hive-udf-1.0.jar
+!sh hdfs dfs -put /home/hive/liang/hive-udf-1.0.jar /liang/
+add jar hdfs:///liang/hive-udf-1.0.jar;
+drop temporary function fff;
+create temporary function fff as 'com.liang.udf.DemoUDF' using jar 'hdfs:///liang/hive-udf-1.0.jar';
+desc function  extended fff;
+
