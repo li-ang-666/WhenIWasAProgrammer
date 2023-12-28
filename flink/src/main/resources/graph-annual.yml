@@ -2,7 +2,7 @@
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 1
+  otherParallel: 32
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
