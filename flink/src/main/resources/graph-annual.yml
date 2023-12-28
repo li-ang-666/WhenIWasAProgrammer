@@ -8,7 +8,7 @@ flinkConfig:
 repairTasks:
   - taskId: "111"
     sourceName: "430.graph_data"
-    tableName: "company_equity_relation_details_tmp"
+    tableName: "company_equity_relation_details"
     columns: "*"
     where: "reference_pt_year='2023'"
     scanMode: TumblingWindow
