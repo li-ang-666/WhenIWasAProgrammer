@@ -55,7 +55,7 @@ public class GraphAnnualJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             columnMap.put("reference_pt_year", 2024);
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-            String sql = new SQL().REPLACE_INTO("company_equity_relation_details_tmp")
+            String sql = new SQL().INSERT_IGNORE_INTO("company_equity_relation_details_tmp")
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1)
                     .toString();
