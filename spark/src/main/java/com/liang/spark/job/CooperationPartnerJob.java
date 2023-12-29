@@ -125,7 +125,28 @@ public class CooperationPartnerJob {
 
     @RequiredArgsConstructor
     private final static class CooperationPartnerSink implements ForeachPartitionFunction<Row> {
-        private final static int BATCH_SIZE = 1;
+        private final static String TEMPLATE = " ON DUPLICATE KEY UPDATE" +
+                " boss_human_gid = VALUES(boss_human_gid)," +
+                " boss_human_name = VALUES(boss_human_name)," +
+                " boss_identity = VALUES(boss_identity)," +
+                " boss_shares = VALUES(boss_shares)," +
+                " company_name = VALUES(company_name)," +
+                " company_registered_status = VALUES(company_registered_status)," +
+                " company_registered_capital = VALUES(company_registered_capital)," +
+                " s = VALUES(s)," +
+                " partner_human_gid = VALUES(partner_human_gid)," +
+                " partner_human_name = VALUES(partner_human_name)," +
+                " partner_identity = VALUES(partner_identity)," +
+                " partner_shares = VALUES(partner_shares)," +
+                " single_cooperation_score = VALUES(single_cooperation_score)," +
+                " multi_cooperation_score = VALUES(multi_cooperation_score)," +
+                " single_cooperation_row_number = VALUES(single_cooperation_row_number)," +
+                " multi_cooperation_dense_rank = VALUES(multi_cooperation_dense_rank)," +
+                " cooperation_times_with_this_partner = VALUES(cooperation_times_with_this_partner)," +
+                " cooperation_times_with_all_partner = VALUES(cooperation_times_with_all_partner)," +
+                " total_partners = VALUES(total_partners)," +
+                " update_time = NOW()";
+        private final static int BATCH_SIZE = 128;
         private final Config config;
 
         @Override
@@ -147,22 +168,22 @@ public class CooperationPartnerJob {
                     columnMaps.add(JsonUtils.parseJsonObj(String.valueOf(obj)));
                     if (columnMaps.size() >= BATCH_SIZE) {
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                        String replace = new SQL().REPLACE_INTO("cooperation_partner")
+                        String sql = new SQL().INSERT_INTO("cooperation_partner")
                                 .INTO_COLUMNS(insert.f0)
                                 .INTO_VALUES(insert.f1)
-                                .toString();
-                        jdbcTemplate.update(replace);
+                                .toString() + TEMPLATE;
+                        jdbcTemplate.update(sql);
                         columnMaps.clear();
                     }
                 }
             }
             if (!columnMaps.isEmpty()) {
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                String replace = new SQL().REPLACE_INTO("cooperation_partner")
+                String sql = new SQL().INSERT_INTO("cooperation_partner")
                         .INTO_COLUMNS(insert.f0)
                         .INTO_VALUES(insert.f1)
-                        .toString();
-                jdbcTemplate.update(replace);
+                        .toString() + TEMPLATE;
+                jdbcTemplate.update(sql);
                 columnMaps.clear();
             }
         }
