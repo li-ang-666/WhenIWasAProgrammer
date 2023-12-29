@@ -56,6 +56,7 @@ public class GraphAnnualJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            columnMap.remove("id");
             columnMap.put("reference_pt_year", 2024);
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             String sql = new SQL().INSERT_IGNORE_INTO("company_equity_relation_details_tmp")
