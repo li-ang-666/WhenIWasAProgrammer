@@ -47,7 +47,7 @@ public class GraphAnnualJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             graphData = new JdbcTemplate("430.graph_data");
-            graphData.enableCache();
+            graphData.enableCache(1000, 128);
         }
 
         @Override
