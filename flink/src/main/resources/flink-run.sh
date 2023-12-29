@@ -31,7 +31,7 @@ export restoreDir=$(if [[ $1 == hdfs* ]] ; then echo '-s '$1 ; else echo '' ; fi
 ####################################
 /data/liang/flink-1.17.1/bin/flink run-application -t yarn-application ${restoreDir} \
   -D jobmanager.memory.process.size=2g \
-  -D taskmanager.memory.process.size=5g \
+  -D taskmanager.memory.process.size=3g \
   -D taskmanager.numberOfTaskSlots=8 \
   -D state.checkpoints.dir=hdfs:///liang/flink-checkpoints/${folderName} \
   -D yarn.ship-files=${configName} \
