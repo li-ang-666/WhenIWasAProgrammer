@@ -30,7 +30,10 @@ public class GraphAnnualJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream.rebalance()
-                .addSink(new GraphAnnualSink(config)).name("GraphAnnualSink").setParallelism(config.getFlinkConfig().getOtherParallel());
+                .addSink(new GraphAnnualSink(config))
+                .name("GraphAnnualSink")
+                .uid("GraphAnnualSink")
+                .setParallelism(config.getFlinkConfig().getOtherParallel());
         env.execute("GraphAnnualJob");
     }
 
