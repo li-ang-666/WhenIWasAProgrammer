@@ -11,11 +11,10 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
-        <!--jol-->
+        <!--debezium-->
         <dependency>
-            <groupId>org.openjdk.jol</groupId>
-            <artifactId>jol-core</artifactId>
-            <version>0.17</version>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-core</artifactId>
         </dependency>
 
         <!--obs-->

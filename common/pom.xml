@@ -12,6 +12,12 @@
 
     <artifactId>common</artifactId>
     <dependencies>
+        <!--debezium-->
+        <dependency>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-core</artifactId>
+        </dependency>
+
         <!--hutool-->
         <dependency>
             <groupId>cn.hutool</groupId>
@@ -134,12 +140,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-        </dependency>
-
-        <!--jol-->
-        <dependency>
-            <groupId>org.openjdk.jol</groupId>
-            <artifactId>jol-core</artifactId>
         </dependency>
     </dependencies>
 

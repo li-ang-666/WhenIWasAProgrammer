@@ -1,5 +1,6 @@
 package com.liang.common.service;
 
+import io.debezium.util.ObjectSizeCalculator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -67,8 +68,8 @@ public abstract class AbstractCache<K, V> {
         lock.lock();
         try {
             // 限制内存
-            //long sizeOfValues = values.stream().mapToLong(ObjectSizeCalculator::getObjectSize).sum();
-            long sizeOfValues = values.stream().mapToLong(e -> 1024L).sum();
+            long sizeOfValues = values.stream().mapToLong(ObjectSizeCalculator::getObjectSize).sum();
+            //long sizeOfValues = values.stream().mapToLong(e -> 1024L).sum();
             if (sizeOfValues > bufferMax) throw new RuntimeException("values too large");
             while (bufferUsed.get() + sizeOfValues > bufferMax) {
                 // 内存不足, 唤醒sender, 自身进入等待队列

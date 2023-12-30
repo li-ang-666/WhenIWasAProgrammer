@@ -19,6 +19,13 @@
     </modules>
     <dependencyManagement>
         <dependencies>
+            <!--debezium-->
+            <dependency>
+                <groupId>io.debezium</groupId>
+                <artifactId>debezium-core</artifactId>
+                <version>1.9.7.Final</version>
+            </dependency>
+
             <!--mybatis-->
             <dependency>
                 <groupId>org.mybatis</groupId>
@@ -292,13 +299,6 @@
                 <groupId>org.roaringbitmap</groupId>
                 <artifactId>RoaringBitmap</artifactId>
                 <version>0.9.44</version>
-            </dependency>
-
-            <!--jol-->
-            <dependency>
-                <groupId>org.openjdk.jol</groupId>
-                <artifactId>jol-core</artifactId>
-                <version>0.17</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
