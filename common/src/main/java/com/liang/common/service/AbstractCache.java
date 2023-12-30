@@ -69,7 +69,7 @@ public abstract class AbstractCache<K, V> {
         try {
             // 限制内存
             long sizeOfValues = values.stream().mapToLong(ObjectSizeCalculator::getObjectSize).sum();
-            if (sizeOfValues > bufferMax) throw new RuntimeException("values too large");
+            if (sizeOfValues > bufferMax) throw new RuntimeException("values too large in one batch");
             while (bufferUsed.get() + sizeOfValues > bufferMax) {
                 // 内存不足, 唤醒sender, 自身进入等待队列
                 LockSupport.unpark(sender);
