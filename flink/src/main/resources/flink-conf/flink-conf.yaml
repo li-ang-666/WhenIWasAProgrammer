@@ -35,7 +35,6 @@ yarn.application.queue: default
 yarn.application.priority: 999
 flink.yarn.nodemanager.pmem-check-enabled: false
 flink.yarn.nodemanager.vmem-check-enabled: false
-flink.yarn.nodemanager.vmem-pmem-ratio: 8.4
 
 # Jobmanager内存
 jobmanager.memory.enable-jvm-direct-memory-limit: false
