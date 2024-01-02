@@ -1,4 +1,4 @@
-CREATE TABLE ods(%s
+CREATE TABLE ods (%s
   op_ts as CAST(CURRENT_TIMESTAMP AS TIMESTAMP(3)),
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
@@ -13,7 +13,7 @@ CREATE TABLE ods(%s
   'scan.partition.num' = '%s',
   'scan.fetch-size' = '1024'
 );
-CREATE TABLE dwd(%s
+CREATE TABLE dwd (%s
   op_ts TIMESTAMP(3),
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
@@ -24,12 +24,14 @@ CREATE TABLE dwd(%s
   'index.type' = 'BUCKET',
   'hoodie.bucket.index.num.buckets' = '32',
   -- write
+  'write.tasks' = '32',
+  'write.task.max.size' = '1024',
+  'write.merge.max_memory' = '0',
+  'write.precombine' = 'true',
+  'write.precombine.field' = 'op_ts',
   'write.operation' = 'bulk_insert',
   'write.bulk_insert.shuffle_input' = 'false',
   'write.bulk_insert.sort_input' = 'false',
-  'write.tasks' = '32',
-  'write.precombine' = 'true',
-  'write.precombine.field' = 'op_ts',
   -- compaction
   'compaction.async.enabled' = 'false',
   'compaction.schedule.enabled' = 'true',

@@ -16,7 +16,7 @@ CREATE TABLE ods (%s
   'jdbc.properties.zeroDateTimeBehavior' = 'convertToNull',
   'jdbc.properties.tinyInt1isBit' = 'false'
 );
-CREATE TABLE dwd(%s
+CREATE TABLE dwd (%s
   op_ts TIMESTAMP(3),
   PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
