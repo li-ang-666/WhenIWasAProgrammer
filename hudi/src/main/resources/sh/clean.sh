@@ -5,5 +5,6 @@ if [[ ${num} == 0* ]] ; then
 else
   echo 'find running hudi job, return' && exit 0
 fi
+
 hdfs dfs -rm -r /user/hive/.flink/*
 hdfs dfs -rm -r /user/hive/.Trash/Current/user/hive/.flink/*

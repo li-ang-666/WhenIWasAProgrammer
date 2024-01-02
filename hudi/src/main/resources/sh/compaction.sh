@@ -1,7 +1,11 @@
 #!/bin/bash
 yarn app -list | grep hudi_compaction_${1}
 export p=`yarn app -list | grep hudi_compaction_${1}`
-if [[ ${p} == application_* ]] ; then echo 'exists, return' && exit 0 ; else echo 'not exists, continue' ; fi
+if [[ ${p} == application_* ]] ; then
+  echo 'exists, return' && exit 0
+else
+  echo 'not exists, continue'
+fi
 
 export FLINK_HOME=/home/hive/flink/flink-1.17.1
 export FLINK_CONF_DIR=/home/hive/flink/flink-conf
