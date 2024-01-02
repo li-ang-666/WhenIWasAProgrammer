@@ -4,7 +4,7 @@ export FLINK_CONF_DIR=/home/hive/flink/flink-conf
 export HADOOP_CLASSPATH=`hadoop classpath`
 /home/hive/flink/flink-1.17.1/bin/flink run-application -t yarn-application \
   -D jobmanager.memory.process.size=2g \
-  -D taskmanager.memory.process.size=9g \
+  -D taskmanager.memory.process.size=10g \
   -D taskmanager.numberOfTaskSlots=8 \
   -D parallelism.default=16 \
   -D state.checkpoints.dir=hdfs:///hudi/flink-checkpoints/bulk-insert/${2} \
