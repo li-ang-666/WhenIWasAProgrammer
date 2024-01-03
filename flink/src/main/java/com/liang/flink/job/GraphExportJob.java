@@ -78,7 +78,9 @@ public class GraphExportJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             StringBuilder stringBuilder = new StringBuilder();
             KEYS.forEach(k -> stringBuilder.append(SEPARATOR).append(columnMap.get(k)));
-            String row = stringBuilder.toString().replaceFirst(SEPARATOR, "");
+            String row = stringBuilder.toString()
+                    .replaceFirst(SEPARATOR, "")
+                    .replaceAll("\n", "");
             obsWriter.update(row);
         }
 
