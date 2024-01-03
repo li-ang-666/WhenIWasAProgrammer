@@ -37,8 +37,8 @@ public class BigShareholderJob {
 
     @RequiredArgsConstructor
     private final static class BigShareholderSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
+        private static volatile Set<String> Listed_company = null;
         private final Config config;
-        private final Set<String> Listed_company = new HashSet<>();
         private JdbcTemplate jdbcTemplate457;
         private JdbcTemplate jdbcTemplate463;
 
@@ -53,13 +53,19 @@ public class BigShareholderJob {
             jdbcTemplate457.enableCache();
             jdbcTemplate463 = new JdbcTemplate("463.bdp_equity");
             jdbcTemplate463.enableCache();
-            JdbcTemplate jdbcTemplate157 = new JdbcTemplate("157.listed_base");
-            String query = new SQL().SELECT_DISTINCT("company_id")
-                    .FROM("company_bond_plates")
-                    .WHERE("company_id is not null and company_id > 0")
-                    .WHERE("listed_status is not null and listed_status not in (0, 3, 5, 8, 9)")
-                    .toString();
-            Listed_company.addAll(jdbcTemplate157.queryForList(query, rs -> rs.getString(1)));
+            if (Listed_company == null) {
+                synchronized (BigShareholderSink.class) {
+                    if (Listed_company == null) {
+                        JdbcTemplate jdbcTemplate157 = new JdbcTemplate("157.listed_base");
+                        String query = new SQL().SELECT_DISTINCT("company_id")
+                                .FROM("company_bond_plates")
+                                .WHERE("company_id is not null and company_id > 0")
+                                .WHERE("listed_status is not null and listed_status not in (0, 3, 5, 8, 9)")
+                                .toString();
+                        Listed_company = new HashSet<>(jdbcTemplate157.queryForList(query, rs -> rs.getString(1)));
+                    }
+                }
+            }
         }
 
         @Override
