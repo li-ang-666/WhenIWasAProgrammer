@@ -48,7 +48,7 @@ public class ObsWriter extends AbstractCache<String, String> {
     @Override
     protected void updateImmediately(String ignore, Queue<String> rows) {
         logging.beforeExecute();
-        String fileName = String.format("%s.%s%s", uuid, DateTimeUtils.currentDate(), fileFormat.suffix);
+        String fileName = String.format("%s-%s%s", uuid, DateTimeUtils.currentDate(), fileFormat.suffix);
         try {
             String objectKey = folder + fileName;
             if (!fileToPosition.containsKey(fileName)) {
