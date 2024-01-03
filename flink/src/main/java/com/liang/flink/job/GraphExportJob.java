@@ -16,8 +16,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 //  -- beeline
@@ -50,22 +48,7 @@ public class GraphExportJob {
 
     @RequiredArgsConstructor
     private final static class GraphExportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
-        private final static String SEPARATOR = " @ ";
-        private final static List<String> KEYS = Arrays.asList(
-                "id",
-                "company_id_invested",
-                "tyc_unique_entity_id_invested",
-                "tyc_unique_entity_name_invested",
-                "investor_identity_type",
-                "company_id_investor",
-                "tyc_unique_entity_id_investor",
-                "tyc_unique_entity_name_investor",
-                "equity_amount",
-                "equity_amount_currency",
-                "equity_ratio",
-                "equity_relation_validation_year",
-                "reference_pt_year"
-        );
+        private final static String SEPARATOR = ",";
         private final Config config;
         private ObsWriter obsWriter;
 
@@ -83,12 +66,22 @@ public class GraphExportJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            StringBuilder stringBuilder = new StringBuilder();
-            KEYS.forEach(k -> stringBuilder.append(SEPARATOR).append(columnMap.get(k)));
-            String row = stringBuilder.toString()
-                    .replaceFirst(SEPARATOR, "")
-                    .replaceAll("\n", "");
-            obsWriter.update(row);
+            String stringBuilder = String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n\u0001,]", "") +
+                    "," +
+                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n\u0001,]", "") +
+                    "," +
+                    "equity_relation" +
+                    "," +
+                    String.valueOf(columnMap.get("equity_ratio")).replaceAll("[\n\u0001,]", "") +
+                    "," +
+                    String.valueOf(columnMap.get("equity_amount")).replaceAll("[\n\u0001,]", "") +
+                    "," +
+                    String.valueOf(columnMap.get("equity_amount_currency")).replaceAll("[\n\u0001,]", "") +
+                    "," +
+                    "2024" +
+                    "," +
+                    "1704038400000";
+            obsWriter.update(stringBuilder);
         }
 
         @Override
