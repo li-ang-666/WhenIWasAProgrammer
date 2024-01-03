@@ -1,0 +1,20 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 32
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - taskId: "111"
+    sourceName: "457.prism_shareholder_path"
+    tableName: "ratio_path_company"
+    columns: "*"
+    where: "is_big_shareholder = 1"
+    scanMode: TumblingWindow
+  - taskId: "222"
+    sourceName: "463.bdp_equity"
+    tableName: "shareholder_identity_type_details"
+    columns: "*"
+    where: "shareholder_identity_type = 1"
+    scanMode: TumblingWindow
