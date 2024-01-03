@@ -58,7 +58,7 @@ public class GraphExportJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            obsWriter = new ObsWriter("obs://hadoop-obs/flink/");
+            obsWriter = new ObsWriter("obs://hadoop-obs/flink/", ObsWriter.FileFormat.CSV);
             obsWriter.enableCache();
         }
 

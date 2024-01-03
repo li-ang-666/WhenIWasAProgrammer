@@ -5,6 +5,7 @@ import com.liang.common.service.Logging;
 import com.liang.common.util.DateTimeUtils;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ModifyObjectRequest;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
@@ -28,35 +29,38 @@ public class ObsWriter extends AbstractCache<String, String> {
     private final UUID uuid = UUID.randomUUID();
     private final Map<String, AtomicLong> fileToPosition = new HashMap<>();
     private final String bucket;
-    private final String objectKeyPrefix;
+    private final String folder;
     private final Logging logging;
+    private final FileFormat fileFormat;
 
-    public ObsWriter(String folder) {
+    public ObsWriter(String obsUrl) {
+        this(obsUrl, FileFormat.NONE);
+    }
+
+    public ObsWriter(String obsUrl, FileFormat fileFormat) {
         super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> "");
-        String[] formatFolder = folder
-                .replaceAll("obs://(.*?)/(.*)", "$1\001$2")
-                .split("\001");
-        bucket = formatFolder[0];
-        objectKeyPrefix = formatFolder[1] + (formatFolder[1].endsWith("/") ? "" : "/");
+        bucket = obsUrl.replaceAll("obs://(.*?)/(.*)", "$1");
+        folder = obsUrl.replaceAll("obs://(.*?)/(.*)", "$2/").replaceAll("//$", "/");
         logging = new Logging(this.getClass().getSimpleName(), folder);
+        this.fileFormat = fileFormat;
     }
 
     @Override
     protected void updateImmediately(String ignore, Queue<String> rows) {
         logging.beforeExecute();
-        String objectKeyName = String.format("%s.%s.%s", DateTimeUtils.currentDate(), uuid, "txt");
+        String fileName = String.format("%s.%s%s", uuid, DateTimeUtils.currentDate(), fileFormat.suffix);
         try {
-            String objectKey = objectKeyPrefix + objectKeyName;
-            if (!fileToPosition.containsKey(objectKeyName)) {
+            String objectKey = folder + fileName;
+            if (!fileToPosition.containsKey(fileName)) {
                 fileToPosition.clear();
                 long position = 0L;
                 try {
                     position = client.getObjectMetadata(bucket, objectKey).getNextPosition();
                 } catch (Exception ignored) {
                 }
-                fileToPosition.put(objectKeyName, new AtomicLong(position));
+                fileToPosition.put(fileName, new AtomicLong(position));
             }
-            AtomicLong position = fileToPosition.get(objectKeyName);
+            AtomicLong position = fileToPosition.get(fileName);
             ModifyObjectRequest request = new ModifyObjectRequest();
             request.setBucketName(bucket);
             request.setObjectKey(objectKey);
@@ -64,9 +68,15 @@ public class ObsWriter extends AbstractCache<String, String> {
             request.setInput(new ByteArrayInputStream(bytes));
             request.setPosition(position.getAndAdd(bytes.length));
             client.modifyObject(request);
-            logging.afterExecute("write", objectKeyName + "(" + rows.size() + "条)");
+            logging.afterExecute("write", fileName + "(" + rows.size() + "条)");
         } catch (Exception e) {
-            logging.ifError("write", objectKeyName, e);
+            logging.ifError("write", fileName, e);
         }
+    }
+
+    @AllArgsConstructor
+    public enum FileFormat {
+        NONE(""), TXT(".txt"), CSV(".csv"), JSON(".json");
+        private final String suffix;
     }
 }
