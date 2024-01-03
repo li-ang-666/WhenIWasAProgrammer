@@ -20,13 +20,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * drop table if exists `graph_export`;
- * create table if not exists `graph_export`(`row` string)
- * stored as textfile
- * location 'obs://hadoop-obs/flink';
- * select count(1) from graph_export;
- */
+//  -- beeline
+//  use test;
+//  drop table if exists graph_export;
+//  create table if not exists graph_export(
+//    `row` string
+//  )stored as textfile location 'obs://hadoop-obs/flink';
+
+//  -- 建表后再写入数据
+//  select count(1) from graph_export;
+
+//  -- spark-sql
+//  use test;
+//  insert overwrite table graph_export select /*+ REPARTITION(1) */ * from graph_export;
+//  select count(1) from graph_export;
 @LocalConfigFile("graph-export.yml")
 public class GraphExportJob {
     public static void main(String[] args) throws Exception {
