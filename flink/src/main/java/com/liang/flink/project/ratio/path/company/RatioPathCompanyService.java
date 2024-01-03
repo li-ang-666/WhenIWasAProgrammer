@@ -33,9 +33,12 @@ public class RatioPathCompanyService {
         }
         try {
             companyIds.forEach(dao::deleteAll);
-            // 合伙企业不计算大股东和控股股东
+            // 合伙企业, 不计算大股东和控股股东
             HashMap<Long, Boolean> companyIsPartnership = new HashMap<>();
             companyIds.forEach(e -> companyIsPartnership.put(e, dao.isPartnership(e)));
+            // 非上市公司, 不计算大股东
+            HashMap<Long, Boolean> companyIsListed = new HashMap<>();
+            companyIds.forEach(e -> companyIsListed.put(e, dao.isListed(e)));
             List<String> sqls = new ArrayList<>();
             companyIds.stream()
                     .filter(e -> e != 0)
@@ -84,13 +87,16 @@ public class RatioPathCompanyService {
                         columnMap.put("investment_ratio_total", ratioPathCompany.getInvestmentRatioTotal().setScale(12, RoundingMode.DOWN).toPlainString());
                         columnMap.put("is_controller", ratioPathCompany.getIsController());
                         columnMap.put("is_ultimate", ratioPathCompany.getIsUltimate());
-                        // 合伙企业不计算大股东和控股股东
+                        columnMap.put("is_big_shareholder", ratioPathCompany.getIsBigShareholder());
+                        columnMap.put("is_controlling_shareholder", ratioPathCompany.getIsControllingShareholder());
+                        // 合伙企业, 不计算大股东和控股股东
                         if (companyIsPartnership.get(companyId)) {
                             columnMap.put("is_big_shareholder", 0);
                             columnMap.put("is_controlling_shareholder", 0);
-                        } else {
-                            columnMap.put("is_big_shareholder", ratioPathCompany.getIsBigShareholder());
-                            columnMap.put("is_controlling_shareholder", ratioPathCompany.getIsControllingShareholder());
+                        }
+                        // 非上市公司, 不计算大股东
+                        if (!companyIsListed.get(companyId)) {
+                            columnMap.put("is_big_shareholder", 0);
                         }
                         columnMap.put("equity_holding_path", path.toString());
                         columnMap.put("is_deleted", ratioPathCompany.getIsDeleted());
