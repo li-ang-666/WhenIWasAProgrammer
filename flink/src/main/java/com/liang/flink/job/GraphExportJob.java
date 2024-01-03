@@ -48,7 +48,6 @@ public class GraphExportJob {
 
     @RequiredArgsConstructor
     private final static class GraphExportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
-        private final static String SEPARATOR = ",";
         private final Config config;
         private ObsWriter obsWriter;
 
