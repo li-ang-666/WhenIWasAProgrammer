@@ -6,7 +6,6 @@ import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
 import com.liang.common.service.database.holder.DruidHolder;
 import com.liang.common.util.DorisBitmapUtils;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,7 +14,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
 public class JdbcTemplate extends AbstractCache<String, String> {
@@ -33,7 +32,6 @@ public class JdbcTemplate extends AbstractCache<String, String> {
     }
 
     @Override
-    @SneakyThrows(InterruptedException.class)
     protected void updateImmediately(String ignore, Queue<String> sqls) {
         boolean getException = false;
         logging.beforeExecute();
@@ -54,7 +52,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         }
         if (getException) {
             for (String sql : sqls) {
-                TimeUnit.MILLISECONDS.sleep(50);
+                LockSupport.parkUntil(System.currentTimeMillis() + 50);
                 int i = 3;
                 while (i > 0) {
                     String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
@@ -68,7 +66,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
                         String methodArg = i == 1 ? "/* Exception: " + ee.getMessage() + " */" + " " + failedLogPrefix + sql : failedLogPrefix + sql;
                         logging.ifError("updateSingle", methodArg, ee);
                         i--;
-                        TimeUnit.MILLISECONDS.sleep(50);
+                        LockSupport.parkUntil(System.currentTimeMillis() + 50);
                     }
                 }
             }
