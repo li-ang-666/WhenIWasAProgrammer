@@ -46,9 +46,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
             redisTemplate.hMSet(kafkaTimeKey, timeMap);
             lastWriteTimeMillis = currentTimeMillis;
         }
-        for (SingleCanalBinlog singleCanalBinlog : kafkaRecord.getValue().getSingleCanalBinlogs()) {
-            out.collect(singleCanalBinlog);
-        }
+        kafkaRecord.getValue().getSingleCanalBinlogs().forEach(out::collect);
     }
 
     @Override

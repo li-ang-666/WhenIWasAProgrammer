@@ -80,9 +80,8 @@ public class RepairDataHandler implements Runnable {
             long currentId = task.getCurrentId();
             long targetId = task.getTargetId();
             long lag = targetId - currentId;
-            redisTemplate.hSet(repairKey, task.getTaskId(),
-                    String.format("[running] currentId: %s, targetId: %s, lag: %s", currentId, targetId, lag)
-            );
+            String info = String.format("[running] currentId: %s, targetId: %s, lag: %s", currentId, targetId, lag);
+            redisTemplate.hSet(repairKey, task.getTaskId(), info);
             lastWriteTimeMillis = currentTimeMillis;
         }
     }
