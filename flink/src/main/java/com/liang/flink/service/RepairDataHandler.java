@@ -38,9 +38,7 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
 
     @Override
     public void run() {
-        baseSql = String.format("select %s from %s where %s ", task.getColumns(), task.getTableName(), task.getWhere());
-        jdbcTemplate = new JdbcTemplate(task.getSourceName());
-        redisTemplate = new RedisTemplate("metadata");
+        open();
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (hasNext() && running.get()) {
             if (queue.size() + QUERY_BATCH_SIZE > MAX_QUEUE_SIZE) continue;
@@ -53,6 +51,12 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
             }
         }
         running.set(false);
+    }
+
+    public void open() {
+        baseSql = String.format("select %s from %s where %s ", task.getColumns(), task.getTableName(), task.getWhere());
+        jdbcTemplate = new JdbcTemplate(task.getSourceName());
+        redisTemplate = new RedisTemplate("metadata");
     }
 
     /**
