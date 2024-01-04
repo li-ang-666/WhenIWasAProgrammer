@@ -33,7 +33,6 @@ public class RepairDataHandler implements Runnable {
     private JdbcTemplate jdbcTemplate;
     private RedisTemplate redisTemplate;
 
-    private long watermark;
     private long lastWriteTimeMillis;
 
     @Override
@@ -55,21 +54,23 @@ public class RepairDataHandler implements Runnable {
         running.set(false);
     }
 
+    /**
+     * `currentId` is still unprocessed id
+     */
     private boolean hasNextBatch() {
-        return task.getCurrentId() < task.getTargetId();
+        return task.getCurrentId() <= task.getTargetId();
     }
 
     private List<Map<String, Object>> nextBatch() {
         StringBuilder sqlBuilder = new StringBuilder(baseSql);
         if (task.getScanMode() == TumblingWindow) {
-            watermark = Math.min(task.getCurrentId() + QUERY_BATCH_SIZE, task.getTargetId());
-            sqlBuilder.append(String.format(" and %s <= id and id < %s", task.getCurrentId(), watermark));
+            sqlBuilder.append(String.format(" and %s <= id and id < %s", task.getCurrentId(), task.getCurrentId() + QUERY_BATCH_SIZE));
         }
         return jdbcTemplate.queryForColumnMaps(sqlBuilder.toString());
     }
 
     private void commit() {
-        task.setCurrentId(task.getScanMode() == Direct ? 1 : watermark);
+        task.setCurrentId(task.getScanMode() == Direct ? 1 : task.getCurrentId() + QUERY_BATCH_SIZE);
         report();
     }
 
