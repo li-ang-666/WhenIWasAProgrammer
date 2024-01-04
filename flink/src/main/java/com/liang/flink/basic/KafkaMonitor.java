@@ -18,7 +18,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog> {
-    private final static long INTERVAL = 1000 * 10L;
+    private final static int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
 
     private final Map<String, String> offsetMap = new HashMap<>();
     private final Map<String, String> timeMap = new HashMap<>();
@@ -26,7 +26,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
     private final Config config;
     private final String kafkaOffsetKey;
     private final String kafkaTimeKey;
-    private long lastSendTime = System.currentTimeMillis();
+    private long lastWriteTimeMillis = System.currentTimeMillis();
     private RedisTemplate redisTemplate;
 
     @Override
@@ -41,10 +41,10 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
         offsetMap.put(key, String.valueOf(kafkaRecord.getOffset()));
         timeMap.put(key, String.valueOf(kafkaRecord.getReachMilliseconds() / 1000));
         long currentTimeMillis = System.currentTimeMillis();
-        if (currentTimeMillis - lastSendTime >= INTERVAL) {
+        if (currentTimeMillis - lastWriteTimeMillis >= WRITE_REDIS_INTERVAL_MILLISECONDS) {
             redisTemplate.hMSet(kafkaOffsetKey, offsetMap);
             redisTemplate.hMSet(kafkaTimeKey, timeMap);
-            lastSendTime = currentTimeMillis;
+            lastWriteTimeMillis = currentTimeMillis;
         }
         for (SingleCanalBinlog singleCanalBinlog : kafkaRecord.getValue().getSingleCanalBinlogs()) {
             out.collect(singleCanalBinlog);

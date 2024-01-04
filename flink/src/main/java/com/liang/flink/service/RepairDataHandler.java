@@ -21,7 +21,7 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 public class RepairDataHandler implements Runnable {
     private final static int BATCH_SIZE = 1024;
     private final static int MAX_QUEUE_SIZE = 10240;
-    private final static int REPORT_INTERVAL = 1000 * 60;
+    private final static int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
 
     private final SubRepairTask task;
     private final AtomicBoolean running;
@@ -31,7 +31,7 @@ public class RepairDataHandler implements Runnable {
     private final RedisTemplate redisTemplate;
 
     private long watermark;
-    private long lastReportTimeMillis;
+    private long lastWriteTimeMillis;
 
     public RepairDataHandler(SubRepairTask task, AtomicBoolean running, String repairKey) {
         this.task = task;
@@ -49,7 +49,7 @@ public class RepairDataHandler implements Runnable {
         while (hasNextBatch() && running.get()) {
             if (task.getScanMode() == Direct || (queue.size() + BATCH_SIZE) <= MAX_QUEUE_SIZE) {
                 List<Map<String, Object>> columnMaps = nextBatch();
-                synchronized (task) {
+                synchronized (running) {
                     for (Map<String, Object> columnMap : columnMaps) {
                         queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                     }
@@ -80,14 +80,14 @@ public class RepairDataHandler implements Runnable {
 
     private void report() {
         long currentTimeMillis = System.currentTimeMillis();
-        if (currentTimeMillis - lastReportTimeMillis >= REPORT_INTERVAL) {
+        if (currentTimeMillis - lastWriteTimeMillis >= WRITE_REDIS_INTERVAL_MILLISECONDS) {
             long currentId = task.getCurrentId();
             long targetId = task.getTargetId();
             long lag = targetId - currentId;
             redisTemplate.hSet(repairKey, task.getTaskId(),
                     String.format("[running] currentId: %s, targetId: %s, lag: %s", currentId, targetId, lag)
             );
-            lastReportTimeMillis = currentTimeMillis;
+            lastWriteTimeMillis = currentTimeMillis;
         }
     }
 }

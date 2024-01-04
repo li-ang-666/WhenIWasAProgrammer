@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class KafkaLagReporter implements Runnable {
-    private static final int INTERVAL_SECONDS = 60 * 3;
+    private static final int READ_REDIS_INTERVAL_SECONDS = 60;
     private static final Comparator<TopicPartition> TOPIC_PARTITION_COMPARATOR = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
 
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
@@ -41,7 +41,7 @@ public class KafkaLagReporter implements Runnable {
     @SneakyThrows(InterruptedException.class)
     public void run() {
         while (true) {
-            TimeUnit.SECONDS.sleep(INTERVAL_SECONDS);
+            TimeUnit.SECONDS.sleep(READ_REDIS_INTERVAL_SECONDS);
             Map<String, String> offsetMap = redisTemplate.hScan(kafkaOffsetKey);
             // 格式化
             Map<TopicPartition, Long> copyOffsetMap = new TreeMap<>(TOPIC_PARTITION_COMPARATOR);

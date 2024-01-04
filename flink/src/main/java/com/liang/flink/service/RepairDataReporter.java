@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairDataReporter implements Runnable {
-    private final static int REPORT_INTERVAL = 1000 * 60 * 3;
+    private static final int READ_REDIS_INTERVAL_SECONDS = 60;
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
     private final String repairId;
 
@@ -20,7 +20,7 @@ public class RepairDataReporter implements Runnable {
     @SneakyThrows(InterruptedException.class)
     public void run() {
         while (true) {
-            TimeUnit.MILLISECONDS.sleep(REPORT_INTERVAL);
+            TimeUnit.SECONDS.sleep(READ_REDIS_INTERVAL_SECONDS);
             Map<String, String> reportMap = redisTemplate.hScan(repairId);
             String reportContent = JsonUtils.toString(reportMap);
             log.info("repair report: {}", reportContent);
