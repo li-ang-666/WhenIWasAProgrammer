@@ -4,7 +4,6 @@ import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.JsonUtils;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -15,7 +14,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
 public class KafkaLagReporter implements Runnable {
@@ -37,11 +36,9 @@ public class KafkaLagReporter implements Runnable {
     }
 
     @Override
-    @SuppressWarnings("InfiniteLoopStatement")
-    @SneakyThrows(InterruptedException.class)
     public void run() {
         while (true) {
-            TimeUnit.SECONDS.sleep(READ_REDIS_INTERVAL_SECONDS);
+            LockSupport.parkUntil(System.currentTimeMillis() + READ_REDIS_INTERVAL_SECONDS);
             Map<String, String> offsetMap = redisTemplate.hScan(kafkaOffsetKey);
             // 格式化
             Map<TopicPartition, Long> copyOffsetMap = new TreeMap<>(TOPIC_PARTITION_COMPARATOR);

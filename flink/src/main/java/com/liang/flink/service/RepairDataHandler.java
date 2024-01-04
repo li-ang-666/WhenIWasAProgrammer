@@ -19,7 +19,7 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 
 @Slf4j
 public class RepairDataHandler implements Runnable {
-    private final static int BATCH_SIZE = 1024;
+    private final static int QUERY_BATCH_SIZE = 1024;
     private final static int MAX_QUEUE_SIZE = 10240;
     private final static int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
 
@@ -47,7 +47,7 @@ public class RepairDataHandler implements Runnable {
     public void run() {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (hasNextBatch() && running.get()) {
-            if (task.getScanMode() == Direct || (queue.size() + BATCH_SIZE) <= MAX_QUEUE_SIZE) {
+            if (task.getScanMode() == Direct || (queue.size() + QUERY_BATCH_SIZE) <= MAX_QUEUE_SIZE) {
                 List<Map<String, Object>> columnMaps = nextBatch();
                 synchronized (running) {
                     for (Map<String, Object> columnMap : columnMaps) {
@@ -67,7 +67,7 @@ public class RepairDataHandler implements Runnable {
     private List<Map<String, Object>> nextBatch() {
         StringBuilder sqlBuilder = new StringBuilder(baseSql);
         if (task.getScanMode() == TumblingWindow) {
-            watermark = Math.min(task.getCurrentId() + BATCH_SIZE, task.getTargetId());
+            watermark = Math.min(task.getCurrentId() + QUERY_BATCH_SIZE, task.getTargetId());
             sqlBuilder.append(String.format(" and %s <= id and id < %s", task.getCurrentId(), watermark));
         }
         return jdbcTemplate.queryForColumnMaps(sqlBuilder.toString());

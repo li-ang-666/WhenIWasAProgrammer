@@ -8,7 +8,6 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
 import com.liang.flink.service.RepairDataHandler;
 import com.liang.flink.service.TaskGenerator;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.flink.api.common.state.ListState;
@@ -21,8 +20,8 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -100,10 +99,9 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         );
     }
 
-    @SneakyThrows(InterruptedException.class)
     private void waitingAllComplete() {
         while (!canceled.get()) {
-            TimeUnit.MILLISECONDS.sleep(CHECK_COMPLETE_INTERVAL_MILLISECONDS);
+            LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
             Map<String, String> reportMap = redisTemplate.hScan(repairKey);
             long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[completed]")).count();
             long totalNum = config.getRepairTasks().size();
