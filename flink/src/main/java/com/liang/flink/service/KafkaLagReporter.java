@@ -20,7 +20,7 @@ import java.util.concurrent.locks.LockSupport;
 @Slf4j
 @RequiredArgsConstructor
 public class KafkaLagReporter implements Runnable {
-    private static final int READ_REDIS_INTERVAL_SECONDS = 60;
+    private static final int READ_REDIS_INTERVAL_MILLISECONDS = 1000 * 60;
     private static final Comparator<TopicPartition> TOPIC_PARTITION_COMPARATOR = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
 
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
@@ -33,7 +33,7 @@ public class KafkaLagReporter implements Runnable {
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConfigUtils.getConfig().getKafkaConfigs().get("kafkaSource").getBootstrapServers());
         KafkaConsumer<byte[], byte[]> kafkaConsumer = new KafkaConsumer<>(properties, new ByteArrayDeserializer(), new ByteArrayDeserializer());
         while (true) {
-            LockSupport.parkUntil(System.currentTimeMillis() + READ_REDIS_INTERVAL_SECONDS);
+            LockSupport.parkUntil(System.currentTimeMillis() + READ_REDIS_INTERVAL_MILLISECONDS);
             Map<String, String> offsetMap = redisTemplate.hScan(kafkaOffsetKey);
             // 格式化
             Map<TopicPartition, Long> copyOffsetMap = new TreeMap<>(TOPIC_PARTITION_COMPARATOR);

@@ -1,16 +1,16 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "457.prism_shareholder_path"
-    tableName: "ratio_path_company"
+    sourceName: "008.bigdata_online"
+    tableName: "flink_job_info"
     columns: "*"
-    where: "1=1"
+    where: "1=2"
     scanMode: TumblingWindow
 
 kafkaConfigs:
