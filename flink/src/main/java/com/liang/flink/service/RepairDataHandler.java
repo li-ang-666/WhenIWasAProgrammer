@@ -54,7 +54,7 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
     }
 
     public void open() {
-        baseSql = String.format("select %s from %s where %s ", task.getColumns(), task.getTableName(), task.getWhere());
+        baseSql = String.format("select %s from %s where %s", task.getColumns(), task.getTableName(), task.getWhere());
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
         redisTemplate = new RedisTemplate("metadata");
     }
