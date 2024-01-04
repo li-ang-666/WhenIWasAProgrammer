@@ -55,7 +55,7 @@ public class RepairDataHandler implements Runnable {
     }
 
     /**
-     * `currentId` is still unprocessed id
+     * `currentId` is unprocessed
      */
     private boolean hasNextBatch() {
         return task.getCurrentId() <= task.getTargetId();
