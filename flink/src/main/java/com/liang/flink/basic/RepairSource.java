@@ -71,13 +71,13 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
-        keepSend(ctx);
-        registerComplete();
+        keepSending(ctx);
+        registerSelfComplete();
         waitingAllComplete();
     }
 
     // step 1
-    private void keepSend(SourceContext<SingleCanalBinlog> ctx) {
+    private void keepSending(SourceContext<SingleCanalBinlog> ctx) {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (!canceled.get() && (running.get() || !queue.isEmpty())) {
             int i = queue.size();
@@ -90,7 +90,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     // step 2
-    private void registerComplete() {
+    private void registerSelfComplete() {
         String info = String.format("[completed] currentId: %s", task.getCurrentId());
         redisTemplate.hSet(repairKey, task.getTaskId(), info);
     }
