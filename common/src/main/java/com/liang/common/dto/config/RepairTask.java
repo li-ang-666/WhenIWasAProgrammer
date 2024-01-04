@@ -8,12 +8,12 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 public class RepairTask implements Serializable {
-    protected String taskId;
-    protected String sourceName;
-    protected String tableName;
-    protected String columns = "*";
-    protected String where = "1 = 1";
-    protected ScanMode scanMode = ScanMode.Direct;
+    protected volatile String taskId;
+    protected volatile String sourceName;
+    protected volatile String tableName;
+    protected volatile String columns = "*";
+    protected volatile String where = "1 = 1";
+    protected volatile ScanMode scanMode = ScanMode.Direct;
 
     public enum ScanMode implements Serializable {
         TumblingWindow, Direct

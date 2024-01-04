@@ -13,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.api.common.typeinfo.TypeHint;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -39,7 +37,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private final Config config;
     private final String repairKey;
 
-    private SubRepairTask task;
+    private volatile SubRepairTask task;
     private ListState<SubRepairTask> taskState;
 
     private RedisTemplate redisTemplate;
@@ -51,25 +49,18 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
+        // 初始化task
         ConfigUtils.setConfig(config);
-        int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
-        SubRepairTask initTask = TaskGenerator.generateFrom(config.getRepairTasks().get(indexOfThisSubtask));
-        task = initTask;
-        taskState = context.getOperatorStateStore().getUnionListState(new ListStateDescriptor<>("taskState", TypeInformation.of(
-                new TypeHint<SubRepairTask>() {
-                })));
-        if (!context.isRestored()) {
-            return;
-        }
+        task = TaskGenerator.generateFrom(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
+        // 从ckp恢复task
+        if (!context.isRestored()) return;
+        taskState = context.getOperatorStateStore().getUnionListState(new ListStateDescriptor<>("taskState", SubRepairTask.class));
         for (SubRepairTask stateTask : taskState.get()) {
-            if (!stateTask.getTaskId().equals(task.getTaskId())) {
-                continue;
-            }
-            task = stateTask;
-            // 程序重启, targetId用最新的, select、where条件用最新的
-            task.setTargetId(initTask.getTargetId());
-            task.setColumns(initTask.getColumns());
-            task.setWhere(initTask.getWhere());
+            if (!stateTask.getTaskId().equals(task.getTaskId())) continue;
+            // 恢复queue
+            task.getPendingQueue().addAll(stateTask.getPendingQueue());
+            // 跳过id
+            task.setCurrentId(stateTask.getCurrentId());
             log.warn("task-{} restored from taskState, sql: select {} from {} where {}, currentId: {}, targetId: {}, queueSize: {}",
                     task.getTaskId(),
                     task.getColumns(), task.getTableName(), task.getWhere(),

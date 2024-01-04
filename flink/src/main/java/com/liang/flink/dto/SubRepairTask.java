@@ -14,9 +14,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class SubRepairTask extends RepairTask {
-    private ConcurrentLinkedQueue<SingleCanalBinlog> pendingQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<SingleCanalBinlog> pendingQueue = new ConcurrentLinkedQueue<>();
     private volatile long currentId;
-    private long targetId;
+    private volatile long targetId;
 
     @SneakyThrows({IllegalAccessException.class, InvocationTargetException.class})
     public SubRepairTask(RepairTask repairTask) {
