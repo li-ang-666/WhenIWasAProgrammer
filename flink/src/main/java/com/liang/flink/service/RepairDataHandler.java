@@ -5,6 +5,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 
 
 @Slf4j
+@RequiredArgsConstructor
 public class RepairDataHandler implements Runnable {
     private final static int QUERY_BATCH_SIZE = 1024;
     private final static int MAX_QUEUE_SIZE = 10240;
@@ -26,30 +28,24 @@ public class RepairDataHandler implements Runnable {
     private final SubRepairTask task;
     private final AtomicBoolean running;
     private final String repairKey;
-    private final String baseSql;
-    private final JdbcTemplate jdbcTemplate;
-    private final RedisTemplate redisTemplate;
+
+    private String baseSql;
+    private JdbcTemplate jdbcTemplate;
+    private RedisTemplate redisTemplate;
 
     private long watermark;
     private long lastWriteTimeMillis;
 
-    public RepairDataHandler(SubRepairTask task, AtomicBoolean running, String repairKey) {
-        this.task = task;
-        this.running = running;
-        this.repairKey = repairKey;
-        baseSql = String.format("select %s from %s where %s ",
-                task.getColumns(), task.getTableName(), task.getWhere());
-        jdbcTemplate = new JdbcTemplate(task.getSourceName());
-        redisTemplate = new RedisTemplate("metadata");
-    }
-
     @Override
     public void run() {
+        baseSql = String.format("select %s from %s where %s ", task.getColumns(), task.getTableName(), task.getWhere());
+        jdbcTemplate = new JdbcTemplate(task.getSourceName());
+        redisTemplate = new RedisTemplate("metadata");
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (hasNextBatch() && running.get()) {
             if (task.getScanMode() == Direct || (queue.size() + QUERY_BATCH_SIZE) <= MAX_QUEUE_SIZE) {
                 List<Map<String, Object>> columnMaps = nextBatch();
-                synchronized (running) {
+                synchronized (repairKey) {
                     for (Map<String, Object> columnMap : columnMaps) {
                         queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                     }

@@ -8,6 +8,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
 import com.liang.flink.service.RepairDataHandler;
 import com.liang.flink.service.TaskGenerator;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.flink.api.common.state.ListState;
@@ -28,6 +29,7 @@ import java.util.concurrent.locks.LockSupport;
  * 部分任务结束后的 Checkpoint
  */
 @Slf4j
+@RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private final static int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 5;
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -36,14 +38,9 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private final String repairKey;
 
     private volatile SubRepairTask task;
+
     private ListState<SubRepairTask> taskState;
-
     private RedisTemplate redisTemplate;
-
-    public RepairSource(Config config, String repairKey) {
-        this.config = config;
-        this.repairKey = repairKey;
-    }
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
@@ -81,6 +78,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         waitingAllComplete();
     }
 
+    // step 1
     private void keepSend(SourceContext<SingleCanalBinlog> ctx) {
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (!canceled.get() && (running.get() || !queue.isEmpty())) {
@@ -93,12 +91,14 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         }
     }
 
+    // step 2
     private void registerComplete() {
         redisTemplate.hSet(repairKey, task.getTaskId(),
                 String.format("[completed] currentId: %s", task.getCurrentId())
         );
     }
 
+    // step 3
     private void waitingAllComplete() {
         while (!canceled.get()) {
             LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
@@ -115,7 +115,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         SubRepairTask copyTask;
-        synchronized (running) {
+        synchronized (repairKey) {
             copyTask = SerializationUtils.clone(task);
         }
         taskState.clear();
@@ -124,9 +124,9 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void cancel() {
-        redisTemplate.del(repairKey);
         running.set(false);
         canceled.set(true);
+        redisTemplate.del(repairKey);
     }
 
     /**

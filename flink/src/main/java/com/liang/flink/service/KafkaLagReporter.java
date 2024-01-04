@@ -4,6 +4,7 @@ import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.JsonUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -17,26 +18,20 @@ import java.util.TreeMap;
 import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
+@RequiredArgsConstructor
 public class KafkaLagReporter implements Runnable {
     private static final int READ_REDIS_INTERVAL_SECONDS = 60;
     private static final Comparator<TopicPartition> TOPIC_PARTITION_COMPARATOR = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
 
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
-    private final KafkaConsumer<byte[], byte[]> kafkaConsumer;
     private final String kafkaOffsetKey;
     private final String kafkaTimeKey;
 
-    public KafkaLagReporter(String kafkaOffsetKey, String kafkaTimeKey) {
-        this.kafkaOffsetKey = kafkaOffsetKey;
-        this.kafkaTimeKey = kafkaTimeKey;
-        kafkaConsumer = new KafkaConsumer<>(new Properties() {{
-            setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                    ConfigUtils.getConfig().getKafkaConfigs().get("kafkaSource").getBootstrapServers());
-        }}, new ByteArrayDeserializer(), new ByteArrayDeserializer());
-    }
-
     @Override
     public void run() {
+        Properties properties = new Properties();
+        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConfigUtils.getConfig().getKafkaConfigs().get("kafkaSource").getBootstrapServers());
+        KafkaConsumer<byte[], byte[]> kafkaConsumer = new KafkaConsumer<>(properties, new ByteArrayDeserializer(), new ByteArrayDeserializer());
         while (true) {
             LockSupport.parkUntil(System.currentTimeMillis() + READ_REDIS_INTERVAL_SECONDS);
             Map<String, String> offsetMap = redisTemplate.hScan(kafkaOffsetKey);
