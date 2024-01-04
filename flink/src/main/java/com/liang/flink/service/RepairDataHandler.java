@@ -43,7 +43,7 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
         redisTemplate = new RedisTemplate("metadata");
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (hasNext() && running.get()) {
-            if ((queue.size() + QUERY_BATCH_SIZE) > MAX_QUEUE_SIZE) continue;
+            if (queue.size() + QUERY_BATCH_SIZE > MAX_QUEUE_SIZE) continue;
             List<Map<String, Object>> columnMaps = next();
             synchronized (repairKey) {
                 for (Map<String, Object> columnMap : columnMaps) {
