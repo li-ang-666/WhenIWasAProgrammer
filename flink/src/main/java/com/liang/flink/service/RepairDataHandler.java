@@ -43,14 +43,13 @@ public class RepairDataHandler implements Runnable {
         redisTemplate = new RedisTemplate("metadata");
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (hasNextBatch() && running.get()) {
-            if (task.getScanMode() == Direct || (queue.size() + QUERY_BATCH_SIZE) <= MAX_QUEUE_SIZE) {
-                List<Map<String, Object>> columnMaps = nextBatch();
-                synchronized (repairKey) {
-                    for (Map<String, Object> columnMap : columnMaps) {
-                        queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
-                    }
-                    commit();
+            if ((queue.size() + QUERY_BATCH_SIZE) > MAX_QUEUE_SIZE) continue;
+            List<Map<String, Object>> columnMaps = nextBatch();
+            synchronized (repairKey) {
+                for (Map<String, Object> columnMap : columnMaps) {
+                    queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                 }
+                commit();
             }
         }
         running.set(false);
