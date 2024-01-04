@@ -19,7 +19,6 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
@@ -93,22 +92,17 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     // step 2
     private void registerComplete() {
-        redisTemplate.hSet(repairKey, task.getTaskId(),
-                String.format("[completed] currentId: %s", task.getCurrentId())
-        );
+        String info = String.format("[completed] currentId: %s", task.getCurrentId());
+        redisTemplate.hSet(repairKey, task.getTaskId(), info);
     }
 
     // step 3
     private void waitingAllComplete() {
         while (!canceled.get()) {
             LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
-            Map<String, String> reportMap = redisTemplate.hScan(repairKey);
-            long completedNum = reportMap.values().stream().filter(e -> e.startsWith("[completed]")).count();
-            long totalNum = config.getRepairTasks().size();
-            if (completedNum == totalNum || completedNum == 0) {
-                log.info("Detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
-                cancel();
-            }
+            if (redisTemplate.hScan(repairKey).values().stream().anyMatch(e -> !e.startsWith("[completed]"))) continue;
+            log.info("Detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
+            cancel();
         }
     }
 
