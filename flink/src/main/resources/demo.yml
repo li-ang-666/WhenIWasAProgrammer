@@ -11,19 +11,19 @@ repairTasks:
     tableName: "user_blacklist"
     columns: "*"
     where: "1=1"
-    scanMode: TumblingWindow
+    scanMode: Direct
   - taskId: "222"
     sourceName: "008.bigdata_online"
     tableName: "user_blacklist"
     columns: "*"
     where: "1=1"
-    scanMode: TumblingWindow
+    scanMode: Direct
   - taskId: "333"
     sourceName: "008.bigdata_online"
     tableName: "user_blacklist"
     columns: "*"
     where: "1=1"
-    scanMode: TumblingWindow
+    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
