@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.io.IoUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -17,9 +18,12 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.HashSet;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @LocalConfigFile("big-shareholder.yml")
 public class BigShareholderJob {
@@ -37,7 +41,20 @@ public class BigShareholderJob {
 
     @RequiredArgsConstructor
     private final static class BigShareholderSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
-        private static volatile Set<String> Listed_company = null;
+        private static final Set<String> Listed_company;
+
+        static {
+            InputStream stream = BigShareholderJob.class.getClassLoader()
+                    .getResourceAsStream("equity_ratio_source_100_company.txt");
+            String[] arr = IoUtil.read(stream, StandardCharsets.UTF_8)
+                    .trim()
+                    .split("\n");
+            Listed_company = Arrays.stream(arr)
+                    .filter(e -> e.matches(".*?(\\d+).*"))
+                    .map(e -> e.replaceAll(".*?(\\d+).*", "$1"))
+                    .collect(Collectors.toSet());
+        }
+
         private final Config config;
         private JdbcTemplate jdbcTemplate457;
         private JdbcTemplate jdbcTemplate463;
@@ -53,20 +70,6 @@ public class BigShareholderJob {
             jdbcTemplate457.enableCache();
             jdbcTemplate463 = new JdbcTemplate("463.bdp_equity");
             jdbcTemplate463.enableCache();
-            if (Listed_company == null) {
-                synchronized (BigShareholderSink.class) {
-                    if (Listed_company == null) {
-                        JdbcTemplate jdbcTemplate157 = new JdbcTemplate("157.listed_base");
-                        String query = new SQL().SELECT_DISTINCT("company_id")
-                                .FROM("company_bond_plates")
-                                .WHERE("company_id is not null and company_id > 0")
-                                .WHERE("stock_type is not null and stock_type <> 6")
-                                .WHERE("listed_status is not null and listed_status not in (0, 3, 5, 8, 9)")
-                                .toString();
-                        Listed_company = new HashSet<>(jdbcTemplate157.queryForList(query, rs -> rs.getString(1)));
-                    }
-                }
-            }
         }
 
         @Override
