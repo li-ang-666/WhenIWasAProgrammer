@@ -21,6 +21,7 @@ import java.util.concurrent.locks.LockSupport;
 @RequiredArgsConstructor
 public class KafkaLagReporter implements Runnable {
     private static final int READ_REDIS_INTERVAL_MILLISECONDS = 1000 * 60;
+    private static final String SEPARATOR = "\u0001";
     private static final Comparator<TopicPartition> TOPIC_PARTITION_COMPARATOR = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
     private final String kafkaOffsetKey;
@@ -39,7 +40,7 @@ public class KafkaLagReporter implements Runnable {
             for (Map.Entry<String, String> entry : offsetMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                String[] split = key.split("@");
+                String[] split = key.split(SEPARATOR);
                 copyOffsetMap.put(new TopicPartition(split[0], Integer.parseInt(split[1])), Long.parseLong(value));
             }
             // 获取最大值
@@ -50,9 +51,7 @@ public class KafkaLagReporter implements Runnable {
                 TopicPartition key = entry.getKey();
                 long lag = entry.getValue() - copyOffsetMap.get(key);
                 copyOffsetMap.put(key, lag);
-                if (lag > 100L) {
-                    i++;
-                }
+                if (lag > 100L) i++;
             }
             if (i == 0) {
                 log.info("本轮周期内 kafka 所有分区 lag 均小于 100");
@@ -65,7 +64,7 @@ public class KafkaLagReporter implements Runnable {
             for (Map.Entry<String, String> entry : timeMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                String[] split = key.split("@");
+                String[] split = key.split(SEPARATOR);
                 TopicPartition topicPartition = new TopicPartition(split[0], Integer.parseInt(split[1]));
                 String time = DateTimeUtils.fromUnixTime(Long.parseLong(value), "yyyy-MM-dd HH:mm:ss");
                 copyTimeMap.put(topicPartition, time);

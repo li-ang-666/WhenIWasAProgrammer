@@ -25,6 +25,7 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
     private static final int QUERY_BATCH_SIZE = 1024;
     private static final int MAX_QUEUE_SIZE = 20480;
     private static final int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
+    private static final int DIRECT_SCAN_COMPLETE_FLAG = 1;
     private final SubRepairTask task;
     private final AtomicBoolean running;
     private final String repairKey;
@@ -62,7 +63,7 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
     @Override
     public boolean hasNext() {
         return task.getScanMode() == Direct ?
-                task.getCurrentId() != 1 : task.getCurrentId() <= task.getTargetId();
+                task.getCurrentId() != DIRECT_SCAN_COMPLETE_FLAG : task.getCurrentId() <= task.getTargetId();
     }
 
     @Override
@@ -75,7 +76,7 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
     }
 
     private void commit() {
-        task.setCurrentId(task.getScanMode() == Direct ? 1 : task.getCurrentId() + QUERY_BATCH_SIZE);
+        task.setCurrentId(task.getScanMode() == Direct ? DIRECT_SCAN_COMPLETE_FLAG : task.getCurrentId() + QUERY_BATCH_SIZE);
         long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - lastWriteTimeMillis >= WRITE_REDIS_INTERVAL_MILLISECONDS) {
             String info = String.format("[running] currentId: %s, targetId: %s, lag: %s", task.getCurrentId(), task.getTargetId(), task.getTargetId() - task.getCurrentId());

@@ -19,6 +19,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog> {
     private static final int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
+    private static final String SEPARATOR = "\001";
     private final Map<String, String> offsetMap = new HashMap<>();
     private final Map<String, String> timeMap = new HashMap<>();
     private final Config config;
@@ -35,7 +36,7 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
 
     @Override
     public void flatMap(KafkaRecord<BatchCanalBinlog> kafkaRecord, Collector<SingleCanalBinlog> out) {
-        String key = kafkaRecord.getTopic() + "@" + kafkaRecord.getPartition();
+        String key = kafkaRecord.getTopic() + SEPARATOR + kafkaRecord.getPartition();
         offsetMap.put(key, String.valueOf(kafkaRecord.getOffset()));
         timeMap.put(key, String.valueOf(kafkaRecord.getReachMilliseconds() / 1000));
         long currentTimeMillis = System.currentTimeMillis();
