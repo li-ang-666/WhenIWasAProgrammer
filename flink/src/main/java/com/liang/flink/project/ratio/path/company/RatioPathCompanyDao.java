@@ -23,7 +23,7 @@ public class RatioPathCompanyDao {
     private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate humanBase = new JdbcTemplate("040.human_base");
-    private final JdbcTemplate jdbcTemplate157 = new JdbcTemplate("157.listed_base");
+    private final JdbcTemplate jdbcTemplate116 = new JdbcTemplate("116.prism");
 
     public void deleteAll(Long companyId) {
         //删除ratio_path_company
@@ -61,11 +61,12 @@ public class RatioPathCompanyDao {
 
     public boolean isListed(Object companyId) {
         String sql = new SQL().SELECT("1")
-                .FROM("company_bond_plates")
-                .WHERE("company_id is not null and company_id = " + SqlUtils.formatValue(companyId))
-                .WHERE("listed_status is not null and listed_status not in (0, 3, 5, 8, 9)")
+                .FROM("equity_ratio")
+                .WHERE("company_graph_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("source = 100")
+                .WHERE("deleted = 0")
                 .toString();
-        String res = jdbcTemplate157.queryForObject(sql, rs -> rs.getString(1));
+        String res = jdbcTemplate116.queryForObject(sql, rs -> rs.getString(1));
         return res != null;
     }
 

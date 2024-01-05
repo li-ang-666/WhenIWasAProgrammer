@@ -60,6 +60,7 @@ public class BigShareholderJob {
                         String query = new SQL().SELECT_DISTINCT("company_id")
                                 .FROM("company_bond_plates")
                                 .WHERE("company_id is not null and company_id > 0")
+                                .WHERE("stock_type is not null and stock_type <> 6")
                                 .WHERE("listed_status is not null and listed_status not in (0, 3, 5, 8, 9)")
                                 .toString();
                         Listed_company = new HashSet<>(jdbcTemplate157.queryForList(query, rs -> rs.getString(1)));
