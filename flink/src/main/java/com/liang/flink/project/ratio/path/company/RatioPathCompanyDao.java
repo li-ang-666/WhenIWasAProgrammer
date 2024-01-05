@@ -23,7 +23,7 @@ public class RatioPathCompanyDao {
     private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate humanBase = new JdbcTemplate("040.human_base");
-    private final JdbcTemplate jdbcTemplate116 = new JdbcTemplate("116.prism");
+    private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
 
     public void deleteAll(Long companyId) {
         //删除ratio_path_company
@@ -66,7 +66,7 @@ public class RatioPathCompanyDao {
                 .WHERE("source = 100")
                 .WHERE("deleted = 0")
                 .toString();
-        String res = jdbcTemplate116.queryForObject(sql, rs -> rs.getString(1));
+        String res = prism116.queryForObject(sql, rs -> rs.getString(1));
         return res != null;
     }
 
