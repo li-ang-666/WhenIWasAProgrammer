@@ -13,13 +13,13 @@ import java.util.concurrent.locks.LockSupport;
 public class RepairDataReporter implements Runnable {
     private static final int READ_REDIS_INTERVAL_MILLISECONDS = 1000 * 60;
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
-    private final String repairId;
+    private final String repairKey;
 
     @Override
     public void run() {
         while (true) {
             LockSupport.parkUntil(System.currentTimeMillis() + READ_REDIS_INTERVAL_MILLISECONDS);
-            Map<String, String> reportMap = redisTemplate.hScan(repairId);
+            Map<String, String> reportMap = redisTemplate.hScan(repairKey);
             String reportContent = JsonUtils.toString(reportMap);
             log.info("repair report: {}", reportContent);
         }

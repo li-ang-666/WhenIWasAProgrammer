@@ -7,7 +7,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.project.black.list.DorisDwdAppActive;
 import com.liang.flink.project.black.list.DorisDwdOrderInfo;
 import com.liang.flink.project.black.list.DorisDwdUserRegisterDetails;

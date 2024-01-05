@@ -6,7 +6,7 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.service.data.update.DataUpdateContext;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;

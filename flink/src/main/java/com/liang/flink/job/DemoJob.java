@@ -5,7 +5,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

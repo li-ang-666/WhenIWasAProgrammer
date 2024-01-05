@@ -9,7 +9,7 @@ import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.project.ratio.path.company.RatioPathCompanyService;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;

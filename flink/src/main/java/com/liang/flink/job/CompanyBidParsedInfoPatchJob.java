@@ -7,7 +7,7 @@ import com.liang.common.util.JsonUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.high.level.api.StreamFactory;
+import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.project.company.bid.parsed.info.patch.CompanyBidParsedInfoPatchService;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
