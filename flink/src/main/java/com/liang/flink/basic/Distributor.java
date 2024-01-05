@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class Distributor implements KeySelector<SingleCanalBinlog, String> {
     private final Config config;
-    private final Map<String, Mapper> map = new HashMap<>();
+    private final Map<String, Mapper> table2Mapper = new HashMap<>();
     private boolean opened = false;
 
     public Distributor() {
@@ -23,17 +23,17 @@ public class Distributor implements KeySelector<SingleCanalBinlog, String> {
     }
 
     public Distributor with(String tableName, Mapper mapper) {
-        map.put(tableName, mapper);
+        table2Mapper.put(tableName, mapper);
         return this;
     }
 
     @Override
     public String getKey(SingleCanalBinlog singleCanalBinlog) {
-        if (config != null && !opened) {
+        if (!opened) {
             ConfigUtils.setConfig(config);
             opened = true;
         }
-        Mapper mapper = map.get(singleCanalBinlog.getTable());
+        Mapper mapper = table2Mapper.get(singleCanalBinlog.getTable());
         if (mapper == null) {
             return "";
         } else {

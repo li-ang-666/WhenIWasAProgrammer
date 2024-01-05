@@ -45,6 +45,7 @@ public class StreamFactory {
         KafkaSource<KafkaRecord<BatchCanalBinlog>> kafkaSource = KafkaSourceFactory.create(BatchCanalBinlog::new);
         return streamEnvironment
                 .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "KafkaSource")
+                .name("KafkaSource")
                 .uid("KafkaSource")
                 .setParallelism(config.getFlinkConfig().getSourceParallel())
                 .flatMap(new KafkaMonitor(config, kafkaOffsetKey, kafkaTimeKey))
