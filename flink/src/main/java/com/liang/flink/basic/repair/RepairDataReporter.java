@@ -1,4 +1,4 @@
-package com.liang.flink.service;
+package com.liang.flink.basic.repair;
 
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.JsonUtils;

@@ -3,6 +3,7 @@ package com.liang.flink.basic;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.StackUtils;
+import com.liang.flink.service.LocalConfigFile;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.liang.flink.service;
+package com.liang.flink.project.data.concat;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,4 +1,4 @@
-package com.liang.flink.service;
+package com.liang.flink.basic.kafka;
 
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -22,7 +22,6 @@ import java.util.concurrent.locks.LockSupport;
 public class KafkaLagReporter implements Runnable {
     private static final int READ_REDIS_INTERVAL_MILLISECONDS = 1000 * 60;
     private static final Comparator<TopicPartition> TOPIC_PARTITION_COMPARATOR = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
-
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
     private final String kafkaOffsetKey;
     private final String kafkaTimeKey;

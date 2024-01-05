@@ -1,4 +1,4 @@
-package com.liang.flink.basic;
+package com.liang.flink.basic.repair;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.DaemonExecutor;
@@ -6,8 +6,6 @@ import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.dto.SubRepairTask;
-import com.liang.flink.service.RepairDataHandler;
-import com.liang.flink.service.TaskGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
@@ -30,14 +28,12 @@ import java.util.concurrent.locks.LockSupport;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
-    private final static int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 5;
+    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 5;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
     private final String repairKey;
-
     private volatile SubRepairTask task;
-
     private ListState<SubRepairTask> taskState;
     private RedisTemplate redisTemplate;
 

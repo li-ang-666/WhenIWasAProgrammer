@@ -1,6 +1,6 @@
 package com.liang.study.test;
 
-public class Test {
+public class StudyTest {
     public static void main(String[] args) throws Exception {
     }
 }

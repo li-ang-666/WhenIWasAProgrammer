@@ -1,4 +1,4 @@
-package com.liang.flink.basic;
+package com.liang.flink.basic.kafka;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.RedisTemplate;
@@ -18,11 +18,9 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinlog>, SingleCanalBinlog> {
-    private final static int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
-
+    private static final int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
     private final Map<String, String> offsetMap = new HashMap<>();
     private final Map<String, String> timeMap = new HashMap<>();
-
     private final Config config;
     private final String kafkaOffsetKey;
     private final String kafkaTimeKey;

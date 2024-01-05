@@ -1,4 +1,4 @@
-package com.liang.flink.service;
+package com.liang.flink.basic.repair;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -22,18 +22,15 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Object>>> {
-    private final static int QUERY_BATCH_SIZE = 1024;
-    private final static int MAX_QUEUE_SIZE = 20480;
-    private final static int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
-
+    private static final int QUERY_BATCH_SIZE = 1024;
+    private static final int MAX_QUEUE_SIZE = 20480;
+    private static final int WRITE_REDIS_INTERVAL_MILLISECONDS = 1000 * 5;
     private final SubRepairTask task;
     private final AtomicBoolean running;
     private final String repairKey;
-
     private String baseSql;
     private JdbcTemplate jdbcTemplate;
     private RedisTemplate redisTemplate;
-
     private long lastWriteTimeMillis;
 
     @Override

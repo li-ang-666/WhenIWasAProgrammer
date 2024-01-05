@@ -1,4 +1,4 @@
-package com.liang.flink.basic;
+package com.liang.flink.service;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

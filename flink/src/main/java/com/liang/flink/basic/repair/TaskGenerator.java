@@ -1,4 +1,4 @@
-package com.liang.flink.service;
+package com.liang.flink.basic.repair;
 
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;

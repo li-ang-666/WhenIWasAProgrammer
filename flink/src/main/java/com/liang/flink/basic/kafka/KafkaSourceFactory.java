@@ -1,4 +1,4 @@
-package com.liang.flink.basic;
+package com.liang.flink.basic.kafka;
 
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.KafkaConfig;
