@@ -28,8 +28,7 @@ public class StreamFactory {
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
         return config.getFlinkConfig().getSourceType() == Kafka ?
-                createKafkaStream(streamEnvironment) :
-                createRepairStream(streamEnvironment);
+                createKafkaStream(streamEnvironment) : createRepairStream(streamEnvironment);
     }
 
     private static DataStream<SingleCanalBinlog> createKafkaStream(StreamExecutionEnvironment streamEnvironment) {
@@ -41,13 +40,16 @@ public class StreamFactory {
         String kafkaTimeKey = simpleName + "___Time___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
         log.info("kafkaOffsetKey: {}, kafkaTimeKey: {}", kafkaOffsetKey, kafkaTimeKey);
         DaemonExecutor.launch("KafkaLagReporter", new KafkaLagReporter(kafkaOffsetKey, kafkaTimeKey));
-        // 填充KafkaSource
+        // 组装KafkaSource
         Config config = ConfigUtils.getConfig();
         KafkaSource<KafkaRecord<BatchCanalBinlog>> kafkaSource = KafkaSourceFactory.create(BatchCanalBinlog::new);
         return streamEnvironment
                 .fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "KafkaSource")
+                .uid("KafkaSource")
                 .setParallelism(config.getFlinkConfig().getSourceParallel())
-                .flatMap(new KafkaMonitor(config, kafkaOffsetKey, kafkaTimeKey)).name("Monitor")
+                .flatMap(new KafkaMonitor(config, kafkaOffsetKey, kafkaTimeKey))
+                .name("KafkaMonitor")
+                .uid("KafkaMonitor")
                 .setParallelism(1);
     }
 
@@ -59,11 +61,12 @@ public class StreamFactory {
         String repairKey = simpleName + "___Repair___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
         log.info("repairKey: {}", repairKey);
         DaemonExecutor.launch("RepairDataReporter", new RepairDataReporter(repairKey));
-        // 填装RepairSource
+        // 组装RepairSource
         Config config = ConfigUtils.getConfig();
         return streamEnvironment
                 .addSource(new RepairSource(config, repairKey))
                 .name("RepairSource")
+                .uid("RepairSource")
                 .setParallelism(config.getRepairTasks().size());
     }
 }
