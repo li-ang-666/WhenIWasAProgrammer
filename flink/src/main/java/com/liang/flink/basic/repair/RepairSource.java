@@ -29,6 +29,8 @@ import java.util.concurrent.locks.LockSupport;
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 5;
+    private static final String TASK_STATE_NAME = "TASK_STATE";
+    private static final ListStateDescriptor<SubRepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, SubRepairTask.class);
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
@@ -42,7 +44,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         // 初始化task与state
         ConfigUtils.setConfig(config);
         task = TaskGenerator.generateFrom(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
-        taskState = context.getOperatorStateStore().getUnionListState(new ListStateDescriptor<>("taskState", SubRepairTask.class));
+        taskState = context.getOperatorStateStore().getUnionListState(TASK_STATE_DESCRIPTOR);
         // 从ckp恢复task
         for (SubRepairTask stateTask : taskState.get()) {
             if (!stateTask.getTaskId().equals(task.getTaskId())) continue;
