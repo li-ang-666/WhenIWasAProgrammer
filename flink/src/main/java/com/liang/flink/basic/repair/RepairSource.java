@@ -29,7 +29,8 @@ import java.util.concurrent.locks.LockSupport;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
-    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
+    // bigger than report interval
+    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 60;
     private static final String TASK_STATE_NAME = "TASK_STATE";
     private static final ListStateDescriptor<SubRepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, SubRepairTask.class);
     private static final String RUNNING_REPORT_PREFIX = "[checkpoint]";
@@ -96,6 +97,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     // step 2
     private void registerSelfComplete() {
         String info = String.format("%s currentId: %s", COMPLETE_REPORT_PREFIX, task.getCurrentId());
+        // the last time to write redis
         redisTemplate.hSet(repairKey, task.getTaskId(), info);
         selfCompleted.set(true);
     }
@@ -123,7 +125,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         }
         taskState.clear();
         taskState.add(copyTask);
-        // registerSelfComplete() 是最后一次写redis
+        // registerSelfComplete() is the last time to write redis
         if (selfCompleted.get()) return;
         String info = String.format("%s currentId: %s, targetId: %s, lag: %s, queueSize: %s", RUNNING_REPORT_PREFIX,
                 copyTask.getCurrentId(), copyTask.getTargetId(), copyTask.getTargetId() - copyTask.getCurrentId(), copyTask.getPendingQueue().size());
