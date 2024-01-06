@@ -17,6 +17,7 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
@@ -33,8 +34,12 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private static final ListStateDescriptor<SubRepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, SubRepairTask.class);
     private static final String RUNNING_REPORT_PREFIX = "[checkpoint]";
     private static final String COMPLETE_REPORT_PREFIX = "[completed]";
+    // data handler thread
     private final AtomicBoolean running = new AtomicBoolean(true);
+    // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
+    // self completed
+    private final AtomicBoolean selfCompleted = new AtomicBoolean(false);
     private final Config config;
     private final String repairKey;
     private volatile SubRepairTask task;
@@ -92,16 +97,21 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private void registerSelfComplete() {
         String info = String.format("%s currentId: %s", COMPLETE_REPORT_PREFIX, task.getCurrentId());
         redisTemplate.hSet(repairKey, task.getTaskId(), info);
+        selfCompleted.set(true);
     }
 
     // step 3
     private void waitingAllComplete() {
         while (!canceled.get()) {
             LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
-            if (redisTemplate.hScan(repairKey).values().stream().anyMatch(e -> !e.startsWith(COMPLETE_REPORT_PREFIX)))
-                continue;
-            log.info("detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
-            cancel();
+            Map<String, String> repairMap = redisTemplate.hScan(repairKey);
+            long numCompleted = repairMap.values().stream().filter(e -> e.startsWith(COMPLETE_REPORT_PREFIX)).count();
+            // the first one detected will delete the map, so map maybe empty
+            // otherwise, the repair map will always be nonempty
+            if (repairMap.isEmpty() || numCompleted == config.getRepairTasks().size()) {
+                log.info("detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
+                cancel();
+            }
         }
     }
 
@@ -113,7 +123,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         }
         taskState.clear();
         taskState.add(copyTask);
-        if (canceled.get()) return;
+        // registerSelfComplete() 是最后一次写redis
+        if (selfCompleted.get()) return;
         String info = String.format("%s currentId: %s, targetId: %s, lag: %s, queueSize: %s", RUNNING_REPORT_PREFIX,
                 copyTask.getCurrentId(), copyTask.getTargetId(), copyTask.getTargetId() - copyTask.getCurrentId(), copyTask.getPendingQueue().size());
         redisTemplate.hSet(repairKey, copyTask.getTaskId(), info);

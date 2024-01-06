@@ -18,7 +18,7 @@ public class RepairReporter implements Runnable {
 
     @Override
     public void run() {
-        String lastContent = "";
+        String lastContent = "{}";
         while (true) {
             LockSupport.parkUntil(System.currentTimeMillis() + READ_REDIS_INTERVAL_MILLISECONDS);
             // 有序
