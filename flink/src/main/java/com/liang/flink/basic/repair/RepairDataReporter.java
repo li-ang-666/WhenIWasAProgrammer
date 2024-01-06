@@ -11,7 +11,7 @@ import java.util.concurrent.locks.LockSupport;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairDataReporter implements Runnable {
-    private static final int READ_REDIS_INTERVAL_MILLISECONDS = 1000 * 60;
+    private static final int READ_REDIS_INTERVAL_MILLISECONDS = 1000 * 3;
     private final RedisTemplate redisTemplate = new RedisTemplate("metadata");
     private final String repairKey;
 

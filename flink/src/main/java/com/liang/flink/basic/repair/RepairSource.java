@@ -28,7 +28,7 @@ import java.util.concurrent.locks.LockSupport;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
-    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 5;
+    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     private static final String TASK_STATE_NAME = "TASK_STATE";
     private static final ListStateDescriptor<SubRepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, SubRepairTask.class);
     private final AtomicBoolean running = new AtomicBoolean(true);
