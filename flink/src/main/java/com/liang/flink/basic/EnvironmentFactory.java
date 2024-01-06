@@ -18,6 +18,7 @@ import static org.apache.flink.streaming.api.environment.CheckpointConfig.Extern
 @Slf4j
 @UtilityClass
 public class EnvironmentFactory {
+    private final static long CHECKPOINT_INTERVAL_LOCAL_TEST = 1000 * 60;
     private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 3;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 30;
 
@@ -37,7 +38,7 @@ public class EnvironmentFactory {
         }
         initConfig(file);
         StreamExecutionEnvironment env = initEnv();
-        configEnv(env);
+        configEnvCkp(env);
         return env;
     }
 
@@ -63,15 +64,16 @@ public class EnvironmentFactory {
         return StreamExecutionEnvironment.getExecutionEnvironment();
     }
 
-    private static void configEnv(StreamExecutionEnvironment env) {
+    private static void configEnvCkp(StreamExecutionEnvironment env) {
+        boolean isLocal = env instanceof LocalStreamEnvironment;
         // max parallel
         env.setMaxParallelism(1024);
         // 统一checkpoint管理
         CheckpointConfig checkpointConfig = env.getCheckpointConfig();
         // 运行周期
-        checkpointConfig.setCheckpointInterval(CHECKPOINT_INTERVAL);
+        checkpointConfig.setCheckpointInterval(isLocal ? CHECKPOINT_INTERVAL_LOCAL_TEST : CHECKPOINT_INTERVAL);
         // 两次checkpoint之间最少间隔时间
-        checkpointConfig.setMinPauseBetweenCheckpoints(CHECKPOINT_INTERVAL);
+        checkpointConfig.setMinPauseBetweenCheckpoints(isLocal ? CHECKPOINT_INTERVAL_LOCAL_TEST : CHECKPOINT_INTERVAL);
         // 模式是Exactly-Once
         checkpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
         // 超时
