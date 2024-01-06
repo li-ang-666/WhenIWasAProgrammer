@@ -107,10 +107,9 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
             Map<String, String> repairMap = redisTemplate.hScan(repairKey);
             long numCompleted = repairMap.values().stream().filter(e -> e.startsWith(COMPLETE_REPORT_PREFIX)).count();
-            if (numCompleted == config.getRepairTasks().size()) {
-                log.info("detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
-                cancel();
-            }
+            if (numCompleted != config.getRepairTasks().size()) continue;
+            log.info("detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
+            cancel();
         }
     }
 
