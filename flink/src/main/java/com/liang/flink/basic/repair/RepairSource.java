@@ -29,8 +29,7 @@ import java.util.concurrent.locks.LockSupport;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
-    // bigger than report interval
-    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 10;
+    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     private static final String TASK_STATE_NAME = "TASK_STATE";
     private static final ListStateDescriptor<SubRepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, SubRepairTask.class);
     private static final String RUNNING_REPORT_PREFIX = "[checkpoint]";
@@ -108,9 +107,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
             Map<String, String> repairMap = redisTemplate.hScan(repairKey);
             long numCompleted = repairMap.values().stream().filter(e -> e.startsWith(COMPLETE_REPORT_PREFIX)).count();
-            // the first one detected will delete the map, so map maybe empty
-            // otherwise, the repair map will always be nonempty
-            if (repairMap.isEmpty() || numCompleted == config.getRepairTasks().size()) {
+            if (numCompleted == config.getRepairTasks().size()) {
                 log.info("detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
                 cancel();
             }
@@ -136,7 +133,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void cancel() {
         running.set(false);
         canceled.set(true);
-        redisTemplate.del(repairKey);
     }
 
     /**

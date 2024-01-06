@@ -36,8 +36,8 @@ public class StreamFactory {
         String jobClassName = StackUtils.getMainFrame().getClassName();
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
-        String kafkaOffsetKey = simpleName + "___Offset___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
-        String kafkaTimeKey = simpleName + "___Time___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
+        String kafkaOffsetKey = String.format("%s_%s_%s", simpleName, "Offset", DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
+        String kafkaTimeKey = String.format("%s_%s_%s", simpleName, "Time", DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
         log.info("kafkaOffsetKey: {}, kafkaTimeKey: {}", kafkaOffsetKey, kafkaTimeKey);
         DaemonExecutor.launch("KafkaReporter", new KafkaReporter(kafkaOffsetKey, kafkaTimeKey));
         // 组装KafkaSource
@@ -59,7 +59,7 @@ public class StreamFactory {
         String jobClassName = StackUtils.getMainFrame().getClassName();
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
-        String repairKey = simpleName + "___Repair___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
+        String repairKey = String.format("%s_%s_%s", simpleName, "Repair", DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
         log.info("repairKey: {}", repairKey);
         DaemonExecutor.launch("RepairReporter", new RepairReporter(repairKey));
         // 组装RepairSource

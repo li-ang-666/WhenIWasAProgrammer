@@ -55,8 +55,6 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
 
     @Override
     public void close() {
-        redisTemplate.del(kafkaOffsetKey);
-        redisTemplate.del(kafkaTimeKey);
     }
 }
 
