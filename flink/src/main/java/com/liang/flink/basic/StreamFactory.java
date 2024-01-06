@@ -5,10 +5,10 @@ import com.liang.common.service.DaemonExecutor;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.StackUtils;
-import com.liang.flink.basic.kafka.KafkaLagReporter;
 import com.liang.flink.basic.kafka.KafkaMonitor;
+import com.liang.flink.basic.kafka.KafkaReporter;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
-import com.liang.flink.basic.repair.RepairDataReporter;
+import com.liang.flink.basic.repair.RepairReporter;
 import com.liang.flink.basic.repair.RepairSource;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
@@ -39,7 +39,7 @@ public class StreamFactory {
         String kafkaOffsetKey = simpleName + "___Offset___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
         String kafkaTimeKey = simpleName + "___Time___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
         log.info("kafkaOffsetKey: {}, kafkaTimeKey: {}", kafkaOffsetKey, kafkaTimeKey);
-        DaemonExecutor.launch("KafkaLagReporter", new KafkaLagReporter(kafkaOffsetKey, kafkaTimeKey));
+        DaemonExecutor.launch("KafkaReporter", new KafkaReporter(kafkaOffsetKey, kafkaTimeKey));
         // 组装KafkaSource
         Config config = ConfigUtils.getConfig();
         KafkaSource<KafkaRecord<BatchCanalBinlog>> kafkaSource = KafkaSourceFactory.create(BatchCanalBinlog::new);
@@ -61,7 +61,7 @@ public class StreamFactory {
         String simpleName = split[split.length - 1];
         String repairKey = simpleName + "___Repair___" + DateTimeUtils.currentDate() + "___" + DateTimeUtils.currentTime();
         log.info("repairKey: {}", repairKey);
-        DaemonExecutor.launch("RepairDataReporter", new RepairDataReporter(repairKey));
+        DaemonExecutor.launch("RepairReporter", new RepairReporter(repairKey));
         // 组装RepairSource
         Config config = ConfigUtils.getConfig();
         return streamEnvironment

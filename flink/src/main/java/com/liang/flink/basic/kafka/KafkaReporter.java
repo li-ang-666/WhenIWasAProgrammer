@@ -19,7 +19,7 @@ import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
 @RequiredArgsConstructor
-public class KafkaLagReporter implements Runnable {
+public class KafkaReporter implements Runnable {
     private static final int READ_REDIS_INTERVAL_MILLISECONDS = 1000 * 3;
     private static final String SEPARATOR = "\u0001";
     private static final Comparator<TopicPartition> TOPIC_PARTITION_COMPARATOR = (e1, e2) -> e1.topic().equals(e2.topic()) ? e1.partition() - e2.partition() : e1.topic().compareTo(e2.topic());
