@@ -37,6 +37,7 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
+            //LockSupport.parkUntil(System.currentTimeMillis() + 500);
         }
     }
 }
