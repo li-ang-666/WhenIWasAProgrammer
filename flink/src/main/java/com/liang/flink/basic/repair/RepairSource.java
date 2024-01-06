@@ -30,7 +30,7 @@ import java.util.concurrent.locks.LockSupport;
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     // bigger than report interval
-    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 30;
+    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 10;
     private static final String TASK_STATE_NAME = "TASK_STATE";
     private static final ListStateDescriptor<SubRepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, SubRepairTask.class);
     private static final String RUNNING_REPORT_PREFIX = "[checkpoint]";
