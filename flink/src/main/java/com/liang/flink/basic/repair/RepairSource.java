@@ -31,6 +31,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     private static final String TASK_STATE_NAME = "TASK_STATE";
     private static final ListStateDescriptor<SubRepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, SubRepairTask.class);
+    private static final String RUNNING_REPORT_PREFIX = "[checkpoint]";
+    private static final String COMPLETE_REPORT_PREFIX = "[completed]";
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
@@ -88,7 +90,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     // step 2
     private void registerSelfComplete() {
-        String info = String.format("[completed] currentId: %s", task.getCurrentId());
+        String info = String.format("%s currentId: %s", COMPLETE_REPORT_PREFIX, task.getCurrentId());
         redisTemplate.hSet(repairKey, task.getTaskId(), info);
     }
 
@@ -96,8 +98,9 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private void waitingAllComplete() {
         while (!canceled.get()) {
             LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
-            if (redisTemplate.hScan(repairKey).values().stream().anyMatch(e -> !e.startsWith("[completed]"))) continue;
-            log.info("Detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
+            if (redisTemplate.hScan(repairKey).values().stream().anyMatch(e -> !e.startsWith(COMPLETE_REPORT_PREFIX)))
+                continue;
+            log.info("detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
             cancel();
         }
     }
@@ -111,7 +114,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         taskState.clear();
         taskState.add(copyTask);
         if (canceled.get()) return;
-        String info = String.format("[checkpoint] currentId: %s, targetId: %s, lag: %s, queueSize: %s",
+        String info = String.format("%s currentId: %s, targetId: %s, lag: %s, queueSize: %s", RUNNING_REPORT_PREFIX,
                 copyTask.getCurrentId(), copyTask.getTargetId(), copyTask.getTargetId() - copyTask.getCurrentId(), copyTask.getPendingQueue().size());
         redisTemplate.hSet(repairKey, copyTask.getTaskId(), info);
     }
