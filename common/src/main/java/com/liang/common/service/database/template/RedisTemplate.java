@@ -71,7 +71,7 @@ public class RedisTemplate {
     public void hMSet(String key, Map<String, String> map) {
         logging.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
-            jedis.hmset(key, map);
+            if (!map.isEmpty()) jedis.hmset(key, map);
             logging.afterExecute("hMSet", key + " -> " + map);
         } catch (Exception e) {
             logging.ifError("hMSet", key + " -> " + map, e);
