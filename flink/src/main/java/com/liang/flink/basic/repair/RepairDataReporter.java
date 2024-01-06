@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
@@ -17,11 +18,15 @@ public class RepairDataReporter implements Runnable {
 
     @Override
     public void run() {
+        String lastContent = "";
         while (true) {
             LockSupport.parkUntil(System.currentTimeMillis() + READ_REDIS_INTERVAL_MILLISECONDS);
-            Map<String, String> reportMap = redisTemplate.hScan(repairKey);
+            // 有序
+            Map<String, String> reportMap = new TreeMap<>(redisTemplate.hScan(repairKey));
             String reportContent = JsonUtils.toString(reportMap);
+            if (reportContent.equals(lastContent)) continue;
             log.info("repair report: {}", reportContent);
+            lastContent = reportContent;
         }
     }
 }
