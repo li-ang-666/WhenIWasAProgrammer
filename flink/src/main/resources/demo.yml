@@ -19,4 +19,4 @@ kafkaConfigs:
     topics:
       - "9349c.proto.prism_shareholder_path.ratio_path_company"
     groupId: "demo-job"
-    startFrom: "2"
+    startFrom: "1"
