@@ -7,23 +7,11 @@ flinkConfig:
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "008.bigdata_online"
-    tableName: "user_blacklist"
+    sourceName: "430.graph_data"
+    tableName: "company_equity_relation_details"
     columns: "*"
     where: "1=1"
-    scanMode: Direct
-  - taskId: "222"
-    sourceName: "008.bigdata_online"
-    tableName: "user_blacklist"
-    columns: "*"
-    where: "1=1"
-    scanMode: Direct
-  - taskId: "333"
-    sourceName: "008.bigdata_online"
-    tableName: "user_blacklist"
-    columns: "*"
-    where: "1=1"
-    scanMode: Direct
+    scanMode: TumblingWindow
 
 kafkaConfigs:
   kafkaSource:

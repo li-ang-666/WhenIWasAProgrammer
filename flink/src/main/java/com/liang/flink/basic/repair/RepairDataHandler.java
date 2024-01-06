@@ -79,7 +79,8 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
         task.setCurrentId(task.getScanMode() == Direct ? DIRECT_SCAN_COMPLETE_FLAG : task.getCurrentId() + QUERY_BATCH_SIZE);
         long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - lastWriteTimeMillis >= WRITE_REDIS_INTERVAL_MILLISECONDS) {
-            String info = String.format("[running] currentId: %s, targetId: %s, lag: %s", task.getCurrentId(), task.getTargetId(), task.getTargetId() - task.getCurrentId());
+            String info = String.format("[running] currentId: %s, targetId: %s, lag: %s, queueSize: %s",
+                    task.getCurrentId(), task.getTargetId(), task.getTargetId() - task.getCurrentId(), task.getPendingQueue().size());
             redisTemplate.hSet(repairKey, task.getTaskId(), info);
             lastWriteTimeMillis = currentTimeMillis;
         }
