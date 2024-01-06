@@ -71,4 +71,3 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
         return jdbcTemplate.queryForColumnMaps(sqlBuilder.toString());
     }
 }
-

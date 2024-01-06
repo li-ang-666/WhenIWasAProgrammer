@@ -57,4 +57,3 @@ public class KafkaMonitor extends RichFlatMapFunction<KafkaRecord<BatchCanalBinl
     public void close() {
     }
 }
-
