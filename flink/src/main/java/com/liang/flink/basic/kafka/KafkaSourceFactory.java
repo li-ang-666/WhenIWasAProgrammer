@@ -26,7 +26,7 @@ public class KafkaSourceFactory {
     public static <T> KafkaSource<KafkaRecord<T>> create(KafkaRecordValueMapper<T> mapper) {
         Config config = ConfigUtils.getConfig();
         KafkaConfig kafkaConfig = config.getKafkaConfigs().get("kafkaSource");
-        //如果没有checkpoint,从哪里消费
+        //如果没有checkpoint, 从哪里消费
         String startFrom = kafkaConfig.getStartFrom();
         OffsetsInitializer offsetsInitializer;
         switch (startFrom) {
