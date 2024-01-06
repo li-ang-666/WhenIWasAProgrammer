@@ -13,6 +13,8 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.util.concurrent.locks.LockSupport;
+
 @Slf4j
 @LocalConfigFile("demo.yml")
 public class DemoJob {
@@ -38,7 +40,7 @@ public class DemoJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             jdbcTemplate.update();
-            //LockSupport.parkUntil(System.currentTimeMillis() + 500);
+            LockSupport.parkUntil(System.currentTimeMillis() + 100);
         }
     }
 }
