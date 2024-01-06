@@ -23,7 +23,7 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Object>>> {
     private static final int QUERY_BATCH_SIZE = 1024;
     private static final int MAX_QUEUE_SIZE = 10240;
-    private static final int DIRECT_SCAN_COMPLETE_FLAG = 1;
+    private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     private final SubRepairTask task;
     private final AtomicBoolean running;
     private final String repairKey;

@@ -40,7 +40,7 @@ public class DemoJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             jdbcTemplate.update();
-            LockSupport.parkUntil(System.currentTimeMillis() + 100);
+            LockSupport.parkUntil(System.currentTimeMillis() + 1);
         }
     }
 }

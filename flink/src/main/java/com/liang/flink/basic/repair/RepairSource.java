@@ -110,6 +110,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         }
         taskState.clear();
         taskState.add(copyTask);
+        if (canceled.get()) return;
         String info = String.format("[checkpoint] currentId: %s, targetId: %s, lag: %s, queueSize: %s",
                 copyTask.getCurrentId(), copyTask.getTargetId(), copyTask.getTargetId() - copyTask.getCurrentId(), copyTask.getPendingQueue().size());
         redisTemplate.hSet(repairKey, copyTask.getTaskId(), info);

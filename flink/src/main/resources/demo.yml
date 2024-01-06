@@ -1,23 +1,29 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - taskId: "111"
-    sourceName: "430.graph_data"
-    tableName: "company_equity_relation_details"
+  #  - taskId: "111"
+  #    sourceName: "430.graph_data"
+  #    tableName: "company_equity_relation_details"
+  #    columns: "*"
+  #    where: "1=1"
+  #    scanMode: TumblingWindow
+  #  - taskId: "222"
+  #    sourceName: "430.graph_data"
+  #    tableName: "company_equity_relation_details"
+  #    columns: "*"
+  #    where: "1=2"
+  #    scanMode: TumblingWindow
+  - taskId: "333"
+    sourceName: "008.bigdata_online"
+    tableName: "user_blacklist"
     columns: "*"
     where: "1=1"
-    scanMode: TumblingWindow
-  - taskId: "222"
-    sourceName: "430.graph_data"
-    tableName: "company_equity_relation_details"
-    columns: "*"
-    where: "1=2"
-    scanMode: TumblingWindow
+    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:

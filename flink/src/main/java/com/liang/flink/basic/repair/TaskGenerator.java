@@ -10,11 +10,13 @@ import org.apache.flink.api.java.tuple.Tuple2;
 @Slf4j
 @UtilityClass
 public class TaskGenerator {
+    private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
+
     public static SubRepairTask generateFrom(RepairTask task) {
         if (task.getScanMode() == RepairTask.ScanMode.Direct) {
             SubRepairTask subTask = new SubRepairTask(task);
             subTask.setCurrentId(0);
-            subTask.setTargetId(1);
+            subTask.setTargetId(DIRECT_SCAN_COMPLETE_FLAG);
             return subTask;
         }
         String sql = String.format("select min(id),max(id) from %s", task.getTableName());

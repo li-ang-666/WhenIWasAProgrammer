@@ -24,9 +24,10 @@ public class RepairReporter implements Runnable {
             // 有序
             Map<String, String> reportMap = new TreeMap<>(redisTemplate.hScan(repairKey));
             String reportContent = JsonUtils.toString(reportMap);
-            if (reportContent.equals(lastContent)) continue;
-            log.info("repair report: {}", reportContent);
+            if (reportContent.equals(lastContent))
+                continue;
             lastContent = reportContent;
+            log.info("repair report: {}", reportContent);
         }
     }
 }
