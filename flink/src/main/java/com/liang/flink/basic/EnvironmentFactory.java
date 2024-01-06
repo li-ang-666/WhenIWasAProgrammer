@@ -18,7 +18,7 @@ import static org.apache.flink.streaming.api.environment.CheckpointConfig.Extern
 @Slf4j
 @UtilityClass
 public class EnvironmentFactory {
-    private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 1;
+    private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 3;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 30;
 
     @SneakyThrows(ClassNotFoundException.class)
