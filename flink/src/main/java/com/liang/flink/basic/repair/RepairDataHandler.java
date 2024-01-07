@@ -26,7 +26,6 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     private final SubRepairTask task;
     private final AtomicBoolean running;
-    private final String repairKey;
     private String baseSql;
     private JdbcTemplate jdbcTemplate;
 
@@ -37,7 +36,7 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
         while (hasNext() && running.get()) {
             if (queue.size() + QUERY_BATCH_SIZE > MAX_QUEUE_SIZE) continue;
             List<Map<String, Object>> columnMaps = next();
-            synchronized (repairKey) {
+            synchronized (running) {
                 for (Map<String, Object> columnMap : columnMaps) {
                     queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                 }

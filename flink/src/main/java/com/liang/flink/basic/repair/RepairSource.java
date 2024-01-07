@@ -70,7 +70,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void open(Configuration parameters) {
         redisTemplate = new RedisTemplate("metadata");
-        DaemonExecutor.launch("RepairDataHandler", new RepairDataHandler(task, running, repairKey));
+        DaemonExecutor.launch("RepairDataHandler", new RepairDataHandler(task, running));
     }
 
     @Override
@@ -116,7 +116,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         SubRepairTask copyTask;
-        synchronized (repairKey) {
+        synchronized (running) {
             copyTask = SerializationUtils.clone(task);
         }
         taskState.clear();
