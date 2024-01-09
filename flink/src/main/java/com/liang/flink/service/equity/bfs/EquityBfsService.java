@@ -95,35 +95,19 @@ public class EquityBfsService {
      * `allShareholders` 与 `bfsQueue` 在该方法中发生写入
      */
     private void process(Operation judgeResult, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
+        if (judgeResult == DROP) {
+            return;
+        }
         String dtoShareholderId = dto.getShareholderId();
         String dtoShareholderName = dto.getShareholderName();
         BigDecimal dtoRatio = dto.getRatio();
+        Edge newEdge = new Edge(dtoRatio, judgeResult == UPDATE_CHAIN_ONLY);
+        Node newNode = new Node(dtoShareholderId, dtoShareholderName);
+        Chain newChain = new Chain(polledChain, newEdge, newNode);
+        allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
+        allShareholders.get(dtoShareholderId).addChain(newChain);
         if (judgeResult == NOT_ARCHIVE) {
-            Edge newEdge = new Edge(dtoRatio, false);
-            Node newNode = new Node(dtoShareholderId, dtoShareholderName);
-            Chain newChain = new Chain(polledChain, newEdge, newNode);
             bfsQueue.offer(newChain);
-            allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
-            allShareholders.get(dtoShareholderId).addChain(newChain);
-        }
-        // 不加入队列
-        else if (judgeResult == UPDATE_CHAIN_AND_RATIO) {
-            Edge newEdge = new Edge(dtoRatio, false);
-            Node newNode = new Node(dtoShareholderId, dtoShareholderName);
-            Chain newChain = new Chain(polledChain, newEdge, newNode);
-            allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
-            allShareholders.get(dtoShareholderId).addChain(newChain);
-        }
-        // 不加入队列 & 虚边
-        else if (judgeResult == UPDATE_CHAIN_ONLY) {
-            Edge newEdge = new Edge(dtoRatio, true);
-            Node newNode = new Node(dtoShareholderId, dtoShareholderName);
-            Chain newChain = new Chain(polledChain, newEdge, newNode);
-            allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
-            allShareholders.get(dtoShareholderId).addChain(newChain);
-        }
-        // 啥也不干
-        else if (judgeResult == DROP) {
         }
     }
 
