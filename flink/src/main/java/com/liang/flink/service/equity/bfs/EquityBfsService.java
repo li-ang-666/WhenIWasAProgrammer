@@ -42,6 +42,7 @@ public class EquityBfsService {
         bfsQueue.offer(new Chain(new Node(companyId, companyName)));
         while (!bfsQueue.isEmpty() && currentLevel++ < MAX_LEVEL) {
             log.debug("开始遍历第 {} 层", currentLevel);
+            if (currentLevel == 1) ;
             int size = bfsQueue.size();
             while (size-- > 0) {
                 // queue.poll()
@@ -53,10 +54,12 @@ public class EquityBfsService {
                 // queue.offer()
                 for (CompanyEquityRelationDetailsDto dto : companyEquityRelationDetailsDtos) {
                     // chain archive? chain update? ratio update?
-                    Operation judgeResult = judge(companyId, polledChain, dto);
-                    process(judgeResult, polledChain, dto);
+                    Operation judgeResult = judgeQueriedShareholder(companyId, polledChain, dto);
+                    processQueriedShareholder(judgeResult, polledChain, dto);
                 }
             }
+            // 第0层(root)结束后, 查到的股东(第1层), 都是直接股东
+            if (currentLevel == 0) allShareholders.forEach((shareholderId, dto) -> dto.registerDirectShareholder());
         }
         debugShareholderMap();
     }
@@ -64,7 +67,7 @@ public class EquityBfsService {
     /**
      * `allShareholders` 在该方法中只读不写
      */
-    private Operation judge(String companyId, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
+    private Operation judgeQueriedShareholder(String companyId, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
         String dtoShareholderId = dto.getShareholderId();
         BigDecimal dtoRatio = dto.getRatio();
         // 是否重复根结点
@@ -94,7 +97,7 @@ public class EquityBfsService {
     /**
      * `allShareholders` 与 `bfsQueue` 在该方法中发生写入
      */
-    private void process(Operation judgeResult, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
+    private void processQueriedShareholder(Operation judgeResult, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
         if (judgeResult == DROP) {
             return;
         }
@@ -112,12 +115,9 @@ public class EquityBfsService {
     }
 
     private void debugShareholderMap() {
-        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
-            RatioPathCompanyDto dto = entry.getValue();
+        allShareholders.forEach((shareholderId, dto) -> {
             log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalRatioSnapshot().stripTrailingZeros().toPlainString());
-            for (Chain chain : dto.getChainsSnapshot()) {
-                log.debug("chain: {}", chain);
-            }
-        }
+            dto.getChainsSnapshot().forEach(chain -> log.debug("chain: {}", chain));
+        });
     }
 }

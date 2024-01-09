@@ -35,7 +35,7 @@ public class Chain implements Serializable {
     }
 
     public Node getLast() {
-        return (Node) this.path.get(path.size() - 1);
+        return (Node) path.get(path.size() - 1);
     }
 
     @Override

@@ -19,17 +19,21 @@ public class RatioPathCompanyDto {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private BigDecimal totalValidRatio = new BigDecimal("0");
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private boolean directShareholder = false;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private BigDecimal directRatio = new BigDecimal("0");
 
     public void addChain(Chain chain) {
         chains.add(chain);
         totalValidRatio = totalValidRatio.add(chain.getValidRatio());
     }
 
-    public List<Chain> getChainsSnapshot() {
-        return new ArrayList<>(chains);
-    }
-
-    public BigDecimal getTotalRatioSnapshot() {
-        return new BigDecimal(totalValidRatio.toPlainString());
+    public void registerDirectShareholder() {
+        if (directShareholder) return;
+        directShareholder = true;
+        directRatio = new BigDecimal(totalValidRatio.toPlainString());
     }
 }
