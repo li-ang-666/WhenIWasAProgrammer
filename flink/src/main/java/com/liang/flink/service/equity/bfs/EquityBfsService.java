@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static com.liang.flink.service.equity.bfs.dto.Operation.*;
+import static java.math.BigDecimal.ZERO;
 
 @Slf4j
 public class EquityBfsService {
@@ -89,10 +90,10 @@ public class EquityBfsService {
         if (TycUtils.isTycUniqueEntityId(dtoShareholderId) && dtoShareholderId.length() == 17) {
             return UPDATE_CHAIN_AND_RATIO;
         }
-//        // 股权比例是否为0
-//        if (ZERO.compareTo(dtoRatio) == 0) {
-//            return UPDATE_CHAIN_AND_RATIO;
-//        }
+        // 股权比例是否为0
+        if (ZERO.compareTo(dtoRatio) == 0) {
+            return UPDATE_CHAIN_AND_RATIO;
+        }
         // 其他
         return NOT_ARCHIVE;
     }
