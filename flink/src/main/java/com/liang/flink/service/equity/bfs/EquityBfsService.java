@@ -13,7 +13,7 @@ import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 
 @Slf4j
 public class EquityBfsService {
-    private static final int MAX_LEVEL = 100;
+    private static final int MAX_LEVEL = 10;
     private final EquityBfsDao dao = new EquityBfsDao();
     // the map with all shareholders
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -56,12 +56,9 @@ public class EquityBfsService {
         }
         for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
             RatioPathCompanyDto dto = entry.getValue();
-            String shareholderId = dto.getShareholderId();
-            String shareholderName = dto.getShareholderName();
-            List<Chain> chains = dto.getChains();
-            log.info("shareholder: {}, {}", shareholderId, shareholderName);
-            for (Chain chain : chains) {
-                log.info("chain: {}", chain.getPath());
+            log.info("shareholder: {}({})", dto.getShareholderName(), dto.getShareholderId());
+            for (Chain chain : dto.getChains()) {
+                log.info("chain: {}", chain);
             }
         }
     }

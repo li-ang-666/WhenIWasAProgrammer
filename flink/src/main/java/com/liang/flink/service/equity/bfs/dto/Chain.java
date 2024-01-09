@@ -36,4 +36,17 @@ public class Chain implements Serializable {
     public Node getLast() {
         return (Node) this.path.get(path.size() - 1);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (Object obj : path) {
+            if (obj instanceof Node) {
+                builder.append(String.format("%s(%s)", ((Node) obj).getName(), ((Node) obj).getId()));
+            } else if (obj instanceof Edge) {
+                builder.append(String.format("-%s%s->", ((Edge) obj).getRatio().toPlainString(), ((Edge) obj).isDottedLine() ? "(x)" : ""));
+            }
+        }
+        return builder.toString();
+    }
 }
