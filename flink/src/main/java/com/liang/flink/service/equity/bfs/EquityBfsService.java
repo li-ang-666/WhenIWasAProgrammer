@@ -10,9 +10,13 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static com.liang.flink.service.equity.bfs.dto.Operation.*;
+import static java.math.BigDecimal.ZERO;
 
 @Slf4j
 public class EquityBfsService {
+    public static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
+    public static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
+    public static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
     private static final int MAX_LEVEL = 10;
     private final EquityBfsDao dao = new EquityBfsDao();
     // the map with all shareholders
@@ -67,21 +71,27 @@ public class EquityBfsService {
      * `allShareholders` 在该方法中只读不写
      */
     private Operation judge(String companyId, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
-        String shareholderId = dto.getShareholderId();
+        String dtoShareholderId = dto.getShareholderId();
+        String dtoShareholderName = dto.getShareholderName();
+        BigDecimal dtoRatio = dto.getRatio();
         // 是否重复根结点
-        if (companyId.equals(shareholderId)) {
+        if (companyId.equals(dtoShareholderId)) {
             return DROP;
         }
         // 是否在本条路径上出现过
-        if (polledChain.getIds().contains(shareholderId)) {
+        if (polledChain.getIds().contains(dtoShareholderId)) {
             return UPDATE_CHAIN_ONLY;
         }
         // 是否在其他路径上出现过
-        if (allShareholders.containsKey(shareholderId)) {
+        if (allShareholders.containsKey(dtoShareholderId)) {
             return UPDATE_CHAIN_AND_RATIO;
         }
         // 是否是自然人
-        if (TycUtils.isTycUniqueEntityId(shareholderId) && shareholderId.length() == 17) {
+        if (TycUtils.isTycUniqueEntityId(dtoShareholderId) && dtoShareholderId.length() == 17) {
+            return UPDATE_CHAIN_AND_RATIO;
+        }
+        // 股权比例是否为0
+        if (ZERO.compareTo(dtoRatio) == 0) {
             return UPDATE_CHAIN_AND_RATIO;
         }
         // 其他

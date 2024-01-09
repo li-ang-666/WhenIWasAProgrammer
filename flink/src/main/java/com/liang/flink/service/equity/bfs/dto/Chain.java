@@ -9,17 +9,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.math.BigDecimal.ZERO;
+
 @Data
 public class Chain implements Serializable {
-    private static final BigDecimal ZERO = new BigDecimal("0");
     private final List<Object> path = new ArrayList<>();
     private final Set<String> ids = new LinkedHashSet<>();
-    private final BigDecimal ratio;
+    private final BigDecimal validRatio;
 
     public Chain(Node root) {
         this.path.add(root);
         this.ids.add(root.getId());
-        this.ratio = new BigDecimal("1");
+        this.validRatio = new BigDecimal("1");
     }
 
     public Chain(Chain oldChain, Edge edge, Node node) {
@@ -30,7 +31,7 @@ public class Chain implements Serializable {
         this.path.add(edge);
         this.path.add(node);
         this.ids.add(node.getId());
-        this.ratio = oldChain.getRatio().multiply(edge.isDottedLine() ? ZERO : edge.getRatio());
+        this.validRatio = oldChain.getValidRatio().multiply(edge.isDottedLine() ? ZERO : edge.getRatio());
     }
 
     public Node getLast() {
