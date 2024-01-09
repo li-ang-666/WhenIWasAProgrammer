@@ -31,12 +31,7 @@ public class EquityBfsDao {
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
                 .WHERE("reference_pt_year = 2024")
                 .toString();
-        return graphData.queryForList(sql, rs ->
-                CompanyEquityRelationDetailsDto.builder()
-                        .shareholderId(rs.getString(1))
-                        .shareholderName(rs.getString(2))
-                        .ratio(rs.getBigDecimal(3))
-                        .build()
-        );
+        return graphData.queryForList(sql,
+                rs -> new CompanyEquityRelationDetailsDto(rs.getString(1), rs.getString(2), rs.getBigDecimal(3)));
     }
 }

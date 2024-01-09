@@ -102,9 +102,9 @@ public class EquityBfsService {
             Edge newEdge = new Edge(dtoRatio, false);
             Node newNode = new Node(dtoShareholderId, dtoShareholderName);
             Chain newChain = new Chain(polledChain, newEdge, newNode);
+            bfsQueue.offer(newChain);
             allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
             allShareholders.get(dtoShareholderId).getChains().add(newChain);
-            bfsQueue.offer(newChain);
         }
         // 不加入队列
         else if (judgeResult == UPDATE_CHAIN_AND_RATIO) {
@@ -126,5 +126,4 @@ public class EquityBfsService {
         else if (judgeResult == DROP) {
         }
     }
-
 }
