@@ -17,7 +17,7 @@ public class EquityBfsService {
     public static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
     public static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
     public static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
-    private static final int MAX_LEVEL = 10;
+    private static final int MAX_LEVEL = 100;
     private final EquityBfsDao dao = new EquityBfsDao();
     // the map with all shareholders
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();

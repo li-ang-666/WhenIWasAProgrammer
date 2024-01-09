@@ -5,6 +5,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.service.equity.bfs.dto.CompanyEquityRelationDetailsDto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class EquityBfsDao {
@@ -32,6 +33,6 @@ public class EquityBfsDao {
                 .WHERE("reference_pt_year = 2024")
                 .toString();
         return graphData.queryForList(sql,
-                rs -> new CompanyEquityRelationDetailsDto(rs.getString(1), rs.getString(2), rs.getBigDecimal(3)));
+                rs -> new CompanyEquityRelationDetailsDto(rs.getString(1), rs.getString(2), new BigDecimal(rs.getString(3))));
     }
 }
