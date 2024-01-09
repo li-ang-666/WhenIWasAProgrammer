@@ -72,7 +72,6 @@ public class EquityBfsService {
      */
     private Operation judge(String companyId, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
         String dtoShareholderId = dto.getShareholderId();
-        String dtoShareholderName = dto.getShareholderName();
         BigDecimal dtoRatio = dto.getRatio();
         // 是否重复根结点
         if (companyId.equals(dtoShareholderId)) {
