@@ -17,7 +17,7 @@ public class EquityBfsService {
     public static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
     public static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
     public static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
-    private static final int MAX_LEVEL = 20;
+    private static final int MAX_LEVEL = 5;
     private final EquityBfsDao dao = new EquityBfsDao();
     // the map with all shareholders
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -59,11 +59,19 @@ public class EquityBfsService {
                 }
             }
             // 第0层(root)结束后, 查到的股东(第1层), 都是直接股东
-            if (currentLevel == 0) {
-                allShareholders.forEach((shareholderId, dto) -> dto.registerDirectShareholder());
-            }
+            if (currentLevel == 0) registerDirectShareholder();
         }
         debugShareholderMap();
+    }
+
+    /**
+     * 直接股东
+     */
+    private void registerDirectShareholder() {
+        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
+            RatioPathCompanyDto dto = entry.getValue();
+            dto.registerDirectShareholder();
+        }
     }
 
     /**

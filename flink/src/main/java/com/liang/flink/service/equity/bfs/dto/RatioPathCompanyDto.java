@@ -43,7 +43,7 @@ public class RatioPathCompanyDto {
     }
 
     public String toDebugString() {
-        StringBuilder builder = new StringBuilder(String.format("\n[%s]%s(%s)", totalValidRatio, shareholderName, shareholderId));
+        StringBuilder builder = new StringBuilder(String.format("\n[%s]%s(%s)", totalValidRatio.setScale(12, DOWN).toPlainString(), shareholderName, shareholderId));
         for (Chain chain : chains) {
             builder.append("\n").append(chain.toDebugString());
         }

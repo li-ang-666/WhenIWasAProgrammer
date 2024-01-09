@@ -37,7 +37,7 @@ public class EquityBfsDao {
             String id = rs.getString(1);
             String name = rs.getString(2);
             String nameId = rs.getString(3);
-            BigDecimal ratio = new BigDecimal(rs.getString(3));
+            BigDecimal ratio = new BigDecimal(rs.getString(4));
             return new CompanyEquityRelationDetailsDto(id, name, nameId, ratio);
         });
     }
