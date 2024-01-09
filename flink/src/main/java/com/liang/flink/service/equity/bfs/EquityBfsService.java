@@ -60,7 +60,7 @@ public class EquityBfsService {
         }
         for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
             RatioPathCompanyDto dto = entry.getValue();
-            log.info("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalRatioSnapshot());
+            log.info("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalRatioSnapshot().stripTrailingZeros().toPlainString());
             for (Chain chain : dto.getChainsSnapshot()) {
                 log.info("chain: {}", chain);
             }
