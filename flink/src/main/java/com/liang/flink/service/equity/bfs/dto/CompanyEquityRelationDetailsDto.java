@@ -8,5 +8,6 @@ import java.math.BigDecimal;
 public class CompanyEquityRelationDetailsDto {
     private final String shareholderId;
     private final String shareholderName;
+    private final String shareholderNameId;
     private final BigDecimal ratio;
 }

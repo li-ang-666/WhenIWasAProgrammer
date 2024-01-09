@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.math.BigDecimal.ZERO;
+import static java.math.RoundingMode.DOWN;
 
 @Data
 public class Chain implements Serializable {
@@ -34,18 +35,21 @@ public class Chain implements Serializable {
         this.validRatio = oldChain.getValidRatio().multiply(edge.isDottedLine() ? ZERO : edge.getRatio());
     }
 
+    public Node getFirst() {
+        return (Node) path.get(0);
+    }
+
     public Node getLast() {
         return (Node) path.get(path.size() - 1);
     }
 
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
+    public String toDebugString() {
+        StringBuilder builder = new StringBuilder(String.format("[%s]", validRatio.setScale(12, DOWN).toPlainString()));
         for (Object obj : path) {
             if (obj instanceof Node) {
                 builder.append(String.format("%s(%s)", ((Node) obj).getName(), ((Node) obj).getId()));
             } else if (obj instanceof Edge) {
-                builder.append(String.format("-%s%s->", ((Edge) obj).getRatio().stripTrailingZeros().toPlainString(), ((Edge) obj).isDottedLine() ? "(x)" : ""));
+                builder.append(String.format("-%s%s->", ((Edge) obj).getRatio().setScale(12, DOWN).toPlainString(), ((Edge) obj).isDottedLine() ? "(x)" : ""));
             }
         }
         return builder.toString();

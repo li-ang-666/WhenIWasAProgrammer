@@ -17,7 +17,7 @@ public class EquityBfsService {
     public static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
     public static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
     public static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
-    private static final int MAX_LEVEL = 100;
+    private static final int MAX_LEVEL = 20;
     private final EquityBfsDao dao = new EquityBfsDao();
     // the map with all shareholders
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -59,7 +59,9 @@ public class EquityBfsService {
                 }
             }
             // 第0层(root)结束后, 查到的股东(第1层), 都是直接股东
-            if (currentLevel == 0) allShareholders.forEach((shareholderId, dto) -> dto.registerDirectShareholder());
+            if (currentLevel == 0) {
+                allShareholders.forEach((shareholderId, dto) -> dto.registerDirectShareholder());
+            }
         }
         debugShareholderMap();
     }
@@ -103,11 +105,12 @@ public class EquityBfsService {
         }
         String dtoShareholderId = dto.getShareholderId();
         String dtoShareholderName = dto.getShareholderName();
+        String dtoShareholderNameId = dto.getShareholderNameId();
         BigDecimal dtoRatio = dto.getRatio();
         Edge newEdge = new Edge(dtoRatio, judgeResult == UPDATE_CHAIN_ONLY);
         Node newNode = new Node(dtoShareholderId, dtoShareholderName);
         Chain newChain = new Chain(polledChain, newEdge, newNode);
-        allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
+        allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName, dtoShareholderNameId));
         allShareholders.get(dtoShareholderId).addChain(newChain);
         if (judgeResult == NOT_ARCHIVE) {
             bfsQueue.offer(newChain);
@@ -115,9 +118,6 @@ public class EquityBfsService {
     }
 
     private void debugShareholderMap() {
-        allShareholders.forEach((shareholderId, dto) -> {
-            log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalRatioSnapshot().stripTrailingZeros().toPlainString());
-            dto.getChainsSnapshot().forEach(chain -> log.debug("chain: {}", chain));
-        });
+        allShareholders.forEach((shareholderId, dto) -> log.debug("shareholder: {}", dto.toDebugString()));
     }
 }

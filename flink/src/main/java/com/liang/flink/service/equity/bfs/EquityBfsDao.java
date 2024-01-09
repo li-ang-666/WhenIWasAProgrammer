@@ -27,12 +27,18 @@ public class EquityBfsDao {
         String sql = new SQL()
                 .SELECT("tyc_unique_entity_id_investor")
                 .SELECT("tyc_unique_entity_name_investor")
+                .SELECT("company_id_investor")
                 .SELECT("equity_ratio")
                 .FROM("company_equity_relation_details")
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
                 .WHERE("reference_pt_year = 2024")
                 .toString();
-        return graphData.queryForList(sql,
-                rs -> new CompanyEquityRelationDetailsDto(rs.getString(1), rs.getString(2), new BigDecimal(rs.getString(3))));
+        return graphData.queryForList(sql, rs -> {
+            String id = rs.getString(1);
+            String name = rs.getString(2);
+            String nameId = rs.getString(3);
+            BigDecimal ratio = new BigDecimal(rs.getString(3));
+            return new CompanyEquityRelationDetailsDto(id, name, nameId, ratio);
+        });
     }
 }
