@@ -58,13 +58,7 @@ public class EquityBfsService {
                 }
             }
         }
-        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
-            RatioPathCompanyDto dto = entry.getValue();
-            log.info("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalRatioSnapshot().stripTrailingZeros().toPlainString());
-            for (Chain chain : dto.getChainsSnapshot()) {
-                log.info("chain: {}", chain);
-            }
-        }
+        debugShareholderMap();
     }
 
     /**
@@ -130,6 +124,16 @@ public class EquityBfsService {
         }
         // 啥也不干
         else if (judgeResult == DROP) {
+        }
+    }
+
+    private void debugShareholderMap() {
+        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
+            RatioPathCompanyDto dto = entry.getValue();
+            log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalRatioSnapshot().stripTrailingZeros().toPlainString());
+            for (Chain chain : dto.getChainsSnapshot()) {
+                log.debug("chain: {}", chain);
+            }
         }
     }
 }
