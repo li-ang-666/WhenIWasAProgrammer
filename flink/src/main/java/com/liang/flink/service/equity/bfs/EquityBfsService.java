@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static com.liang.flink.service.equity.bfs.dto.Operation.*;
-import static java.math.BigDecimal.ZERO;
 
 @Slf4j
 public class EquityBfsService {
@@ -60,7 +59,7 @@ public class EquityBfsService {
         }
         for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
             RatioPathCompanyDto dto = entry.getValue();
-            log.info("shareholder: {}({})", dto.getShareholderName(), dto.getShareholderId());
+            log.info("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId());
             for (Chain chain : dto.getChains()) {
                 log.info("chain: {}", chain);
             }
@@ -90,10 +89,10 @@ public class EquityBfsService {
         if (TycUtils.isTycUniqueEntityId(dtoShareholderId) && dtoShareholderId.length() == 17) {
             return UPDATE_CHAIN_AND_RATIO;
         }
-        // 股权比例是否为0
-        if (ZERO.compareTo(dtoRatio) == 0) {
-            return UPDATE_CHAIN_AND_RATIO;
-        }
+//        // 股权比例是否为0
+//        if (ZERO.compareTo(dtoRatio) == 0) {
+//            return UPDATE_CHAIN_AND_RATIO;
+//        }
         // 其他
         return NOT_ARCHIVE;
     }
@@ -111,7 +110,7 @@ public class EquityBfsService {
             Chain newChain = new Chain(polledChain, newEdge, newNode);
             bfsQueue.offer(newChain);
             allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
-            allShareholders.get(dtoShareholderId).getChains().add(newChain);
+            allShareholders.get(dtoShareholderId).addChain(newChain);
         }
         // 不加入队列
         else if (judgeResult == UPDATE_CHAIN_AND_RATIO) {
@@ -119,7 +118,7 @@ public class EquityBfsService {
             Node newNode = new Node(dtoShareholderId, dtoShareholderName);
             Chain newChain = new Chain(polledChain, newEdge, newNode);
             allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
-            allShareholders.get(dtoShareholderId).getChains().add(newChain);
+            allShareholders.get(dtoShareholderId).addChain(newChain);
         }
         // 不加入队列 & 虚边
         else if (judgeResult == UPDATE_CHAIN_ONLY) {
@@ -127,7 +126,7 @@ public class EquityBfsService {
             Node newNode = new Node(dtoShareholderId, dtoShareholderName);
             Chain newChain = new Chain(polledChain, newEdge, newNode);
             allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName));
-            allShareholders.get(dtoShareholderId).getChains().add(newChain);
+            allShareholders.get(dtoShareholderId).addChain(newChain);
         }
         // 啥也不干
         else if (judgeResult == DROP) {
