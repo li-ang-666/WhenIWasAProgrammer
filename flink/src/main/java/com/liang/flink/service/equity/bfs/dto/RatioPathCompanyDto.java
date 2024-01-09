@@ -22,6 +22,14 @@ public class RatioPathCompanyDto {
 
     public void addChain(Chain chain) {
         chains.add(chain);
-        totalValidRatio = chain.getValidRatio().add(totalValidRatio);
+        totalValidRatio = totalValidRatio.add(chain.getValidRatio());
+    }
+
+    public List<Chain> getChainsSnapshot() {
+        return new ArrayList<>(chains);
+    }
+
+    public BigDecimal getTotalRatioSnapshot() {
+        return new BigDecimal(totalValidRatio.toPlainString());
     }
 }
