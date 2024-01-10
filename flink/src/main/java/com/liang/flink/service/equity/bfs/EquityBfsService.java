@@ -14,8 +14,7 @@ import static java.math.RoundingMode.DOWN;
 
 @Slf4j
 public class EquityBfsService {
-    // 小数点后7位
-    private static final BigDecimal THRESHOLD = new BigDecimal("0.0000001");
+    private static final BigDecimal THRESHOLD = new BigDecimal("0.000001");
     private static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
     private static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
     private static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
