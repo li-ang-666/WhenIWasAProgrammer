@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.DOWN;
 
@@ -21,7 +22,7 @@ public class Chain implements Serializable {
     public Chain(Node root) {
         this.path.add(root);
         this.ids.add(root.getId());
-        this.validRatio = new BigDecimal("1");
+        this.validRatio = ONE;
     }
 
     public Chain(Chain oldChain, Edge edge, Node node) {

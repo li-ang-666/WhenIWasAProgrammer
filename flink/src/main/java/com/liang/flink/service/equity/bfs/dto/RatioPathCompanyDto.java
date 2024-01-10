@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.DOWN;
 
 @Data
@@ -16,9 +17,9 @@ public class RatioPathCompanyDto {
     private final String shareholderId;
     private final String shareholderName;
     private final String shareholderNameId;
-    private BigDecimal totalValidRatio = new BigDecimal("0");
+    private BigDecimal totalValidRatio = ZERO;
     private boolean isDirectShareholder = false;
-    private BigDecimal directRatio = new BigDecimal("0");
+    private BigDecimal directRatio = ZERO;
     private boolean isEnd = false;
 
     public Map<String, Object> toColumnMap() {
