@@ -14,7 +14,8 @@ import static java.math.RoundingMode.DOWN;
 
 @Slf4j
 public class EquityBfsService {
-    public static final BigDecimal THRESHOLD = new BigDecimal("0.0001");
+    // 小数点后7位
+    public static final BigDecimal THRESHOLD = new BigDecimal("0.0000001");
     public static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
     public static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
     public static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
@@ -144,7 +145,7 @@ public class EquityBfsService {
                 .sorted((o1, o2) -> o2.getValue().getTotalValidRatio().compareTo(o1.getValue().getTotalValidRatio()))
                 .forEach(e -> {
                     RatioPathCompanyDto dto = e.getValue();
-                    log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalValidRatio().setScale(12, DOWN).toPlainString());
+                    log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalValidRatio().setScale(12, DOWN).stripTrailingZeros().toPlainString());
                     dto.getChains().stream()
                             .sorted((o1, o2) -> o2.getValidRatio().compareTo(o1.getValidRatio()))
                             .forEach(chain -> log.debug("chain: {}", chain.toDebugString()));

@@ -49,7 +49,7 @@ public class Chain implements Serializable {
             if (obj instanceof Node) {
                 builder.append(String.format("%s(%s)", ((Node) obj).getName(), ((Node) obj).getId()));
             } else if (obj instanceof Edge) {
-                builder.append(String.format("-%s%s->", ((Edge) obj).getRatio().setScale(12, DOWN).toPlainString(), ((Edge) obj).isDottedLine() ? "(x)" : ""));
+                builder.append(String.format("-%s%s->", ((Edge) obj).getRatio().setScale(12, DOWN).stripTrailingZeros().toPlainString(), ((Edge) obj).isDottedLine() ? "(x)" : ""));
             }
         }
         return builder.toString();
