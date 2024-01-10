@@ -10,15 +10,15 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static com.liang.flink.service.equity.bfs.dto.Operation.*;
-import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.DOWN;
 
 @Slf4j
 public class EquityBfsService {
+    public static final BigDecimal THRESHOLD = new BigDecimal("0.0001");
     public static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
     public static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
     public static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
-    private static final int MAX_LEVEL = 200;
+    private static final int MAX_LEVEL = 100;
     private final EquityBfsDao dao = new EquityBfsDao();
     // the map with all shareholders
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -70,9 +70,21 @@ public class EquityBfsService {
      */
     private Operation judgeQueriedShareholder(String companyId, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
         String shareholderId = dto.getShareholderId();
+        String shareholderName = dto.getShareholderName();
         BigDecimal ratio = dto.getRatio();
+        Edge newEdge = new Edge(ratio, false);
+        Node newNode = new Node(shareholderId, shareholderName);
+        Chain newChain = new Chain(polledChain, newEdge, newNode);
         // 是否重复根结点
         if (companyId.equals(shareholderId)) {
+            return DROP;
+        }
+        // 直接股权比例是否到达停止穿透的阈值
+        if (THRESHOLD.compareTo(ratio) > 0) {
+            return DROP;
+        }
+        // 间接股权比例是否到达停止穿透的阈值
+        if (THRESHOLD.compareTo(newChain.getValidRatio()) > 0) {
             return DROP;
         }
         // 是否在本条路径上出现过
@@ -85,10 +97,6 @@ public class EquityBfsService {
         }
         // 是否是自然人
         if (TycUtils.isTycUniqueEntityId(shareholderId) && shareholderId.length() == 17) {
-            return UPDATE_CHAIN_AND_RATIO;
-        }
-        // 股权比例是否为0
-        if (ZERO.compareTo(ratio) == 0) {
             return UPDATE_CHAIN_AND_RATIO;
         }
         // 其他
@@ -132,9 +140,14 @@ public class EquityBfsService {
     }
 
     private void debugShareholderMap() {
-        allShareholders.forEach((shareholderId, dto) -> {
-            log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalValidRatio().setScale(12, DOWN).toPlainString());
-            dto.getChains().forEach(chain -> log.debug("chain: {}", chain));
-        });
+        allShareholders.entrySet().stream()
+                .sorted((o1, o2) -> o2.getValue().getTotalValidRatio().compareTo(o1.getValue().getTotalValidRatio()))
+                .forEach(e -> {
+                    RatioPathCompanyDto dto = e.getValue();
+                    log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalValidRatio().setScale(12, DOWN).toPlainString());
+                    dto.getChains().stream()
+                            .sorted((o1, o2) -> o2.getValidRatio().compareTo(o1.getValidRatio()))
+                            .forEach(chain -> log.debug("chain: {}", chain.toDebugString()));
+                });
     }
 }
