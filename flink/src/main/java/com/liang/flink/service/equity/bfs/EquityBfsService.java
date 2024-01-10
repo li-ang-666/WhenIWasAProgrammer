@@ -69,26 +69,26 @@ public class EquityBfsService {
      * `allShareholders` 在该方法中只读不写
      */
     private Operation judgeQueriedShareholder(String companyId, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
-        String dtoShareholderId = dto.getShareholderId();
-        BigDecimal dtoRatio = dto.getRatio();
+        String shareholderId = dto.getShareholderId();
+        BigDecimal ratio = dto.getRatio();
         // 是否重复根结点
-        if (companyId.equals(dtoShareholderId)) {
+        if (companyId.equals(shareholderId)) {
             return DROP;
         }
         // 是否在本条路径上出现过
-        if (polledChain.getIds().contains(dtoShareholderId)) {
+        if (polledChain.getIds().contains(shareholderId)) {
             return UPDATE_CHAIN_ONLY;
         }
         // 是否在其他路径上出现过
-        if (allShareholders.containsKey(dtoShareholderId)) {
+        if (allShareholders.containsKey(shareholderId)) {
             return UPDATE_CHAIN_AND_RATIO;
         }
         // 是否是自然人
-        if (TycUtils.isTycUniqueEntityId(dtoShareholderId) && dtoShareholderId.length() == 17) {
+        if (TycUtils.isTycUniqueEntityId(shareholderId) && shareholderId.length() == 17) {
             return UPDATE_CHAIN_AND_RATIO;
         }
         // 股权比例是否为0
-        if (ZERO.compareTo(dtoRatio) == 0) {
+        if (ZERO.compareTo(ratio) == 0) {
             return UPDATE_CHAIN_AND_RATIO;
         }
         // 其他
@@ -102,17 +102,19 @@ public class EquityBfsService {
         if (judgeResult == DROP) {
             return;
         }
-        String dtoShareholderId = dto.getShareholderId();
-        String dtoShareholderName = dto.getShareholderName();
-        String dtoShareholderNameId = dto.getShareholderNameId();
-        BigDecimal dtoRatio = dto.getRatio();
-        Edge newEdge = new Edge(dtoRatio, judgeResult == UPDATE_CHAIN_ONLY);
-        Node newNode = new Node(dtoShareholderId, dtoShareholderName);
+        String shareholderId = dto.getShareholderId();
+        String shareholderName = dto.getShareholderName();
+        String shareholderNameId = dto.getShareholderNameId();
+        BigDecimal ratio = dto.getRatio();
+        Edge newEdge = new Edge(ratio, judgeResult == UPDATE_CHAIN_ONLY);
+        Node newNode = new Node(shareholderId, shareholderName);
         Chain newChain = new Chain(polledChain, newEdge, newNode);
-        allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName, dtoShareholderNameId));
-        RatioPathCompanyDto ratioPathCompanyDto = allShareholders.get(dtoShareholderId);
-        ratioPathCompanyDto.getChains().add(newChain);
-        ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newChain.getValidRatio()));
+        allShareholders.compute(shareholderId, (k, v) -> {
+            RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName, shareholderNameId);
+            ratioPathCompanyDto.getChains().add(newChain);
+            ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newChain.getValidRatio()));
+            return ratioPathCompanyDto;
+        });
         if (judgeResult == NOT_ARCHIVE) {
             bfsQueue.offer(newChain);
         }
