@@ -35,10 +35,6 @@ public class Chain implements Serializable {
         this.validRatio = oldChain.getValidRatio().multiply(edge.isDottedLine() ? ZERO : edge.getRatio());
     }
 
-    public Node getFirst() {
-        return (Node) path.get(0);
-    }
-
     public Node getLast() {
         return (Node) path.get(path.size() - 1);
     }

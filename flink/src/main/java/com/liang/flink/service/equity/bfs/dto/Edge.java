@@ -8,5 +8,5 @@ import java.math.BigDecimal;
 @Data
 public class Edge implements Serializable {
     private final BigDecimal ratio;
-    private final boolean dottedLine;
+    private final boolean isDottedLine;
 }

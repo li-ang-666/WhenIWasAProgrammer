@@ -15,16 +15,17 @@ import static java.math.RoundingMode.DOWN;
 @Slf4j
 public class EquityBfsService {
     // 小数点后7位
-    public static final BigDecimal THRESHOLD = new BigDecimal("0.0000001");
-    public static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
-    public static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
-    public static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
-    private static final int MAX_LEVEL = 100;
+    private static final BigDecimal THRESHOLD = new BigDecimal("0.0000001");
+    private static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
+    private static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
+    private static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
+    private static final int MAX_LEVEL = 1000;
     private final EquityBfsDao dao = new EquityBfsDao();
-    // the map with all shareholders
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
-    // the queue used for bfs
     private final Queue<Chain> bfsQueue = new ArrayDeque<>();
+    private String companyId;
+    private String companyName;
+    private int currentLevel;
 
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig(null);
@@ -35,11 +36,13 @@ public class EquityBfsService {
     public void bfs(String companyId) {
         // prepare
         if (!TycUtils.isUnsignedId(companyId)) return;
+        this.companyId = companyId;
         String companyName = dao.queryCompanyName(companyId);
         if (!TycUtils.isValidName(companyName)) return;
+        this.companyName = companyName;
         allShareholders.clear();
         bfsQueue.clear();
-        int currentLevel = -1;
+        currentLevel = -1;
         // start bfs
         bfsQueue.offer(new Chain(new Node(companyId, companyName)));
         while (!bfsQueue.isEmpty() && currentLevel++ < MAX_LEVEL) {
@@ -60,8 +63,6 @@ public class EquityBfsService {
                     processQueriedShareholder(judgeResult, polledChain, dto);
                 }
             }
-            // 第0层(root)结束后, 查到的股东(第1层), 都是直接股东
-            if (currentLevel == 0) registerDirectShareholder();
         }
         debugShareholderMap();
     }
@@ -122,6 +123,15 @@ public class EquityBfsService {
             RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName, shareholderNameId);
             ratioPathCompanyDto.getChains().add(newChain);
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newChain.getValidRatio()));
+            // 是否路径终点
+            if (!ratioPathCompanyDto.isEnd()) {
+                ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE);
+            }
+            // 直接股东 & 直接比例
+            if (currentLevel == 0) {
+                ratioPathCompanyDto.setDirectShareholder(true);
+                ratioPathCompanyDto.setDirectRatio(new BigDecimal(ratioPathCompanyDto.getTotalValidRatio().toPlainString()));
+            }
             return ratioPathCompanyDto;
         });
         if (judgeResult == NOT_ARCHIVE) {
@@ -129,26 +139,20 @@ public class EquityBfsService {
         }
     }
 
-    /**
-     * 直接股东
-     */
-    private void registerDirectShareholder() {
-        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
-            RatioPathCompanyDto dto = entry.getValue();
-            dto.setDirectShareholder(true);
-            dto.setDirectRatio(new BigDecimal(dto.getTotalValidRatio().toPlainString()));
-        }
-    }
-
     private void debugShareholderMap() {
-        allShareholders.entrySet().stream()
+        allShareholders.entrySet()
+                .stream()
                 .sorted((o1, o2) -> o2.getValue().getTotalValidRatio().compareTo(o1.getValue().getTotalValidRatio()))
                 .forEach(e -> {
                     RatioPathCompanyDto dto = e.getValue();
                     log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalValidRatio().setScale(12, DOWN).stripTrailingZeros().toPlainString());
-                    dto.getChains().stream()
+                    dto.getChains()
+                            .stream()
                             .sorted((o1, o2) -> o2.getValidRatio().compareTo(o1.getValidRatio()))
-                            .forEach(chain -> log.debug("chain: {}", chain.toDebugString()));
+                            .forEach(chain -> {
+                                String debugString = chain.toDebugString();
+                                log.debug("chain: {}", debugString);
+                            });
                 });
     }
 }

@@ -17,13 +17,12 @@ public class RatioPathCompanyDto {
     private final String shareholderName;
     private final String shareholderNameId;
     private BigDecimal totalValidRatio = new BigDecimal("0");
-    private boolean directShareholder = false;
+    private boolean isDirectShareholder = false;
     private BigDecimal directRatio = new BigDecimal("0");
+    private boolean isEnd = false;
 
     public Map<String, Object> toColumnMap() {
         Map<String, Object> columnMap = new HashMap<>();
-        columnMap.put("company_id", chains.get(0).getFirst().getId());
-        columnMap.put("company_name", chains.get(0).getFirst().getName());
         columnMap.put("shareholder_id", shareholderId);
         columnMap.put("shareholder_name", shareholderName);
         columnMap.put("shareholder_name_id", shareholderNameId);
