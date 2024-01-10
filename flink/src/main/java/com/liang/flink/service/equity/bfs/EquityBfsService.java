@@ -33,13 +33,12 @@ public class EquityBfsService {
         new EquityBfsService().bfs("2318455639");
     }
 
-    public void bfs(String companyId) {
+    public void bfs(Object companyGid) {
         // prepare
+        this.companyId = String.valueOf(companyGid);
         if (!TycUtils.isUnsignedId(companyId)) return;
-        this.companyId = companyId;
-        String companyName = dao.queryCompanyName(companyId);
+        this.companyName = dao.queryCompanyName(companyId);
         if (!TycUtils.isValidName(companyName)) return;
-        this.companyName = companyName;
         allShareholders.clear();
         bfsQueue.clear();
         currentLevel = -1;
@@ -59,8 +58,8 @@ public class EquityBfsService {
                 // queue.offer()
                 for (CompanyEquityRelationDetailsDto dto : companyEquityRelationDetailsDtos) {
                     // chain archive? chain update? ratio update?
-                    Operation judgeResult = judgeQueriedShareholder(companyId, polledChain, dto);
-                    processQueriedShareholder(judgeResult, polledChain, dto);
+                    Operation judgeResult = judgeQueriedShareholder(polledChain, dto);
+                    processQueriedShareholder(polledChain, dto, judgeResult);
                 }
             }
         }
@@ -70,7 +69,7 @@ public class EquityBfsService {
     /**
      * `allShareholders` 在该方法中只读不写
      */
-    private Operation judgeQueriedShareholder(String companyId, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
+    private Operation judgeQueriedShareholder(Chain polledChain, CompanyEquityRelationDetailsDto dto) {
         String shareholderId = dto.getShareholderId();
         String shareholderName = dto.getShareholderName();
         BigDecimal ratio = dto.getRatio();
@@ -108,7 +107,7 @@ public class EquityBfsService {
     /**
      * `allShareholders` 与 `bfsQueue` 在该方法中发生写入
      */
-    private void processQueriedShareholder(Operation judgeResult, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
+    private void processQueriedShareholder(Chain polledChain, CompanyEquityRelationDetailsDto dto, Operation judgeResult) {
         if (judgeResult == DROP) {
             return;
         }
@@ -121,13 +120,14 @@ public class EquityBfsService {
         Chain newChain = new Chain(polledChain, newEdge, newNode);
         allShareholders.compute(shareholderId, (k, v) -> {
             RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName, shareholderNameId);
+            // 补充路径list & 总股比
             ratioPathCompanyDto.getChains().add(newChain);
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newChain.getValidRatio()));
             // 是否某条路径终点
             if (!ratioPathCompanyDto.isEnd()) {
                 ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE);
             }
-            // 直接股东 & 直接比例
+            // 直接股东 & 直接股比
             if (currentLevel == 0) {
                 ratioPathCompanyDto.setDirectShareholder(true);
                 ratioPathCompanyDto.setDirectRatio(new BigDecimal(ratioPathCompanyDto.getTotalValidRatio().toPlainString()));
