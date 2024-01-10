@@ -123,7 +123,7 @@ public class EquityBfsService {
             RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName, shareholderNameId);
             ratioPathCompanyDto.getChains().add(newChain);
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newChain.getValidRatio()));
-            // 是否路径终点
+            // 是否某条路径终点
             if (!ratioPathCompanyDto.isEnd()) {
                 ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE);
             }
