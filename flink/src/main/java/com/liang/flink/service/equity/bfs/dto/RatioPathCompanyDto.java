@@ -1,7 +1,6 @@
 package com.liang.flink.service.equity.bfs.dto;
 
 import lombok.Data;
-import scala.collection.mutable.StringBuilder;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,14 +19,6 @@ public class RatioPathCompanyDto {
     private BigDecimal totalValidRatio = new BigDecimal("0");
     private boolean directShareholder = false;
     private BigDecimal directRatio = new BigDecimal("0");
-
-    public String toDebugString() {
-        StringBuilder builder = new StringBuilder(String.format("\n[%s]%s(%s)", totalValidRatio.setScale(12, DOWN).toPlainString(), shareholderName, shareholderId));
-        for (Chain chain : chains) {
-            builder.append("\n").append(chain.toDebugString());
-        }
-        return builder.toString();
-    }
 
     public Map<String, Object> toColumnMap() {
         Map<String, Object> columnMap = new HashMap<>();

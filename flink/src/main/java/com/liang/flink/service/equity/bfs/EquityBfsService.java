@@ -11,13 +11,14 @@ import java.util.*;
 
 import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 import static java.math.BigDecimal.ZERO;
+import static java.math.RoundingMode.DOWN;
 
 @Slf4j
 public class EquityBfsService {
     public static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
     public static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
     public static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
-    private static final int MAX_LEVEL = 5;
+    private static final int MAX_LEVEL = 200;
     private final EquityBfsDao dao = new EquityBfsDao();
     // the map with all shareholders
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -129,6 +130,9 @@ public class EquityBfsService {
     }
 
     private void debugShareholderMap() {
-        allShareholders.forEach((shareholderId, dto) -> log.debug("shareholder: {}", dto.toDebugString()));
+        allShareholders.forEach((shareholderId, dto) -> {
+            log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalValidRatio().setScale(12, DOWN).toPlainString());
+            dto.getChains().forEach(chain -> log.debug("chain: {}", chain));
+        });
     }
 }
