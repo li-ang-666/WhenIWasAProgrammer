@@ -65,16 +65,6 @@ public class EquityBfsService {
     }
 
     /**
-     * 直接股东
-     */
-    private void registerDirectShareholder() {
-        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
-            RatioPathCompanyDto dto = entry.getValue();
-            dto.registerDirectShareholder();
-        }
-    }
-
-    /**
      * `allShareholders` 在该方法中只读不写
      */
     private Operation judgeQueriedShareholder(String companyId, Chain polledChain, CompanyEquityRelationDetailsDto dto) {
@@ -119,9 +109,22 @@ public class EquityBfsService {
         Node newNode = new Node(dtoShareholderId, dtoShareholderName);
         Chain newChain = new Chain(polledChain, newEdge, newNode);
         allShareholders.putIfAbsent(dtoShareholderId, new RatioPathCompanyDto(dtoShareholderId, dtoShareholderName, dtoShareholderNameId));
-        allShareholders.get(dtoShareholderId).addChain(newChain);
+        RatioPathCompanyDto ratioPathCompanyDto = allShareholders.get(dtoShareholderId);
+        ratioPathCompanyDto.getChains().add(newChain);
+        ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newChain.getValidRatio()));
         if (judgeResult == NOT_ARCHIVE) {
             bfsQueue.offer(newChain);
+        }
+    }
+
+    /**
+     * 直接股东
+     */
+    private void registerDirectShareholder() {
+        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
+            RatioPathCompanyDto dto = entry.getValue();
+            dto.setDirectShareholder(true);
+            dto.setDirectRatio(new BigDecimal(dto.getTotalValidRatio().toPlainString()));
         }
     }
 
