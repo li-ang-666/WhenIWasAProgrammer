@@ -29,7 +29,6 @@ public class DorisTemplateTest extends ConfigHolder {
                 .derivedColumns(Collections.singletonList("id = id + 100"))
                 .build();
 
-
         DorisOneRow unique = new DorisOneRow(uniqueSchema)
                 .put("id", 0)
                 .put("name", "Jack")
