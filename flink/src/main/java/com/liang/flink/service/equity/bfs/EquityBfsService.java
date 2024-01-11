@@ -119,14 +119,14 @@ public class EquityBfsService {
         Chain newChain = new Chain(polledChain, newEdge, newNode);
         allShareholders.compute(shareholderId, (k, v) -> {
             RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName, shareholderNameId);
-            // 补充路径list & 总股比
+            // 路径list & 总股比
             ratioPathCompanyDto.getChains().add(newChain);
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newChain.getValidRatio()));
             // 是否某条路径终点
             if (!ratioPathCompanyDto.isEnd()) {
                 ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE);
             }
-            // 直接股东 & 直接股比
+            // 是否直接股东 & 直接股比
             if (currentLevel == 0) {
                 ratioPathCompanyDto.setDirectShareholder(true);
                 ratioPathCompanyDto.setDirectRatio(new BigDecimal(ratioPathCompanyDto.getTotalValidRatio().toPlainString()));
