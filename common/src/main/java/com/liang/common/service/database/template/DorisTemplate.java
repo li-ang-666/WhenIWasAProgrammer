@@ -107,12 +107,12 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                         log.warn("stream load success, loadResult:\n{}", loadResult);
                         tryTimes = 0;
                     } else if (tryTimes == 0) {
-                        log.error("stream load failed for {} times, statusCode: {}, loadResult:\n{}, content: {}", MAX_TRY_TIMES, statusCode, loadResult, contentString);
+                        log.error("stream load failed for {} times, statusCode: {}, loadResult:\n{}", MAX_TRY_TIMES, statusCode, loadResult);
                     }
                 }
             }
         } catch (Exception e) {
-            log.error("stream load failed without loadResult, content: {}", contentString, e);
+            log.error("stream load failed without loadResult", e);
         }
     }
 

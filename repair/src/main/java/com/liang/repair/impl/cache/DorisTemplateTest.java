@@ -35,7 +35,7 @@ public class DorisTemplateTest extends ConfigHolder {
                 .put("__DORIS_DELETE_SIGN__", 0);
 
         DorisOneRow agg = new DorisOneRow(aggSchema)
-                .put("id", "0")
+                .put("id", "abc")
                 .put("name", "Andy");
 
         ArrayList<DorisOneRow> dorisOneRows = new ArrayList<>();
