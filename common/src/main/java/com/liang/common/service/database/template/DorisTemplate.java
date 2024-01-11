@@ -20,8 +20,13 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
@@ -55,8 +60,8 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             .custom()
             .setRedirectStrategy(new RedirectStrategy());
     private final List<String> fe;
+    private final AtomicInteger fePointer = new AtomicInteger(0);
     private final String auth;
-    private final Random random = new Random();
 
     public DorisTemplate(String name) {
         super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
@@ -67,14 +72,9 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
 
     @Override
     protected void updateImmediately(DorisSchema schema, Queue<DorisOneRow> dorisOneRows) {
-        List<Map<String, Object>> contentObject = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
-        String contentString = JsonUtils.toString(contentObject);
         try (CloseableHttpClient client = httpClientBuilder.build()) {
-            // url
-            String target = fe.get(random.nextInt(fe.size()));
-            String url = String.format("http://%s/api/%s/%s/_stream_load", target, schema.getDatabase(), schema.getTableName());
             // put common
-            HttpPut put = new HttpPut(url);
+            HttpPut put = new HttpPut();
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
             put.setHeader("label", String.format("%s_%s_%s", schema.getDatabase(), schema.getTableName(), DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss")));
@@ -88,14 +88,15 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                 put.setHeader("delete", schema.getUniqueDeleteOn());
             }
             // put content
-            List<String> keys = new ArrayList<>(contentObject.get(0).keySet());
+            List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
+            List<String> keys = new ArrayList<>(columnMaps.get(0).keySet());
             put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
             put.setHeader("jsonpaths", parseJsonPaths(keys));
-            put.setEntity(new StringEntity(contentString, StandardCharsets.UTF_8));
+            put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
             // execute
             int tryTimes = MAX_TRY_TIMES;
-            while (tryTimes > 0) {
-                if (tryTimes-- < MAX_TRY_TIMES) LockSupport.parkUntil(System.currentTimeMillis() + 1000);
+            while (tryTimes-- > 0) {
+                put.setURI(getUri(schema.getDatabase(), schema.getTableName()));
                 try (CloseableHttpResponse response = client.execute(put)) {
                     HttpEntity httpEntity = response.getEntity();
                     String loadResult = EntityUtils.toString(httpEntity);
@@ -108,6 +109,8 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                         tryTimes = 0;
                     } else if (tryTimes == 0) {
                         log.error("stream load failed for {} times, statusCode: {}, loadResult:\n{}", MAX_TRY_TIMES, statusCode, loadResult);
+                    } else {
+                        LockSupport.parkUntil(System.currentTimeMillis() + 1000);
                     }
                 }
             }
@@ -136,6 +139,11 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         return keys.parallelStream()
                 .map(e -> "\"$." + e + "\"")
                 .collect(Collectors.joining(",", "[", "]"));
+    }
+
+    private URI getUri(String database, String table) {
+        String targetFe = fe.get(fePointer.getAndIncrement() % fe.size());
+        return URI.create(String.format("http://%s/api/%s/%s/_stream_load", targetFe, database, table));
     }
 
     @Slf4j
