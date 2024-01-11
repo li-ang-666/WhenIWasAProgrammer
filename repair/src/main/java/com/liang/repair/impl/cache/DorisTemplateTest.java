@@ -26,7 +26,7 @@ public class DorisTemplateTest extends ConfigHolder {
         DorisSchema aggSchema = DorisSchema.builder()
                 .database("test_db")
                 .tableName("agg_test")
-                .derivedColumns(Collections.singletonList("id = id+100"))
+                .derivedColumns(Collections.singletonList("id = id + 100"))
                 .build();
 
 
