@@ -33,23 +33,19 @@ import static org.apache.http.HttpHeaders.EXPECT;
 
 /**
  * use test_db;
- * SET show_hidden_columns=true;
+ * -- SET show_hidden_columns=true;
  * -------------------------------------------------------
  * drop table if exists unique_test;
- * create table if not exists unique_test(id int,name text)
- * UNIQUE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
- * PROPERTIES (
- * "replication_num" = "1",
- * "in_memory" = "false"
- * );
+ * create table if not exists unique_test(
+ * id int not null,
+ * name text
+ * )UNIQUE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 36;
  * -------------------------------------------------------
  * drop table if exists agg_test;
- * create table if not exists agg_test(id int,name text REPLACE_IF_NOT_NULL)
- * AGGREGATE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
- * PROPERTIES (
- * "replication_num" = "1",
- * "in_memory" = "false"
- * );
+ * create table if not exists agg_test(
+ * id int not null,
+ * name text REPLACE_IF_NOT_NULL
+ * )AGGREGATE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 36;
  */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
