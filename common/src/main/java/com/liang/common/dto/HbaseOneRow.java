@@ -16,7 +16,7 @@ public class HbaseOneRow implements Serializable {
     public HbaseOneRow(HbaseSchema schema, String rowKey) {
         this.schema = schema;
         this.rowKey = schema.isRowKeyReverse() ? StringUtils.reverse(rowKey) : rowKey;
-        columnMap = new HashMap<>();
+        this.columnMap = new HashMap<>();
     }
 
     public HbaseOneRow(HbaseSchema schema, String rowKey, Map<String, Object> columnMap) {

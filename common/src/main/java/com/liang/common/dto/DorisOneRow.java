@@ -13,7 +13,7 @@ public class DorisOneRow implements Serializable {
 
     public DorisOneRow(DorisSchema schema) {
         this.schema = schema;
-        columnMap = new HashMap<>();
+        this.columnMap = new HashMap<>();
     }
 
     public DorisOneRow(DorisSchema schema, Map<String, Object> columnMap) {
