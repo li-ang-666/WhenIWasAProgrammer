@@ -40,7 +40,6 @@ public class AdsJob {
             ConfigUtils.setConfig(config);
             DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
             dorisTemplate.enableCache();
-            // config `delete_on` and `seq_col` if is unique
             DorisSchema dorisSchema = DorisSchema.builder()
                     .database("ads")
                     .tableName("ads_user_tag_commercial").build();
