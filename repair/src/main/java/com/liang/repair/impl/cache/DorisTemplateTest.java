@@ -20,7 +20,7 @@ public class DorisTemplateTest extends ConfigHolder {
                 .database("test_db")
                 .tableName("unique_test")
                 .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
-                .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ',name)"))
+                .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ', name)"))
                 .build();
 
         DorisSchema aggSchema = DorisSchema.builder()
@@ -30,18 +30,18 @@ public class DorisTemplateTest extends ConfigHolder {
                 .build();
 
         DorisOneRow unique = new DorisOneRow(uniqueSchema)
-                .put("id", "a")
+                .put("id", "0")
                 .put("name", "Jack")
                 .put("__DORIS_DELETE_SIGN__", 0);
 
         DorisOneRow agg = new DorisOneRow(aggSchema)
-                .put("id", "a")
+                .put("id", "0")
                 .put("name", "Andy");
 
         ArrayList<DorisOneRow> dorisOneRows = new ArrayList<>();
         for (int i = 1; i <= 1024; i++) {
             DorisOneRow clone = SerializeUtil.clone(unique);
-            clone.put("id", i + " " + i);
+            clone.put("id", i);
             dorisOneRows.add(clone);
         }
 
