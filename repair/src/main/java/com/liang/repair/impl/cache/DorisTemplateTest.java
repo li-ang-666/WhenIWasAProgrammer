@@ -1,5 +1,6 @@
 package com.liang.repair.impl.cache;
 
+import cn.hutool.core.util.SerializeUtil;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
@@ -17,8 +18,8 @@ public class DorisTemplateTest extends ConfigHolder {
 
         DorisSchema uniqueSchema = DorisSchema.builder()
                 .database("test_db")
-                .tableName("stream_load_test")
-                .uniqueDeleteOn("__DORIS_DELETE_SIGN__ = 1")
+                .tableName("unique_test")
+                .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
                 .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ',name)"))
                 .build();
 
@@ -29,22 +30,24 @@ public class DorisTemplateTest extends ConfigHolder {
                 .build();
 
 
-        DorisOneRow row1 = new DorisOneRow(uniqueSchema)
-                .put("id", "1")
-                .put("name", "Jackk")
-                .put("__DORIS_DELETE_SIGN__", 0);
+        DorisOneRow unique = new DorisOneRow(uniqueSchema)
+                .put("id", 0)
+                .put("name", "Jack")
+                .put("__DORIS_DELETE_SIGN__", 1);
 
-        DorisOneRow row2 = new DorisOneRow(aggSchema)
+        DorisOneRow agg = new DorisOneRow(aggSchema)
                 .put("id", "1")
                 .put("name", "Andy");
 
         ArrayList<DorisOneRow> dorisOneRows = new ArrayList<>();
         for (int i = 1; i <= 1024; i++) {
-            dorisOneRows.add(row1);
+            DorisOneRow clone = SerializeUtil.clone(unique);
+            clone.put("id", i);
+            dorisOneRows.add(clone);
         }
 
-        dorisTemplate.update(row1, row2);
+        dorisTemplate.update(unique, agg);
         dorisTemplate.update(dorisOneRows);
-        TimeUnit.SECONDS.sleep(10);
+        TimeUnit.SECONDS.sleep(5);
     }
 }
