@@ -5,6 +5,7 @@ import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisDbConfig;
 import com.liang.common.service.AbstractCache;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -76,6 +77,8 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
+            put.setHeader("num_as_string", "true");
+            put.setHeader("label", String.format("%s_%s_%s", schema.getDatabase(), schema.getTableName(), DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss")));
             // for unique table
             if (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) {
                 put.setHeader("merge_type", "MERGE");
