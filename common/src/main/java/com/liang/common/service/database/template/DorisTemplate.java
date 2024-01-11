@@ -22,6 +22,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +50,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private final static int BUFFER_MAX_MB = 16; // 1kb/条 x 16000条
     private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
     private final static int DEFAULT_CACHE_RECORDS = 10240;
+    private final static int MAX_TRY_TIMES = 3;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new RedirectStrategy());
@@ -80,6 +82,8 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             put.setHeader("strip_outer_array", "true");
             put.setHeader("num_as_string", "true");
             put.setHeader("send_batch_parallelism", "1");
+            put.setHeader("strict_mode", "true");
+            put.setHeader("max_filter_ratio", "0");
             // for unique delete
             if (schema.getUniqueDeleteOn() != null) {
                 put.setHeader("merge_type", "MERGE");
@@ -91,16 +95,22 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             put.setHeader("jsonpaths", parseJsonPaths(keys));
             put.setEntity(new StringEntity(contentString, StandardCharsets.UTF_8));
             // execute
-            try (CloseableHttpResponse response = client.execute(put)) {
-                HttpEntity httpEntity = response.getEntity();
-                String loadResult = EntityUtils.toString(httpEntity);
-                int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode == 200 && loadResult.contains("Success") && loadResult.contains("OK")) {
-                    log.info("stream load success, loadResult: {}", loadResult);
-                } else if (statusCode == 200 && loadResult.contains("Publish Timeout") && loadResult.contains("PUBLISH_TIMEOUT")) {
-                    log.warn("stream load success, loadResult: {}", loadResult);
-                } else {
-                    log.error("stream load failed, statusCode: {}, loadResult: {}, content: {}", statusCode, loadResult, contentString);
+            int tryTimes = MAX_TRY_TIMES;
+            while (tryTimes > 0) {
+                if (tryTimes-- < MAX_TRY_TIMES) LockSupport.parkUntil(System.currentTimeMillis() + 1000);
+                try (CloseableHttpResponse response = client.execute(put)) {
+                    HttpEntity httpEntity = response.getEntity();
+                    String loadResult = EntityUtils.toString(httpEntity);
+                    int statusCode = response.getStatusLine().getStatusCode();
+                    if (statusCode == 200 && loadResult.contains("Success") && loadResult.contains("OK")) { // Status = Success, Message = OK
+                        log.info("stream load success, loadResult:\n{}", loadResult);
+                        tryTimes = 0;
+                    } else if (statusCode == 200 && loadResult.contains("Publish Timeout") && loadResult.contains("PUBLISH_TIMEOUT")) { // Status = Publish Timeout, Message = PUBLISH_TIMEOUT
+                        log.warn("stream load success, loadResult:\n{}", loadResult);
+                        tryTimes = 0;
+                    } else if (tryTimes == 0) {
+                        log.error("stream load failed for {} times, statusCode: {}, loadResult:\n{}, content: {}", MAX_TRY_TIMES, statusCode, loadResult, contentString);
+                    }
                 }
             }
         } catch (Exception e) {

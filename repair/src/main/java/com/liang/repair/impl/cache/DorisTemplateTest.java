@@ -30,12 +30,12 @@ public class DorisTemplateTest extends ConfigHolder {
                 .build();
 
         DorisOneRow unique = new DorisOneRow(uniqueSchema)
-                .put("id", 0)
+                .put("id", "a")
                 .put("name", "Jack")
                 .put("__DORIS_DELETE_SIGN__", 0);
 
         DorisOneRow agg = new DorisOneRow(aggSchema)
-                .put("id", "1")
+                .put("id", "a")
                 .put("name", "Andy");
 
         ArrayList<DorisOneRow> dorisOneRows = new ArrayList<>();
@@ -47,6 +47,6 @@ public class DorisTemplateTest extends ConfigHolder {
 
         dorisTemplate.update(unique, agg);
         dorisTemplate.update(dorisOneRows);
-        TimeUnit.SECONDS.sleep(5);
+        TimeUnit.SECONDS.sleep(10);
     }
 }
