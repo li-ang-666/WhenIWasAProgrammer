@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
  * SET show_hidden_columns=true;
  * use test_db;
  * --------------------------------------------------------
- * drop table if exists stream_load_test;
- * create table if not exists stream_load_test(id int,name text)
+ * drop table if exists unique_test;
+ * create table if not exists unique_test(id int,name text)
  * UNIQUE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
  * PROPERTIES (
  * "replication_num" = "1",
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * -------------------------------------------------------
  * drop table if exists agg_test;
  * create table if not exists agg_test(id int,name text REPLACE_IF_NOT_NULL)
- * aggregate KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
+ * AGGREGATE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
  * PROPERTIES (
  * "replication_num" = "1",
  * "in_memory" = "false"
