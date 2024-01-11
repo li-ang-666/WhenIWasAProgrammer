@@ -25,8 +25,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * SET show_hidden_columns=true;
  * use test_db;
+ * SET show_hidden_columns=true;
  * -------------------------------------------------------
  * drop table if exists unique_test;
  * create table if not exists unique_test(id int,name text)
