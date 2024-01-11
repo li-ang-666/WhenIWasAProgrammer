@@ -41,7 +41,7 @@ public class DorisTemplateTest extends ConfigHolder {
         ArrayList<DorisOneRow> dorisOneRows = new ArrayList<>();
         for (int i = 1; i <= 1024; i++) {
             DorisOneRow clone = SerializeUtil.clone(unique);
-            clone.put("id", i);
+            clone.put("id", i + " " + i);
             dorisOneRows.add(clone);
         }
 
