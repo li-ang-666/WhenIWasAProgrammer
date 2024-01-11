@@ -5,7 +5,6 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import lombok.RequiredArgsConstructor;
@@ -14,50 +13,45 @@ import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 public class DorisJob {
+    private static final String REGEX = "insert +into +([a-z1-9_]+)\\.([a-z1-9_]+) +(select.*)";
+
     public static void main(String[] args) {
-        SparkSession spark = SparkSessionFactory.createSpark(args);
-        spark.sql("select * from test.test_ods_promotion_user_promotion_all_df_0830 where pt='20230903'")
-                .repartition(180)
-                .foreachPartition(new DorisForeachPartitionSink(ConfigUtils.getConfig()));
+        String sql = args[0];
+        String dorisDatabase = sql.replaceAll(REGEX, "$1");
+        String dorisTable = sql.replaceAll(REGEX, "$2");
+        String sparkSql = sql.replaceAll(REGEX, "$3");
+        SparkSession spark = SparkSessionFactory.createSpark(null);
+        spark.sql(sparkSql)
+                .repartition()
+                .foreachPartition(new DorisSink(ConfigUtils.getConfig(), dorisDatabase, dorisTable));
     }
 
     @Slf4j
     @RequiredArgsConstructor
-    private final static class DorisForeachPartitionSink implements ForeachPartitionFunction<Row> {
+    private final static class DorisSink implements ForeachPartitionFunction<Row> {
         private final Config config;
+        private final String database;
+        private final String table;
 
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-            DorisTemplate doris = new DorisTemplate("dorisSink");
-            doris.enableCache();
+            DorisSchema schema = DorisSchema.builder()
+                    .database(database)
+                    .tableName(table)
+                    .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
+                    .build();
+            DorisTemplate dorisSink = new DorisTemplate("dorisSink");
+            dorisSink.enableCache();
             while (iterator.hasNext()) {
-                Row row = iterator.next();
-                Map<String, Object> columnMap = JsonUtils.parseJsonObj(row.json());
-                HashMap<String, Object> resultMap = new HashMap<>();
-                resultMap.put("__DORIS_DELETE_SIGN__", 0);
-                resultMap.put("promotion_code", columnMap.get("promotion_code"));
-                resultMap.put("unique_user_id", columnMap.get("user_id"));
-                resultMap.put("promotion_id", columnMap.get("promotion_id"));
-                resultMap.put("use_status", columnMap.get("use_status"));
-                resultMap.put("receive_time", DateTimeUtils.fromUnixTime(Long.parseLong(String.valueOf(columnMap.get("receive_time"))) / 1000));
-                resultMap.put("effective_time", DateTimeUtils.fromUnixTime(Long.parseLong(String.valueOf(columnMap.get("effective_time"))) / 1000));
-                resultMap.put("expiration_time", DateTimeUtils.fromUnixTime(Long.parseLong(String.valueOf(columnMap.get("expiration_time"))) / 1000));
-                DorisSchema schema = DorisSchema
-                        .builder()
-                        .database("dwd")
-                        .tableName("dwd_coupon_info")
-                        .uniqueDeleteOn("__DORIS_DELETE_SIGN__ = 1")
-                        .build();
-                DorisOneRow dorisOneRow = new DorisOneRow(schema, resultMap);
-                doris.update(dorisOneRow);
+                DorisOneRow dorisOneRow = new DorisOneRow(schema, JsonUtils.parseJsonObj(iterator.next().json()));
+                dorisOneRow.put("__DORIS_DELETE_SIGN__", 0);
+                dorisSink.update(dorisOneRow);
             }
-            doris.flush();
+            dorisSink.flush();
         }
     }
 }
