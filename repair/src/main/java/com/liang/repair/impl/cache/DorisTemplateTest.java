@@ -19,7 +19,6 @@ public class DorisTemplateTest extends ConfigHolder {
                 .database("test_db")
                 .tableName("stream_load_test")
                 .uniqueDeleteOn("__DORIS_DELETE_SIGN__ = 1")
-                .uniqueOrderBy("__DORIS_SEQUENCE_COL__")
                 .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ',name)"))
                 .build();
 
@@ -33,8 +32,7 @@ public class DorisTemplateTest extends ConfigHolder {
         DorisOneRow row1 = new DorisOneRow(uniqueSchema)
                 .put("id", "1")
                 .put("name", "Jackk")
-                .put("__DORIS_DELETE_SIGN__", 0)
-                .put("__DORIS_SEQUENCE_COL__", System.currentTimeMillis());
+                .put("__DORIS_DELETE_SIGN__", 0);
 
         DorisOneRow row2 = new DorisOneRow(aggSchema)
                 .put("id", "1")

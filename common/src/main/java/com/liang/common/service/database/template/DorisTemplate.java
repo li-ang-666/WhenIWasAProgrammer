@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
  * create table if not exists stream_load_test(id int,name text)
  * UNIQUE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
  * PROPERTIES (
- * "function_column.sequence_type" = 'largeint',
  * "replication_num" = "1",
  * "in_memory" = "false"
  * );
@@ -75,19 +74,15 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             HttpPut put = new HttpPut(url);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
+            put.setHeader("label", String.format("%s_%s_%s", schema.getDatabase(), schema.getTableName(), DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss")));
             put.setHeader("format", "json");
             put.setHeader("strip_outer_array", "true");
             put.setHeader("num_as_string", "true");
-            put.setHeader("label", String.format("%s_%s_%s", schema.getDatabase(), schema.getTableName(), DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss")));
-            // for unique table
-            if (schema.getUniqueDeleteOn() != null || schema.getUniqueOrderBy() != null) {
+            put.setHeader("send_batch_parallelism", "1");
+            // for unique delete
+            if (schema.getUniqueDeleteOn() != null) {
                 put.setHeader("merge_type", "MERGE");
-                if (schema.getUniqueDeleteOn() != null) {
-                    put.setHeader("delete", schema.getUniqueDeleteOn());
-                }
-                if (schema.getUniqueOrderBy() != null) {
-                    put.setHeader("function_column.sequence_col", schema.getUniqueOrderBy());
-                }
+                put.setHeader("delete", schema.getUniqueDeleteOn());
             }
             // put content
             List<String> keys = new ArrayList<>(contentObject.get(0).keySet());
