@@ -9,8 +9,6 @@ import com.liang.common.util.DateTimeUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
@@ -29,6 +27,9 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
+
+import static org.apache.http.HttpHeaders.AUTHORIZATION;
+import static org.apache.http.HttpHeaders.EXPECT;
 
 /**
  * use test_db;
@@ -73,34 +74,15 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     @Override
     protected void updateImmediately(DorisSchema schema, Queue<DorisOneRow> dorisOneRows) {
         try (CloseableHttpClient client = httpClientBuilder.build()) {
-            // put common
-            HttpPut put = new HttpPut();
-            put.setHeader(HttpHeaders.EXPECT, "100-continue");
-            put.setHeader(HttpHeaders.AUTHORIZATION, auth);
-            put.setHeader("label", String.format("%s_%s_%s", schema.getDatabase(), schema.getTableName(), DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss")));
-            put.setHeader("format", "json");
-            put.setHeader("strip_outer_array", "true");
-            put.setHeader("num_as_string", "true");
-            put.setHeader("send_batch_parallelism", "1");
-            // for unique delete
-            if (schema.getUniqueDeleteOn() != null) {
-                put.setHeader("merge_type", "MERGE");
-                put.setHeader("delete", schema.getUniqueDeleteOn());
-            }
-            // put content
-            List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
-            List<String> keys = new ArrayList<>(columnMaps.get(0).keySet());
-            put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
-            put.setHeader("jsonpaths", parseJsonPaths(keys));
-            put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
-            // execute
+            // init put
+            HttpPut put = getHttpPut(schema, dorisOneRows);
+            // execute put
             int tryTimes = MAX_TRY_TIMES;
             while (tryTimes-- > 0) {
                 put.setURI(getUri(schema.getDatabase(), schema.getTableName()));
                 try (CloseableHttpResponse response = client.execute(put)) {
-                    HttpEntity httpEntity = response.getEntity();
-                    String loadResult = EntityUtils.toString(httpEntity);
                     int statusCode = response.getStatusLine().getStatusCode();
+                    String loadResult = EntityUtils.toString(response.getEntity());
                     if (statusCode == 200 && loadResult.contains("Success") && loadResult.contains("OK")) { // Status = Success, Message = OK
                         log.info("stream load success, loadResult:\n{}", loadResult);
                         tryTimes = 0;
@@ -123,6 +105,30 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         final String tobeEncode = username + ":" + password;
         byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
         return "Basic " + new String(encoded);
+    }
+
+    private HttpPut getHttpPut(DorisSchema schema, Queue<DorisOneRow> dorisOneRows) {
+        // common
+        HttpPut put = new HttpPut();
+        put.setHeader(EXPECT, "100-continue");
+        put.setHeader(AUTHORIZATION, auth);
+        put.setHeader("label", String.format("%s_%s_%s", schema.getDatabase(), schema.getTableName(), DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss")));
+        put.setHeader("format", "json");
+        put.setHeader("strip_outer_array", "true");
+        put.setHeader("num_as_string", "true");
+        put.setHeader("send_batch_parallelism", "1");
+        // for unique delete
+        if (schema.getUniqueDeleteOn() != null) {
+            put.setHeader("merge_type", "MERGE");
+            put.setHeader("delete", schema.getUniqueDeleteOn());
+        }
+        // content
+        List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
+        List<String> keys = new ArrayList<>(columnMaps.get(0).keySet());
+        put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
+        put.setHeader("jsonpaths", parseJsonPaths(keys));
+        put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
+        return put;
     }
 
     private String parseColumns(List<String> keys, List<String> derivedColumns) {
