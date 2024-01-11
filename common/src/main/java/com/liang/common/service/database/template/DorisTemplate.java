@@ -70,8 +70,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             // url
             String target = fe.get(random.nextInt(fe.size()));
             String url = String.format("http://%s/api/%s/%s/_stream_load", target, schema.getDatabase(), schema.getTableName());
-            // init put
-            // common
+            // put common
             HttpPut put = new HttpPut(url);
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
             put.setHeader(HttpHeaders.AUTHORIZATION, auth);
@@ -87,7 +86,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
                     put.setHeader("function_column.sequence_col", schema.getUniqueOrderBy());
                 }
             }
-            // for content
+            // put content
             List<String> keys = new ArrayList<>(contentObject.get(0).keySet());
             put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
             put.setHeader("jsonpaths", parseJsonPaths(keys));
