@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * SET show_hidden_columns=true;
  * use test_db;
- * --------------------------------------------------------
+ * -------------------------------------------------------
  * drop table if exists unique_test;
  * create table if not exists unique_test(id int,name text)
  * UNIQUE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
