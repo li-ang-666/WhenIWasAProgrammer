@@ -25,6 +25,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * SET show_hidden_columns=true;
+ * use test_db;
+ * --------------------------------------------------------
  * drop table if exists stream_load_test;
  * create table if not exists stream_load_test(id int,name text)
  * UNIQUE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 1
@@ -40,8 +43,6 @@ import java.util.stream.Collectors;
  * "replication_num" = "1",
  * "in_memory" = "false"
  * );
- * --------------------------------------------------------
- * SET show_hidden_columns=true;
  */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
