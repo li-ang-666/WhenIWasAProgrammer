@@ -18,7 +18,7 @@ public class Config implements Serializable {
     // kafka
     private Map<String, KafkaConfig> kafkaConfigs;
     // 特殊库
-    private Map<String, HbaseDbConfig> hbaseDbConfigs;
-    private Map<String, DorisDbConfig> dorisDbConfigs;
+    private Map<String, HbaseConfig> hbaseConfigs;
+    private Map<String, DorisConfig> dorisConfigs;
 }
 

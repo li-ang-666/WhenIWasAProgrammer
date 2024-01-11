@@ -23,7 +23,7 @@ public class ReadHbase extends ConfigHolder {
 
     private static HbaseOneRow query(HbaseOneRow hbaseOneRow) {
         HbaseOneRow resultRow = HBASE_TEMPLATE.getRow(hbaseOneRow);
-        int hbaseSinkConfigLength = String.valueOf(ConfigUtils.getConfig().getHbaseDbConfigs().get("hbaseSink")).split(",").length;
+        int hbaseSinkConfigLength = String.valueOf(ConfigUtils.getConfig().getHbaseConfigs().get("hbaseSink")).split(",").length;
         if (hbaseSinkConfigLength == 1) log.warn("\n\n醒目: 目前是测试Hbase\n");
         else log.warn("\n\n醒目: 目前是生产Hbase\n");
         log.info("row: {}", JsonUtils.toString(resultRow));

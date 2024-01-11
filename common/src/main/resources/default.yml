@@ -34,11 +34,11 @@ redisConfigs:
   localhost: { host: "127.0.0.1", password: ~ }
   metadata: { host: "10.99.205.87", password: "123456" }
 
-hbaseDbConfigs:
+hbaseConfigs:
   hbaseSink:
     zookeeperQuorum: "10.99.192.246:2181,10.99.202.175:2181,10.99.204.154:2181"
 
-dorisDbConfigs:
+dorisConfigs:
   dorisSink:
     fe: [ "10.99.197.34:8030", "10.99.202.71:8030", "10.99.203.88:8030" ]
     user: "dba"

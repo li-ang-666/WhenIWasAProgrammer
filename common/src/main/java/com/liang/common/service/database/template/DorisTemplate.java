@@ -2,7 +2,7 @@ package com.liang.common.service.database.template;
 
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
-import com.liang.common.dto.config.DorisDbConfig;
+import com.liang.common.dto.config.DorisConfig;
 import com.liang.common.service.AbstractCache;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateTimeUtils;
@@ -65,9 +65,9 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
 
     public DorisTemplate(String name) {
         super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
-        DorisDbConfig dorisDbConfig = ConfigUtils.getConfig().getDorisDbConfigs().get(name);
-        fe = dorisDbConfig.getFe();
-        auth = basicAuthHeader(dorisDbConfig.getUser(), dorisDbConfig.getPassword());
+        DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
+        fe = dorisConfig.getFe();
+        auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
     }
 
     @Override

@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class DorisDbConfig implements Serializable {
+public class DorisConfig implements Serializable {
     private List<String> fe;
     private String user;
     private String password;

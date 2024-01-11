@@ -93,7 +93,7 @@ kafkaConfigs:
     groupId: "leon"
     startFrom: "1"
 
-hbaseDbConfigs:
+hbaseConfigs:
   #################### 测试 ####################
   #  hbaseSink:
   #    zookeeperQuorum: "10.99.1.165:2181"

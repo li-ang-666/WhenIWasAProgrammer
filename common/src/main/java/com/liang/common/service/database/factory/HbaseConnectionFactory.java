@@ -1,6 +1,6 @@
 package com.liang.common.service.database.factory;
 
-import com.liang.common.dto.config.HbaseDbConfig;
+import com.liang.common.dto.config.HbaseConfig;
 import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
@@ -13,7 +13,7 @@ public class HbaseConnectionFactory implements IFactory<Connection> {
     @Override
     public Connection createPool(String name) {
         try {
-            HbaseDbConfig config = ConfigUtils.getConfig().getHbaseDbConfigs().get(name);
+            HbaseConfig config = ConfigUtils.getConfig().getHbaseConfigs().get(name);
             Configuration configuration = new Configuration();
             configuration.set("hbase.zookeeper.quorum", config.getZookeeperQuorum());
             log.info("hbaseConnection 加载: {}", config);

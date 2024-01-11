@@ -83,21 +83,21 @@ public class ConfigUtils {
             );
         }
         // hbase
-        if (customConfig.getHbaseDbConfigs() == null) {
-            customConfig.setHbaseDbConfigs(new HashMap<>());
+        if (customConfig.getHbaseConfigs() == null) {
+            customConfig.setHbaseConfigs(new HashMap<>());
         }
-        if (defaultConfig.getHbaseDbConfigs() != null) {
-            defaultConfig.getHbaseDbConfigs().forEach((name, hbaseDbConfig) ->
-                    customConfig.getHbaseDbConfigs().putIfAbsent(name, hbaseDbConfig)
+        if (defaultConfig.getHbaseConfigs() != null) {
+            defaultConfig.getHbaseConfigs().forEach((name, hbaseConfig) ->
+                    customConfig.getHbaseConfigs().putIfAbsent(name, hbaseConfig)
             );
         }
         // doris
-        if (customConfig.getDorisDbConfigs() == null) {
-            customConfig.setDorisDbConfigs(new HashMap<>());
+        if (customConfig.getDorisConfigs() == null) {
+            customConfig.setDorisConfigs(new HashMap<>());
         }
-        if (defaultConfig.getDorisDbConfigs() != null) {
-            defaultConfig.getDorisDbConfigs().forEach((name, dorisDbConfig) ->
-                    customConfig.getDorisDbConfigs().putIfAbsent(name, dorisDbConfig)
+        if (defaultConfig.getDorisConfigs() != null) {
+            defaultConfig.getDorisConfigs().forEach((name, dorisConfig) ->
+                    customConfig.getDorisConfigs().putIfAbsent(name, dorisConfig)
             );
         }
     }
