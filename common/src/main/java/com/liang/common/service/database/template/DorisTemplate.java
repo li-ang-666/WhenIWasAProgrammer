@@ -58,7 +58,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private final static int MAX_TRY_TIMES = 3;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
-            .setRedirectStrategy(new RedirectStrategy());
+            .setRedirectStrategy(new DorisRedirectStrategy());
     private final List<String> fe;
     private final AtomicInteger fePointer = new AtomicInteger(0);
     private final String auth;
@@ -147,7 +147,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     @Slf4j
-    private static class RedirectStrategy extends DefaultRedirectStrategy {
+    private static class DorisRedirectStrategy extends DefaultRedirectStrategy {
         @Override
         protected boolean isRedirectable(String method) {
             return true;

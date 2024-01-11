@@ -30,7 +30,7 @@ public class DorisTemplateTest extends ConfigHolder {
                 .build();
 
         DorisOneRow unique = new DorisOneRow(uniqueSchema)
-                .put("id", "0")
+                .put("id", "abc")
                 .put("name", "Jack")
                 .put("__DORIS_DELETE_SIGN__", 0);
 
