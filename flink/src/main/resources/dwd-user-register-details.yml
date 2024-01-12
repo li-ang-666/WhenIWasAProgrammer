@@ -6,7 +6,7 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks: [
-  { taskId: "1", sourceName: "ali.prism_app", tableName: "user" }
+  { taskId: "111", sourceName: "ali.prism_app", tableName: "user" }
 ]
 
 kafkaConfigs:
