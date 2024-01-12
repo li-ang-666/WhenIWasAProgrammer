@@ -21,42 +21,43 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DROP TABLE `test_db`.`dwd_user_register_details`;
- * CREATE TABLE `test_db`.`dwd_user_register_details` (
- * `tyc_user_id` bigint COMMENT '天眼查用户ID',
- * `mobile` bigint COMMENT '手机号',
- * `register_time` datetime COMMENT '注册时间',
- * `vip_from_time` datetime COMMENT 'VIP开始时间',
- * `vip_to_time` datetime COMMENT 'VIP结束日期',
- * `user_type` int COMMENT '用户类型 0:普通,1:vip,2:媒体用户,3:3个月vip,4:6个月vip,5:12个月以上vip,6:24个月vip,7:26个月以上vip,-1:删除,-2:黑名单',
+ * DROP TABLE `test_db`.`dwd_coupon_info`;
+ * CREATE TABLE `test_db`.`dwd_coupon_info` (
+ * `promotion_code` varchar(65530) COMMENT '优惠码',
+ * `unique_user_id` bigint COMMENT '天眼查用户ID-new',
+ * `promotion_id` bigint COMMENT '优惠ID',
+ * `use_status` int COMMENT '使用状态',
+ * `receive_time` datetime COMMENT '发券时间',
+ * `effective_time` datetime COMMENT '有效开始日期',
+ * `expiration_time` datetime COMMENT '有效结束日期',
  * `create_time` datetime COMMENT '写入doris时间',
  * `update_time` datetime COMMENT '更新doris时间'
  * ) ENGINE=OLAP
- * UNIQUE KEY(`tyc_user_id`)
- * COMMENT '用户注册'
- * DISTRIBUTED BY HASH(`tyc_user_id`) BUCKETS 6
+ * UNIQUE KEY(`promotion_code`)
+ * COMMENT '优惠券'
+ * DISTRIBUTED BY HASH(`promotion_code`) BUCKETS 6
  * PROPERTIES (
  * "replication_allocation" = "tag.location.default: 3",
  * "enable_unique_key_merge_on_write" = "true",
  * "light_schema_change" = "true"
  * );
  */
-@LocalConfigFile("dwd-user-register-details.yml")
-public class DwdUserRegisterDetailsJob {
+@LocalConfigFile("dwd-coupon-info.yml")
+public class DwdCouponInfoJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream.rebalance()
-                .addSink(new DwdUserRegisterDetailsSink(config))
-                .name("DwdUserRegisterDetailsSink")
-                .uid("DwdUserRegisterDetailsSink")
+                .addSink(new DwdCouponInfoSink(config))
+                .name("DwdCouponInfoSink")
+                .uid("DwdCouponInfoSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
-        env.execute("DwdUserRegisterDetailsJob");
+        env.execute("DwdCouponInfoJob");
     }
 
     @RequiredArgsConstructor
-    private final static class DwdUserRegisterDetailsSink extends RichSinkFunction<SingleCanalBinlog> {
+    private final static class DwdCouponInfoSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DorisTemplate dorisSink;
         private DorisSchema schema;
@@ -67,18 +68,19 @@ public class DwdUserRegisterDetailsJob {
             dorisSink = new DorisTemplate("dorisSink");
             dorisSink.enableCache();
             List<String> derivedColumns = Arrays.asList(
-                    "tyc_user_id = id",
-                    "mobile = mobile",
-                    "register_time = create_time",
-                    "vip_from_time = vip_from_time",
-                    "vip_to_time = vip_to_time",
-                    "user_type = state",
-                    "create_time = nvl(create_time, now())",
-                    "update_time = nvl(updatetime, now())"
+                    "promotion_code = promotion_code",
+                    "unique_user_id = user_id",
+                    "promotion_id = promotion_id",
+                    "use_status = use_status",
+                    "receive_time = from_unixtime(receive_time/1000)",
+                    "effective_time = from_unixtime(effective_time/1000)",
+                    "expiration_time = from_unixtime(expiration_time/1000)",
+                    "create_time = now()",
+                    "update_time = now()"
             );
             schema = DorisSchema.builder()
                     .database("test_db")
-                    .tableName("dwd_user_register_details")
+                    .tableName("dwd_coupon_info")
                     .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
                     .derivedColumns(derivedColumns)
                     .build();
