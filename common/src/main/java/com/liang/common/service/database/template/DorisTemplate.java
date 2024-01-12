@@ -20,10 +20,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
@@ -76,6 +73,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             int tryTimes = MAX_TRY_TIMES;
             while (tryTimes-- > 0) {
                 put.setURI(getUri(schema.getDatabase(), schema.getTableName()));
+                put.setHeader("label", getLabel(schema.getDatabase(), schema.getTableName()));
                 try (CloseableHttpResponse response = client.execute(put)) {
                     int statusCode = response.getStatusLine().getStatusCode();
                     String loadResult = EntityUtils.toString(response.getEntity());
@@ -108,7 +106,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         HttpPut put = new HttpPut();
         put.setHeader(EXPECT, "100-continue");
         put.setHeader(AUTHORIZATION, auth);
-        put.setHeader("label", String.format("%s_%s_%s", schema.getDatabase(), schema.getTableName(), DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss")));
         put.setHeader("format", "json");
         put.setHeader("strip_outer_array", "true");
         put.setHeader("num_as_string", "true");
@@ -146,6 +143,12 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private URI getUri(String database, String table) {
         String targetFe = fe.get(fePointer.getAndIncrement() % fe.size());
         return URI.create(String.format("http://%s/api/%s/%s/_stream_load", targetFe, database, table));
+    }
+
+    private String getLabel(String database, String table) {
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+        return String.format("%s_%s_%s_%s", database, table,
+                DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"), uuid);
     }
 
     @Slf4j
