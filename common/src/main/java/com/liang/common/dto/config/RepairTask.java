@@ -13,7 +13,7 @@ public class RepairTask implements Serializable {
     protected volatile String tableName;
     protected volatile String columns = "*";
     protected volatile String where = "1 = 1";
-    protected volatile ScanMode scanMode = ScanMode.Direct;
+    protected volatile ScanMode scanMode = ScanMode.TumblingWindow;
 
     public enum ScanMode implements Serializable {
         TumblingWindow, Direct
