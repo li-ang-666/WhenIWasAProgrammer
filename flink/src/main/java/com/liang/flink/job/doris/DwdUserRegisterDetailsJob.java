@@ -28,7 +28,7 @@ import java.util.Map;
  * `register_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
  * `vip_from_time` datetime NULL COMMENT 'VIP开始时间',
  * `vip_to_time` datetime NULL COMMENT 'VIP结束日期',
- * `user_type` int(11) NOT NULL DEFAULT "0" COMMENT '用户类型 0:普通，1:vip,2:媒体用户，3:3个月vip，4:6个月vip，5:12个月以上vip，6:24个月vip，7:26个月以上vip，-1:删除，-2:黑名单',
+ * `user_type` int(11) NOT NULL DEFAULT "0" COMMENT '用户类型 0:普通,1:vip,2:媒体用户,3:3个月vip,4:6个月vip,5:12个月以上vip,6:24个月vip,7:26个月以上vip,-1:删除,-2:黑名单',
  * `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '写入doris时间',
  * `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新doris时间'
  * ) ENGINE=OLAP
@@ -36,7 +36,9 @@ import java.util.Map;
  * COMMENT '用户注册明细表-实时'
  * DISTRIBUTED BY HASH(`tyc_user_id`) BUCKETS 6
  * PROPERTIES (
- * "replication_allocation" = "tag.location.default: 3"
+ * "replication_allocation" = "tag.location.default: 3",
+ * "enable_unique_key_merge_on_write" = "true",
+ * "light_schema_change" = "true"
  * );
  */
 @LocalConfigFile("dwd-user-register-details.yml")
