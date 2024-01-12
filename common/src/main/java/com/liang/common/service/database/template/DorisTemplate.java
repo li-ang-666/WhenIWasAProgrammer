@@ -65,7 +65,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     @Override
-    protected void updateImmediately(DorisSchema schema, Queue<DorisOneRow> dorisOneRows) {
+    protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             // init put
             HttpPut put = getHttpPut(schema, dorisOneRows);
@@ -102,7 +102,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         return "Basic " + new String(encoded);
     }
 
-    private HttpPut getHttpPut(DorisSchema schema, Queue<DorisOneRow> dorisOneRows) {
+    private HttpPut getHttpPut(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
         // common
         HttpPut put = new HttpPut();
         put.setHeader(EXPECT, "100-continue");

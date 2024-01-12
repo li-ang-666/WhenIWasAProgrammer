@@ -32,7 +32,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
     }
 
     @Override
-    protected void updateImmediately(String ignore, Queue<String> sqls) {
+    protected void updateImmediately(String ignore, Collection<String> sqls) {
         boolean getException = false;
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {

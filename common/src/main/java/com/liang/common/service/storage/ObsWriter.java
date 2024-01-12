@@ -10,9 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -46,7 +46,7 @@ public class ObsWriter extends AbstractCache<String, String> {
     }
 
     @Override
-    protected void updateImmediately(String ignore, Queue<String> rows) {
+    protected void updateImmediately(String ignore, Collection<String> rows) {
         logging.beforeExecute();
         String fileName = String.format("%s-%s%s", uuid, DateTimeUtils.currentDate(), fileFormat.suffix);
         try {

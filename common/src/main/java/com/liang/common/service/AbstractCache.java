@@ -105,7 +105,7 @@ public abstract class AbstractCache<K, V> {
         }
     }
 
-    protected abstract void updateImmediately(K key, Queue<V> values);
+    protected abstract void updateImmediately(K key, Collection<V> values);
 
     @FunctionalInterface
     protected interface KeySelector<K, V> {
