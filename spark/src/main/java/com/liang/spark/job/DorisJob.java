@@ -25,7 +25,7 @@ public class DorisJob {
         String sparkSql = sql.replaceAll(REGEX, "$3");
         SparkSession spark = SparkSessionFactory.createSpark(null);
         spark.sql(sparkSql)
-                .repartition()
+                .repartition(2)
                 .foreachPartition(new DorisSink(ConfigUtils.getConfig(), dorisDatabase, dorisTable));
     }
 

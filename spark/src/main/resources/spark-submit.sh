@@ -10,9 +10,9 @@ nohup spark-submit \
   --deploy-mode cluster \
   --driver-memory 2g --driver-cores 1 \
   --conf spark.driver.memoryOverhead=512m \
-  --executor-memory 5g --num-executors 8 --executor-cores 4 \
+  --executor-memory 5g --num-executors 4 --executor-cores 8 \
   --conf spark.executor.memoryOverhead=512m \
-  --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=1g \
+  --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=512m \
   --queue offline \
   --conf spark.memory.fraction=0.8 \
   --conf spark.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps" \
