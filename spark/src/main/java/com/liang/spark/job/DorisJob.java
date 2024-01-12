@@ -23,12 +23,13 @@ public class DorisJob {
     public static void main(String[] args) {
         ParameterTool parameterTool = ParameterTool.fromArgs(args);
         String sql = parameterTool.get("sql");
-        int parallelism = parameterTool.getInt("parallelism");
-        log.info("sql: {}, parallelism: {}", sql, parallelism);
+        log.info("sql: {}", sql);
         String dorisDatabase = sql.replaceAll(REGEX, "$1");
         String dorisTable = sql.replaceAll(REGEX, "$2");
         String sparkSql = sql.replaceAll(REGEX, "$3");
         log.info("dorisDatabase: {}, dorisTable: {}, sparkQuerySql: {}", dorisDatabase, dorisTable, sparkSql);
+        int parallelism = parameterTool.getInt("parallelism");
+        log.info("parallelism: {}", parallelism);
         SparkSession spark = SparkSessionFactory.createSpark(null);
         spark.sql(sparkSql)
                 .repartition(parallelism)
