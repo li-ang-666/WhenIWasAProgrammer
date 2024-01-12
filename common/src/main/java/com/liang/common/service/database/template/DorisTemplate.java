@@ -72,6 +72,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             // execute put
             int tryTimes = MAX_TRY_TIMES;
             while (tryTimes-- > 0) {
+                // 负载均衡 & label
                 put.setURI(getUri(schema.getDatabase(), schema.getTableName()));
                 put.setHeader("label", getLabel(schema.getDatabase(), schema.getTableName()));
                 try (CloseableHttpResponse response = client.execute(put)) {
