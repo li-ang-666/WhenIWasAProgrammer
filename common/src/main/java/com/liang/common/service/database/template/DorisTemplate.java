@@ -111,6 +111,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         put.setHeader("strip_outer_array", "true");
         put.setHeader("num_as_string", "true");
         put.setHeader("send_batch_parallelism", "1");
+        put.setHeader("two_phase_commit", "false");
         // for unique delete
         if (schema.getUniqueDeleteOn() != null) {
             put.setHeader("merge_type", "MERGE");
