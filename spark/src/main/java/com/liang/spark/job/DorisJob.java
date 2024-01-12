@@ -18,7 +18,7 @@ import java.util.Iterator;
 
 @Slf4j
 public class DorisJob {
-    private static final String REGEX = "insert +into +([a-z1-9_]+)\\.([a-z1-9_]+) +(select.*)";
+    private static final String REGEX = "insert\\s+into\\s+(\\w+)\\.(\\w+)\\s+(select.*)";
 
     public static void main(String[] args) {
         ParameterTool parameterTool = ParameterTool.fromArgs(args);

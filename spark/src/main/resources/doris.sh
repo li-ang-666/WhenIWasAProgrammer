@@ -21,10 +21,10 @@ nohup spark-submit \
   --conf spark.executor.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps" \
   --conf spark.yarn.am.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps" \
   --conf spark.yarn.cluster.driver.extraJavaOptions="-Dlog4j.configuration=log4j-all.properties -XX:+PrintGCDetails -XX:+PrintGCDateStamps" \
-  --files log4j-all.properties,config.yml \
+  --files /home/hive/liang/doris/log4j-all.properties \
   --conf spark.yarn.maxAppAttempts=1 \
   --conf spark.yarn.priority=999 \
   --conf spark.sql.shuffle.partitions=256 \
   --conf spark.shuffle.io.maxRetries=10 \
   --conf spark.sql.autoBroadcastJoinThreshold=104857600 \
-  ./spark-1.0-jar-with-dependencies.jar "${1}" "${2}" "${3}" "${4}" >log 2>&1 &
+  /home/hive/liang/doris/spark-1.0-jar-with-dependencies.jar "${1}" "${2}" "${3}" "${4}" >/home/hive/liang/doris/log 2>&1 &
