@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -43,17 +42,14 @@ public abstract class AbstractCache<K, V> {
 
     public final void enableCache(int cacheMilliseconds, int cacheRecords) {
         if (sender != null) return;
-        synchronized (this) {
-            if (sender != null) return;
-            this.cacheMilliseconds = cacheMilliseconds;
-            this.cacheRecords = cacheRecords;
-            sender = DaemonExecutor.launch("AbstractCacheThread", () -> {
-                while (true) {
-                    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(this.cacheMilliseconds));
-                    flush();
-                }
-            });
-        }
+        this.cacheMilliseconds = cacheMilliseconds;
+        this.cacheRecords = cacheRecords;
+        sender = DaemonExecutor.launch("AbstractCacheThread", () -> {
+            while (true) {
+                LockSupport.parkUntil(System.currentTimeMillis() + this.cacheMilliseconds);
+                flush();
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
