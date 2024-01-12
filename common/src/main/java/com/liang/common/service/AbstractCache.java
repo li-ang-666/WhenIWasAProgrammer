@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,7 +18,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class AbstractCache<K, V> {
     private final Lock lock = new ReentrantLock(true);
     private final Condition condition = lock.newCondition();
-    private final Map<K, Queue<V>> cache = new ConcurrentHashMap<>();
+    private final Map<K, Collection<V>> cache = new ConcurrentHashMap<>();
     private final KeySelector<K, V> keySelector;
     // buffer
     private final long bufferMax;
@@ -77,10 +76,10 @@ public abstract class AbstractCache<K, V> {
                 if (value == null) continue;
                 K key = keySelector.selectKey(value);
                 cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
-                Queue<V> queue = cache.get(key);
-                queue.add(value);
+                Collection<V> buffer = cache.get(key);
+                buffer.add(value);
                 // 有分区达到条数阈值, 唤醒sender
-                if (queue.size() >= cacheRecords) LockSupport.unpark(sender);
+                if (buffer.size() >= cacheRecords) LockSupport.unpark(sender);
             }
             if (sender == null) flush();
         } finally {
@@ -91,8 +90,8 @@ public abstract class AbstractCache<K, V> {
     public final void flush() {
         lock.lock();
         try {
-            for (Map.Entry<K, Queue<V>> entry : cache.entrySet()) {
-                Queue<V> values = entry.getValue();
+            for (Map.Entry<K, Collection<V>> entry : cache.entrySet()) {
+                Collection<V> values = entry.getValue();
                 if (values.isEmpty()) continue;
                 K key = entry.getKey();
                 updateImmediately(key, values);

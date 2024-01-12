@@ -41,19 +41,18 @@ public class DorisJob {
         private final Config config;
         private final String database;
         private final String table;
+        private final DorisSchema schema = DorisSchema.builder()
+                .database(database)
+                .tableName(table)
+                .build();
 
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-            DorisSchema schema = DorisSchema.builder()
-                    .database(database)
-                    .tableName(table)
-                    .build();
             DorisTemplate dorisSink = new DorisTemplate("dorisSink");
             dorisSink.enableCache();
             while (iterator.hasNext()) {
-                DorisOneRow dorisOneRow = new DorisOneRow(schema, JsonUtils.parseJsonObj(iterator.next().json()));
-                dorisSink.update(dorisOneRow);
+                dorisSink.update(new DorisOneRow(schema, JsonUtils.parseJsonObj(iterator.next().json())));
             }
             dorisSink.flush();
         }
