@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * 用于 date 或者 datetime 的工具类, 不适用于只有 time !!!
+ * LocalDateTime 解析字符串的时候, 必须要有年、月、日、时 !!!
  */
 @UtilityClass
 public class DateUtils {
@@ -64,7 +65,6 @@ public class DateUtils {
                     .parse(noStandardDatetime, DateTimeFormatter.ofPattern(oldFormat))
                     .toEpochSecond(ZoneOffset.of("+8"));
         } catch (Exception ignore) {
-            // LocalDateTime 解析字符串的时候, 必须要有小时
             return LocalDateTime
                     .parse(noStandardDatetime + " 00", DateTimeFormatter.ofPattern(oldFormat + " HH"))
                     .toEpochSecond(ZoneOffset.of("+8"));
@@ -88,7 +88,6 @@ public class DateUtils {
                     .parse(noStandardDatetime, DateTimeFormatter.ofPattern(oldFormat))
                     .format(DateTimeFormatter.ofPattern(newFormat));
         } catch (Exception ignore) {
-            // LocalDateTime 解析字符串的时候, 必须要有小时
             return LocalDateTime
                     .parse(noStandardDatetime + " 00", DateTimeFormatter.ofPattern(oldFormat + " HH"))
                     .format(DateTimeFormatter.ofPattern(newFormat));

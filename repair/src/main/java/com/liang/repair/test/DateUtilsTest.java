@@ -4,7 +4,7 @@ import static com.liang.common.util.DateUtils.*;
 
 public class DateUtilsTest {
     public static void main(String[] args) {
-        System.out.println(dateFormat("01:01:01", "HH:mm:ss", "HH:mm:ss"));
+        System.out.println(dateFormat("20230101", "yyyyMMdd", "HH:mm:ss"));
         System.out.println(currentDate());
         System.out.println(currentDatetime());
         System.out.println("---");
