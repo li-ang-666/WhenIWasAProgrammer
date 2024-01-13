@@ -1,6 +1,6 @@
 package com.liang.spark.job;
 
-import com.liang.common.util.DTUtils;
+import com.liang.common.util.DateUtils;
 import com.liang.spark.basic.SparkSessionFactory;
 import com.liang.spark.basic.TableFactory;
 import org.apache.spark.sql.SparkSession;
@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 public class PxCheckJob {
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
-        String pt = DTUtils.getOfflinePt(1, "yyyyMMdd");
+        String pt = DateUtils.getOfflinePt(1, "yyyyMMdd");
         SparkSession spark = SparkSessionFactory.createSpark(args);
         String argString = Arrays.toString(args);
         // 股东 x 4

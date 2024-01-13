@@ -1,8 +1,8 @@
 package com.liang.repair.test;
 
-import static com.liang.common.util.DTUtils.*;
+import static com.liang.common.util.DateUtils.*;
 
-public class DTUtilsTest {
+public class DateUtilsTest {
     public static void main(String[] args) {
         System.out.println(currentDate());
         System.out.println(currentDatetime());

@@ -2,13 +2,13 @@ package com.liang.flink.project.black.list;
 
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
-import com.liang.common.util.DTUtils;
+import com.liang.common.util.DateUtils;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class DorisDwdAppActive {
     public static DorisOneRow get() {
-        String datetime = DTUtils.fromUnixTime(System.currentTimeMillis() / 1000 + 1800);
+        String datetime = DateUtils.fromUnixTime(System.currentTimeMillis() / 1000 + 1800);
         DorisSchema schema = DorisSchema.builder()
                 .database("dwd")
                 .tableName("dwd_app_active")

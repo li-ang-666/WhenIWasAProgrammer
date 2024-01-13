@@ -7,7 +7,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 @UtilityClass
-public class DTUtils {
+public class DateUtils {
     private static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     /**

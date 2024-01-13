@@ -6,7 +6,7 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DTUtils;
+import com.liang.common.util.DateUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
@@ -32,7 +32,7 @@ public class DwdAppActiveJob {
                 .filter(e -> {
                     String appId2 = String.valueOf(e.getColumnMap().get("app_id2"));
                     String createTime = String.valueOf(e.getColumnMap().get("create_time"));
-                    String ThirtyDaysAgo = DTUtils.getOfflinePt(29, "yyyy-MM-dd");
+                    String ThirtyDaysAgo = DateUtils.getOfflinePt(29, "yyyy-MM-dd");
                     return TycUtils.isValidName(appId2)
                             && TycUtils.isDateTime(createTime)
                             && (createTime.compareTo(ThirtyDaysAgo) > 0);

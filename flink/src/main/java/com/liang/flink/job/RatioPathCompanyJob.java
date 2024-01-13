@@ -5,7 +5,7 @@ import com.liang.common.service.DaemonExecutor;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DTUtils;
+import com.liang.common.util.DateUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
@@ -107,7 +107,7 @@ public class RatioPathCompanyJob {
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - lastSendTime >= INTERVAL || companyIds.size() >= SIZE) {
                             synchronized (companyIds) {
-                                String lastSendTimeString = DTUtils.fromUnixTime(lastSendTime / 1000);
+                                String lastSendTimeString = DateUtils.fromUnixTime(lastSendTime / 1000);
                                 if (!companyIds.isEmpty()) {
                                     log.info("window trigger, lastTime: {}, size: {}, companyIds: {}", lastSendTimeString, companyIds.size(), companyIds);
                                 } else {

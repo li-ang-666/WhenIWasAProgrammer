@@ -2,7 +2,7 @@ package com.liang.flink.basic.kafka;
 
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DTUtils;
+import com.liang.common.util.DateUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +79,7 @@ public class KafkaReporter implements Runnable {
                     String value = entry.getValue();
                     String[] split = key.split(SEPARATOR);
                     TopicPartition topicPartition = new TopicPartition(split[0], Integer.parseInt(split[1]));
-                    String time = DTUtils.fromUnixTime(Long.parseLong(value), "yyyy-MM-dd HH:mm:ss");
+                    String time = DateUtils.fromUnixTime(Long.parseLong(value), "yyyy-MM-dd HH:mm:ss");
                     copyTimeMap.put(topicPartition, time);
                 }
                 log.warn("kafka time info: {}", JsonUtils.toString(copyTimeMap));

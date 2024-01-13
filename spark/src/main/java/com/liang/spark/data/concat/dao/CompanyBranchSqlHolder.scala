@@ -1,6 +1,6 @@
 package com.liang.spark.data.concat.dao
 
-import com.liang.common.util.DTUtils
+import com.liang.common.util.DateUtils
 
 class CompanyBranchSqlHolder {
   def queryTotalBranch(): String = {
@@ -10,7 +10,7 @@ class CompanyBranchSqlHolder {
        |select t1.company_id,count(1)
        |from dwc.dwc_new_company_base_company_branch_df t1
        |where t1.company_id<>0
-       |and t1.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}'
+       |and t1.pt='${DateUtils.getOfflinePt(1, "yyyyMMdd")}'
        |group by t1.company_id
        |
        |""".stripMargin
@@ -23,7 +23,7 @@ class CompanyBranchSqlHolder {
        |select t1.company_id,count(1)
        |from dwc.dwc_new_company_base_company_branch_df t1
        |join ods_company_base_company_index_df t2 on t1.branch_company_id = t2.company_id
-       |where t1.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}' and t2.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}'
+       |where t1.pt='${DateUtils.getOfflinePt(1, "yyyyMMdd")}' and t2.pt='${DateUtils.getOfflinePt(1, "yyyyMMdd")}'
        |and t1.company_id<>0
        |and t2.dw_is_del=0
        |and (t2.company_registation_status like '%注销%' or t2.company_registation_status like '%吊销%')
@@ -40,7 +40,7 @@ class CompanyBranchSqlHolder {
        |select t1.company_id,year(t2.establish_date) yr,count(1) cnt,max(t2.establish_date) mx
        |from dwc.dwc_new_company_base_company_branch_df t1
        |join ods_company_base_company_index_df t2 on t1.branch_company_id = t2.company_id
-       |where t1.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}' and t2.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}'
+       |where t1.pt='${DateUtils.getOfflinePt(1, "yyyyMMdd")}' and t2.pt='${DateUtils.getOfflinePt(1, "yyyyMMdd")}'
        |and t1.company_id<>0
        |and t2.dw_is_del=0
        |and t2.establish_date is not null
@@ -63,7 +63,7 @@ class CompanyBranchSqlHolder {
        |select t1.company_id,t2.province_base_by_register_institute code,count(1) cnt,max(nvl(t2.establish_date,'1970-01-01')) mx
        |from dwc.dwc_new_company_base_company_branch_df t1
        |join ods_company_base_company_index_df t2 on t1.branch_company_id = t2.company_id
-       |where t1.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}' and t2.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}'
+       |where t1.pt='${DateUtils.getOfflinePt(1, "yyyyMMdd")}' and t2.pt='${DateUtils.getOfflinePt(1, "yyyyMMdd")}'
        |and t1.company_id<>0
        |and t2.dw_is_del=0
        |and t2.province_base_by_register_institute is not null
@@ -79,7 +79,7 @@ class CompanyBranchSqlHolder {
        |),
        |final_right as(
        |select distinct province_base code,province from ods_company_base_area_code_district_df
-       |where pt = '${DTUtils.getOfflinePt(1, "yyyyMMdd")}'
+       |where pt = '${DateUtils.getOfflinePt(1, "yyyyMMdd")}'
        |)
        |select l.company_id,r.province
        |from final_left l join final_right r on l.code=r.code
