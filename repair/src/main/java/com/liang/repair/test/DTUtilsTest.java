@@ -11,19 +11,27 @@ public class DTUtilsTest {
         System.out.println(fromUnixTime(System.currentTimeMillis() / 1000, "yyyy-MM-dd"));
         System.out.println(fromUnixTime(System.currentTimeMillis() / 1000, "yyyy-MM-dd HH:mm:ss"));
         System.out.println(fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMdd"));
+        System.out.println(fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
         System.out.println("---");
         System.out.println(unixTimestamp("2024-01-01"));
         System.out.println(unixTimestamp("2024-01-01 00:00:00"));
+        System.out.println(unixTimestamp("2024-01-01", "yyyy-MM-dd"));
+        System.out.println(unixTimestamp("2024-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"));
         System.out.println(unixTimestamp("20240101", "yyyyMMdd"));
+        System.out.println(unixTimestamp("20240101000000", "yyyyMMddHHmmss"));
         System.out.println("---");
-        System.out.println(dateFormat("2024-01-01", "yyyyMMddHHmmss"));
-        System.out.println(dateFormat("2024-01-01 00:00:00", "yyyyMMdd"));
-        System.out.println(dateFormat("20240101", "yyyyMMdd", "yyyy-MM-dd"));
+        System.out.println(dateFormat("2024-01-01", "yyyy-MM-dd HH:mm:ss"));
+        System.out.println(dateFormat("2024-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"));
+        System.out.println(dateFormat("2024-01-01", "yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss"));
+        System.out.println(dateFormat("2024-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss"));
+        System.out.println(dateFormat("20240101", "yyyyMMdd", "yyyy-MM-dd HH:mm:ss"));
+        System.out.println(dateFormat("20240101000000", "yyyyMMddHHmmss", "yyyy-MM-dd HH:mm:ss"));
         System.out.println("---");
         System.out.println(dateAdd("2024-01-01", 1));
         System.out.println(dateAdd("2024-01-01 00:00:00", 1));
         System.out.println(dateAdd("2024-01-01 12:12:12", 1));
         System.out.println("---");
-        System.out.println(getOfflinePt(3, "yyyyMMdd"));
+        System.out.println(getOfflinePt(1, "yyyyMMdd"));
+        System.out.println(getOfflinePt(1, "yyyy-MM-dd HH:mm:ss"));
     }
 }
