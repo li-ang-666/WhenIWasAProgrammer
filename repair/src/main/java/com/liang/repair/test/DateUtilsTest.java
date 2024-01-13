@@ -4,7 +4,6 @@ import static com.liang.common.util.DateUtils.*;
 
 public class DateUtilsTest {
     public static void main(String[] args) {
-        System.out.println(dateFormat("0101", "MMdd", "HH:mm:ss"));
         System.out.println(currentDate());
         System.out.println(currentDatetime());
         System.out.println("---");
@@ -31,8 +30,13 @@ public class DateUtilsTest {
         System.out.println(dateAdd("2024-01-01", 1));
         System.out.println(dateAdd("2024-01-01 00:00:00", 1));
         System.out.println(dateAdd("2024-01-01 12:12:12", 1));
+        System.out.println(dateAdd("2024-01-01", -1));
+        System.out.println(dateAdd("2024-01-01 00:00:00", -1));
+        System.out.println(dateAdd("2024-01-01 12:12:12", -1));
         System.out.println("---");
         System.out.println(getOfflinePt(1, "yyyyMMdd"));
         System.out.println(getOfflinePt(1, "yyyy-MM-dd HH:mm:ss"));
+        System.out.println(getOfflinePt(-1, "yyyyMMdd"));
+        System.out.println(getOfflinePt(-1, "yyyy-MM-dd HH:mm:ss"));
     }
 }
