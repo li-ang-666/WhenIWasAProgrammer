@@ -108,8 +108,8 @@ public class DateUtils {
     /**
      * 离线数仓 pt
      */
-    public static String getOfflinePt(int nDays, String format) {
-        return dateFormat(dateAdd(currentDatetime(), -nDays), format);
+    public static String getOfflinePt(int nDays, String newFormat) {
+        return dateFormat(dateAdd(currentDatetime(), -nDays), newFormat);
     }
 
     /**

@@ -6,6 +6,7 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -27,6 +28,12 @@ public class DwdCouponInfoJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream.rebalance()
+                .filter(e -> {
+                    String bizCode = String.valueOf(e.getColumnMap().get("biz_code"));
+                    String deletedStatus = String.valueOf(e.getColumnMap().get("deleted_status"));
+                    String promotionCode = String.valueOf(e.getColumnMap().get("promotion_code"));
+                    return "1".equals(bizCode) && "0".equals(deletedStatus) && TycUtils.isValidName(promotionCode);
+                })
                 .addSink(new DwdCouponInfoSink(config))
                 .name("DwdCouponInfoSink")
                 .uid("DwdCouponInfoSink")
@@ -46,10 +53,10 @@ public class DwdCouponInfoJob {
             dorisSink = new DorisTemplate("dorisSink");
             dorisSink.enableCache();
             List<String> derivedColumns = Arrays.asList(
-                    "promotion_code = promotion_code",
-                    "unique_user_id = user_id",
-                    "promotion_id = promotion_id",
-                    "use_status = use_status",
+                    "promotion_code = nvl(promotion_code, '')",
+                    "unique_user_id = nvl(user_id, 0)",
+                    "promotion_id = nvl(promotion_id, 0)",
+                    "use_status = nvl(use_status, 0)",
                     "receive_time = from_unixtime(receive_time/1000)",
                     "effective_time = from_unixtime(effective_time/1000)",
                     "expiration_time = from_unixtime(expiration_time/1000)",
