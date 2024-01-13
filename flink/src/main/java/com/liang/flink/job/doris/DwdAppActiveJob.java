@@ -6,6 +6,8 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -27,6 +29,14 @@ public class DwdAppActiveJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream.rebalance()
+                .filter(e -> {
+                    String appId2 = String.valueOf(e.getColumnMap().get("app_id2"));
+                    String createTime = String.valueOf(e.getColumnMap().get("create_time"));
+                    String ThirtyDaysAgo = DateTimeUtils.getLastNDateTime(29, "yyyy-MM-dd");
+                    return TycUtils.isValidName(appId2)
+                            && TycUtils.isDateTime(createTime)
+                            && (createTime.compareTo(ThirtyDaysAgo) > 0);
+                })
                 .addSink(new DwdAppActiveSink(config))
                 .name("DwdAppActiveSink")
                 .uid("DwdAppActiveSink")
@@ -55,8 +65,8 @@ public class DwdAppActiveJob {
                     "idfv = idfv",
                     "type = type",
                     "umeng_channel = umeng_channel",
-                    "app_version = get_json_string(ads_header_json,'$.Version')",
                     "create_time = create_time",
+                    "app_version = get_json_string(ads_header_json,'$.Version')",
                     "update_time = now()"
             );
             schema = DorisSchema.builder()
