@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * 用于 date 或者 datetime 的工具类, 不适用于只有 time !!!
+ */
 @UtilityClass
 public class DateUtils {
     private static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
