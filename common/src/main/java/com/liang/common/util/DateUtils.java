@@ -33,14 +33,14 @@ public class DateUtils {
     }
 
     /**
-     * 秒 -> 标准格式-字符串
+     * 秒 -> 标准格式
      */
     public static String fromUnixTime(long seconds) {
         return fromUnixTime(seconds, DEFAULT_FORMAT);
     }
 
     /**
-     * 秒 -> 自定义格式-字符串
+     * 秒 -> 自定义格式
      */
     public static String fromUnixTime(long seconds, String newFormat) {
         return LocalDateTime
@@ -49,7 +49,7 @@ public class DateUtils {
     }
 
     /**
-     * 标准格式-字符串 -> 秒
+     * 标准格式 -> 秒
      */
     public static long unixTimestamp(String standardDatetime) {
         standardDatetime = ensureStandard(standardDatetime);
@@ -57,7 +57,7 @@ public class DateUtils {
     }
 
     /**
-     * 自定义格式-字符串 -> 秒
+     * 自定义格式 -> 秒
      */
     public static long unixTimestamp(String noStandardDatetime, String oldFormat) {
         try {
@@ -72,7 +72,7 @@ public class DateUtils {
     }
 
     /**
-     * 标准格式-字符串 -> 自定义格式-字符串
+     * 标准格式 -> 自定义格式
      */
     public static String dateFormat(String standardDatetime, String newFormat) {
         standardDatetime = ensureStandard(standardDatetime);
@@ -80,7 +80,7 @@ public class DateUtils {
     }
 
     /**
-     * 自定义格式-字符串 -> 自定义格式-字符串
+     * 自定义格式 -> 自定义格式
      */
     public static String dateFormat(String noStandardDatetime, String oldFormat, String newFormat) {
         try {
@@ -95,7 +95,7 @@ public class DateUtils {
     }
 
     /**
-     * 日期加减
+     * 标准格式 日期加减
      */
     public static String dateAdd(String standardDatetime, int num) {
         standardDatetime = ensureStandard(standardDatetime);

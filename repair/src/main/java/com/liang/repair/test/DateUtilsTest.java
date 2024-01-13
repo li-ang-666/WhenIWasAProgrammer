@@ -20,12 +20,12 @@ public class DateUtilsTest {
         System.out.println(unixTimestamp("20240101", "yyyyMMdd"));
         System.out.println(unixTimestamp("20240101000000", "yyyyMMddHHmmss"));
         System.out.println("---");
-        System.out.println(dateFormat("2024-01-01", "yyyy-MM-dd HH:mm:ss"));
-        System.out.println(dateFormat("2024-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"));
-        System.out.println(dateFormat("2024-01-01", "yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss"));
-        System.out.println(dateFormat("2024-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss"));
-        System.out.println(dateFormat("20240101", "yyyyMMdd", "yyyy-MM-dd HH:mm:ss"));
-        System.out.println(dateFormat("20240101000000", "yyyyMMddHHmmss", "yyyy-MM-dd HH:mm:ss"));
+        System.out.println(dateFormat("2024-01-01", "yyyy_MM_dd HH_mm_ss"));
+        System.out.println(dateFormat("2024-01-01 00:00:00", "yyyy_MM_dd HH_mm_ss"));
+        System.out.println(dateFormat("2024-01-01", "yyyy-MM-dd", "yyyy_MM_dd HH_mm_ss"));
+        System.out.println(dateFormat("2024-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss", "yyyy_MM_dd HH_mm_ss"));
+        System.out.println(dateFormat("20240101", "yyyyMMdd", "yyyy_MM_dd HH_mm_ss"));
+        System.out.println(dateFormat("20240101000000", "yyyyMMddHHmmss", "yyyy_MM_dd HH_mm_ss"));
         System.out.println("---");
         System.out.println(dateAdd("2024-01-01", 1));
         System.out.println(dateAdd("2024-01-01 00:00:00", 1));
