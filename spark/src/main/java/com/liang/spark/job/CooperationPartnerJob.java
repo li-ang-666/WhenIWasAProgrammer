@@ -39,7 +39,7 @@ public class CooperationPartnerJob {
         spark.udf().register("format_reg_st", new FormatRegSt(), DataTypes.IntegerType);
         spark.udf().register("format_identity", new FormatIdentity(), DataTypes.StringType);
         spark.udf().register("format_ratio", new FormatRatio(), DataTypes.StringType);
-        String pt = DTUtils.getLastNDateTime(1, "yyyyMMdd");
+        String pt = DTUtils.getOfflinePt(1, "yyyyMMdd");
         // step1
         String redisValue = redis.get(REDIS_KEY);
         if (!STEP_2_START.equals(redisValue)) {

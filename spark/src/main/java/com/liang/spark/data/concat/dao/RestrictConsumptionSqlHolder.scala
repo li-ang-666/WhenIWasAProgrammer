@@ -11,7 +11,7 @@ class RestrictConsumptionSqlHolder {
        |select t1.company_id,t1.case_create_time,t1.id,tmp_tb.tmp_col applicant_name
        |from ods_judicial_risk_restrict_consumption_split_index_df t1
        |lateral view explode(split(if(applicant_inlink is not null and applicant_inlink <> '', applicant_inlink, applicant),';')) tmp_tb as tmp_col
-       |where t1.company_id<>0 and t1.pt='${DTUtils.getLastNDateTime(1, "yyyyMMdd")}'
+       |where t1.company_id<>0 and t1.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}'
        |and t1.is_history=${if (isHistory) 1 else 0}
        |and t1.applicant is not null and t1.applicant<>''
        |and t1.dw_is_del =0
@@ -37,7 +37,7 @@ class RestrictConsumptionSqlHolder {
        |select t1.company_info_company_id,t1.case_create_time,t1.id,tmp_tb.tmp_col inlink
        |from ods_judicial_risk_restrict_consumption_split_index_df t1
        |lateral view explode(split(t1.restrict_consumption_inlink,';')) tmp_tb as tmp_col
-       |where t1.is_history=${if (isHistory) 1 else 0} and t1.pt='${DTUtils.getLastNDateTime(1, "yyyyMMdd")}'
+       |where t1.is_history=${if (isHistory) 1 else 0} and t1.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}'
        |and t1.company_info_company_id<>0
        |and t1.company_info_company_id = t1.company_id
        |and t1.restrict_consumption_inlink is not null and t1.restrict_consumption_inlink <>''
@@ -64,7 +64,7 @@ class RestrictConsumptionSqlHolder {
        |select t1.restrict_consumption_company_id,t1.case_create_time,t1.id,tmp_tb.tmp_col inlink
        |from ods_judicial_risk_restrict_consumption_split_index_df t1
        |lateral view explode(split(t1.company_info_inlink,';')) tmp_tb as tmp_col
-       |where t1.is_history=${if (isHistory) 1 else 0} and t1.pt='${DTUtils.getLastNDateTime(1, "yyyyMMdd")}'
+       |where t1.is_history=${if (isHistory) 1 else 0} and t1.pt='${DTUtils.getOfflinePt(1, "yyyyMMdd")}'
        |and t1.restrict_consumption_company_id<>0
        |and t1.restrict_consumption_company_id=t1.company_id
        |and t1.company_info_inlink is not null and t1.company_info_inlink <>''

@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 public class PxCheckJob {
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
-        String pt = DTUtils.getLastNDateTime(1, "yyyyMMdd");
+        String pt = DTUtils.getOfflinePt(1, "yyyyMMdd");
         SparkSession spark = SparkSessionFactory.createSpark(args);
         String argString = Arrays.toString(args);
         // 股东 x 4

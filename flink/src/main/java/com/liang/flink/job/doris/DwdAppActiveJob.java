@@ -32,7 +32,7 @@ public class DwdAppActiveJob {
                 .filter(e -> {
                     String appId2 = String.valueOf(e.getColumnMap().get("app_id2"));
                     String createTime = String.valueOf(e.getColumnMap().get("create_time"));
-                    String ThirtyDaysAgo = DTUtils.getLastNDateTime(29, "yyyy-MM-dd");
+                    String ThirtyDaysAgo = DTUtils.getOfflinePt(29, "yyyy-MM-dd");
                     return TycUtils.isValidName(appId2)
                             && TycUtils.isDateTime(createTime)
                             && (createTime.compareTo(ThirtyDaysAgo) > 0);

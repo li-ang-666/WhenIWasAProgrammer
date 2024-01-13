@@ -104,9 +104,9 @@ public class DTUtils {
     }
 
     /**
-     * 日期加减
+     * 离线数仓 pt
      */
-    public static String getLastNDateTime(int nDays, String format) {
+    public static String getOfflinePt(int nDays, String format) {
         return dateFormat(dateAdd(currentDatetime(), -nDays), format);
     }
 
