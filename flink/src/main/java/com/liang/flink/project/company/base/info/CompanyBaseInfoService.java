@@ -1,7 +1,7 @@
 package com.liang.flink.project.company.base.info;
 
 import com.liang.common.service.SQL;
-import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.DTUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ public class CompanyBaseInfoService {
             return Tuple3.of(null, null, false);
         }
         // 开始日期 大于 今天 or 开始日期 小于 1900-01-01, 脏数据, 跳出
-        if (start != null && (start.compareTo(DateTimeUtils.currentDate()) > 0 || start.compareTo("1900-01-01") < 0)) {
+        if (start != null && (start.compareTo(DTUtils.currentDate()) > 0 || start.compareTo("1900-01-01") < 0)) {
             return Tuple3.of(null, null, false);
         }
         // 结束日期 大于 2099-12-31 or 结束日期 小于 1900-01-01, 脏数据, 跳出

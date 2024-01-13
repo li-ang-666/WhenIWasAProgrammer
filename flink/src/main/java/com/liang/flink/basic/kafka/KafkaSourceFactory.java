@@ -3,7 +3,7 @@ package com.liang.flink.basic.kafka;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.KafkaConfig;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.DTUtils;
 import com.liang.flink.dto.KafkaRecord;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class KafkaSourceFactory {
                 offsetsInitializer = OffsetsInitializer.latest();
                 break;
             default:
-                long timestamp = DateTimeUtils.unixTimestamp(startFrom, "yyyy-MM-dd HH:mm:ss");
+                long timestamp = DTUtils.unixTimestamp(startFrom, "yyyy-MM-dd HH:mm:ss");
                 offsetsInitializer = OffsetsInitializer.timestamp(timestamp * 1000L);
                 break;
         }

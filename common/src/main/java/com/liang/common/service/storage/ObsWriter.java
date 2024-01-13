@@ -2,7 +2,7 @@ package com.liang.common.service.storage;
 
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
-import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.DTUtils;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ModifyObjectRequest;
 import lombok.AllArgsConstructor;
@@ -48,7 +48,7 @@ public class ObsWriter extends AbstractCache<String, String> {
     @Override
     protected void updateImmediately(String ignore, Collection<String> rows) {
         logging.beforeExecute();
-        String fileName = String.format("%s-%s%s", uuid, DateTimeUtils.currentDate(), fileFormat.suffix);
+        String fileName = String.format("%s-%s%s", uuid, DTUtils.currentDate(), fileFormat.suffix);
         try {
             String objectKey = folder + fileName;
             if (!fileToPosition.containsKey(fileName)) {

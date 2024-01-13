@@ -3,7 +3,7 @@ package com.liang.flink.basic;
 import com.liang.common.dto.Config;
 import com.liang.common.service.DaemonExecutor;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.DTUtils;
 import com.liang.common.util.StackUtils;
 import com.liang.flink.basic.kafka.KafkaMonitor;
 import com.liang.flink.basic.kafka.KafkaReporter;
@@ -36,8 +36,8 @@ public class StreamFactory {
         String jobClassName = StackUtils.getMainFrame().getClassName();
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
-        String kafkaOffsetKey = String.format("%s_%s_%s", simpleName, "Offset", DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
-        String kafkaTimeKey = String.format("%s_%s_%s", simpleName, "Time", DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
+        String kafkaOffsetKey = String.format("%s_%s_%s", simpleName, "Offset", DTUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
+        String kafkaTimeKey = String.format("%s_%s_%s", simpleName, "Time", DTUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
         log.info("kafkaOffsetKey: {}, kafkaTimeKey: {}", kafkaOffsetKey, kafkaTimeKey);
         DaemonExecutor.launch("KafkaReporter", new KafkaReporter(kafkaOffsetKey, kafkaTimeKey));
         // 组装KafkaSource
@@ -59,7 +59,7 @@ public class StreamFactory {
         String jobClassName = StackUtils.getMainFrame().getClassName();
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
-        String repairKey = String.format("%s_%s_%s", simpleName, "Repair", DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
+        String repairKey = String.format("%s_%s_%s", simpleName, "Repair", DTUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
         log.info("repairKey: {}", repairKey);
         DaemonExecutor.launch("RepairReporter", new RepairReporter(repairKey));
         // 组装RepairSource

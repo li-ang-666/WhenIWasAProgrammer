@@ -53,13 +53,13 @@ public class TycUtils {
             return false;
         }
         int i = Integer.parseInt(str);
-        return 1900 <= i && i <= Long.parseLong(DateTimeUtils.currentDate().substring(0, 4));
+        return 1900 <= i && i <= Long.parseLong(DTUtils.currentDate().substring(0, 4));
     }
 
     public static boolean isDateTimeByNow(Object datetime) {
         String str = String.valueOf(datetime);
         return str.matches("\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2}:\\d{2}.*)?")
-                && "1900-01-01".compareTo(str) <= 0 && str.compareTo(DateTimeUtils.currentDatetime() + ".999999999") <= 0;
+                && "1900-01-01".compareTo(str) <= 0 && str.compareTo(DTUtils.currentDatetime() + ".999999999") <= 0;
     }
 
     public static boolean isDateTime(Object datetime) {

@@ -5,7 +5,7 @@ import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisConfig;
 import com.liang.common.service.AbstractCache;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DateTimeUtils;
+import com.liang.common.util.DTUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -150,7 +150,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private String getLabel(String database, String table) {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
         return String.format("%s_%s_%s_%s", database, table,
-                DateTimeUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"), uuid);
+                DTUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"), uuid);
     }
 
     @Slf4j
