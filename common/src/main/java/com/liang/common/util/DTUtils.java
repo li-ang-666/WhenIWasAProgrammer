@@ -48,6 +48,7 @@ public class DTUtils {
      * 标准格式-字符串 -> 秒
      */
     public static long unixTimestamp(String standardDatetime) {
+        standardDatetime = ensureStandard(standardDatetime);
         return unixTimestamp(standardDatetime, DEFAULT_FORMAT);
     }
 
@@ -55,15 +56,23 @@ public class DTUtils {
      * 自定义格式-字符串 -> 秒
      */
     public static long unixTimestamp(String noStandardDatetime, String oldFormat) {
-        return LocalDateTime
-                .parse(formatDatetime(noStandardDatetime), DateTimeFormatter.ofPattern(oldFormat))
-                .toEpochSecond(ZoneOffset.of("+8"));
+        try {
+            return LocalDateTime
+                    .parse(noStandardDatetime, DateTimeFormatter.ofPattern(oldFormat))
+                    .toEpochSecond(ZoneOffset.of("+8"));
+        } catch (Exception ignore) {
+            // LocalDateTime解析字符串的时候, 必须有小时
+            return LocalDateTime
+                    .parse(noStandardDatetime + " 00", DateTimeFormatter.ofPattern(oldFormat + " HH"))
+                    .toEpochSecond(ZoneOffset.of("+8"));
+        }
     }
 
     /**
      * 标准格式-字符串 -> 自定义格式-字符串
      */
     public static String dateFormat(String standardDatetime, String newFormat) {
+        standardDatetime = ensureStandard(standardDatetime);
         return dateFormat(standardDatetime, DEFAULT_FORMAT, newFormat);
     }
 
@@ -71,17 +80,25 @@ public class DTUtils {
      * 自定义格式-字符串 -> 自定义格式-字符串
      */
     public static String dateFormat(String noStandardDatetime, String oldFormat, String newFormat) {
-        return LocalDateTime
-                .parse(formatDatetime(noStandardDatetime), DateTimeFormatter.ofPattern(oldFormat))
-                .format(DateTimeFormatter.ofPattern(newFormat));
+        try {
+            return LocalDateTime
+                    .parse(noStandardDatetime, DateTimeFormatter.ofPattern(oldFormat))
+                    .format(DateTimeFormatter.ofPattern(newFormat));
+        } catch (Exception ignore) {
+            // LocalDateTime解析字符串的时候, 必须有小时
+            return LocalDateTime
+                    .parse(noStandardDatetime + " 00", DateTimeFormatter.ofPattern(oldFormat + " HH"))
+                    .format(DateTimeFormatter.ofPattern(newFormat));
+        }
     }
 
     /**
      * 日期加减
      */
     public static String dateAdd(String standardDatetime, int num) {
+        standardDatetime = ensureStandard(standardDatetime);
         return LocalDateTime
-                .parse(formatDatetime(standardDatetime), DateTimeFormatter.ofPattern(DEFAULT_FORMAT))
+                .parse(standardDatetime, DateTimeFormatter.ofPattern(DEFAULT_FORMAT))
                 .plusDays(num)
                 .format(DateTimeFormatter.ofPattern(DEFAULT_FORMAT));
     }
@@ -90,6 +107,7 @@ public class DTUtils {
      * 日期加减
      */
     public static String dateSub(String standardDatetime, int num) {
+        standardDatetime = ensureStandard(standardDatetime);
         return dateAdd(standardDatetime, -num);
     }
 
@@ -101,9 +119,9 @@ public class DTUtils {
     }
 
     /**
-     * 返回的一定是`yyyy-MM-dd HH:mm:ss` 19位
+     * 返回的一定是 `yyyy-MM-dd HH:mm:ss` 19位
      */
-    private static String formatDatetime(String standardDatetime) {
-        return standardDatetime + (standardDatetime.length() == 10 ? " 00:00:00" : "");
+    private static String ensureStandard(String datetime) {
+        return datetime + (datetime.length() == 10 ? " 00:00:00" : "");
     }
 }
