@@ -20,28 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * DROP TABLE `test_db`.`dwd_coupon_info`;
- * CREATE TABLE `test_db`.`dwd_coupon_info` (
- * `promotion_code` varchar(65530) COMMENT '优惠码',
- * `unique_user_id` bigint COMMENT '天眼查用户ID-new',
- * `promotion_id` bigint COMMENT '优惠ID',
- * `use_status` int COMMENT '使用状态',
- * `receive_time` datetime COMMENT '发券时间',
- * `effective_time` datetime COMMENT '有效开始日期',
- * `expiration_time` datetime COMMENT '有效结束日期',
- * `create_time` datetime COMMENT '写入doris时间',
- * `update_time` datetime COMMENT '更新doris时间'
- * ) ENGINE=OLAP
- * UNIQUE KEY(`promotion_code`)
- * COMMENT '优惠券'
- * DISTRIBUTED BY HASH(`promotion_code`) BUCKETS 6
- * PROPERTIES (
- * "replication_allocation" = "tag.location.default: 3",
- * "enable_unique_key_merge_on_write" = "true",
- * "light_schema_change" = "true"
- * );
- */
 @LocalConfigFile("dwd-coupon-info.yml")
 public class DwdCouponInfoJob {
     public static void main(String[] args) throws Exception {
@@ -69,7 +47,6 @@ public class DwdCouponInfoJob {
             dorisSink.enableCache();
             List<String> derivedColumns = Arrays.asList(
                     "promotion_code = promotion_code",
-                    "pt = date_format(from_unixtime(receive_time/1000),'yyyyMMdd')",
                     "unique_user_id = user_id",
                     "promotion_id = promotion_id",
                     "use_status = use_status",
