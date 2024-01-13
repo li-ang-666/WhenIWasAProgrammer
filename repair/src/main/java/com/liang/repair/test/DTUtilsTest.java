@@ -23,9 +23,6 @@ public class DTUtilsTest {
         System.out.println(dateAdd("2024-01-01", 1));
         System.out.println(dateAdd("2024-01-01 00:00:00", 1));
         System.out.println(dateAdd("2024-01-01 12:12:12", 1));
-        System.out.println(dateSub("2024-01-01", 1));
-        System.out.println(dateSub("2024-01-01 00:00:00", 1));
-        System.out.println(dateSub("2024-01-01 12:12:12", 1));
         System.out.println("---");
         System.out.println(getLastNDateTime(3, "yyyyMMdd"));
     }

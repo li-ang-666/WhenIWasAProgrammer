@@ -61,7 +61,7 @@ public class DTUtils {
                     .parse(noStandardDatetime, DateTimeFormatter.ofPattern(oldFormat))
                     .toEpochSecond(ZoneOffset.of("+8"));
         } catch (Exception ignore) {
-            // LocalDateTime解析字符串的时候, 必须有小时
+            // LocalDateTime 解析字符串的时候, 必须要有小时
             return LocalDateTime
                     .parse(noStandardDatetime + " 00", DateTimeFormatter.ofPattern(oldFormat + " HH"))
                     .toEpochSecond(ZoneOffset.of("+8"));
@@ -85,7 +85,7 @@ public class DTUtils {
                     .parse(noStandardDatetime, DateTimeFormatter.ofPattern(oldFormat))
                     .format(DateTimeFormatter.ofPattern(newFormat));
         } catch (Exception ignore) {
-            // LocalDateTime解析字符串的时候, 必须有小时
+            // LocalDateTime 解析字符串的时候, 必须要有小时
             return LocalDateTime
                     .parse(noStandardDatetime + " 00", DateTimeFormatter.ofPattern(oldFormat + " HH"))
                     .format(DateTimeFormatter.ofPattern(newFormat));
@@ -106,16 +106,8 @@ public class DTUtils {
     /**
      * 日期加减
      */
-    public static String dateSub(String standardDatetime, int num) {
-        standardDatetime = ensureStandard(standardDatetime);
-        return dateAdd(standardDatetime, -num);
-    }
-
-    /**
-     * 日期加减
-     */
     public static String getLastNDateTime(int nDays, String format) {
-        return dateFormat(dateSub(currentDatetime(), nDays), format);
+        return dateFormat(dateAdd(currentDatetime(), -nDays), format);
     }
 
     /**
