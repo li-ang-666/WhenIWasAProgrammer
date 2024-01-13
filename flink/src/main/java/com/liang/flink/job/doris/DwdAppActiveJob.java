@@ -50,7 +50,7 @@ public class DwdAppActiveJob {
             dorisSink.enableCache();
             List<String> derivedColumns = Arrays.asList(
                     "app_id2 = app_id2",
-                    "pt = to_date(date_format(create_time,'yyyy-MM-dd HH:mm:ss'),'yyyy-MM-dd')",
+                    "pt = date_format(create_time,'yyyy-MM-dd')",
                     "android_id = android_id",
                     "imei = imei",
                     "oaid = oaid",
@@ -58,7 +58,7 @@ public class DwdAppActiveJob {
                     "idfv = idfv",
                     "type = type",
                     "umeng_channel = umeng_channel",
-                    "app_version = get_json_object(ads_header_json,'$.Version')",
+                    "app_version = get_json_string(ads_header_json,'$.Version')",
                     "create_time = create_time",
                     "update_time = now()"
             );
