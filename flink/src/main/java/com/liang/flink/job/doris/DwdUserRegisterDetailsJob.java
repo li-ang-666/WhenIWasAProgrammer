@@ -20,27 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * DROP TABLE `test_db`.`dwd_user_register_details`;
- * CREATE TABLE `test_db`.`dwd_user_register_details` (
- * `tyc_user_id` bigint COMMENT '天眼查用户ID',
- * `mobile` bigint COMMENT '手机号',
- * `register_time` datetime COMMENT '注册时间',
- * `vip_from_time` datetime COMMENT 'VIP开始时间',
- * `vip_to_time` datetime COMMENT 'VIP结束日期',
- * `user_type` int COMMENT '用户类型 0:普通,1:vip,2:媒体用户,3:3个月vip,4:6个月vip,5:12个月以上vip,6:24个月vip,7:26个月以上vip,-1:删除,-2:黑名单',
- * `create_time` datetime COMMENT '写入doris时间',
- * `update_time` datetime COMMENT '更新doris时间'
- * ) ENGINE=OLAP
- * UNIQUE KEY(`tyc_user_id`)
- * COMMENT '用户注册'
- * DISTRIBUTED BY HASH(`tyc_user_id`) BUCKETS 6
- * PROPERTIES (
- * "replication_allocation" = "tag.location.default: 3",
- * "enable_unique_key_merge_on_write" = "true",
- * "light_schema_change" = "true"
- * );
- */
 @LocalConfigFile("dwd-user-register-details.yml")
 public class DwdUserRegisterDetailsJob {
     public static void main(String[] args) throws Exception {
