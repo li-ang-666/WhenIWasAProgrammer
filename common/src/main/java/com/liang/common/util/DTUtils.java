@@ -9,7 +9,6 @@ import java.time.format.DateTimeFormatter;
 @UtilityClass
 public class DTUtils {
     private static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ofPattern(DEFAULT_FORMAT);
 
     /**
      * current
@@ -17,7 +16,7 @@ public class DTUtils {
     public static String currentDatetime() {
         return LocalDateTime
                 .now(ZoneOffset.of("+8"))
-                .format(DEFAULT_FORMATTER);
+                .format(DateTimeFormatter.ofPattern(DEFAULT_FORMAT));
     }
 
     /**
@@ -82,9 +81,9 @@ public class DTUtils {
      */
     public static String dateAdd(String standardDatetime, int num) {
         return LocalDateTime
-                .parse(formatDatetime(standardDatetime), DEFAULT_FORMATTER)
+                .parse(formatDatetime(standardDatetime), DateTimeFormatter.ofPattern(DEFAULT_FORMAT))
                 .plusDays(num)
-                .format(DEFAULT_FORMATTER);
+                .format(DateTimeFormatter.ofPattern(DEFAULT_FORMAT));
     }
 
     /**
