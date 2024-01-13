@@ -20,9 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- */
 @LocalConfigFile("dwd-app-active.yml")
 public class DwdAppActiveJob {
     public static void main(String[] args) throws Exception {
