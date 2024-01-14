@@ -14,7 +14,9 @@ import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 @Slf4j
 public class DorisJob {
@@ -39,6 +41,8 @@ public class DorisJob {
     @Slf4j
     @RequiredArgsConstructor
     public final static class DorisSink implements ForeachPartitionFunction<Row> {
+        private static final int BATCH_SIZE = 10240;
+        private final List<DorisOneRow> rows = new ArrayList<>(BATCH_SIZE);
         private final Config config;
         private final String database;
         private final String table;
@@ -47,15 +51,21 @@ public class DorisJob {
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
             DorisTemplate dorisSink = new DorisTemplate("dorisSink");
-            dorisSink.enableCache();
             DorisSchema schema = DorisSchema.builder()
                     .database(database)
                     .tableName(table)
                     .build();
             while (iterator.hasNext()) {
-                dorisSink.update(new DorisOneRow(schema, JsonUtils.parseJsonObj(iterator.next().json())));
+                rows.add(new DorisOneRow(schema, JsonUtils.parseJsonObj(iterator.next().json())));
+                if (rows.size() >= BATCH_SIZE) {
+                    dorisSink.update(rows);
+                    rows.clear();
+                }
             }
-            dorisSink.flush();
+            if (!rows.isEmpty()) {
+                dorisSink.update(rows);
+                rows.clear();
+            }
         }
     }
 }
