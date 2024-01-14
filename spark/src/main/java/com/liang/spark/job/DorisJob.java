@@ -38,7 +38,7 @@ public class DorisJob {
 
     @Slf4j
     @RequiredArgsConstructor
-    private final static class DorisSink implements ForeachPartitionFunction<Row> {
+    public final static class DorisSink implements ForeachPartitionFunction<Row> {
         private final Config config;
         private final String database;
         private final String table;
