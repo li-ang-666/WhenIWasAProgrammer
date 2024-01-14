@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class ObsWriter extends AbstractCache<String, String> {
-    private final static int DEFAULT_CACHE_MB = 16; // 1kb/条 x 16000条
+    private final static int DEFAULT_CACHE_MB = 128;
     private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
     private final static int DEFAULT_CACHE_RECORDS = 10240;
     private final static String ACCESS_KEY = "NT5EWZ4FRH54R2R2CB8G";

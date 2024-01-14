@@ -46,7 +46,7 @@ import static org.apache.http.HttpHeaders.EXPECT;
  */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
-    private static final int DEFAULT_CACHE_MB = 160; // 1kb/条 x 16000条
+    private final static int DEFAULT_CACHE_MB = 128;
     private static final int DEFAULT_CACHE_MILLISECONDS = 30000;
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
