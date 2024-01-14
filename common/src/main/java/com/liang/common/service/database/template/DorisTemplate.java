@@ -46,19 +46,19 @@ import static org.apache.http.HttpHeaders.EXPECT;
  */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
-    private final static int BUFFER_MAX_MB = 16; // 1kb/条 x 16000条
-    private final static int DEFAULT_CACHE_MILLISECONDS = 30000;
-    private final static int DEFAULT_CACHE_RECORDS = 10240;
-    private final static int MAX_TRY_TIMES = 3;
+    private static final int DEFAULT_CACHE_MB = 16; // 1kb/条 x 16000条
+    private static final int DEFAULT_CACHE_MILLISECONDS = 30000;
+    private static final int DEFAULT_CACHE_RECORDS = 10240;
+    private static final int MAX_TRY_TIMES = 3;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
-    private final List<String> fe;
     private final AtomicInteger fePointer = new AtomicInteger(0);
+    private final List<String> fe;
     private final String auth;
 
     public DorisTemplate(String name) {
-        super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
+        super(DEFAULT_CACHE_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
         DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
         fe = dorisConfig.getFe();
         auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());

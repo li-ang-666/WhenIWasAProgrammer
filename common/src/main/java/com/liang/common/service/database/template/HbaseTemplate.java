@@ -42,14 +42,14 @@ import java.util.Map;
  */
 @Slf4j
 public class HbaseTemplate extends AbstractCache<HbaseSchema, HbaseOneRow> {
-    private final static int BUFFER_MAX_MB = 16; // 1kb/条 x 16000条
+    private final static int DEFAULT_CACHE_MB = 16; // 1kb/条 x 16000条
     private final static int DEFAULT_CACHE_MILLISECONDS = 3000;
     private final static int DEFAULT_CACHE_RECORDS = 1024;
     private final Connection pool;
     private final Logging logging;
 
     public HbaseTemplate(String name) {
-        super(BUFFER_MAX_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, HbaseOneRow::getSchema);
+        super(DEFAULT_CACHE_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, HbaseOneRow::getSchema);
         pool = new HbaseConnectionHolder().getPool(name);
         logging = new Logging(this.getClass().getSimpleName(), name);
     }
