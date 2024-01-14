@@ -15,7 +15,7 @@ public class DorisCopyJob {
                 .option("user", "dba")
                 .option("password", "Tyc@1234")
                 .option("doris.batch.size", "10240")
-                .option("doris.batch.size", "1")
+                .option("doris.request.tablet.size", "1")
                 .load()
                 .repartition()
                 .foreachPartition(new DorisJob.DorisSink(ConfigUtils.getConfig(), args[2], args[3]));
