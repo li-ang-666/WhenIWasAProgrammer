@@ -97,7 +97,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     private String basicAuthHeader(String username, String password) {
-        final String tobeEncode = username + ":" + password;
+        String tobeEncode = username + ":" + password;
         byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
         return "Basic " + new String(encoded);
     }
