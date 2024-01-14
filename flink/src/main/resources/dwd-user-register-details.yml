@@ -14,5 +14,5 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "al.12108.json.prism_app.user"
-    groupId: "doris-job"
+    groupId: "DwdUserRegisterDetailsJob"
     startFrom: "1"

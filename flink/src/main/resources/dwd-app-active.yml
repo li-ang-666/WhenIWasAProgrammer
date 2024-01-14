@@ -14,5 +14,5 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "115ee.json.app_advertisement.ads_active_copy"
-    groupId: "doris-job"
+    groupId: "DwdAppActiveJob"
     startFrom: "1"

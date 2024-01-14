@@ -113,5 +113,5 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "06430.json.promotion.user_promotion_xxx"
-    groupId: "doris-job"
+    groupId: "DwdCouponInfoJob"
     startFrom: "1"
