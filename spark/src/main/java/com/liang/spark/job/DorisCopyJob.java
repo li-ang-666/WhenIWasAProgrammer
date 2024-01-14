@@ -24,7 +24,7 @@ public class DorisCopyJob {
                 .option("doris.table.identifier", args[0] + "." + args[1])
                 .option("user", "dba")
                 .option("password", "Tyc@1234")
-                .option("doris.batch.size", "10240")
+                .option("doris.batch.size", "1024000")
                 .load()
                 .foreachPartition(new DorisSink(ConfigUtils.getConfig(), args[2], args[3]));
     }
