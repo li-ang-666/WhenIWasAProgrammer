@@ -44,7 +44,7 @@ public class DorisJob {
     @Slf4j
     @RequiredArgsConstructor
     public final static class DorisSink implements ForeachPartitionFunction<Row> {
-        private static final int BATCH_SIZE = 1_048_576;
+        private static final int BATCH_SIZE = 1024 * 1024;
         private final List<DorisOneRow> rows = new ArrayList<>(BATCH_SIZE);
         private final Config config;
         private final String database;
