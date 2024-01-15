@@ -44,5 +44,5 @@ hbaseConfigs:
 dorisConfigs:
   dorisSink:
     fe: [ "10.99.207.166:8030", "10.99.203.64:8030", "10.99.195.214:8030" ]
-    user: "dba"
+    user: "admin"
     password: "Tyc@1234"
