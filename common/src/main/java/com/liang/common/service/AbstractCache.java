@@ -2,11 +2,7 @@ package com.liang.common.service;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
@@ -14,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public abstract class AbstractCache<K, V> {
     private final Lock lock = new ReentrantLock(true);
-    private final Map<K, Collection<V>> cache = new ConcurrentHashMap<>();
+    private final Map<K, Collection<V>> cache = new HashMap<>();
     private final KeySelector<K, V> keySelector;
     // cache
     private volatile int cacheMilliseconds;
@@ -58,11 +54,13 @@ public abstract class AbstractCache<K, V> {
             for (V value : values) {
                 if (value == null) continue;
                 K key = keySelector.selectKey(value);
-                cache.putIfAbsent(key, new ConcurrentLinkedQueue<>());
-                Collection<V> buffer = cache.get(key);
-                buffer.add(value);
-                // 有分区达到条数阈值, 唤醒sender
-                if (buffer.size() >= cacheRecords) LockSupport.unpark(sender);
+                cache.compute(key, (k, v) -> {
+                    Collection<V> buffer = (v != null) ? v : new ArrayList<>(cacheRecords);
+                    buffer.add(value);
+                    // 有任意分区达到条数阈值, 唤醒sender
+                    if (sender != null && buffer.size() >= cacheRecords) LockSupport.unpark(sender);
+                    return buffer;
+                });
             }
             if (sender == null) flush();
         } finally {
