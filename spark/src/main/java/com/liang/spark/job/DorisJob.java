@@ -22,7 +22,7 @@ import java.util.List;
 public class DorisJob {
     public static void main(String[] args) {
         ParameterTool parameterTool = ParameterTool.fromArgs(args);
-        // sparkSql
+        // sql
         String sparkSql = parameterTool.get("sparkSql");
         log.info("sparkSql: {}", sparkSql);
         // db
