@@ -20,22 +20,25 @@ import java.util.List;
 
 @Slf4j
 public class DorisJob {
-    private static final String REGEX = "insert\\s+into\\s+(\\w+)\\.(\\w+)\\s+(select.*)";
-
     public static void main(String[] args) {
         ParameterTool parameterTool = ParameterTool.fromArgs(args);
-        String sql = parameterTool.get("sql");
-        log.info("sql: {}", sql);
-        String dorisDatabase = sql.replaceAll(REGEX, "$1");
-        String dorisTable = sql.replaceAll(REGEX, "$2");
-        String sparkSql = sql.replaceAll(REGEX, "$3");
-        log.info("dorisDatabase: {}, dorisTable: {}, sparkQuerySql: {}", dorisDatabase, dorisTable, sparkSql);
-        int parallelism = parameterTool.getInt("parallelism");
-        log.info("parallelism: {}", parallelism);
+        // sparkSql
+        String sparkSql = parameterTool.get("sparkSql");
+        log.info("sparkSql: {}", sparkSql);
+        // db
+        String sinkDatabase = parameterTool.get("sinkDatabase");
+        log.info("sinkDatabase: {}", sinkDatabase);
+        // tb
+        String sinkTable = parameterTool.get("sinkTable");
+        log.info("sinkTable: {}", sinkTable);
+        // parallel
+        int sinkParallelism = parameterTool.getInt("sinkParallelism");
+        log.info("sinkParallelism: {}", sinkParallelism);
+        // exec
         SparkSession spark = SparkSessionFactory.createSpark(null);
         spark.sql(sparkSql)
-                .repartition(parallelism)
-                .foreachPartition(new DorisSink(ConfigUtils.getConfig(), dorisDatabase, dorisTable));
+                .repartition(sinkParallelism)
+                .foreachPartition(new DorisSink(ConfigUtils.getConfig(), sinkDatabase, sinkTable));
     }
 
     @Slf4j
