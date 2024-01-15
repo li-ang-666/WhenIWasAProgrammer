@@ -1,6 +1,6 @@
 package com.liang.common.service;
 
-import io.debezium.util.ObjectSizeCalculator;
+import cn.hutool.core.util.SerializeUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -63,7 +63,7 @@ public abstract class AbstractCache<K, V> {
         lock.lock();
         try {
             // 限制内存
-            long sizeOfValues = values.stream().mapToLong(ObjectSizeCalculator::getObjectSize).sum();
+            long sizeOfValues = values.stream().mapToLong(this::getObjectSize).sum();
             if (sizeOfValues > bufferMax) throw new RuntimeException("values too large in one batch");
             while (bufferUsed.get() + sizeOfValues > bufferMax) {
                 // 内存不足, 唤醒sender, 自身进入等待队列
@@ -105,6 +105,10 @@ public abstract class AbstractCache<K, V> {
     }
 
     protected abstract void updateImmediately(K key, Collection<V> values);
+
+    private long getObjectSize(Object obj) {
+        return (long) (SerializeUtil.serialize(obj).length * 1.5);
+    }
 
     @FunctionalInterface
     protected interface KeySelector<K, V> {
