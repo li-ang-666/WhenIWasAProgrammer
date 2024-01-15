@@ -1,6 +1,5 @@
 package com.liang.common.service;
 
-import cn.hutool.core.util.SerializeUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -8,8 +7,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
@@ -17,19 +14,14 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public abstract class AbstractCache<K, V> {
     private final Lock lock = new ReentrantLock(true);
-    private final Condition condition = lock.newCondition();
     private final Map<K, Collection<V>> cache = new ConcurrentHashMap<>();
     private final KeySelector<K, V> keySelector;
-    // buffer
-    private final long bufferMax;
-    private final AtomicLong bufferUsed = new AtomicLong(0L);
     // cache
     private volatile int cacheMilliseconds;
     private volatile int cacheRecords;
     private volatile Thread sender;
 
-    protected AbstractCache(int bufferMaxMb, int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
-        this.bufferMax = bufferMaxMb * 1024L * 1024L;
+    protected AbstractCache(int cacheMilliseconds, int cacheRecords, KeySelector<K, V> keySelector) {
         this.cacheMilliseconds = cacheMilliseconds;
         this.cacheRecords = cacheRecords;
         this.keySelector = keySelector;
@@ -62,18 +54,6 @@ public abstract class AbstractCache<K, V> {
         if (values == null || values.isEmpty()) return;
         lock.lock();
         try {
-            // 限制内存
-            long sizeOfValues = values.stream().mapToLong(this::getObjectSize).sum();
-            if (sizeOfValues > bufferMax) {
-                String msg = String.format("values too large in one batch, %s rows with %s mb", values.size(), sizeOfValues / 1024 / 1024);
-                throw new RuntimeException(msg);
-            }
-            while (bufferUsed.get() + sizeOfValues > bufferMax) {
-                // 内存不足, 唤醒sender, 自身进入等待队列
-                LockSupport.unpark(sender);
-                condition.awaitUninterruptibly();
-            }
-            bufferUsed.getAndAdd(sizeOfValues);
             // 同一批次的写入, 不拆开
             for (V value : values) {
                 if (value == null) continue;
@@ -100,18 +80,12 @@ public abstract class AbstractCache<K, V> {
                 updateImmediately(key, values);
                 values.clear();
             }
-            bufferUsed.set(0);
-            condition.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
     protected abstract void updateImmediately(K key, Collection<V> values);
-
-    private long getObjectSize(Object obj) {
-        return (long) (SerializeUtil.serialize(obj).length * 1.5);
-    }
 
     @FunctionalInterface
     protected interface KeySelector<K, V> {

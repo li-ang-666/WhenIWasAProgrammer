@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class ObsWriter extends AbstractCache<String, String> {
-    private final static int DEFAULT_CACHE_MB = 128;
     private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
     private final static int DEFAULT_CACHE_RECORDS = 10240;
     private final static String ACCESS_KEY = "NT5EWZ4FRH54R2R2CB8G";
@@ -38,7 +37,7 @@ public class ObsWriter extends AbstractCache<String, String> {
     }
 
     public ObsWriter(String obsUrl, FileFormat fileFormat) {
-        super(DEFAULT_CACHE_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> "");
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> "");
         bucket = obsUrl.replaceAll("obs://(.*?)/(.*)", "$1");
         folder = obsUrl.replaceAll("obs://(.*?)/(.*)", "$2/").replaceAll("//$", "/");
         logging = new Logging(this.getClass().getSimpleName(), folder);

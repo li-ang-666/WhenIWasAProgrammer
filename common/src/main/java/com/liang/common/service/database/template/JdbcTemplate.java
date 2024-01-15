@@ -18,7 +18,6 @@ import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
 public class JdbcTemplate extends AbstractCache<String, String> {
-    private final static int DEFAULT_CACHE_MB = 128;
     private final static int DEFAULT_CACHE_MILLISECONDS = 3000;
     private final static int DEFAULT_CACHE_RECORDS = 128;
     private final static String BITMAP_COLUMN_NAME = "bitmap";
@@ -26,7 +25,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
     private final Logging logging;
 
     public JdbcTemplate(String name) {
-        super(DEFAULT_CACHE_MB, DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> "");
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, sql -> "");
         pool = new DruidHolder().getPool(name);
         logging = new Logging(this.getClass().getSimpleName(), name);
     }
