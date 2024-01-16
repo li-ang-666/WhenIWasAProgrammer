@@ -35,7 +35,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private static final int DEFAULT_CACHE_MILLISECONDS = 30000;
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
-    private static final int MAX_BYTE_BUFFER_SIZE = 1024 * 1024 * 1024;
+    private static final int MAX_BYTE_BUFFER_SIZE = 512 * 1024 * 1024;
     private static final String LINE_SEPARATOR_STRING = "\n";
     private static final byte[] LINE_SEPARATOR_BYTES = LINE_SEPARATOR_STRING.getBytes(StandardCharsets.UTF_8);
     private final HttpClientBuilder httpClientBuilder = HttpClients
@@ -50,6 +50,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private final List<String> keys;
     private int currentByteBufferSize = 0;
     private int currentRows = 0;
+    private int maxRowSize = 0;
 
     public DorisTemplate(String name) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
@@ -91,10 +92,12 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         buffer.put(content);
         currentByteBufferSize += content.length;
         currentRows++;
+        maxRowSize = Math.max(maxRowSize, content.length);
         // add line separator
         buffer.put(LINE_SEPARATOR_BYTES);
         currentByteBufferSize += LINE_SEPARATOR_BYTES.length;
-        return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize > 1024 * currentByteBufferSize / currentRows;
+        // compare
+        return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize > 1024 * maxRowSize;
     }
 
     public void flushBatch() {
