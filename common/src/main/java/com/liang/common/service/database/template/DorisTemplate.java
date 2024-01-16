@@ -94,15 +94,17 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             buffer.put(JSON_PREFIX);
             currentByteBufferSize += JSON_PREFIX.length;
         }
+        // add separator
+        if (currentByteBufferSize > 0 && currentRows > 0) {
+            buffer.put(JSON_SEPARATOR);
+            currentByteBufferSize += JSON_SEPARATOR.length;
+        }
         // add content
         byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
         buffer.put(content);
         currentByteBufferSize += content.length;
         currentRows++;
         maxRowSize = Math.max(maxRowSize, content.length);
-        // add separator
-        buffer.put(JSON_SEPARATOR);
-        currentByteBufferSize += JSON_SEPARATOR.length;
         // compare
         return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize > 1024 * maxRowSize;
     }

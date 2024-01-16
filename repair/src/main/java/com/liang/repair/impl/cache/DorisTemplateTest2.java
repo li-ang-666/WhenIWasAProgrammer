@@ -11,7 +11,7 @@ import java.util.Arrays;
 public class DorisTemplateTest2 extends ConfigHolder {
     public static void main(String[] args) throws Exception {
         DorisSchema uniqueSchema = DorisSchema.builder()
-                .database("test_db")
+                .database("test")
                 .tableName("unique_test")
                 .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
                 .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ', name)"))
