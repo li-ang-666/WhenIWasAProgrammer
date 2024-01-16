@@ -35,17 +35,16 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private static final int DEFAULT_CACHE_MILLISECONDS = 30000;
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
-    private final static int MAX_BYTE_BUFFER_SIZE = 1024 * 1024 * 1024;
-    private final static String LINE_SEPARATOR_STRING = "\001\002\003";
-    private final static byte[] LINE_SEPARATOR_BYTES = LINE_SEPARATOR_STRING.getBytes(StandardCharsets.UTF_8);
+    private static final int MAX_BYTE_BUFFER_SIZE = 1024 * 1024 * 1024;
+    private static final String LINE_SEPARATOR_STRING = "\001\002\003";
+    private static final byte[] LINE_SEPARATOR_BYTES = LINE_SEPARATOR_STRING.getBytes(StandardCharsets.UTF_8);
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
-
-    /*-------------------------------- self cache --------------------------------*/
     private final AtomicInteger fePointer = new AtomicInteger(0);
     private final List<String> fe;
     private final String auth;
+    // self cache
     private final ByteBuffer buffer;
     private final DorisSchema schema;
     private final List<String> keys;
@@ -74,15 +73,17 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
 
     @Override
     protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
-        HttpPut put = getHttpPut1(schema, dorisOneRows);
+        HttpPut put = getHttpPut1(schema, dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList()));
         executePut(put, schema);
     }
 
     public boolean updateBatch(DorisOneRow dorisOneRow) {
+        // content
         byte[] content = JsonUtils.toString(dorisOneRow.getColumnMap()).getBytes(StandardCharsets.UTF_8);
         buffer.put(content);
         currentByteBufferSize += content.length;
         currentRows++;
+        // line separator
         buffer.put(LINE_SEPARATOR_BYTES);
         currentByteBufferSize += LINE_SEPARATOR_BYTES.length;
         return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize >= 100 * currentByteBufferSize / currentRows;
@@ -102,10 +103,9 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         return "Basic " + new String(encoded);
     }
 
-    private HttpPut getHttpPut1(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
-        List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
+    private HttpPut getHttpPut1(DorisSchema schema, List<Map<String, Object>> columnMaps) {
         HttpPut put = getCommonHttpPut(schema, new ArrayList<>(columnMaps.get(0).keySet()));
-        // 一条大json
+        // single big json
         put.setHeader("strip_outer_array", "true");
         put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
         return put;
@@ -113,7 +113,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
 
     private HttpPut getHttpPut2(DorisSchema schema) {
         HttpPut put = getCommonHttpPut(schema, keys);
-        // 好多行小json
+        // many small json
         put.setHeader("line_delimiter", LINE_SEPARATOR_STRING);
         put.setHeader("read_json_by_line", "true");
         put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentByteBufferSize));
