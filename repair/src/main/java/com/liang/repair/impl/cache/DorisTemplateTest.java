@@ -17,14 +17,14 @@ public class DorisTemplateTest extends ConfigHolder {
         dorisTemplate.enableCache(5000, 1024);
 
         DorisSchema uniqueSchema = DorisSchema.builder()
-                .database("test_db")
+                .database("test")
                 .tableName("unique_test")
                 .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
                 .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ', name)"))
                 .build();
 
         DorisSchema aggSchema = DorisSchema.builder()
-                .database("test_db")
+                .database("test")
                 .tableName("agg_test")
                 .derivedColumns(Collections.singletonList("id = id + 100"))
                 .build();
@@ -39,7 +39,7 @@ public class DorisTemplateTest extends ConfigHolder {
                 .put("name", "AGGREGATE");
 
         ArrayList<DorisOneRow> dorisOneRows = new ArrayList<>();
-        for (int i = 1; i <= 1024; i++) {
+        for (int i = 1; i <= 1024 * 1024; i++) {
             DorisOneRow clone = SerializeUtil.clone(unique);
             clone.put("id", i);
             dorisOneRows.add(clone);
@@ -47,6 +47,6 @@ public class DorisTemplateTest extends ConfigHolder {
 
         dorisTemplate.update(unique, agg);
         dorisTemplate.update(dorisOneRows);
-        TimeUnit.SECONDS.sleep(10);
+        TimeUnit.SECONDS.sleep(3600);
     }
 }
