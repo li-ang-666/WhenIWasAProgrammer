@@ -18,7 +18,7 @@ public class DorisTemplateTest2 extends ConfigHolder {
                 .build();
         DorisTemplate dorisTemplate = new DorisTemplate("dorisSink", uniqueSchema);
         DorisOneRow unique = new DorisOneRow(uniqueSchema)
-                .put("id", 2222222222L)
+                .put("id", 0)
                 .put("name", "UNIQUE")
                 .put("__DORIS_DELETE_SIGN__", 0);
         for (int i = 1; i <= 1024 * 1024 * 1024; i++) {
