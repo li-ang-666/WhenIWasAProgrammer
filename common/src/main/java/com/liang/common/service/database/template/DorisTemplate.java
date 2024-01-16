@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
@@ -19,6 +20,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,47 +30,132 @@ import java.util.stream.Collectors;
 import static org.apache.http.HttpHeaders.AUTHORIZATION;
 import static org.apache.http.HttpHeaders.EXPECT;
 
-/**
- * use test_db;
- * -- SET show_hidden_columns=true;
- * -------------------------------------------------------
- * drop table if exists unique_test;
- * create table if not exists unique_test(
- * id int not null,
- * name text
- * )UNIQUE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 36;
- * -------------------------------------------------------
- * drop table if exists agg_test;
- * create table if not exists agg_test(
- * id int not null,
- * name text REPLACE_IF_NOT_NULL
- * )AGGREGATE KEY(`id`) DISTRIBUTED BY HASH(`id`) BUCKETS 36;
- */
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private static final int DEFAULT_CACHE_MILLISECONDS = 30000;
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
+    private final static int MAX_BYTE_BUFFER_SIZE = 1024 * 1024 * 1024;
+    private final static String LINE_SEPARATOR_STRING = "\001\002\003";
+    private final static byte[] LINE_SEPARATOR_BYTES = LINE_SEPARATOR_STRING.getBytes(StandardCharsets.UTF_8);
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
+
+    /*-------------------------------- self cache --------------------------------*/
     private final AtomicInteger fePointer = new AtomicInteger(0);
     private final List<String> fe;
     private final String auth;
+    private final ByteBuffer buffer;
+    private final DorisSchema schema;
+    private final List<String> keys;
+    private int currentByteBufferSize = 0;
+    private int currentRows = 0;
 
     public DorisTemplate(String name) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
         DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
         fe = dorisConfig.getFe();
         auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
+        this.buffer = null;
+        this.schema = null;
+        this.keys = null;
+    }
+
+    public DorisTemplate(String name, DorisSchema schema, List<String> keys) {
+        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
+        DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
+        fe = dorisConfig.getFe();
+        auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
+        this.buffer = ByteBuffer.allocate(MAX_BYTE_BUFFER_SIZE);
+        this.schema = schema;
+        this.keys = keys;
     }
 
     @Override
     protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
+        HttpPut put = getHttpPut1(schema, dorisOneRows);
+        executePut(put, schema);
+    }
+
+    public boolean updateBatch(DorisOneRow dorisOneRow) {
+        byte[] content = JsonUtils.toString(dorisOneRow.getColumnMap()).getBytes(StandardCharsets.UTF_8);
+        buffer.put(content);
+        currentByteBufferSize += content.length;
+        currentRows++;
+        buffer.put(LINE_SEPARATOR_BYTES);
+        currentByteBufferSize += LINE_SEPARATOR_BYTES.length;
+        return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize >= 100 * currentByteBufferSize / currentRows;
+    }
+
+    public void flushBatch() {
+        HttpPut put = getHttpPut2(schema);
+        executePut(put, schema);
+        buffer.clear();
+        currentByteBufferSize = 0;
+        currentRows = 0;
+    }
+
+    private String basicAuthHeader(String username, String password) {
+        String tobeEncode = username + ":" + password;
+        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
+        return "Basic " + new String(encoded);
+    }
+
+    private HttpPut getHttpPut1(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
+        List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
+        HttpPut put = getCommonHttpPut(schema, new ArrayList<>(columnMaps.get(0).keySet()));
+        // 一条大json
+        put.setHeader("strip_outer_array", "true");
+        put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
+        return put;
+    }
+
+    private HttpPut getHttpPut2(DorisSchema schema) {
+        HttpPut put = getCommonHttpPut(schema, keys);
+        // 好多行小json
+        put.setHeader("line_delimiter", LINE_SEPARATOR_STRING);
+        put.setHeader("read_json_by_line", "true");
+        put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentByteBufferSize));
+        return put;
+    }
+
+    private HttpPut getCommonHttpPut(DorisSchema schema, List<String> keys) {
+        // common
+        HttpPut put = new HttpPut();
+        put.setHeader(EXPECT, "100-continue");
+        put.setHeader(AUTHORIZATION, auth);
+        put.setHeader("format", "json");
+        put.setHeader("num_as_string", "true");
+        // for unique delete
+        if (schema.getUniqueDeleteOn() != null) {
+            put.setHeader("merge_type", "MERGE");
+            put.setHeader("delete", schema.getUniqueDeleteOn());
+        }
+        // column mapping
+        put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
+        put.setHeader("jsonpaths", parseJsonPaths(keys));
+        return put;
+    }
+
+    private String parseColumns(List<String> keys, List<String> derivedColumns) {
+        List<String> columns = keys.parallelStream()
+                .map(e -> "`" + e + "`")
+                .collect(Collectors.toList());
+        if (derivedColumns != null && !derivedColumns.isEmpty()) {
+            columns.addAll(derivedColumns);
+        }
+        return String.join(",", columns);
+    }
+
+    private String parseJsonPaths(List<String> keys) {
+        return keys.parallelStream()
+                .map(e -> "\"$." + e + "\"")
+                .collect(Collectors.joining(",", "[", "]"));
+    }
+
+    private void executePut(HttpPut put, DorisSchema schema) {
         try (CloseableHttpClient client = httpClientBuilder.build()) {
-            // init put
-            HttpPut put = getHttpPut(schema, dorisOneRows);
-            // execute put
             int tryTimes = MAX_TRY_TIMES;
             while (tryTimes-- > 0) {
                 // 负载均衡 & label
@@ -93,50 +180,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         } catch (Exception e) {
             log.error("stream load failed without loadResult", e);
         }
-    }
-
-    private String basicAuthHeader(String username, String password) {
-        String tobeEncode = username + ":" + password;
-        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
-        return "Basic " + new String(encoded);
-    }
-
-    private HttpPut getHttpPut(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
-        // common
-        HttpPut put = new HttpPut();
-        put.setHeader(EXPECT, "100-continue");
-        put.setHeader(AUTHORIZATION, auth);
-        put.setHeader("format", "json");
-        put.setHeader("strip_outer_array", "true");
-        put.setHeader("num_as_string", "true");
-        // for unique delete
-        if (schema.getUniqueDeleteOn() != null) {
-            put.setHeader("merge_type", "MERGE");
-            put.setHeader("delete", schema.getUniqueDeleteOn());
-        }
-        // content
-        List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
-        List<String> keys = new ArrayList<>(columnMaps.get(0).keySet());
-        put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
-        put.setHeader("jsonpaths", parseJsonPaths(keys));
-        put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
-        return put;
-    }
-
-    private String parseColumns(List<String> keys, List<String> derivedColumns) {
-        List<String> columns = keys.parallelStream()
-                .map(e -> "`" + e + "`")
-                .collect(Collectors.toList());
-        if (derivedColumns != null && !derivedColumns.isEmpty()) {
-            columns.addAll(derivedColumns);
-        }
-        return String.join(",", columns);
-    }
-
-    private String parseJsonPaths(List<String> keys) {
-        return keys.parallelStream()
-                .map(e -> "\"$." + e + "\"")
-                .collect(Collectors.joining(",", "[", "]"));
     }
 
     private URI getUri(String database, String table) {
