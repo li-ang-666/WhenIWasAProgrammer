@@ -21,10 +21,12 @@ public class DorisTemplateTest2 extends ConfigHolder {
                 .put("id", 2222222222L)
                 .put("name", "UNIQUE")
                 .put("__DORIS_DELETE_SIGN__", 0);
-        for (int i = 1; i <= 1024; i++) {
+        for (int i = 1; i <= 1024 * 1024 * 1024; i++) {
             DorisOneRow clone = SerializeUtil.clone(unique);
             clone.put("id", i);
-            dorisTemplate.cacheBatch(clone.getColumnMap());
+            if (!dorisTemplate.cacheBatch(clone.getColumnMap())) {
+                dorisTemplate.flushBatch();
+            }
         }
         dorisTemplate.flushBatch();
     }

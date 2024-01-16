@@ -35,7 +35,8 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private static final int DEFAULT_CACHE_MILLISECONDS = 30000;
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
-    private static final int MAX_BYTE_BUFFER_SIZE = 1024 * 1024 * 1024;
+    // 2G
+    private static final int MAX_BYTE_BUFFER_SIZE = Integer.MAX_VALUE;
     private static final String LINE_SEPARATOR_STRING = "\n";
     private static final byte[] LINE_SEPARATOR_BYTES = LINE_SEPARATOR_STRING.getBytes(StandardCharsets.UTF_8);
     private final HttpClientBuilder httpClientBuilder = HttpClients
