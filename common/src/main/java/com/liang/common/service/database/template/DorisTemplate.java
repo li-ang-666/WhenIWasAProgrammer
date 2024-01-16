@@ -165,9 +165,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         List<String> columns = keys.parallelStream()
                 .map(e -> "`" + e + "`")
                 .collect(Collectors.toList());
-        if (derivedColumns != null && !derivedColumns.isEmpty()) {
-            columns.addAll(derivedColumns);
-        }
+        columns.addAll(derivedColumns);
         return String.join(",", columns);
     }
 
