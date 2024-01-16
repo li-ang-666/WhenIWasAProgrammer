@@ -90,12 +90,12 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         // the first row
         if (keys.isEmpty()) keys.addAll(columnMap.keySet());
         // add prefix
-        if (currentByteBufferSize == 0 && currentRows == 0) {
+        if (currentByteBufferSize == 0) {
             buffer.put(JSON_PREFIX);
             currentByteBufferSize += JSON_PREFIX.length;
         }
         // add separator
-        if (currentByteBufferSize > 0 && currentRows > 0) {
+        if (currentRows > 0) {
             buffer.put(JSON_SEPARATOR);
             currentByteBufferSize += JSON_SEPARATOR.length;
         }
@@ -110,13 +110,14 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     public void flushBatch() {
-        if (currentByteBufferSize == 0 && currentRows == 0) return;
-        // add suffix
-        buffer.put(JSON_SUFFIX);
-        currentByteBufferSize += JSON_SUFFIX.length;
-        // execute
-        HttpPut put = getHttpPutWithBinaryEntity(schema);
-        executePut(put, schema);
+        if (currentRows > 0) {
+            // add suffix
+            buffer.put(JSON_SUFFIX);
+            currentByteBufferSize += JSON_SUFFIX.length;
+            // execute
+            HttpPut put = getHttpPutWithBinaryEntity(schema);
+            executePut(put, schema);
+        }
         buffer.clear();
         currentByteBufferSize = 0;
         currentRows = 0;
@@ -150,7 +151,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         put.setHeader("strip_outer_array", "true");
         put.setHeader("fuzzy_parse", "true");
         // for unique delete
-        if (schema.getUniqueDeleteOn() != null && !schema.getUniqueDeleteOn().isEmpty()) {
+        if (schema.getUniqueDeleteOn() != null) {
             put.setHeader("merge_type", "MERGE");
             put.setHeader("delete", schema.getUniqueDeleteOn());
         }
