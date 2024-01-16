@@ -88,7 +88,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         // add line separator
         buffer.put(LINE_SEPARATOR_BYTES);
         currentByteBufferSize += LINE_SEPARATOR_BYTES.length;
-        return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize >= 100 * currentByteBufferSize / currentRows;
+        return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize > 1024 * currentByteBufferSize / currentRows;
     }
 
     public void flushBatch() {
