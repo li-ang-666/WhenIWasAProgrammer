@@ -31,13 +31,10 @@ public class DorisJob {
         // tb
         String sinkTable = parameterTool.get("sinkTable");
         log.info("sinkTable: {}", sinkTable);
-        // parallel
-        int sinkParallelism = parameterTool.getInt("sinkParallelism");
-        log.info("sinkParallelism: {}", sinkParallelism);
         // exec
         SparkSession spark = SparkSessionFactory.createSpark(null);
         spark.sql(sparkSql)
-                .repartition(sinkParallelism)
+                .repartition()
                 .foreachPartition(new DorisSink(ConfigUtils.getConfig(), sinkDatabase, sinkTable));
     }
 
