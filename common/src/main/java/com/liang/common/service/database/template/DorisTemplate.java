@@ -82,8 +82,8 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         executePut(put, schema);
     }
 
-    public boolean cacheBatch(Map<String, Object> map) {
-        Map<String, Object> columnMap = new TreeMap<>(map);
+    public boolean cacheBatch(Map<String, Object> oneRow) {
+        Map<String, Object> columnMap = new TreeMap<>(oneRow);
         if (buffer == null) {
             throw new RuntimeException("due to the `Constructor`, maybe you need to use update() and flush()");
         }
