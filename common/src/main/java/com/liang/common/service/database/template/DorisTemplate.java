@@ -61,36 +61,39 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         this.keys = null;
     }
 
-    public DorisTemplate(String name, DorisSchema schema, List<String> keys) {
+    public DorisTemplate(String name, DorisSchema schema) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
         DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
         fe = dorisConfig.getFe();
         auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
         this.buffer = ByteBuffer.allocate(MAX_BYTE_BUFFER_SIZE);
         this.schema = schema;
-        this.keys = keys;
+        this.keys = new ArrayList<>();
     }
 
     @Override
     protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
-        HttpPut put = getHttpPut1(schema, dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList()));
+        HttpPut put = getHttpPutWithStringEntity(schema, dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList()));
         executePut(put, schema);
     }
 
-    public boolean updateBatch(DorisOneRow dorisOneRow) {
-        // content
-        byte[] content = JsonUtils.toString(dorisOneRow.getColumnMap()).getBytes(StandardCharsets.UTF_8);
+    public boolean cacheBatch(Map<String, Object> columnMap) {
+        // the first row
+        if (keys.isEmpty()) keys.addAll(columnMap.keySet());
+        // add content
+        byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
         buffer.put(content);
         currentByteBufferSize += content.length;
         currentRows++;
-        // line separator
+        // add line separator
         buffer.put(LINE_SEPARATOR_BYTES);
         currentByteBufferSize += LINE_SEPARATOR_BYTES.length;
         return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize >= 100 * currentByteBufferSize / currentRows;
     }
 
     public void flushBatch() {
-        HttpPut put = getHttpPut2(schema);
+        if (currentByteBufferSize == 0 && currentRows == 0) return;
+        HttpPut put = getHttpPutWithBinaryEntity(schema);
         executePut(put, schema);
         buffer.clear();
         currentByteBufferSize = 0;
@@ -103,7 +106,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         return "Basic " + new String(encoded);
     }
 
-    private HttpPut getHttpPut1(DorisSchema schema, List<Map<String, Object>> columnMaps) {
+    private HttpPut getHttpPutWithStringEntity(DorisSchema schema, List<Map<String, Object>> columnMaps) {
         HttpPut put = getCommonHttpPut(schema, new ArrayList<>(columnMaps.get(0).keySet()));
         // single big json
         put.setHeader("strip_outer_array", "true");
@@ -111,7 +114,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         return put;
     }
 
-    private HttpPut getHttpPut2(DorisSchema schema) {
+    private HttpPut getHttpPutWithBinaryEntity(DorisSchema schema) {
         HttpPut put = getCommonHttpPut(schema, keys);
         // many small json
         put.setHeader("line_delimiter", LINE_SEPARATOR_STRING);

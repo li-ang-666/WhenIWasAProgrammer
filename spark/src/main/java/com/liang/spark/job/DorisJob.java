@@ -1,7 +1,6 @@
 package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -14,9 +13,8 @@ import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class DorisJob {
@@ -41,8 +39,6 @@ public class DorisJob {
     @Slf4j
     @RequiredArgsConstructor
     public final static class DorisSink implements ForeachPartitionFunction<Row> {
-        private static final int BATCH_SIZE = 2 * 1024 * 1024;
-        private final List<DorisOneRow> rows = new ArrayList<>(BATCH_SIZE);
         private final Config config;
         private final String database;
         private final String table;
@@ -50,22 +46,15 @@ public class DorisJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-            DorisTemplate dorisSink = new DorisTemplate("dorisSink");
-            DorisSchema schema = DorisSchema.builder()
-                    .database(database)
-                    .tableName(table)
-                    .build();
+            DorisSchema schema = DorisSchema.builder().database(database).tableName(table).build();
+            DorisTemplate dorisSink = new DorisTemplate("dorisSink", schema);
             while (iterator.hasNext()) {
-                rows.add(new DorisOneRow(schema, JsonUtils.parseJsonObj(iterator.next().json())));
-                if (rows.size() >= BATCH_SIZE) {
-                    dorisSink.update(rows);
-                    rows.clear();
+                Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
+                if (!dorisSink.cacheBatch(columnMap)) {
+                    dorisSink.flushBatch();
                 }
             }
-            if (!rows.isEmpty()) {
-                dorisSink.update(rows);
-                rows.clear();
-            }
+            dorisSink.flushBatch();
         }
     }
 }
