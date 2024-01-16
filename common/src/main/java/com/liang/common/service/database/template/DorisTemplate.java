@@ -150,13 +150,14 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         put.setHeader("strip_outer_array", "true");
         put.setHeader("fuzzy_parse", "true");
         // for unique delete
-        if (schema.getUniqueDeleteOn() != null) {
+        if (schema.getUniqueDeleteOn() != null && !schema.getUniqueDeleteOn().isEmpty()) {
             put.setHeader("merge_type", "MERGE");
             put.setHeader("delete", schema.getUniqueDeleteOn());
         }
         // column mapping
-        put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
-        //put.setHeader("jsonpaths", parseJsonPaths(keys));
+        if (schema.getDerivedColumns() != null && !schema.getDerivedColumns().isEmpty()) {
+            put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
+        }
         return put;
     }
 
@@ -168,12 +169,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             columns.addAll(derivedColumns);
         }
         return String.join(",", columns);
-    }
-
-    private String parseJsonPaths(List<String> keys) {
-        return keys.parallelStream()
-                .map(e -> "\"$." + e + "\"")
-                .collect(Collectors.joining(",", "[", "]"));
     }
 
     private void executePut(HttpPut put, DorisSchema schema) {
