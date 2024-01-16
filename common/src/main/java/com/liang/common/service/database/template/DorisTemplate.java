@@ -36,7 +36,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
     private static final int MAX_BYTE_BUFFER_SIZE = 1024 * 1024 * 1024;
-    private static final String LINE_SEPARATOR_STRING = "\001\002\003";
+    private static final String LINE_SEPARATOR_STRING = "\n";
     private static final byte[] LINE_SEPARATOR_BYTES = LINE_SEPARATOR_STRING.getBytes(StandardCharsets.UTF_8);
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
@@ -73,11 +73,17 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
 
     @Override
     protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
+        if (buffer != null) {
+            throw new RuntimeException("due to the `Constructor`, maybe you need to use cacheBatch() and flushBatch()");
+        }
         HttpPut put = getHttpPutWithStringEntity(schema, dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList()));
         executePut(put, schema);
     }
 
     public boolean cacheBatch(Map<String, Object> columnMap) {
+        if (buffer == null) {
+            throw new RuntimeException("due to the `Constructor`, maybe you need to use update() and flush()");
+        }
         // the first row
         if (keys.isEmpty()) keys.addAll(columnMap.keySet());
         // add content
