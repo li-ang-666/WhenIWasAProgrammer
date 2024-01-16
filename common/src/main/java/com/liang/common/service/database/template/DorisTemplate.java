@@ -35,7 +35,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private static final int DEFAULT_CACHE_MILLISECONDS = 30000;
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
-    private static final int MAX_BYTE_BUFFER_SIZE = 512 * 1024 * 1024;
+    private static final int MAX_BYTE_BUFFER_SIZE = 1024 * 1024 * 1024;
     private static final byte[] JSON_PREFIX = "[".getBytes(StandardCharsets.UTF_8);
     private static final byte[] JSON_SEPARATOR = ",".getBytes(StandardCharsets.UTF_8);
     private static final byte[] JSON_SUFFIX = "]".getBytes(StandardCharsets.UTF_8);
@@ -156,7 +156,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         }
         // column mapping
         put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
-        put.setHeader("jsonpaths", parseJsonPaths(keys));
+        //put.setHeader("jsonpaths", parseJsonPaths(keys));
         return put;
     }
 
