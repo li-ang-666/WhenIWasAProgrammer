@@ -36,8 +36,9 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
     private static final int MAX_BYTE_BUFFER_SIZE = 512 * 1024 * 1024;
-    private static final String LINE_SEPARATOR_STRING = "\n";
-    private static final byte[] LINE_SEPARATOR_BYTES = LINE_SEPARATOR_STRING.getBytes(StandardCharsets.UTF_8);
+    private static final byte[] JSON_PREFIX = "[".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] JSON_SEPARATOR = ",".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] JSON_SUFFIX = "]".getBytes(StandardCharsets.UTF_8);
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
@@ -81,27 +82,37 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         executePut(put, schema);
     }
 
-    public boolean cacheBatch(Map<String, Object> columnMap) {
+    public boolean cacheBatch(Map<String, Object> map) {
+        Map<String, Object> columnMap = new TreeMap<>(map);
         if (buffer == null) {
             throw new RuntimeException("due to the `Constructor`, maybe you need to use update() and flush()");
         }
         // the first row
         if (keys.isEmpty()) keys.addAll(columnMap.keySet());
+        // add prefix
+        if (currentByteBufferSize == 0 && currentRows == 0) {
+            buffer.put(JSON_PREFIX);
+            currentByteBufferSize += JSON_PREFIX.length;
+        }
         // add content
         byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
         buffer.put(content);
         currentByteBufferSize += content.length;
         currentRows++;
         maxRowSize = Math.max(maxRowSize, content.length);
-        // add line separator
-        buffer.put(LINE_SEPARATOR_BYTES);
-        currentByteBufferSize += LINE_SEPARATOR_BYTES.length;
+        // add separator
+        buffer.put(JSON_SEPARATOR);
+        currentByteBufferSize += JSON_SEPARATOR.length;
         // compare
         return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize > 1024 * maxRowSize;
     }
 
     public void flushBatch() {
         if (currentByteBufferSize == 0 && currentRows == 0) return;
+        // add suffix
+        buffer.put(JSON_SUFFIX);
+        currentByteBufferSize += JSON_SUFFIX.length;
+        // execute
         HttpPut put = getHttpPutWithBinaryEntity(schema);
         executePut(put, schema);
         buffer.clear();
@@ -117,17 +128,12 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
 
     private HttpPut getHttpPutWithStringEntity(DorisSchema schema, List<Map<String, Object>> columnMaps) {
         HttpPut put = getCommonHttpPut(schema, new ArrayList<>(columnMaps.get(0).keySet()));
-        // single big json
-        put.setHeader("strip_outer_array", "true");
         put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
         return put;
     }
 
     private HttpPut getHttpPutWithBinaryEntity(DorisSchema schema) {
         HttpPut put = getCommonHttpPut(schema, keys);
-        // many small json
-        put.setHeader("line_delimiter", LINE_SEPARATOR_STRING);
-        put.setHeader("read_json_by_line", "true");
         put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentByteBufferSize));
         return put;
     }
@@ -139,6 +145,8 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         put.setHeader(AUTHORIZATION, auth);
         put.setHeader("format", "json");
         put.setHeader("num_as_string", "true");
+        put.setHeader("strip_outer_array", "true");
+        put.setHeader("fuzzy_parse", "true");
         // for unique delete
         if (schema.getUniqueDeleteOn() != null) {
             put.setHeader("merge_type", "MERGE");

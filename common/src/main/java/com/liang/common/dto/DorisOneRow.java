@@ -3,8 +3,8 @@ package com.liang.common.dto;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 @Data
 public class DorisOneRow implements Serializable {
@@ -13,12 +13,12 @@ public class DorisOneRow implements Serializable {
 
     public DorisOneRow(DorisSchema schema) {
         this.schema = schema;
-        this.columnMap = new HashMap<>();
+        this.columnMap = new TreeMap<>();
     }
 
     public DorisOneRow(DorisSchema schema, Map<String, Object> columnMap) {
         this.schema = schema;
-        this.columnMap = columnMap;
+        this.columnMap = new TreeMap<>(columnMap);
     }
 
     public DorisOneRow put(String column, Object value) {
