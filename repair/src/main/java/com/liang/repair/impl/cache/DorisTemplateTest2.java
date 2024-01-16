@@ -24,9 +24,7 @@ public class DorisTemplateTest2 extends ConfigHolder {
         for (int i = 1; i <= 1024 * 1024 * 1024; i++) {
             DorisOneRow clone = SerializeUtil.clone(unique);
             clone.put("id", i);
-            if (!dorisTemplate.cacheBatch(clone.getColumnMap())) {
-                dorisTemplate.flushBatch();
-            }
+            dorisTemplate.updateBatch(clone.getColumnMap());
         }
         dorisTemplate.flushBatch();
     }

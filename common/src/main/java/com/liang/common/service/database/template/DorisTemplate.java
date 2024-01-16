@@ -82,7 +82,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         executePut(put, schema);
     }
 
-    public boolean cacheBatch(Map<String, Object> oneRow) {
+    public void updateBatch(Map<String, Object> oneRow) {
         Map<String, Object> columnMap = new TreeMap<>(oneRow);
         if (buffer == null) {
             throw new RuntimeException("due to the `Constructor`, maybe you need to use update() and flush()");
@@ -106,7 +106,9 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         currentRows++;
         maxRowSize = Math.max(maxRowSize, content.length);
         // compare
-        return MAX_BYTE_BUFFER_SIZE - currentByteBufferSize > 1024 * maxRowSize;
+        if (MAX_BYTE_BUFFER_SIZE - currentByteBufferSize < 1024 * maxRowSize) {
+            flushBatch();
+        }
     }
 
     public void flushBatch() {

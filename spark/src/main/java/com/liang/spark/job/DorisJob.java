@@ -50,9 +50,7 @@ public class DorisJob {
             DorisTemplate dorisSink = new DorisTemplate("dorisSink", schema);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
-                if (!dorisSink.cacheBatch(columnMap)) {
-                    dorisSink.flushBatch();
-                }
+                dorisSink.updateBatch(columnMap);
             }
             dorisSink.flushBatch();
         }
