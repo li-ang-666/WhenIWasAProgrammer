@@ -32,7 +32,7 @@ import static org.apache.http.HttpHeaders.EXPECT;
 
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
-    private static final int DEFAULT_CACHE_MILLISECONDS = 30000;
+    private static final int DEFAULT_CACHE_MILLISECONDS = 1000 * 60;
     private static final int DEFAULT_CACHE_RECORDS = 10240;
     private static final int MAX_TRY_TIMES = 3;
     private static final int MAX_BYTE_BUFFER_SIZE = 1024 * 1024 * 1024;
@@ -149,9 +149,9 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         put.setHeader(EXPECT, "100-continue");
         put.setHeader(AUTHORIZATION, auth);
         put.setHeader("format", "json");
-        put.setHeader("num_as_string", "true");
         put.setHeader("strip_outer_array", "true");
         put.setHeader("fuzzy_parse", "true");
+        put.setHeader("num_as_string", "true");
         // for unique delete
         if (schema.getUniqueDeleteOn() != null) {
             put.setHeader("merge_type", "MERGE");
