@@ -70,7 +70,7 @@ public class DwdAppActiveJob {
                     "update_time = now()"
             );
             schema = DorisSchema.builder()
-                    .database("test_db")
+                    .database("dwd")
                     .tableName("dwd_app_active")
                     .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
                     .derivedColumns(derivedColumns)

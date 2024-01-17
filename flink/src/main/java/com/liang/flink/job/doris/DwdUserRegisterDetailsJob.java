@@ -56,7 +56,7 @@ public class DwdUserRegisterDetailsJob {
                     "update_time = nvl(updatetime, now())"
             );
             schema = DorisSchema.builder()
-                    .database("test_db")
+                    .database("dwd")
                     .tableName("dwd_user_register_details")
                     .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
                     .derivedColumns(derivedColumns)

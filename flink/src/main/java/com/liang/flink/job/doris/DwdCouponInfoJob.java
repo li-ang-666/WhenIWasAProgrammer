@@ -64,7 +64,7 @@ public class DwdCouponInfoJob {
                     "update_time = now()"
             );
             schema = DorisSchema.builder()
-                    .database("test_db")
+                    .database("dwd")
                     .tableName("dwd_coupon_info")
                     .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
                     .derivedColumns(derivedColumns)
