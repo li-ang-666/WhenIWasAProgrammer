@@ -75,14 +75,12 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     public void updateOffline(DorisOneRow dorisOneRow) {
-        requireBufferNull(false);
         Map<String, Object> columnMap = dorisOneRow.getColumnMap();
         // the first row
-        if (keys == null) {
-            keys = new ArrayList<>(columnMap.keySet());
-        }
-        if (schema == null) {
+        if (maxRowSize == Integer.MIN_VALUE) {
+            requireBufferNull(false);
             schema = dorisOneRow.getSchema();
+            keys = new ArrayList<>(columnMap.keySet());
         }
         // add prefix
         if (currentByteBufferSize == 0) {
@@ -123,11 +121,11 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     }
 
     @Override
-    protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
+    protected void updateImmediately(DorisSchema dorisSchema, Collection<DorisOneRow> dorisOneRows) {
         requireBufferNull(true);
-        this.schema = schema;
+        schema = dorisSchema;
         List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
-        this.keys = new ArrayList<>(columnMaps.get(0).keySet());
+        keys = new ArrayList<>(columnMaps.get(0).keySet());
         HttpPut put = getCommonHttpPut();
         put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
         executePut(put);
