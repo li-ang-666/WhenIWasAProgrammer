@@ -85,8 +85,8 @@ public class DorisJob {
             if ("dwd_app_active".equals(sinkTable)) {
                 String createTime = String.valueOf(columnMap.get("create_time"));
                 String appId2 = String.valueOf(columnMap.get("app_id2"));
-                String minPt = LocalDateTime.now().plusDays(-30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                if (TycUtils.isDateTime(createTime) && createTime.compareTo(minPt) > 0 && TycUtils.isValidName(appId2)) {
+                String minPt = LocalDateTime.now().plusDays(-29).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                if (TycUtils.isValidName(appId2) && TycUtils.isDateTime(createTime) && createTime.compareTo(minPt) > 0) {
                     RATE_LIMITER.acquire();
                     out.collect(singleCanalBinlog);
                 }
