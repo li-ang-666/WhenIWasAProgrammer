@@ -10,7 +10,7 @@ kafkaConfigs:
     topics:
       - "06430.json.promotion.user_promotion_xxx"
     groupId: "dwd.dwd_coupon_info"
-    startFrom: "1"
+    startFrom: "2"
 
 dorisSchema:
   database: "dwd"
@@ -25,5 +25,3 @@ dorisSchema:
     - "expiration_time = from_unixtime(expiration_time/1000)"
     - "create_time = now()"
     - "update_time = now()"
-    - "biz_code = biz_code"
-    - "delete_status = delete_status"
