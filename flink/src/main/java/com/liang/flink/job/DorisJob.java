@@ -20,6 +20,11 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.Map;
 
+/**
+ * dwd_user_register_details
+ * dwd_app_active
+ * dwd_coupon_info
+ */
 @Slf4j
 @LocalConfigFile("doris/dwd_coupon_info.yml")
 public class DorisJob {
