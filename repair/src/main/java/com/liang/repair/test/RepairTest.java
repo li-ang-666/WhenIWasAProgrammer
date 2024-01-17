@@ -32,5 +32,8 @@ public class RepairTest extends ConfigHolder {
             sourceCount = doris.queryForObject("select count(1) from " + source, rs -> rs.getString(1));
             sinkCount = doris.queryForObject("select count(1) from " + sink, rs -> rs.getString(1));
         }
+        log.info("success!");
+        log.info("sourceCnt {}", sourceCount);
+        log.info("sinkCnt {}", sinkCount);
     }
 }
