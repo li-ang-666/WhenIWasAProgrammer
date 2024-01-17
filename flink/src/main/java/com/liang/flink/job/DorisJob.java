@@ -20,7 +20,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.Map;
 
 @Slf4j
-@LocalConfigFile("doris/dwd_user_register_details.yml")
+@LocalConfigFile("doris/dwd_app_active.yml")
 public class DorisJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -43,8 +43,9 @@ public class DorisJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             dorisSink = new DorisTemplate("dorisSink");
-            dorisSink.enableCache();
+            dorisSink.enableCache(3000, 1024);
             config.getDorisSchema().setUniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON);
+            log.info("doris schema: {}", config.getDorisSchema());
         }
 
         @Override
