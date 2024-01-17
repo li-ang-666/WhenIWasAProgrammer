@@ -51,7 +51,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private ByteBuffer buffer;
     private int currentByteBufferSize = 0;
     private int currentRows = 0;
-    private int maxRowSize = 0;
+    private int maxRowSize = Integer.MIN_VALUE;
 
     public DorisTemplate(String name) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
