@@ -10,13 +10,14 @@ import java.util.Arrays;
 
 public class DorisTemplateTest2 extends ConfigHolder {
     public static void main(String[] args) throws Exception {
+        DorisTemplate dorisTemplate = new DorisTemplate("dorisSink");
+        dorisTemplate.enableOffline();
         DorisSchema uniqueSchema = DorisSchema.builder()
                 .database("test")
                 .tableName("unique_test")
                 .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
-                .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ', name)"))
+                .derivedColumns(Arrays.asList("id = id + 10", "name = concat(name, '(modified by derived column setting)')"))
                 .build();
-        DorisTemplate dorisTemplate = new DorisTemplate("dorisSink", uniqueSchema);
         DorisOneRow unique = new DorisOneRow(uniqueSchema)
                 .put("id", 0)
                 .put("name", "UNIQUE")
@@ -24,8 +25,8 @@ public class DorisTemplateTest2 extends ConfigHolder {
         for (int i = 1; i <= 1024 * 1024 * 1024; i++) {
             DorisOneRow clone = SerializeUtil.clone(unique);
             clone.put("id", i);
-            dorisTemplate.updateBatch(clone.getColumnMap());
+            dorisTemplate.updateOffline(clone);
         }
-        dorisTemplate.flushBatch();
+        dorisTemplate.flushOffline();
     }
 }

@@ -1,6 +1,7 @@
 package com.liang.spark.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -46,13 +47,14 @@ public class DorisJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
+            DorisTemplate dorisSink = new DorisTemplate("dorisSink");
+            dorisSink.enableOffline();
             DorisSchema schema = DorisSchema.builder().database(database).tableName(table).build();
-            DorisTemplate dorisSink = new DorisTemplate("dorisSink", schema);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
-                dorisSink.updateBatch(columnMap);
+                dorisSink.updateOffline(new DorisOneRow(schema, columnMap));
             }
-            dorisSink.flushBatch();
+            dorisSink.flushOffline();
         }
     }
 }

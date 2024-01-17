@@ -45,10 +45,10 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private final AtomicInteger fePointer = new AtomicInteger(0);
     private final List<String> fe;
     private final String auth;
+    private DorisSchema schema;
+    private List<String> keys;
     // self cache
-    private final ByteBuffer buffer;
-    private final DorisSchema schema;
-    private final List<String> keys;
+    private ByteBuffer buffer;
     private int currentByteBufferSize = 0;
     private int currentRows = 0;
     private int maxRowSize = 0;
@@ -58,37 +58,30 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
         fe = dorisConfig.getFe();
         auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
-        this.buffer = null;
-        this.schema = null;
-        this.keys = null;
     }
 
-    public DorisTemplate(String name, DorisSchema schema) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
-        DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
-        fe = dorisConfig.getFe();
-        auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
-        this.buffer = ByteBuffer.allocate(MAX_BYTE_BUFFER_SIZE);
-        this.schema = schema;
-        this.keys = new ArrayList<>();
+    private String basicAuthHeader(String username, String password) {
+        String tobeEncode = username + ":" + password;
+        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
+        return "Basic " + new String(encoded);
     }
 
-    @Override
-    protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
-        if (buffer != null) {
-            throw new RuntimeException("due to the `Constructor`, maybe you need to use cacheBatch() and flushBatch()");
-        }
-        HttpPut put = getHttpPutWithStringEntity(schema, dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList()));
-        executePut(put, schema);
-    }
-
-    public void updateBatch(Map<String, Object> oneRow) {
-        Map<String, Object> columnMap = new TreeMap<>(oneRow);
+    public void enableOffline() {
         if (buffer == null) {
-            throw new RuntimeException("due to the `Constructor`, maybe you need to use update() and flush()");
+            buffer = ByteBuffer.allocate(MAX_BYTE_BUFFER_SIZE);
         }
+    }
+
+    public void updateOffline(DorisOneRow dorisOneRow) {
+        requireBufferNull(false);
+        Map<String, Object> columnMap = dorisOneRow.getColumnMap();
         // the first row
-        if (keys.isEmpty()) keys.addAll(columnMap.keySet());
+        if (keys == null) {
+            keys = new ArrayList<>(columnMap.keySet());
+        }
+        if (schema == null) {
+            schema = dorisOneRow.getSchema();
+        }
         // add prefix
         if (currentByteBufferSize == 0) {
             buffer.put(JSON_PREFIX);
@@ -107,43 +100,39 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         maxRowSize = Math.max(maxRowSize, content.length);
         // compare
         if (MAX_BYTE_BUFFER_SIZE - currentByteBufferSize < 1024 * maxRowSize) {
-            flushBatch();
+            flushOffline();
         }
     }
 
-    public void flushBatch() {
+    public void flushOffline() {
+        requireBufferNull(false);
         if (currentRows > 0) {
             // add suffix
             buffer.put(JSON_SUFFIX);
             currentByteBufferSize += JSON_SUFFIX.length;
             // execute
-            HttpPut put = getHttpPutWithBinaryEntity(schema);
-            executePut(put, schema);
+            HttpPut put = getCommonHttpPut();
+            put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentByteBufferSize));
+            executePut(put);
         }
         buffer.clear();
         currentByteBufferSize = 0;
         currentRows = 0;
     }
 
-    private String basicAuthHeader(String username, String password) {
-        String tobeEncode = username + ":" + password;
-        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
-        return "Basic " + new String(encoded);
-    }
-
-    private HttpPut getHttpPutWithStringEntity(DorisSchema schema, List<Map<String, Object>> columnMaps) {
-        HttpPut put = getCommonHttpPut(schema, new ArrayList<>(columnMaps.get(0).keySet()));
+    @Override
+    protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
+        requireBufferNull(true);
+        assert buffer == null;
+        this.schema = schema;
+        List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
+        this.keys = new ArrayList<>(columnMaps.get(0).keySet());
+        HttpPut put = getCommonHttpPut();
         put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
-        return put;
+        executePut(put);
     }
 
-    private HttpPut getHttpPutWithBinaryEntity(DorisSchema schema) {
-        HttpPut put = getCommonHttpPut(schema, keys);
-        put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentByteBufferSize));
-        return put;
-    }
-
-    private HttpPut getCommonHttpPut(DorisSchema schema, List<String> keys) {
+    private HttpPut getCommonHttpPut() {
         // common
         HttpPut put = new HttpPut();
         put.setHeader(EXPECT, "100-continue");
@@ -159,26 +148,26 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         }
         // column mapping
         if (schema.getDerivedColumns() != null && !schema.getDerivedColumns().isEmpty()) {
-            put.setHeader("columns", parseColumns(keys, schema.getDerivedColumns()));
+            put.setHeader("columns", parseColumns());
         }
         return put;
     }
 
-    private String parseColumns(List<String> keys, List<String> derivedColumns) {
+    private String parseColumns() {
         List<String> columns = keys.parallelStream()
                 .map(e -> "`" + e + "`")
                 .collect(Collectors.toList());
-        columns.addAll(derivedColumns);
+        columns.addAll(schema.getDerivedColumns());
         return String.join(",", columns);
     }
 
-    private void executePut(HttpPut put, DorisSchema schema) {
+    private void executePut(HttpPut put) {
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             int tryTimes = MAX_TRY_TIMES;
             while (tryTimes-- > 0) {
                 // 负载均衡 & label
-                put.setURI(getUri(schema.getDatabase(), schema.getTableName()));
-                put.setHeader("label", getLabel(schema.getDatabase(), schema.getTableName()));
+                put.setURI(getUri());
+                put.setHeader("label", getLabel());
                 try (CloseableHttpResponse response = client.execute(put)) {
                     int statusCode = response.getStatusLine().getStatusCode();
                     String loadResult = EntityUtils.toString(response.getEntity());
@@ -200,15 +189,23 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         }
     }
 
-    private URI getUri(String database, String table) {
+    private URI getUri() {
         String targetFe = fe.get(fePointer.getAndIncrement() % fe.size());
-        return URI.create(String.format("http://%s/api/%s/%s/_stream_load", targetFe, database, table));
+        return URI.create(String.format("http://%s/api/%s/%s/_stream_load", targetFe, schema.getDatabase(), schema.getTableName()));
     }
 
-    private String getLabel(String database, String table) {
+    private String getLabel() {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        return String.format("%s_%s_%s_%s", database, table,
+        return String.format("%s_%s_%s_%s", schema.getDatabase(), schema.getTableName(),
                 DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"), uuid);
+    }
+
+    private void requireBufferNull(boolean requireNull) {
+        if (requireNull && buffer != null) {
+            throw new RuntimeException("buffer should be null");
+        } else if (!requireNull && buffer == null) {
+            throw new RuntimeException("buffer should not be null");
+        }
     }
 
     @Slf4j
