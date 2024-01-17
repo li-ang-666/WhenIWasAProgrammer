@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        String source = "dwd.dwd_coupon_info";
+        String source = "dwd.dwd_order_info";
         String sink = "bak." + source.split("\\.")[1];
         JdbcTemplate doris = new JdbcTemplate("doris");
         // drop sink
