@@ -20,5 +20,7 @@ public class Config implements Serializable {
     // 特殊库
     private Map<String, HbaseConfig> hbaseConfigs;
     private Map<String, DorisConfig> dorisConfigs;
+    // Doris
+    private DorisSchema dorisSchema;
 }
 

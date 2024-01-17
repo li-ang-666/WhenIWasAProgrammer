@@ -1,0 +1,31 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 1
+  otherParallel: 1
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "115ee.json.app_advertisement.ads_active_copy"
+    groupId: "dwd.dwd_app_active"
+    startFrom: "1"
+
+dorisSchema:
+  database: "dwd"
+  tableName: "dwd_app_active"
+  derivedColumns:
+    - "app_id2 = app_id2"
+    - "pt = date_format(create_time, 'yyyy-MM-dd')"
+    - "android_id = android_id"
+    - "imei = imei"
+    - "oaid = oaid"
+    - "idfa = idfa"
+    - "idfv = idfv"
+    - "type = type"
+    - "umeng_channel = umeng_channel"
+    - "create_time = create_time"
+    - "app_version = get_json_string(ads_header_json, '$.Version')"
+    - "update_time = now()"
+  where: "app_id2 is not null and app_id2 <> '' and create_time is not null and create_time > date_add(create_time, -30)"

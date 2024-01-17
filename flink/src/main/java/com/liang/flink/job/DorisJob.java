@@ -1,4 +1,4 @@
-package com.liang.flink.job.doris;
+package com.liang.flink.job;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
@@ -11,63 +11,47 @@ import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
-@LocalConfigFile("dwd-user-register-details.yml")
-public class DwdUserRegisterDetailsJob {
+@Slf4j
+@LocalConfigFile("doris/dwd_user_register_details.yml")
+public class DorisJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream.rebalance()
-                .addSink(new DwdUserRegisterDetailsSink(config))
-                .name("DwdUserRegisterDetailsSink")
-                .uid("DwdUserRegisterDetailsSink")
-                .setParallelism(config.getFlinkConfig().getOtherParallel());
-        env.execute("DwdUserRegisterDetailsJob");
+                .addSink(new DorisSink(config))
+                .setParallelism(config.getFlinkConfig().getOtherParallel())
+                .name("DorisSink")
+                .uid("DorisSink");
+        env.execute(config.getDorisSchema().getDatabase() + "." + config.getDorisSchema().getDatabase());
     }
 
     @RequiredArgsConstructor
-    private final static class DwdUserRegisterDetailsSink extends RichSinkFunction<SingleCanalBinlog> {
+    private final static class DorisSink extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DorisTemplate dorisSink;
-        private DorisSchema schema;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             dorisSink = new DorisTemplate("dorisSink");
             dorisSink.enableCache();
-            List<String> derivedColumns = Arrays.asList(
-                    "tyc_user_id = id",
-                    "mobile = mobile",
-                    "register_time = create_time",
-                    "vip_from_time = vip_from_time",
-                    "vip_to_time = vip_to_time",
-                    "user_type = state",
-                    "create_time = nvl(create_time, now())",
-                    "update_time = nvl(updatetime, now())"
-            );
-            schema = DorisSchema.builder()
-                    .database("dwd")
-                    .tableName("dwd_user_register_details")
-                    .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
-                    .derivedColumns(derivedColumns)
-                    .build();
+            config.getDorisSchema().setUniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON);
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             columnMap.put("__DORIS_DELETE_SIGN__", singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE);
-            dorisSink.update(new DorisOneRow(schema, columnMap));
+            dorisSink.update(new DorisOneRow(config.getDorisSchema(), columnMap));
         }
     }
 }

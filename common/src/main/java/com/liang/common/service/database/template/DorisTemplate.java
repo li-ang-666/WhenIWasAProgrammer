@@ -1,5 +1,6 @@
 package com.liang.common.service.database.template;
 
+import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisConfig;
@@ -142,13 +143,17 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         put.setHeader("fuzzy_parse", "true");
         put.setHeader("num_as_string", "true");
         // for unique delete
-        if (schema.getUniqueDeleteOn() != null) {
+        if (schema.getUniqueDeleteOn() != null && StrUtil.isNotBlank(schema.getUniqueDeleteOn())) {
             put.setHeader("merge_type", "MERGE");
             put.setHeader("delete", schema.getUniqueDeleteOn());
         }
         // column mapping
         if (schema.getDerivedColumns() != null && !schema.getDerivedColumns().isEmpty()) {
             put.setHeader("columns", parseColumns());
+        }
+        // where
+        if (schema.getWhere() != null && StrUtil.isNotBlank(schema.getWhere())) {
+            put.setHeader("where", schema.getWhere());
         }
         return put;
     }

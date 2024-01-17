@@ -1,0 +1,29 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 1
+  otherParallel: 1
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "06430.json.promotion.user_promotion_xxx"
+    groupId: "dwd.dwd_coupon_info"
+    startFrom: "1"
+
+dorisSchema:
+  database: "dwd"
+  tableName: "dwd_coupon_info"
+  derivedColumns:
+    - "promotion_code = nvl(promotion_code, '')"
+    - "unique_user_id = nvl(user_id, 0)"
+    - "promotion_id = nvl(promotion_id, 0)"
+    - "use_status = nvl(use_status, 0)"
+    - "receive_time = from_unixtime(receive_time/1000)"
+    - "effective_time = from_unixtime(effective_time/1000)"
+    - "expiration_time = from_unixtime(expiration_time/1000)"
+    - "create_time = now()"
+    - "update_time = now()"
+    - "delete_status = delete_status"
+  where: "biz_code = 1 and delete_status = 0 and promotion_code <> ''"
