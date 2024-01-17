@@ -125,7 +125,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     @Override
     protected void updateImmediately(DorisSchema schema, Collection<DorisOneRow> dorisOneRows) {
         requireBufferNull(true);
-        assert buffer == null;
         this.schema = schema;
         List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
         this.keys = new ArrayList<>(columnMaps.get(0).keySet());
