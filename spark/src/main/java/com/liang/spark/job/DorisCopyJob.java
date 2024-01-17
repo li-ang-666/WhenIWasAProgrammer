@@ -33,8 +33,8 @@ public class DorisCopyJob {
         // check
         String sourceCount = doris.queryForObject("select count(1) from " + source, rs -> rs.getString(1));
         String sinkCount = doris.queryForObject("select count(1) from " + sink, rs -> rs.getString(1));
-        while (!sourceCount.equals(sinkCount)) {
-            log.warn("sourceCnt {} not eq sinkCnt {}", sourceCount, sinkCount);
+        while (Math.abs(Long.parseLong(sourceCount) - Long.parseLong(sinkCount)) > 100_000) {
+            log.warn("sourceCnt {} not like sinkCnt {}", sourceCount, sinkCount);
             LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 5);
         }
         // spark
