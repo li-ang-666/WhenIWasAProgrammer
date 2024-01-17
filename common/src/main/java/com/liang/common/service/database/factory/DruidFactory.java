@@ -54,7 +54,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setInitialSize(1);
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(10);
-        druidDataSource.setMaxWait(1000 * 60 * 2);
+        druidDataSource.setMaxWait(1000 * 60 * 5);
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
         druidDataSource.setTestWhileIdle(true);
@@ -73,11 +73,11 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         // 设置sql超时, 避免断电未提交的事务导致其它sql lock wait timeout
         List<String> initSqls = Arrays.asList(
-                "set wait_timeout = 120", "set interactive_timeout = 120");
+                "set wait_timeout = 300", "set interactive_timeout = 300");
         druidDataSource.setConnectionInitSqls(initSqls);
-        druidDataSource.setConnectTimeout(1000 * 60 * 2);
-        druidDataSource.setSocketTimeout(1000 * 60 * 2);
-        druidDataSource.setQueryTimeout(120);
-        druidDataSource.setTransactionQueryTimeout(120);
+        druidDataSource.setConnectTimeout(1000 * 60 * 5);
+        druidDataSource.setSocketTimeout(1000 * 60 * 5);
+        druidDataSource.setQueryTimeout(300);
+        druidDataSource.setTransactionQueryTimeout(300);
     }
 }
