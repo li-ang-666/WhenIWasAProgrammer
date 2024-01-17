@@ -143,7 +143,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         put.setHeader("fuzzy_parse", "true");
         put.setHeader("num_as_string", "true");
         // for unique delete
-        if (schema.getUniqueDeleteOn() != null && StrUtil.isNotBlank(schema.getUniqueDeleteOn())) {
+        if (schema.getUniqueDeleteOn() != null && !StrUtil.isBlank(schema.getUniqueDeleteOn())) {
             put.setHeader("merge_type", "MERGE");
             put.setHeader("delete", schema.getUniqueDeleteOn());
         }
@@ -152,7 +152,7 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
             put.setHeader("columns", parseColumns());
         }
         // where
-        if (schema.getWhere() != null && StrUtil.isNotBlank(schema.getWhere())) {
+        if (schema.getWhere() != null && !StrUtil.isBlank(schema.getWhere())) {
             put.setHeader("where", schema.getWhere());
         }
         return put;
