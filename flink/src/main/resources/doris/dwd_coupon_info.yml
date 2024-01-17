@@ -25,5 +25,5 @@ dorisSchema:
     - "expiration_time = from_unixtime(expiration_time/1000)"
     - "create_time = now()"
     - "update_time = now()"
+    - "biz_code = biz_code"
     - "delete_status = delete_status"
-  where: "biz_code = 1 and delete_status = 0 and promotion_code <> ''"

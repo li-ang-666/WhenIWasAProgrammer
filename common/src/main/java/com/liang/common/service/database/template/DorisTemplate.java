@@ -151,10 +151,6 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         if (CollUtil.isNotEmpty(schema.getDerivedColumns())) {
             put.setHeader("columns", parseColumns());
         }
-        // where
-        if (StrUtil.isNotBlank(schema.getWhere())) {
-            put.setHeader("where", schema.getWhere());
-        }
         return put;
     }
 

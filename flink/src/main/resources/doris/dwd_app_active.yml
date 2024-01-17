@@ -28,4 +28,3 @@ dorisSchema:
     - "create_time = create_time"
     - "app_version = get_json_string(ads_header_json, '$.Version')"
     - "update_time = now()"
-  where: "app_id2 is not null and app_id2 <> '' and create_time is not null and create_time > date_add(current_date(), -30)"
