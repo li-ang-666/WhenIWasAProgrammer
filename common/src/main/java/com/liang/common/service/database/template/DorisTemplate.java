@@ -33,7 +33,7 @@ import static org.apache.http.HttpHeaders.EXPECT;
 @Slf4j
 public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private static final int DEFAULT_CACHE_MILLISECONDS = 1000 * 60;
-    private static final int DEFAULT_CACHE_RECORDS = 10240;
+    private static final int DEFAULT_CACHE_RECORDS = 102400;
     private static final int MAX_TRY_TIMES = 3;
     private static final int MAX_BYTE_BUFFER_SIZE = (int) (1.9 * 1024 * 1024 * 1024);
     private static final byte[] JSON_PREFIX = "[".getBytes(StandardCharsets.UTF_8);
