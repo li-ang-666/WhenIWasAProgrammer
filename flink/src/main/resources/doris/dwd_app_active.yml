@@ -10,7 +10,7 @@ kafkaConfigs:
     topics:
       - "115ee.json.app_advertisement.ads_active_copy"
     groupId: "dwd.dwd_app_active"
-    startFrom: "2"
+    startFrom: "1"
 
 dorisSchema:
   database: "dwd"
@@ -28,3 +28,5 @@ dorisSchema:
     - "create_time = create_time"
     - "app_version = get_json_string(ads_header_json, '$.Version')"
     - "update_time = now()"
+    - "__DORIS_DELETE_SIGN__ = if(__DORIS_DELETE_SIGN__ = 0 and create_time is not null and create_time > date_add(current_date(), -29) and app_id2 is not null and app_id2 <> '', 0, 1)"
+  where: "pt > date_add(current_date(), -29)"

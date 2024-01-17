@@ -19,4 +19,5 @@ public class DorisSchema implements Serializable {
     private String tableName;
     private String uniqueDeleteOn;
     private List<String> derivedColumns;
+    private String where;
 }
