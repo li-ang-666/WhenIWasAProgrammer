@@ -6,14 +6,18 @@ import com.liang.spark.basic.SparkSessionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.SparkSession;
 
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class DorisCopyJob {
     public static void main(String[] args) {
+        log.info("args: {}", Arrays.toString(args));
         SparkSession spark = SparkSessionFactory.createSpark(null);
         String source = args[0];
+        log.info("source: {}", source);
         String sink = "bak." + source.split("\\.")[1];
+        log.info("sink: {}", sink);
         JdbcTemplate doris = new JdbcTemplate("doris");
         // drop sink
         String dropSql = String.format("drop table if exists %s force", sink);
