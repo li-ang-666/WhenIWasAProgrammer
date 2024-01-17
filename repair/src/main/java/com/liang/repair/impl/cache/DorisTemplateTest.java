@@ -7,8 +7,6 @@ import com.liang.common.service.database.template.DorisTemplate;
 import com.liang.repair.service.ConfigHolder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,17 +29,17 @@ public class DorisTemplateTest extends ConfigHolder {
                 .database("test")
                 .tableName("unique_test")
                 .uniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON)
-                .derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ', name)"))
+                //.derivedColumns(Arrays.asList("id = id + 10", "name = concat('name - ', name)"))
                 .build();
         DorisSchema aggSchema = DorisSchema.builder()
                 .database("test")
                 .tableName("agg_test")
-                .derivedColumns(Collections.singletonList("id = id + 100"))
+                //.derivedColumns(Collections.singletonList("id = id + 100"))
                 .build();
         DorisOneRow unique = new DorisOneRow(uniqueSchema)
                 .put("id", 2222222222L)
                 .put("name", "UNIQUE")
-                .put("__DORIS_DELETE_SIGN__", 0);
+                .put(DorisSchema.DEFAULT_UNIQUE_DELETE_COLUMN, 0);
         DorisOneRow agg = new DorisOneRow(aggSchema)
                 .put("id", 2222222222L)
                 .put("name", "AGGREGATE");

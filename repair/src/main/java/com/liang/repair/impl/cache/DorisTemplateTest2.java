@@ -21,7 +21,7 @@ public class DorisTemplateTest2 extends ConfigHolder {
         DorisOneRow unique = new DorisOneRow(uniqueSchema)
                 .put("id", 0)
                 .put("name", "UNIQUE")
-                .put("__DORIS_DELETE_SIGN__", 0);
+                .put(DorisSchema.DEFAULT_UNIQUE_DELETE_COLUMN, 0);
         for (int i = 1; i <= 1024 * 1024 * 1024; i++) {
             DorisOneRow clone = SerializeUtil.clone(unique);
             clone.put("id", i);

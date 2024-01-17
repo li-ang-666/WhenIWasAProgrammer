@@ -140,14 +140,18 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
         put.setHeader("strip_outer_array", "true");
         put.setHeader("fuzzy_parse", "true");
         put.setHeader("num_as_string", "true");
+        // columns
+        if (CollUtil.isNotEmpty(schema.getDerivedColumns())) {
+            put.setHeader("columns", parseColumns());
+        }
         // unique delete
         if (StrUtil.isNotBlank(schema.getUniqueDeleteOn())) {
             put.setHeader("merge_type", "MERGE");
             put.setHeader("delete", schema.getUniqueDeleteOn());
-        }
-        // column mapping
-        if (CollUtil.isNotEmpty(schema.getDerivedColumns())) {
-            put.setHeader("columns", parseColumns());
+            // delete must contains columns or hidden_columns
+            if (!put.containsHeader("columns")) {
+                put.setHeader("hidden_columns", DorisSchema.DEFAULT_UNIQUE_DELETE_COLUMN);
+            }
         }
         // where
         if (StrUtil.isNotBlank(schema.getWhere())) {

@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class DorisSchema implements Serializable {
+    public static final String DEFAULT_UNIQUE_DELETE_COLUMN = "__DORIS_DELETE_SIGN__";
     public static final String DEFAULT_UNIQUE_DELETE_ON = "__DORIS_DELETE_SIGN__ = 1";
 
     private String database;

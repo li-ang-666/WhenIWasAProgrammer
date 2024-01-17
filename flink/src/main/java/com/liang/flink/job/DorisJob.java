@@ -54,7 +54,7 @@ public class DorisJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             RATE_LIMITER.acquire();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            columnMap.put("__DORIS_DELETE_SIGN__", singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE);
+            columnMap.put(DorisSchema.DEFAULT_UNIQUE_DELETE_COLUMN, singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE);
             dorisSink.update(new DorisOneRow(config.getDorisSchema(), columnMap));
         }
     }
