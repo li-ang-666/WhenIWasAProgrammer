@@ -5,16 +5,13 @@ import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisConfig;
-import com.liang.common.service.AbstractCache;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.DateUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -24,7 +21,12 @@ import org.apache.http.util.EntityUtils;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
@@ -33,102 +35,67 @@ import static org.apache.http.HttpHeaders.AUTHORIZATION;
 import static org.apache.http.HttpHeaders.EXPECT;
 
 @Slf4j
-public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
-    private static final int DEFAULT_CACHE_MILLISECONDS = 1000 * 60;
-    private static final int DEFAULT_CACHE_RECORDS = 102400;
+public class DorisWriter {
     private static final int MAX_TRY_TIMES = 3;
-    private static final int MAX_BYTE_BUFFER_SIZE = (int) (1.9 * 1024 * 1024 * 1024);
-    private static final byte[] JSON_PREFIX = "[".getBytes(StandardCharsets.UTF_8);
-    private static final byte[] JSON_SEPARATOR = ",".getBytes(StandardCharsets.UTF_8);
-    private static final byte[] JSON_SUFFIX = "]".getBytes(StandardCharsets.UTF_8);
+    private static final byte JSON_PREFIX = (byte) '[';
+    private static final byte JSON_SEPARATOR = (byte) ',';
+    private static final byte JSON_SUFFIX = (byte) ']';
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
     private final AtomicInteger fePointer = new AtomicInteger(0);
+    private final int maxBufferSize;
+    private final ByteBuffer buffer;
     private final List<String> fe;
     private final String auth;
     private DorisSchema schema;
     private List<String> keys;
-    // self cache
-    private ByteBuffer buffer;
-    private int currentByteBufferSize = 0;
-    private int currentRows = 0;
+    private int currentBufferSize = 0;
     private int maxRowSize = Integer.MIN_VALUE;
 
-    public DorisTemplate(String name) {
-        super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, DorisOneRow::getSchema);
+    public DorisWriter(String name, int bufferSize) {
+        maxBufferSize = bufferSize;
+        buffer = ByteBuffer.allocate(bufferSize);
         DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
         fe = dorisConfig.getFe();
         auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
     }
 
-    private String basicAuthHeader(String username, String password) {
-        String tobeEncode = username + ":" + password;
-        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
-        return "Basic " + new String(encoded);
-    }
-
-    public void enableOffline() {
-        if (buffer == null) {
-            buffer = ByteBuffer.allocate(MAX_BYTE_BUFFER_SIZE);
-        }
-    }
-
-    public void updateOffline(DorisOneRow dorisOneRow) {
-        Map<String, Object> columnMap = dorisOneRow.getColumnMap();
-        // the first row
-        if (maxRowSize == Integer.MIN_VALUE) {
-            requireBufferNull(false);
-            schema = dorisOneRow.getSchema();
-            keys = new ArrayList<>(columnMap.keySet());
-        }
-        // add prefix
-        if (currentByteBufferSize == 0) {
-            buffer.put(JSON_PREFIX);
-            currentByteBufferSize += JSON_PREFIX.length;
-        }
-        // add separator
-        if (currentRows > 0) {
+    public void write(DorisOneRow dorisOneRow) {
+        synchronized (buffer) {
+            Map<String, Object> columnMap = dorisOneRow.getColumnMap();
+            // the first row
+            if (maxRowSize == Integer.MIN_VALUE) {
+                schema = dorisOneRow.getSchema();
+                keys = new ArrayList<>(columnMap.keySet());
+            }
+            // add content
             buffer.put(JSON_SEPARATOR);
-            currentByteBufferSize += JSON_SEPARATOR.length;
-        }
-        // add content
-        byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
-        buffer.put(content);
-        currentByteBufferSize += content.length;
-        currentRows++;
-        maxRowSize = Math.max(maxRowSize, content.length);
-        // compare
-        if (MAX_BYTE_BUFFER_SIZE - currentByteBufferSize < 1024 * maxRowSize) {
-            flushOffline();
+            currentBufferSize += 1;
+            byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
+            buffer.put(content);
+            currentBufferSize += content.length;
+            maxRowSize = Math.max(maxRowSize, content.length);
+            // compare
+            if (maxBufferSize - currentBufferSize < 100 * maxRowSize) {
+                flush();
+            }
         }
     }
 
-    public void flushOffline() {
-        requireBufferNull(false);
-        if (currentRows > 0) {
-            // add suffix
-            buffer.put(JSON_SUFFIX);
-            currentByteBufferSize += JSON_SUFFIX.length;
-            // execute
-            HttpPut put = getCommonHttpPut();
-            put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentByteBufferSize));
-            executePut(put);
+    public void flush() {
+        synchronized (buffer) {
+            if (currentBufferSize > 0) {
+                buffer.put(0, JSON_PREFIX);
+                buffer.put(JSON_SUFFIX);
+                // execute
+                HttpPut put = getCommonHttpPut();
+                put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentBufferSize));
+                executePut(put);
+            }
+            buffer.clear();
+            currentBufferSize = 0;
         }
-        buffer.clear();
-        currentByteBufferSize = 0;
-        currentRows = 0;
-    }
-
-    @Override
-    protected void updateImmediately(DorisSchema dorisSchema, Collection<DorisOneRow> dorisOneRows) {
-        requireBufferNull(true);
-        schema = dorisSchema;
-        List<Map<String, Object>> columnMaps = dorisOneRows.parallelStream().map(DorisOneRow::getColumnMap).collect(Collectors.toList());
-        keys = new ArrayList<>(columnMaps.get(0).keySet());
-        HttpPut put = getCommonHttpPut();
-        put.setEntity(new StringEntity(JsonUtils.toString(columnMaps), StandardCharsets.UTF_8));
-        executePut(put);
     }
 
     private HttpPut getCommonHttpPut() {
@@ -204,15 +171,13 @@ public class DorisTemplate extends AbstractCache<DorisSchema, DorisOneRow> {
     private String getLabel() {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
         return String.format("%s_%s_%s_%s", schema.getDatabase(), schema.getTableName(),
-                DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"), uuid);
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), uuid);
     }
 
-    private void requireBufferNull(boolean requireNull) {
-        if (requireNull && buffer != null) {
-            throw new RuntimeException("buffer should be null");
-        } else if (!requireNull && buffer == null) {
-            throw new RuntimeException("buffer should not be null");
-        }
+    private String basicAuthHeader(String username, String password) {
+        String tobeEncode = username + ":" + password;
+        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
+        return "Basic " + new String(encoded);
     }
 
     @Slf4j

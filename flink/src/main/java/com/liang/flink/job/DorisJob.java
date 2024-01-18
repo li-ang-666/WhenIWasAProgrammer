@@ -5,7 +5,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
-import com.liang.common.service.database.template.DorisTemplate;
+import com.liang.common.service.database.template.DorisWriter;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
@@ -44,13 +44,12 @@ public class DorisJob {
     private final static class DorisSink extends RichSinkFunction<SingleCanalBinlog> {
         private static final RateLimiter RATE_LIMITER = RateLimiter.create(6000);
         private final Config config;
-        private DorisTemplate dorisSink;
+        private DorisWriter dorisWriter;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            dorisSink = new DorisTemplate("dorisSink");
-            dorisSink.enableCache();
+            dorisWriter = new DorisWriter("dorisSink", 1024 * 1024 * 1024);
             config.getDorisSchema().setUniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON);
             log.info("doris schema: {}", config.getDorisSchema());
         }
@@ -60,7 +59,7 @@ public class DorisJob {
             RATE_LIMITER.acquire();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             columnMap.put(DorisSchema.DEFAULT_UNIQUE_DELETE_COLUMN, singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE ? 1 : 0);
-            dorisSink.update(new DorisOneRow(config.getDorisSchema(), columnMap));
+            dorisWriter.write(new DorisOneRow(config.getDorisSchema(), columnMap));
         }
     }
 }
