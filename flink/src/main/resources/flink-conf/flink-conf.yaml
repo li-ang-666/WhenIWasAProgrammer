@@ -1,7 +1,7 @@
 # 特殊参数
 taskmanager.network.memory.buffer-debloat.enabled: true
 classloader.check-leaked-classloader: false
-classloader.parent-first-patterns.additional: org.codehaus.;org.apache.kafka.
+classloader.resolve-order: parent-first
 
 # JVM参数
 env.java.opts.client: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps
