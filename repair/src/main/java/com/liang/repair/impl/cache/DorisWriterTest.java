@@ -8,7 +8,7 @@ import com.liang.repair.service.ConfigHolder;
 
 import java.util.Arrays;
 
-public class DorisTemplateTest extends ConfigHolder {
+public class DorisWriterTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
         DorisWriter dorisWriter = new DorisWriter("dorisSink", 1024 * 1024);
         DorisSchema uniqueSchema = DorisSchema.builder()

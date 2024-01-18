@@ -90,7 +90,7 @@ public class DorisWriter {
                 buffer.put(JSON_SUFFIX);
                 // execute
                 HttpPut put = getCommonHttpPut();
-                put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentBufferSize));
+                put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentBufferSize + 1));
                 executePut(put);
             }
             buffer.clear();
