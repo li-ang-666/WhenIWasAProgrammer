@@ -37,7 +37,7 @@ public class DorisJob {
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("DorisSink")
                 .uid("DorisSink");
-        env.execute(config.getDorisSchema().getDatabase() + "." + config.getDorisSchema().getDatabase());
+        env.execute("doris." + config.getDorisSchema().getTableName());
     }
 
     @RequiredArgsConstructor

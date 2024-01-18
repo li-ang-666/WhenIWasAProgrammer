@@ -9,7 +9,7 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "115ee.json.app_advertisement.ads_active_copy"
-    groupId: "dwd.dwd_app_active"
+    groupId: "doris.dwd_app_active"
     startFrom: "2"
 
 dorisSchema:

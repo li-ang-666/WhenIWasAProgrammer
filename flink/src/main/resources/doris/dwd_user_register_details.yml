@@ -9,7 +9,7 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "al.12108.json.prism_app.user"
-    groupId: "dwd.dwd_user_register_details"
+    groupId: "doris.dwd_user_register_details"
     startFrom: "2"
 
 dorisSchema:
