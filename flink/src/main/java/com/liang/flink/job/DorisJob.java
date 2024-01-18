@@ -49,7 +49,7 @@ public class DorisJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            dorisWriter = new DorisWriter("dorisSink", 1024 * 1024 * 1024);
+            dorisWriter = new DorisWriter("dorisSink", 256 * 1024 * 1024);
             config.getDorisSchema().setUniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON);
             log.info("doris schema: {}", config.getDorisSchema());
         }
