@@ -51,7 +51,6 @@ public class DorisWriter {
     private DorisSchema schema;
     private List<String> keys;
     private int currentBufferSize = 0;
-    private int maxRowSize = Integer.MIN_VALUE;
 
     public DorisWriter(String name, int bufferSize) {
         maxBufferSize = bufferSize;
@@ -65,21 +64,17 @@ public class DorisWriter {
         synchronized (buffer) {
             Map<String, Object> columnMap = dorisOneRow.getColumnMap();
             // the first row
-            if (maxRowSize == Integer.MIN_VALUE) {
+            if (schema == null) {
                 schema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
             }
-            // add content
+            byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
+            // reserve 1 byte for suffix
+            if (currentBufferSize + 1 + content.length >= maxBufferSize) flush();
             buffer.put(JSON_SEPARATOR);
             currentBufferSize += 1;
-            byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
             buffer.put(content);
             currentBufferSize += content.length;
-            maxRowSize = Math.max(maxRowSize, content.length);
-            // compare
-            if (maxBufferSize - currentBufferSize < 100 * maxRowSize) {
-                flush();
-            }
         }
     }
 
@@ -88,7 +83,6 @@ public class DorisWriter {
             if (currentBufferSize > 0) {
                 buffer.put(0, JSON_PREFIX);
                 buffer.put(JSON_SUFFIX);
-                // execute
                 HttpPut put = getCommonHttpPut();
                 put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentBufferSize + 1));
                 executePut(put);
