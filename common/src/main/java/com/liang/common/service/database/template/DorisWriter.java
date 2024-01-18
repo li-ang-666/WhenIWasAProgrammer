@@ -69,8 +69,8 @@ public class DorisWriter {
                 keys = new ArrayList<>(columnMap.keySet());
             }
             byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
-            // reserve 1 byte for suffix
-            if (currentBufferSize + 1 + content.length >= maxBufferSize) flush();
+            // 1(separator) + content + 1(suffix)
+            if (currentBufferSize + (1 + content.length + 1) > maxBufferSize) flush();
             buffer.put(JSON_SEPARATOR);
             currentBufferSize += 1;
             buffer.put(content);
