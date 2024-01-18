@@ -10,7 +10,7 @@ kafkaConfigs:
     topics:
       - "06430.json.promotion.user_promotion_xxx"
     groupId: "dwd.dwd_coupon_info"
-    startFrom: "1"
+    startFrom: "2"
 
 dorisSchema:
   database: "dwd"

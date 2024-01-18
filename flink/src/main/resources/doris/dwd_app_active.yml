@@ -10,7 +10,7 @@ kafkaConfigs:
     topics:
       - "115ee.json.app_advertisement.ads_active_copy"
     groupId: "dwd.dwd_app_active"
-    startFrom: "1"
+    startFrom: "2"
 
 dorisSchema:
   database: "dwd"
