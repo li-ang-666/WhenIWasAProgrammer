@@ -22,11 +22,11 @@ import java.util.Map;
 
 /**
  * dwd_user_register_details
- * dwd_app_active
  * dwd_coupon_info
+ * dwd_app_active
  */
 @Slf4j
-@LocalConfigFile("doris/dwd_coupon_info.yml")
+@LocalConfigFile("doris/dwd_app_active.yml")
 public class DorisJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
