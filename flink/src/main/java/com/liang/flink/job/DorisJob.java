@@ -29,11 +29,6 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.Map;
 
-/**
- * dwd_user_register_details
- * dwd_coupon_info
- * dwd_app_active
- */
 @Slf4j
 @LocalConfigFile("doris/dwd_basic_data_collect_monitor_hours.yml")
 public class DorisJob {
