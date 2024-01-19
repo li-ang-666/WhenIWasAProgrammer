@@ -26,7 +26,8 @@ public class AdsUserTagJob {
                 .setParallelism(1)
                 .name("AdsUserTagSource")
                 .uid("AdsUserTagSource")
-                .addSink(new AdsUserTagSink(ConfigUtils.getConfig())).setParallelism(1)
+                .rebalance()
+                .addSink(new AdsUserTagSink(ConfigUtils.getConfig()))
                 .setParallelism(1)
                 .name("AdsUserTagSink")
                 .uid("AdsUserTagSink");
