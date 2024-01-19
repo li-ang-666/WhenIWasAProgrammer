@@ -11,11 +11,13 @@ import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
+import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -44,15 +46,22 @@ public class DorisJob {
         checkpointConfig.setCheckpointInterval(CKP_INTERVAL);
         checkpointConfig.setMinPauseBetweenCheckpoints(CKP_INTERVAL);
         Config config = ConfigUtils.getConfig();
-        DorisSchema dorisSchema = config.getDorisSchema();
-
+        config.getDorisSchema().setUniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON);
+        // chain
         DataStream<SingleCanalBinlog> stream;
         if (config.getKafkaConfigs().get("kafkaSource").getBootstrapServers().contains("ods")) {
+            MapFunction<KafkaRecord<String>, SingleCanalBinlog> mapper = e -> {
+                Map<String, Object> columnMap = JsonUtils.parseJsonObj(e.getValue());
+                return new SingleCanalBinlog("", "", -1L, CanalEntry.EventType.INSERT, columnMap, columnMap, columnMap);
+            };
             stream = env.fromSource(KafkaSourceFactory.create(String::new), WatermarkStrategy.noWatermarks(), "KafkaSource")
-                    .map(e -> {
-                        Map<String, Object> columnMap = JsonUtils.parseJsonObj(e.getValue());
-                        return new SingleCanalBinlog("", "", -1L, CanalEntry.EventType.INSERT, columnMap, columnMap, columnMap);
-                    }).name("OdsKafkaMapper");
+                    .setParallelism(config.getFlinkConfig().getSourceParallel())
+                    .name("KafkaSource")
+                    .uid("KafkaSource")
+                    .map(mapper)
+                    .setParallelism(config.getFlinkConfig().getSourceParallel())
+                    .name("OdsKafkaMapper")
+                    .uid("OdsKafkaMapper");
         } else {
             stream = StreamFactory.create(env);
         }
@@ -62,7 +71,7 @@ public class DorisJob {
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("DorisSink")
                 .uid("DorisSink");
-        env.execute("doris." + dorisSchema.getTableName());
+        env.execute("doris." + config.getDorisSchema().getTableName());
     }
 
     @RequiredArgsConstructor
@@ -79,7 +88,6 @@ public class DorisJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             dorisWriter = new DorisWriter("dorisSink", 256 * 1024 * 1024);
-            config.getDorisSchema().setUniqueDeleteOn(DorisSchema.DEFAULT_UNIQUE_DELETE_ON);
         }
 
         @Override
