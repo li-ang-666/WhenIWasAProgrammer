@@ -34,7 +34,7 @@ public class AdsUserTagJob {
     }
 
     private final static class AdsUserTagSource implements SourceFunction<String> {
-        private static final int INTERVAL = 1000 * 5;
+        private static final int INTERVAL = 1000 * 20;
         private final AtomicBoolean cancel = new AtomicBoolean(false);
         private long last = System.currentTimeMillis();
 
