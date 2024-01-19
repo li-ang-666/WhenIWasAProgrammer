@@ -1,0 +1,17 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 1
+  otherParallel: 1
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "628fd.json.channel_test.basic_data_collect_monitor_hours"
+    groupId: "doris.dwd_basic_data_collect_monitor_hours"
+    startFrom: "1"
+
+dorisSchema:
+  database: "dwd"
+  tableName: "dwd_basic_data_collect_monitor_hours"

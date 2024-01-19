@@ -7,16 +7,20 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.service.database.template.DorisWriter;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
+import com.liang.flink.basic.kafka.KafkaSourceFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
@@ -29,7 +33,7 @@ import java.util.Map;
  * dwd_app_active
  */
 @Slf4j
-@LocalConfigFile("doris/dwd_app_active.yml")
+@LocalConfigFile("doris/dwd_basic_data_collect_monitor_hours.yml")
 public class DorisJob {
     private static final int CKP_INTERVAL = 1000 * 60;
 
@@ -40,13 +44,25 @@ public class DorisJob {
         checkpointConfig.setCheckpointInterval(CKP_INTERVAL);
         checkpointConfig.setMinPauseBetweenCheckpoints(CKP_INTERVAL);
         Config config = ConfigUtils.getConfig();
-        StreamFactory.create(env)
+        DorisSchema dorisSchema = config.getDorisSchema();
+
+        DataStream<SingleCanalBinlog> stream;
+        if (config.getKafkaConfigs().get("kafkaSource").getBootstrapServers().contains("ods")) {
+            stream = env.fromSource(KafkaSourceFactory.create(String::new), WatermarkStrategy.noWatermarks(), "KafkaSource")
+                    .map(e -> {
+                        Map<String, Object> columnMap = JsonUtils.parseJsonObj(e.getValue());
+                        return new SingleCanalBinlog("", "", -1L, CanalEntry.EventType.INSERT, columnMap, columnMap, columnMap);
+                    }).name("OdsKafkaMapper");
+        } else {
+            stream = StreamFactory.create(env);
+        }
+        stream
                 .rebalance()
                 .addSink(new DorisSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("DorisSink")
                 .uid("DorisSink");
-        env.execute("doris." + config.getDorisSchema().getTableName());
+        env.execute("doris." + dorisSchema.getTableName());
     }
 
     @RequiredArgsConstructor

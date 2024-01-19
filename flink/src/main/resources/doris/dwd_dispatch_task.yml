@@ -1,0 +1,17 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 1
+  otherParallel: 1
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "30062.json.dispatch_strategy_center.dispatch_task"
+    groupId: "doris.dwd_dispatch_task"
+    startFrom: "2"
+
+dorisSchema:
+  database: "dwd"
+  tableName: "dwd_dispatch_task"

@@ -1,0 +1,30 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 1
+  otherParallel: 1
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "kafka-ods.middleware.huawei:9092"
+    topics:
+      - "rt_dwd_sensor_pay_point_com_detail"
+    groupId: "doris.dwd_pay_point_com_detail"
+    startFrom: "2"
+
+dorisSchema:
+  database: "dwd"
+  tableName: "dwd_pay_point_com_detail"
+  derivedColumns:
+    - "tyc_user_id = tyc_user_id"
+    - "request_time = concat(from_unixtime(request_time/1000), '.', request_time%1000)"
+    - "pt = pt"
+    - "sensor_event = nvl(sensor_event, '')"
+    - "mobile = nvl(mobile, '')"
+    - "platform_name = nvl(platform_name, '')"
+    - "pay_point_id = nvl(pay_point_id, '')"
+    - "prepare_order_id = nvl(prepare_order_id, '')"
+    - "activity_id = nvl(activity_id, '')"
+    - "update_time = now()"
+    - "__DORIS_DELETE_SIGN__ = if(__DORIS_DELETE_SIGN__ = 0 and tyc_user_id is not null, 0, 1)"
+  where: "pt > date_add(current_date(), -29)"
