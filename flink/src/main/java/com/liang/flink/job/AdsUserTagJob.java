@@ -72,7 +72,7 @@ public class AdsUserTagJob {
             String label = String.format("ads_user_tag_%s", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
             String insertSql = String.format(INSERT_SQL_TEMPLATE, label);
             doris.update(insertSql);
-            log.info("insert with label {}", label);
+            log.info("insert finish, see: `show load from ads where label = '{}'\\G` or `show transaction from ads where label = '{}'\\G`", label, label);
         }
     }
 }
