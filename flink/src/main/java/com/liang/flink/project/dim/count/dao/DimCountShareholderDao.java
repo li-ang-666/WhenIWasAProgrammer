@@ -2,6 +2,7 @@ package com.liang.flink.project.dim.count.dao;
 
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ApolloUtils;
+import com.liang.common.util.TycUtils;
 
 import static com.liang.common.util.SqlUtils.formatValue;
 
@@ -19,7 +20,9 @@ public class DimCountShareholderDao {
     }
 
     public Integer queryNumControlAbility(Object shareholderId) {
-        String sql = String.format(ApolloUtils.get("queryNumControlAbility"), formatValue(shareholderId));
+        String sql = TycUtils.isUnsignedId(shareholderId) ?
+                String.format(ApolloUtils.get("queryCompanyNumControlAbility"), formatValue(shareholderId)) :
+                String.format(ApolloUtils.get("queryNumControlAbility"), formatValue(shareholderId));
         return jdbcTemplate.queryForObject(sql, rs -> rs.getInt(1));
     }
 
