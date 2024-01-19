@@ -47,6 +47,7 @@ public class CompanyNumControlAbilityJob {
                 HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, shareholderId);
                 hbaseOneRow.put("num_control_ability", cnt);
                 hbaseSink.update(hbaseOneRow);
+                log.info("row: {}", hbaseOneRow);
             }
             hbaseSink.flush();
         }
