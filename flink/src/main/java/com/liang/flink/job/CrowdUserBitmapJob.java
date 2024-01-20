@@ -49,7 +49,7 @@ public class CrowdUserBitmapJob {
                 .setParallelism(1)
                 .name("CrowdUserBitmapSink")
                 .uid("CrowdUserBitmapSink");
-        env.execute("doris.bitmap_test");
+        env.execute("doris.crowd_user_bitmap");
     }
 
     @Slf4j
