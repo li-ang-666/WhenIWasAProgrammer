@@ -1,6 +1,9 @@
 package com.liang.flink.test;
 
+import cn.hutool.core.io.IoUtil;
+import com.liang.common.util.DorisBitmapUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,9 +19,9 @@ public class FlinkTest {
     public static void main(String[] args) throws Exception {
         Class.forName(DRIVER);
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            ResultSet rs = connection.prepareStatement("show databases").executeQuery();
+            ResultSet rs = connection.prepareStatement("select id, bitmap from test.bitmap_test").executeQuery();
             while (rs.next()) {
-                System.out.println(rs.getString(1));
+                Roaring64NavigableMap bitmap = DorisBitmapUtils.parseBinary(IoUtil.readBytes(rs.getBinaryStream(2)));
             }
         }
     }
