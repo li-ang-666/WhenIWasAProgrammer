@@ -11,14 +11,14 @@ import java.util.stream.Collectors;
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
         String[] sources = new String[]{
-                "dwd.dwd_user_register_details",
-                "dwd.dwd_coupon_info",
-                "dwd.dwd_app_active",
-                "dim.dim_user_comparison",
-                "dwd.dwd_order_info",
-                "dwd.dwd_pay_point_com_detail",
-                "dwd.dwd_dispatch_task",
-                "dwd.dwd_basic_data_collect_monitor_hours",
+                //"dwd.dwd_user_register_details",
+                //"dwd.dwd_coupon_info",
+                //"dwd.dwd_app_active",
+                //"dim.dim_user_comparison",
+                //"dwd.dwd_order_info",
+                //"dwd.dwd_pay_point_com_detail",
+                //"dwd.dwd_dispatch_task",
+                //"dwd.dwd_basic_data_collect_monitor_hours",
                 "ads.ads_user_tag"
         };
         for (String source : sources) {
