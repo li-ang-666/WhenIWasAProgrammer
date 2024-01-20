@@ -15,6 +15,7 @@ public class RepairTest extends ConfigHolder {
                 "dwd.dwd_coupon_info",
                 "dwd.dwd_app_active",
                 "dim.dim_user_comparison",
+                "dwd.dwd_order_info",
                 "dwd.dwd_pay_point_com_detail",
                 "dwd.dwd_dispatch_task",
                 "dwd.dwd_basic_data_collect_monitor_hours",
