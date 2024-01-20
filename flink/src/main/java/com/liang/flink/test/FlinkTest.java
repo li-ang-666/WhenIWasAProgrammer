@@ -21,7 +21,10 @@ public class FlinkTest {
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
             ResultSet rs = connection.prepareStatement("select id, bitmap from test.bitmap_test").executeQuery();
             while (rs.next()) {
+                System.out.println("id: " + rs.getString(1));
                 Roaring64NavigableMap bitmap = DorisBitmapUtils.parseBinary(IoUtil.readBytes(rs.getBinaryStream(2)));
+                System.out.println("min: " + bitmap.stream().min().getAsLong());
+                System.out.println("max: " + bitmap.stream().max().getAsLong());
             }
         }
     }
