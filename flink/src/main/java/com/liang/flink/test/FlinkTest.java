@@ -8,14 +8,18 @@ import java.sql.ResultSet;
 
 @Slf4j
 public class FlinkTest {
-    private static final String HIVE_DRIVER = "org.apache.hive.jdbc.HiveDriver";
+    private static final String DRIVER = "org.apache.hive.jdbc.HiveDriver";
+    private static final String URL = "jdbc:hive2://10.99.202.153:2181,10.99.198.86:2181,10.99.203.51:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2";
+    private static final String USER = "hive";
+    private static final String PASSWORD = "";
 
     public static void main(String[] args) throws Exception {
-        Class.forName(HIVE_DRIVER);
-        Connection connection = DriverManager.getConnection("jdbc:hive2://10.99.202.153:2181,10.99.198.86:2181,10.99.203.51:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2", "hive", "");
-        ResultSet rs = connection.prepareStatement("show databases").executeQuery();
-        while (rs.next()) {
-            System.out.println(rs.getString(1));
+        Class.forName(DRIVER);
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            ResultSet rs = connection.prepareStatement("show databases").executeQuery();
+            while (rs.next()) {
+                System.out.println(rs.getString(1));
+            }
         }
     }
 }
