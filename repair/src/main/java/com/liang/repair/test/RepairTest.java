@@ -14,11 +14,11 @@ public class RepairTest extends ConfigHolder {
                 "dwd.dwd_user_register_details",
                 "dwd.dwd_coupon_info",
                 "dwd.dwd_app_active",
-                "dwd.dim_user_comparison",
+                "dim.dim_user_comparison",
                 "dwd.dwd_pay_point_com_detail",
                 "dwd.dwd_dispatch_task",
                 "dwd.dwd_basic_data_collect_monitor_hours",
-                "dwd.ads_user_tag"
+                "ads.ads_user_tag"
         };
         for (String source : sources) {
             String sink = "bak." + source.split("\\.")[1];
