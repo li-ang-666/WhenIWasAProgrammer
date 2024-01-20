@@ -61,7 +61,7 @@ public class CrowdUserBitmapJob {
         private static final String PASSWORD = "";
         private static final DorisSchema DORIS_SCHEMA = DorisSchema.builder()
                 .database("test").tableName("bitmap_test")
-                .derivedColumns(Collections.singletonList("user_id_bitmap = to_bitmap(user_id)"))
+                .derivedColumns(Collections.singletonList("user_id_bitmap = if(user_id < 1, bitmap_empty(), to_bitmap(user_id))"))
                 .build();
         private final AtomicBoolean cancel = new AtomicBoolean(false);
         private final Config config;
@@ -102,6 +102,13 @@ public class CrowdUserBitmapJob {
                 String id = resultSet.getString(1);
                 InputStream bitmapInputStream = resultSet.getBinaryStream(2);
                 Roaring64NavigableMap bitmap = DorisBitmapUtils.parseBinary(IoUtil.readBytes(bitmapInputStream));
+                if (bitmap.isEmpty()) {
+                    DorisOneRow dorisOneRow = new DorisOneRow(DORIS_SCHEMA);
+                    dorisOneRow.put("id", id);
+                    dorisOneRow.put("user_id", 0);
+                    ctx.collect(dorisOneRow);
+                    continue;
+                }
                 bitmap.forEach(userId -> {
                     DorisOneRow dorisOneRow = new DorisOneRow(DORIS_SCHEMA);
                     dorisOneRow.put("id", id);
