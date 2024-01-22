@@ -55,8 +55,6 @@ public class CrowdUserBitmapJob {
         private static final String DORIS_START_SQL_TEMPLATE = "update crowd.crowd_user_bitmap_tasks set task_start_time = now() where crowd_id = '%s' and create_timestamp = '%s' and pt = '%s'";
         private static final String DORIS_FINISH_SQL_TEMPLATE = "update crowd.crowd_user_bitmap_tasks set task_finish_time = now() where crowd_id = '%s' and create_timestamp = '%s' and pt = '%s'";
         private static final String DORIS_FINISH_WITH_ERROR_SQL_TEMPLATE = "update crowd.crowd_user_bitmap_tasks set task_finish_time = now(), error_message = '%s' where crowd_id = '%s' and create_timestamp = '%s' and pt = '%s'";
-
-
         private static final String DRIVER = "org.apache.hive.jdbc.HiveDriver";
         private static final String URL = "jdbc:hive2://10.99.202.153:2181,10.99.198.86:2181,10.99.203.51:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2";
         private static final String USER = "hive";
