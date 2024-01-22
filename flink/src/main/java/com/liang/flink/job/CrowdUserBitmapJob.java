@@ -15,6 +15,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
+import org.roaringbitmap.longlong.LongIterator;
 import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 import java.io.InputStream;
@@ -105,13 +106,14 @@ public class CrowdUserBitmapJob {
                                     dorisWriter.write(dorisOneRow);
                                     continue;
                                 }
-                                bitmap.forEach(userId -> {
+                                LongIterator longIterator = bitmap.getLongIterator();
+                                while (longIterator.hasNext() && !cancel.get()) {
                                     DorisOneRow dorisOneRow = new DorisOneRow(DORIS_SCHEMA);
                                     dorisOneRow.put("crowd_id", crowdId);
                                     dorisOneRow.put("create_timestamp", createTimestamp);
-                                    dorisOneRow.put("user_id", userId);
+                                    dorisOneRow.put("user_id", longIterator.next());
                                     dorisWriter.write(dorisOneRow);
-                                });
+                                }
                             }
                             dorisWriter.flush();
                             i = SUCCESS_SCORE;
@@ -127,7 +129,7 @@ public class CrowdUserBitmapJob {
                         jdbcTemplate.update(String.format(DORIS_FINISH_WITH_ERROR_SQL_TEMPLATE, exception.getMessage(), crowdId, createTimestamp, pt));
                     }
                 }
-                log.info("not find tasks");
+                log.info("no pending tasks");
                 LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
             }
         }
