@@ -86,12 +86,13 @@ public class CrowdUserBitmapJob {
                     String crowdId = String.valueOf(taskMap.get("crowd_id"));
                     String createTimestamp = String.valueOf(taskMap.get("create_timestamp"));
                     String pt = String.valueOf(taskMap.get("pt"));
-                    // task start
+                    // 上报 start 时间
                     jdbcTemplate.update(String.format(DORIS_START_SQL_TEMPLATE, crowdId, createTimestamp, pt));
+                    log.info("start task, crowd_id = {}, create_timestamp = {}, pt = {}", crowdId, createTimestamp, pt);
                     // 失败重试 3 次
                     Exception exception = null;
                     int i = 0;
-                    while (i++ < MAX_TRY_TIMES && !cancel.get()) {
+                    while (i < MAX_TRY_TIMES && !cancel.get()) {
                         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
                             connection.prepareStatement(HIVE_CONFIG_SQL).executeUpdate();
                             ResultSet resultSet = connection.prepareStatement(String.format(HIVE_QUERY_SQL_TEMPLATE, crowdId, createTimestamp, pt)).executeQuery();
@@ -119,15 +120,19 @@ public class CrowdUserBitmapJob {
                             i = SUCCESS_SCORE;
                         } catch (Exception e) {
                             exception = e;
-                            log.error("hive to doris error for {} times, crowd_id = {}, create_timestamp = {}, pt = {}", i, crowdId, createTimestamp, pt, e);
+                            log.error("hive to doris error for {} times, crowd_id = {}, create_timestamp = {}, pt = {}", ++i, crowdId, createTimestamp, pt, e);
                             LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
                         }
                     }
+                    // 上报 finish 时间
                     if (i == SUCCESS_SCORE) {
                         jdbcTemplate.update(String.format(DORIS_FINISH_SQL_TEMPLATE, crowdId, createTimestamp, pt));
                     } else {
+                        assert exception != null;
                         jdbcTemplate.update(String.format(DORIS_FINISH_WITH_ERROR_SQL_TEMPLATE, exception.getMessage(), crowdId, createTimestamp, pt));
                     }
+                    log.info("finish task, crowd_id = {}, create_timestamp = {}, pt = {}, error_message = {}", crowdId, createTimestamp, pt, exception.getMessage());
+
                 }
                 log.info("no pending tasks");
                 LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
