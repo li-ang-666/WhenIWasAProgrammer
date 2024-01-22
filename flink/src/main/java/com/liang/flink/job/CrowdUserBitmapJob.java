@@ -17,6 +17,23 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Collections;
 
+/**
+ * hive数据量:
+ * select id, doris.bitmap_count(bitmap) cnt from test.bitmap_test;
+ * +----------------------------------+------------+
+ * |                id                |    cnt     |
+ * +----------------------------------+------------+
+ * | company_bond_plates              | 68840      |
+ * | company_clean_info               | 371725684  |
+ * | company_equity_relation_details  | 173317321  |
+ * | company_human_relation           | 512669269  |
+ * | company_index                    | 360007359  |
+ * | company_legal_person             | 356816417  |
+ * | personnel                        | 198732296  |
+ * | senior_executive                 | 189916     |
+ * | senior_executive_hk              | 375263     |
+ * +----------------------------------+------------+
+ */
 @Slf4j
 public class CrowdUserBitmapJob {
     private static final String DRIVER = "org.apache.hive.jdbc.HiveDriver";
