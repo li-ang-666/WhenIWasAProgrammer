@@ -61,7 +61,7 @@ public class CrowdUserBitmapJob {
         private static final String USER = "hive";
         private static final String PASSWORD = "";
         private static final DorisSchema DORIS_SCHEMA = DorisSchema.builder()
-                .database("test").tableName("bitmap_test")
+                .database("crowd").tableName("crowd_user_bitmap")
                 .derivedColumns(Collections.singletonList("user_id_bitmap = if(user_id < 1, bitmap_empty(), to_bitmap(user_id))"))
                 .build();
         private final AtomicBoolean cancel = new AtomicBoolean(false);
@@ -81,6 +81,10 @@ public class CrowdUserBitmapJob {
         public void run(SourceContext<DorisOneRow> ctx) {
             while (!cancel.get()) {
                 List<Map<String, Object>> taskMaps = jdbcTemplate.queryForColumnMaps(DORIS_CHECK_SQL);
+                if (taskMaps.isEmpty()) {
+                    log.info("no pending tasks");
+                    LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
+                }
                 // 串行遍历任务列表
                 for (Map<String, Object> taskMap : taskMaps) {
                     String crowdId = String.valueOf(taskMap.get("crowd_id"));
@@ -132,10 +136,7 @@ public class CrowdUserBitmapJob {
                         jdbcTemplate.update(String.format(DORIS_FINISH_WITH_ERROR_SQL_TEMPLATE, exception.getMessage(), crowdId, createTimestamp, pt));
                     }
                     log.info("finish task, crowd_id = {}, create_timestamp = {}, pt = {}, error_message = {}", crowdId, createTimestamp, pt, exception != null ? exception.getMessage() : null);
-
                 }
-                log.info("no pending tasks");
-                LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
             }
         }
 
