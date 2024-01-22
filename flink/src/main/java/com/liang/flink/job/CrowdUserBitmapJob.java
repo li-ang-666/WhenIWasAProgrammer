@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.io.IoUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.DorisOneRow;
@@ -23,10 +24,10 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
 
@@ -53,7 +54,12 @@ public class CrowdUserBitmapJob {
         private static final int MAX_TRY_TIMES = 3;
         private static final int SUCCESS_SCORE = 100;
         private static final String DORIS_CHECK_SQL = "select * from crowd.crowd_user_bitmap_tasks where task_finish_time is null";
-        private static final String HIVE_CONFIG_SQL = "set spark.executor.memory=10g";
+        private static final List<String> HIVE_CONFIG_SQLS = Arrays.asList(
+                "set spark.yarn.priority=999",
+                "set spark.executor.cores=1",
+                "set spark.executor.memory=8g",
+                "set spark.executor.memoryOverhead=512m"
+        );
         private static final String HIVE_QUERY_SQL_TEMPLATE = "select user_id_bitmap from project.crowd_user_bitmap where crowd_id = '%s' and create_timestamp = '%s' and pt = '%s'";
         private static final String DORIS_START_SQL_TEMPLATE = "update crowd.crowd_user_bitmap_tasks set task_start_time = now() where crowd_id = '%s' and create_timestamp = '%s' and pt = '%s'";
         private static final String DORIS_FINISH_SQL_TEMPLATE = "update crowd.crowd_user_bitmap_tasks set task_finish_time = now(), error_message = %s where crowd_id = '%s' and create_timestamp = '%s' and pt = '%s'";
@@ -98,8 +104,11 @@ public class CrowdUserBitmapJob {
                     Exception exception = null;
                     int i = 0;
                     while (i < MAX_TRY_TIMES && !cancel.get()) {
+                        if (i > 0) LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
                         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
-                            connection.prepareStatement(HIVE_CONFIG_SQL).executeUpdate();
+                            for (String hiveConfigSql : HIVE_CONFIG_SQLS) {
+                                connection.prepareStatement(hiveConfigSql).executeUpdate();
+                            }
                             ResultSet resultSet = connection.prepareStatement(String.format(HIVE_QUERY_SQL_TEMPLATE, crowdId, createTimestamp, pt)).executeQuery();
                             while (resultSet.next() && !cancel.get()) {
                                 InputStream bitmapInputStream = resultSet.getBinaryStream(1);
@@ -126,11 +135,10 @@ public class CrowdUserBitmapJob {
                         } catch (Exception e) {
                             exception = e;
                             log.error("hive to doris error for {} times, crowd_id = {}, create_timestamp = {}, pt = {}", ++i, crowdId, createTimestamp, pt, e);
-                            LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
                         }
                     }
                     // 上报 finish 时间
-                    String errorMessage = SqlUtils.formatValue((i == SUCCESS_SCORE) ? "SUCCESS" : Objects.requireNonNull(exception).getMessage());
+                    String errorMessage = SqlUtils.formatValue((i == SUCCESS_SCORE) ? "SUCCESS" : ExceptionUtil.getMessage(exception));
                     jdbcTemplate.update(String.format(DORIS_FINISH_SQL_TEMPLATE, errorMessage, crowdId, createTimestamp, pt));
                     log.info("finish task, crowd_id = {}, create_timestamp = {}, pt = {}, error_message = {}", crowdId, createTimestamp, pt, errorMessage);
                 }
