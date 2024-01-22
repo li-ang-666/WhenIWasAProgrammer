@@ -82,6 +82,7 @@ public class CrowdUserBitmapJob {
         public void run(SourceContext<DorisOneRow> ctx) {
             while (!cancel.get()) {
                 List<Map<String, Object>> taskMaps = jdbcTemplate.queryForColumnMaps(DORIS_CHECK_SQL);
+                // 串行遍历任务列表
                 for (Map<String, Object> taskMap : taskMaps) {
                     String crowdId = String.valueOf(taskMap.get("crowd_id"));
                     String createTimestamp = String.valueOf(taskMap.get("create_timestamp"));
@@ -90,12 +91,11 @@ public class CrowdUserBitmapJob {
                     jdbcTemplate.update(String.format(DORIS_START_SQL_TEMPLATE, crowdId, createTimestamp, pt));
                     // 失败重试 3 次
                     Exception exception = null;
-                    String hiveQuerySql = String.format(HIVE_QUERY_SQL_TEMPLATE, crowdId, createTimestamp, pt);
                     int i = 0;
                     while (i++ < MAX_TRY_TIMES && !cancel.get()) {
                         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
                             connection.prepareStatement(HIVE_CONFIG_SQL).executeUpdate();
-                            ResultSet resultSet = connection.prepareStatement(hiveQuerySql).executeQuery();
+                            ResultSet resultSet = connection.prepareStatement(String.format(HIVE_QUERY_SQL_TEMPLATE, crowdId, createTimestamp, pt)).executeQuery();
                             while (resultSet.next() && !cancel.get()) {
                                 InputStream bitmapInputStream = resultSet.getBinaryStream(1);
                                 Roaring64NavigableMap bitmap = DorisBitmapUtils.parseBinary(IoUtil.readBytes(bitmapInputStream));
@@ -122,11 +122,11 @@ public class CrowdUserBitmapJob {
                             log.error("hive to doris error for {} times, crowd_id = {}, create_timestamp = {}, pt = {}", i, crowdId, createTimestamp, pt, e);
                             LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
                         }
-                        if (i == SUCCESS_SCORE) {
-                            jdbcTemplate.update(String.format(DORIS_FINISH_SQL_TEMPLATE, crowdId, createTimestamp, pt));
-                        } else {
-                            jdbcTemplate.update(String.format(DORIS_FINISH_WITH_ERROR_SQL_TEMPLATE, exception.getMessage(), crowdId, createTimestamp, pt));
-                        }
+                    }
+                    if (i == SUCCESS_SCORE) {
+                        jdbcTemplate.update(String.format(DORIS_FINISH_SQL_TEMPLATE, crowdId, createTimestamp, pt));
+                    } else {
+                        jdbcTemplate.update(String.format(DORIS_FINISH_WITH_ERROR_SQL_TEMPLATE, exception.getMessage(), crowdId, createTimestamp, pt));
                     }
                 }
                 log.info("not find tasks");
