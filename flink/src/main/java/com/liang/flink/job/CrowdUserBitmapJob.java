@@ -13,7 +13,6 @@ import org.roaringbitmap.longlong.Roaring64NavigableMap;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Collections;
 
@@ -54,8 +53,8 @@ public class CrowdUserBitmapJob {
         Class.forName(DRIVER);
         Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
         connection.prepareStatement("set spark.executor.memory=10g").executeUpdate();
-        PreparedStatement preparedStatement = connection.prepareStatement("select id, bitmap from test.bitmap_test where id = 'company_bond_plates'");
-        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSet resultSet = connection.prepareStatement("select id, bitmap from test.bitmap_test where id = 'company_bond_plates'").executeQuery();
+        log.info("query success");
         while (resultSet.next()) {
             String id = resultSet.getString(1);
             InputStream bitmapInputStream = resultSet.getBinaryStream(2);
@@ -78,7 +77,6 @@ public class CrowdUserBitmapJob {
         dorisWriter.flush();
         // close
         resultSet.close();
-        preparedStatement.close();
         connection.close();
     }
 }
