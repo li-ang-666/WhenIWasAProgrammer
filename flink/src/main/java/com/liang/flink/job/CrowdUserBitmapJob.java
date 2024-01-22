@@ -131,7 +131,7 @@ public class CrowdUserBitmapJob {
                         assert exception != null;
                         jdbcTemplate.update(String.format(DORIS_FINISH_WITH_ERROR_SQL_TEMPLATE, exception.getMessage(), crowdId, createTimestamp, pt));
                     }
-                    log.info("finish task, crowd_id = {}, create_timestamp = {}, pt = {}, error_message = {}", crowdId, createTimestamp, pt, exception.getMessage());
+                    log.info("finish task, crowd_id = {}, create_timestamp = {}, pt = {}, error_message = {}", crowdId, createTimestamp, pt, exception != null ? exception.getMessage() : null);
 
                 }
                 log.info("no pending tasks");
