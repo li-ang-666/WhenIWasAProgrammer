@@ -2,13 +2,11 @@ package com.liang.study.excel;
 
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class ExcelTest {
     public static void main(String[] args) throws Exception {
         Map<String, Integer> companyToLevel = new HashMap<>();
