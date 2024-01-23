@@ -113,6 +113,7 @@ public class CrowdUserBitmapJob {
                             while (resultSet.next() && !cancel.get()) {
                                 InputStream bitmapInputStream = resultSet.getBinaryStream(1);
                                 Roaring64NavigableMap bitmap = DorisBitmapUtils.parseBinary(IoUtil.readBytes(bitmapInputStream));
+                                log.info("get hive bitmap, size = {}", bitmap.getLongCardinality());
                                 if (bitmap.isEmpty()) {
                                     DorisOneRow dorisOneRow = new DorisOneRow(DORIS_SCHEMA);
                                     dorisOneRow.put("crowd_id", crowdId);
