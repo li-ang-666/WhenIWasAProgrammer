@@ -1,10 +1,8 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -56,7 +54,6 @@ public class GraphExportJob {
         private final Config config;
         private ObsWriter edgeObsWriter;
         private ObsWriter nodeObsWriter;
-        private JdbcTemplate jdbcTemplate;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -69,7 +66,6 @@ public class GraphExportJob {
             edgeObsWriter.enableCache();
             nodeObsWriter = new ObsWriter("obs://hadoop-obs/flink/graph/node", ObsWriter.FileFormat.TXT);
             nodeObsWriter.enableCache();
-            jdbcTemplate = new JdbcTemplate("157.prism_boss");
         }
 
         @Override
@@ -143,13 +139,11 @@ public class GraphExportJob {
             }
             // 人
             else if ("1".equals(type)) {
-                String sql = "select company_graph_id from company_human_relation where human_pid = " + SqlUtils.formatValue(columnMap.get("tyc_unique_entity_id_investor"));
-                String res = jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
                 shareholder = Arrays.asList(
                         String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n,]", ""),
                         "node",
                         "1",
-                        ((res != null) ? res : "0"),
+                        String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,]", ""),
                         String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,]", ""),
                         String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,]", ""),
                         "",
