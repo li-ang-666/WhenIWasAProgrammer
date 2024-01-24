@@ -34,14 +34,17 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
         open();
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (hasNext() && running.get()) {
-            if (queue.size() + QUERY_BATCH_SIZE > MAX_QUEUE_SIZE) continue;
-            List<Map<String, Object>> columnMaps = next();
-            synchronized (running) {
-                for (Map<String, Object> columnMap : columnMaps) {
-                    queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
+            int i = MAX_QUEUE_SIZE - queue.size();
+            while (i >= QUERY_BATCH_SIZE) {
+                List<Map<String, Object>> columnMaps = next();
+                synchronized (running) {
+                    for (Map<String, Object> columnMap : columnMaps) {
+                        queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
+                    }
+                    // commit
+                    task.setCurrentId(task.getScanMode() == Direct ? DIRECT_SCAN_COMPLETE_FLAG : task.getCurrentId() + QUERY_BATCH_SIZE);
+                    i -= columnMaps.size();
                 }
-                // commit
-                task.setCurrentId(task.getScanMode() == Direct ? DIRECT_SCAN_COMPLETE_FLAG : task.getCurrentId() + QUERY_BATCH_SIZE);
             }
         }
         running.set(false);
