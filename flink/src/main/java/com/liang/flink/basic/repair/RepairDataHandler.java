@@ -35,7 +35,7 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
         ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
         while (hasNext() && running.get()) {
             int i = MAX_QUEUE_SIZE - queue.size();
-            while (i >= QUERY_BATCH_SIZE) {
+            while (hasNext() && running.get() && i >= QUERY_BATCH_SIZE) {
                 List<Map<String, Object>> columnMaps = next();
                 synchronized (running) {
                     for (Map<String, Object> columnMap : columnMaps) {

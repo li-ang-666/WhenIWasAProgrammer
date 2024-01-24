@@ -22,19 +22,22 @@ import java.util.List;
 import java.util.Map;
 
 //  -- beeline
-//  use test;
-//  drop table if exists graph_export;
-//  create table if not exists graph_export(
+
+//  create table if not exists test.graph_export_edge(
 //    `row` string
-//  )stored as textfile location 'obs://hadoop-obs/flink';
+//  )stored as textfile location 'obs://hadoop-obs/flink/graph/edge';
+
+//  create table if not exists test.graph_export_node(
+//    `row` string
+//  )stored as textfile location 'obs://hadoop-obs/flink/graph/node';
 
 //  -- 建表后再写入数据
-//  select count(1) from graph_export;
+//  select count(1) from test.graph_export_edge;
+//  select count(1) from test.graph_export_node;
 
 //  -- spark-sql
-//  use test;
-//  insert overwrite table graph_export select /*+ REPARTITION(1) */ * from graph_export;
-//  select count(1) from graph_export;
+//  insert overwrite table test.graph_export_edge select /*+ REPARTITION(12) */ row from test.graph_export_edge group by row;
+//  insert overwrite table test.graph_export_node select /*+ REPARTITION(6) */ row from test.graph_export_node group by row;
 @LocalConfigFile("graph-export.yml")
 public class GraphExportJob {
     public static void main(String[] args) throws Exception {
