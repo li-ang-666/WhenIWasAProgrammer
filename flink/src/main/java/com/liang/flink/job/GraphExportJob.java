@@ -83,16 +83,19 @@ public class GraphExportJob {
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
             edgeObsWriter.flush();
+            nodeObsWriter.flush();
         }
 
         @Override
         public void finish() {
             edgeObsWriter.flush();
+            nodeObsWriter.flush();
         }
 
         @Override
         public void close() {
             edgeObsWriter.flush();
+            nodeObsWriter.flush();
         }
 
         private String getEdge(Map<String, Object> columnMap) {
