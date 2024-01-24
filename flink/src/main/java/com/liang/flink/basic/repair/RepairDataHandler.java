@@ -43,8 +43,8 @@ public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Ob
                     }
                     // commit
                     task.setCurrentId(task.getScanMode() == Direct ? DIRECT_SCAN_COMPLETE_FLAG : task.getCurrentId() + QUERY_BATCH_SIZE);
-                    i -= columnMaps.size();
                 }
+                i -= columnMaps.size();
             }
         }
         running.set(false);
