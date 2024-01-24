@@ -1,0 +1,13 @@
+spark-sql --master yarn spark-sql --master yarn --conf spark.driver.host=10.99.194.128 \
+  --driver-memory 2g --driver-cores 1 \
+  --conf spark.driver.memoryOverhead=512m \
+  --executor-memory 8g --num-executors 64 --executor-cores 2 \
+  --conf spark.executor.memoryOverhead=512m \
+  --queue offline \
+  --conf spark.memory.fraction=0.8 \
+  --conf spark.driver.extraJavaOptions=-Dlog4j.configuration=file:////home/hive/liang/doris/log4j-all.properties
+  --conf spark.yarn.maxAppAttempts=1 \
+  --conf spark.yarn.priority=999 \
+  --conf spark.sql.shuffle.partitions=1024 \
+  --conf spark.shuffle.io.maxRetries=10 \
+  --conf spark.sql.autoBroadcastJoinThreshold=104857600
