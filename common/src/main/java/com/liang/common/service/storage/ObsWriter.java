@@ -2,7 +2,6 @@ package com.liang.common.service.storage;
 
 import com.liang.common.service.AbstractCache;
 import com.liang.common.service.Logging;
-import com.liang.common.util.DateUtils;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ModifyObjectRequest;
 import lombok.AllArgsConstructor;
@@ -10,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +39,8 @@ public class ObsWriter extends AbstractCache<String, String> {
 
     public ObsWriter(String obsUrl, FileFormat fileFormat) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> "");
-        bucket = obsUrl.replaceAll("obs://(.*?)/(.*)", "$1");
-        folder = obsUrl.replaceAll("obs://(.*?)/(.*)", "$2/").replaceAll("//$", "/");
+        bucket = obsUrl.replaceAll("obs://(.*?)/(.*?)/?", "$1");
+        folder = obsUrl.replaceAll("obs://(.*?)/(.*?)/?", "$2/");
         logging = new Logging(this.getClass().getSimpleName(), folder);
         this.fileFormat = fileFormat;
     }
@@ -47,7 +48,8 @@ public class ObsWriter extends AbstractCache<String, String> {
     @Override
     protected void updateImmediately(String ignore, Collection<String> rows) {
         logging.beforeExecute();
-        String fileName = String.format("%s-%s%s", uuid, DateUtils.currentDate(), fileFormat.suffix);
+        String currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String fileName = String.format("%s-%s%s", uuid, currentDate, fileFormat.suffix);
         try {
             String objectKey = folder + fileName;
             if (!fileToPosition.containsKey(fileName)) {
