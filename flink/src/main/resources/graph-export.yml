@@ -10,6 +10,6 @@ repairTasks:
     sourceName: "430.graph_data"
     tableName: "company_equity_relation_details"
     columns: "*"
-    #where: "reference_pt_year = 2023"
-    where: "id <= 100000"
+    #where: "reference_pt_year in (2022,2023,2024)"
+    where: "id < 100"
     scanMode: Direct

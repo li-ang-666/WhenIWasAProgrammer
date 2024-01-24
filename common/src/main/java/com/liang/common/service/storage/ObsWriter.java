@@ -39,8 +39,8 @@ public class ObsWriter extends AbstractCache<String, String> {
 
     public ObsWriter(String obsUrl, FileFormat fileFormat) {
         super(DEFAULT_CACHE_MILLISECONDS, DEFAULT_CACHE_RECORDS, content -> "");
-        bucket = obsUrl.replaceAll("obs://(.*?)/(.*?)/?", "$1");
-        folder = obsUrl.replaceAll("obs://(.*?)/(.*?)/?", "$2/");
+        bucket = obsUrl.replaceAll("obs://(.*?)/(.*)", "$1");
+        folder = obsUrl.replaceAll("obs://(.*?)/(.*)", "$2/").replaceAll("/+$", "/");
         logging = new Logging(this.getClass().getSimpleName(), folder);
         this.fileFormat = fileFormat;
     }
