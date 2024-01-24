@@ -24,5 +24,10 @@ public class BlackList extends ConfigHolder {
         // 支付宝 实控人
         new HbaseTemplate("hbaseSink")
                 .update(new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, "64786241").put("has_controller", null));
+        new JdbcTemplate("467.company_base")
+                .update("delete from cooperation_partner where boss_human_pid = '90Y6ZMF09JQEPVEF8' and partner_human_name in ('房思菊')");
+        new JdbcTemplate("467.company_base")
+                .update("delete from cooperation_partner where boss_human_pid = 'H06PTMA0MSF9A78C1' and partner_human_name in ('房思菊')");
+
     }
 }
