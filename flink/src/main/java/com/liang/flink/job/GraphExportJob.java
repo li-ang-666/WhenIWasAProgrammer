@@ -65,9 +65,9 @@ public class GraphExportJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            edgeObsWriter = new ObsWriter("obs://hadoop-obs/flink/graph/edge/", ObsWriter.FileFormat.TXT);
+            edgeObsWriter = new ObsWriter("obs://hadoop-obs/flink/graph/edge", ObsWriter.FileFormat.TXT);
             edgeObsWriter.enableCache();
-            nodeObsWriter = new ObsWriter("obs://hadoop-obs/flink/graph/node/", ObsWriter.FileFormat.TXT);
+            nodeObsWriter = new ObsWriter("obs://hadoop-obs/flink/graph/node", ObsWriter.FileFormat.TXT);
             nodeObsWriter.enableCache();
             jdbcTemplate = new JdbcTemplate("157.prism_boss");
         }
