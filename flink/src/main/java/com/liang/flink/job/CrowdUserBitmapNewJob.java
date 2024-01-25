@@ -122,6 +122,7 @@ public class CrowdUserBitmapNewJob {
         private final List<BitmapTask> bitmapTasks = new ArrayList<>(128);
         private final Config config;
         private DorisWriter dorisWriter;
+        private JdbcTemplate dorisJdbcTemplate;
 
 
         @Override
@@ -132,6 +133,7 @@ public class CrowdUserBitmapNewJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             dorisWriter = new DorisWriter("dorisSink", 256 * 1024 * 1024);
+            dorisJdbcTemplate = new JdbcTemplate("doris");
             try {
                 Class.forName(DRIVER);
             } catch (Exception ignore) {
@@ -162,7 +164,6 @@ public class CrowdUserBitmapNewJob {
 
         private void flush() {
             synchronized (bitmapTasks) {
-                // process buffer
                 try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
                     // config
                     for (String hiveConfigSql : HIVE_CONFIGS) {
@@ -196,12 +197,14 @@ public class CrowdUserBitmapNewJob {
                             dorisWriter.write(dorisOneRow);
                         });
                     }
-                    // flush
+                    // flush, report finish, clear
                     dorisWriter.flush();
+                    bitmapTasks.forEach(bitmapTask -> {
+
+                    });
+                    bitmapTasks.clear();
                 } catch (Exception ignore) {
                 }
-                // clear buffer
-                bitmapTasks.clear();
             }
         }
     }
