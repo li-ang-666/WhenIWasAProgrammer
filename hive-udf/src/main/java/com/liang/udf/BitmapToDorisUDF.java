@@ -96,6 +96,7 @@ public class BitmapToDorisUDF extends GenericUDF {
                         .put("create_timestamp", createTimestamp)
                         .put("user_id", 0);
                 dorisWriter.write(dorisOneRow);
+                dorisWriter.flush();
                 return 0L;
             }
             userIdBitmap.forEach(userId -> {
