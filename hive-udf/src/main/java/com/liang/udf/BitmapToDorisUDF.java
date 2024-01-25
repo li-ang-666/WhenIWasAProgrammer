@@ -23,46 +23,53 @@ import com.liang.common.service.database.template.DorisWriter;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DorisBitmapUtils;
 import org.apache.hadoop.hive.ql.exec.Description;
-import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDF;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.LongObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
 import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 import java.util.Collections;
 
-@Description(name = "bitmap_to_doris", value = "_FUNC_(crowd_id, create_timestamp, user_id_bitmap) - Returns the number flush to doris")
+@Description(name = "bitmap_to_doris", value = "_FUNC_( crowd_id, create_timestamp, user_id_bitmap, env('TEST' or 'PROD') ) - flush bitmap to doris的crowd_user_bitmap表, Returns the number flush to doris")
 public class BitmapToDorisUDF extends GenericUDF {
-    private static final DorisSchema DORIS_SCHEMA = DorisSchema.builder()
+    private static final DorisSchema DORIS_SCHEMA_PROD = DorisSchema.builder()
             .database("crowd").tableName("crowd_user_bitmap")
+            .derivedColumns(Collections.singletonList("user_id_bitmap = if(user_id < 1, bitmap_empty(), to_bitmap(user_id))"))
+            .build();
+    private static final DorisSchema DORIS_SCHEMA_TEST = DorisSchema.builder()
+            .database("test").tableName("crowd_user_bitmap")
             .derivedColumns(Collections.singletonList("user_id_bitmap = if(user_id < 1, bitmap_empty(), to_bitmap(user_id))"))
             .build();
     private transient LongObjectInspector inputOI0;
     private transient LongObjectInspector inputOI1;
     private transient BinaryObjectInspector inputOI2;
+    private transient StringObjectInspector inputOI3;
 
     @Override
-    public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-
+    public ObjectInspector initialize(ObjectInspector[] arguments) {
         ObjectInspector input0 = arguments[0];
         if (!(input0 instanceof LongObjectInspector)) {
-            throw new UDFArgumentException("the first argument must be a bigint (crowd_id)");
+            throw new RuntimeException("the first argument must be a bigint (crowd_id)");
         }
         ObjectInspector input1 = arguments[1];
         if (!(input1 instanceof LongObjectInspector)) {
-            throw new UDFArgumentException("the second argument must be a bigint (create_timestamp)");
+            throw new RuntimeException("the second argument must be a bigint (create_timestamp)");
         }
         ObjectInspector input2 = arguments[2];
         if (!(input2 instanceof BinaryObjectInspector)) {
-            throw new UDFArgumentException("the third argument must be a binary (user_id_bitmap)");
+            throw new RuntimeException("the third argument must be a binary (user_id_bitmap)");
         }
-
+        ObjectInspector input3 = arguments[3];
+        if (!(input3 instanceof StringObjectInspector)) {
+            throw new RuntimeException("the fourth argument must be a string ('TEST' or 'PROD')");
+        }
         this.inputOI0 = (LongObjectInspector) input0;
         this.inputOI1 = (LongObjectInspector) input1;
         this.inputOI2 = (BinaryObjectInspector) input2;
-
+        this.inputOI3 = (StringObjectInspector) input3;
         return PrimitiveObjectInspectorFactory.javaLongObjectInspector;
     }
 
@@ -74,8 +81,17 @@ public class BitmapToDorisUDF extends GenericUDF {
             String crowdId = String.valueOf(this.inputOI0.getPrimitiveJavaObject(args[0].get()));
             String createTimestamp = String.valueOf(this.inputOI1.getPrimitiveJavaObject(args[1].get()));
             Roaring64NavigableMap userIdBitmap = DorisBitmapUtils.parseBinary((this.inputOI2.getPrimitiveJavaObject(args[2].get())));
+            String env = String.valueOf(this.inputOI3.getPrimitiveJavaObject(args[3].get()));
+            DorisSchema currentDorisSchema;
+            if ("PROD".equals(env)) {
+                currentDorisSchema = DORIS_SCHEMA_PROD;
+            } else if ("TEST".equals(env)) {
+                currentDorisSchema = DORIS_SCHEMA_TEST;
+            } else {
+                throw new RuntimeException("the fourth argument must be 'TEST' or 'PROD'");
+            }
             if (userIdBitmap.isEmpty()) {
-                DorisOneRow dorisOneRow = new DorisOneRow(DORIS_SCHEMA)
+                DorisOneRow dorisOneRow = new DorisOneRow(currentDorisSchema)
                         .put("crowd_id", crowdId)
                         .put("create_timestamp", createTimestamp)
                         .put("user_id", 0);
@@ -83,7 +99,7 @@ public class BitmapToDorisUDF extends GenericUDF {
                 return 0L;
             }
             userIdBitmap.forEach(userId -> {
-                DorisOneRow dorisOneRow = new DorisOneRow(DORIS_SCHEMA)
+                DorisOneRow dorisOneRow = new DorisOneRow(currentDorisSchema)
                         .put("crowd_id", crowdId)
                         .put("create_timestamp", createTimestamp)
                         .put("user_id", userId);
@@ -98,6 +114,6 @@ public class BitmapToDorisUDF extends GenericUDF {
 
     @Override
     public String getDisplayString(String[] children) {
-        return "Usage: bitmap_count(bitmap)";
+        return "Usage: bitmap_to_doris( crowd_id, create_timestamp, user_id_bitmap, env('TEST' or 'PROD') )";
     }
 }

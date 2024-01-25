@@ -18,6 +18,7 @@ drop function if exists doris.bitmap_xor;
 create function doris.bitmap_xor as 'com.liang.udf.BitmapXorUDF' USING JAR 'hdfs:///hive/jars/liang-hive-udf-1.0.jar';
 -- 测试
 desc function extended doris.to_bitmap;
+set spark.executor.memory=8g;
 
 ------------------------------------------------------------------------------------------------------------------------
 
