@@ -1,7 +1,7 @@
-spark-sql --master yarn spark-sql --master yarn --conf spark.driver.host=10.99.194.128 \
+spark-sql --master yarn --conf spark.driver.host=10.99.194.128 \
   --driver-memory 2g --driver-cores 1 \
   --conf spark.driver.memoryOverhead=512m \
-  --executor-memory 8g --num-executors 64 --executor-cores 2 \
+  --executor-memory 10g --num-executors 64 --executor-cores 2 \
   --conf spark.executor.memoryOverhead=512m \
   --queue offline \
   --conf spark.memory.fraction=0.8 \
