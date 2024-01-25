@@ -37,7 +37,7 @@ import java.util.Map;
 
 //  -- spark-sql
 //  insert overwrite table test.graph_export_edge select /*+ REPARTITION(12) */ * from test.graph_export_edge;
-//  insert overwrite table test.graph_export_node select /*+ REPARTITION(12) */ * from test.graph_export_node;
+//  insert overwrite table test.graph_export_node select /*+ REPARTITION(20) */ * from test.graph_export_node;
 @LocalConfigFile("graph-export.yml")
 public class GraphExportJob {
     public static void main(String[] args) throws Exception {
@@ -103,13 +103,13 @@ public class GraphExportJob {
 
         private String getEdge(Map<String, Object> columnMap) {
             List<String> edge = Arrays.asList(
-                    String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n,]", ""),
-                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,]", ""),
+                    String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n,\r'\"]", ""),
+                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
                     "equity_relation",
-                    String.valueOf(columnMap.get("equity_ratio")).replaceAll("[\n,]", ""),
-                    String.valueOf(columnMap.get("equity_amount")).replaceAll("[\n,]", ""),
-                    String.valueOf(columnMap.get("equity_amount_currency")).replaceAll("[\n,]", ""),
-                    String.valueOf(columnMap.get("reference_pt_year")).replaceAll("[\n,]", ""),
+                    String.valueOf(columnMap.get("equity_ratio")).replaceAll("[\n,\r'\"]", ""),
+                    String.valueOf(columnMap.get("equity_amount")).replaceAll("[\n,\r'\"]", ""),
+                    String.valueOf(columnMap.get("equity_amount_currency")).replaceAll("[\n,\r'\"]", ""),
+                    String.valueOf(columnMap.get("reference_pt_year")).replaceAll("[\n,\r'\"]", ""),
                     "1704038400000"
             );
             return String.join(",", edge);
@@ -117,12 +117,12 @@ public class GraphExportJob {
 
         private Tuple2<String, String> getNode(Map<String, Object> columnMap) {
             List<String> company = Arrays.asList(
-                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,]", ""),
+                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
                     "node",
                     "2",
-                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,]", ""),
+                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
                     "0",
-                    String.valueOf(columnMap.get("tyc_unique_entity_name_invested")).replaceAll("[\n,]", ""),
+                    String.valueOf(columnMap.get("tyc_unique_entity_name_invested")).replaceAll("[\n,\r'\"]", ""),
                     "",
                     "true",
                     "1704038400000"
@@ -132,12 +132,12 @@ public class GraphExportJob {
             // 公司
             if ("2".equals(type)) {
                 shareholder = Arrays.asList(
-                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,]", ""),
+                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""),
                         "node",
                         "2",
-                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,]", ""),
+                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""),
                         "0",
-                        String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,]", ""),
+                        String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,\r'\"]", ""),
                         "",
                         "true",
                         "1704038400000"
@@ -146,12 +146,12 @@ public class GraphExportJob {
             // 人
             else if ("1".equals(type)) {
                 shareholder = Arrays.asList(
-                        String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n,]", ""),
+                        String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n,\r'\"]", ""),
                         "node",
                         "1",
-                        String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,]", ""),
-                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,]", ""),
-                        String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,]", ""),
+                        String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
+                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""),
+                        String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,\r'\"]", ""),
                         "",
                         "true",
                         "1704038400000"
