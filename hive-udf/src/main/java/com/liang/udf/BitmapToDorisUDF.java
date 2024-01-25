@@ -33,7 +33,7 @@ import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 import java.util.Collections;
 
-@Description(name = "bitmap_to_doris", value = "_FUNC_( crowd_id, create_timestamp, user_id_bitmap, env('TEST' or 'PROD') ) - flush bitmap to doris的crowd_user_bitmap表, Returns the number flush to doris")
+@Description(name = "bitmap_to_doris", value = "_FUNC_( crowd_id, create_timestamp, user_id_bitmap, env('TEST' or 'PROD') ) - flush bitmap to doris's crowd_user_bitmap table, Returns the number flush to doris")
 public class BitmapToDorisUDF extends GenericUDF {
     private static final DorisSchema DORIS_SCHEMA_PROD = DorisSchema.builder()
             .database("crowd").tableName("crowd_user_bitmap")
