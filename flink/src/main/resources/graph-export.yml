@@ -2,7 +2,7 @@
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 32
+  otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -10,6 +10,5 @@ repairTasks:
     sourceName: "430.graph_data"
     tableName: "company_equity_relation_details"
     columns: "*"
-    #where: "reference_pt_year in (2022,2023,2024)"
-    where: "id < 100"
+    where: "tyc_unique_entity_id_investor = '22822' and reference_pt_year = 2024"
     scanMode: Direct

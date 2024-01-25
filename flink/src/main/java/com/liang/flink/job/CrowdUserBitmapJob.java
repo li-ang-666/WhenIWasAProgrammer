@@ -11,12 +11,13 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DorisBitmapUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
+import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.roaringbitmap.longlong.LongIterator;
 import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
@@ -50,15 +51,19 @@ public class CrowdUserBitmapJob {
 
     @Slf4j
     @RequiredArgsConstructor
-    private final static class CrowdUserBitmapSource extends RichSourceFunction<DorisOneRow> {
+    private final static class CrowdUserBitmapSource extends RichParallelSourceFunction<DorisOneRow> {
         private static final int MAX_TRY_TIMES = 3;
         private static final int SUCCESS_SCORE = 100;
         private static final String DORIS_CHECK_SQL = "select * from crowd.crowd_user_bitmap_tasks where task_finish_time is null";
         private static final List<String> HIVE_CONFIG_SQLS = Arrays.asList(
                 "set spark.yarn.priority=999",
+                // executor
                 "set spark.executor.cores=1",
                 "set spark.executor.memory=8g",
-                "set spark.executor.memoryOverhead=512m"
+                "set spark.executor.memoryOverhead=512m",
+                // driver
+                "set spark.driver.memory=2g",
+                "set spark.driver.memoryOverhead=512m"
         );
         private static final String HIVE_QUERY_SQL_TEMPLATE = "select user_id_bitmap from project.crowd_user_bitmap where crowd_id = '%s' and create_timestamp = '%s' and pt = '%s'";
         private static final String DORIS_START_SQL_TEMPLATE = "update crowd.crowd_user_bitmap_tasks set task_start_time = now() where crowd_id = '%s' and create_timestamp = '%s' and pt = '%s'";
@@ -92,6 +97,11 @@ public class CrowdUserBitmapJob {
                     log.info("no pending tasks");
                     LockSupport.parkUntil(System.currentTimeMillis() + 1000 * 30);
                 }
+                for (Map<String, Object> taskMap : taskMaps) {
+
+                }
+
+
                 // 串行遍历任务列表
                 for (Map<String, Object> taskMap : taskMaps) {
                     String crowdId = String.valueOf(taskMap.get("crowd_id"));
@@ -166,5 +176,12 @@ public class CrowdUserBitmapJob {
         @Override
         public void invoke(DorisOneRow dorisOneRow, Context context) {
         }
+    }
+
+    @Data
+    private final static class Task {
+        private long crowdId;
+        private long createTimestamp;
+        private long pt;
     }
 }
