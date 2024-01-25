@@ -37,7 +37,7 @@ import java.util.Map;
 
 //  -- spark-sql
 //  insert overwrite table test.graph_export_edge select /*+ REPARTITION(12) */ * from test.graph_export_edge;
-//  insert overwrite table test.graph_export_node select /*+ REPARTITION(20) */ * from test.graph_export_node;
+//  insert overwrite table test.graph_export_node select /*+ REPARTITION(24) */ * from test.graph_export_node;
 @LocalConfigFile("graph-export.yml")
 public class GraphExportJob {
     public static void main(String[] args) throws Exception {
