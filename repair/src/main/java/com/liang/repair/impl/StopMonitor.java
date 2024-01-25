@@ -17,9 +17,6 @@ public class StopMonitor {
 
     static {
         LIST.add(Tuple3.of("liang", "Moka20190520", "doris.dwd_app_active"));
-        LIST.add(Tuple3.of("liang", "Moka20190520", "doris.dwd_user_register_details"));
-        LIST.add(Tuple3.of("liang", "Moka20190520", "doris.dim_user_comparison"));
-        LIST.add(Tuple3.of("liang", "Moka20190520", "doris.dwd_coupon_info"));
     }
 
     public static void main(String[] args) {
