@@ -31,8 +31,17 @@ import java.util.Map;
 //    `row` string
 //  )stored as textfile location 'obs://hadoop-obs/flink/graph/node';
 
+//  drop table test.graph_export_node_invalid;
 //  create table if not exists test.graph_export_node_invalid(
-//    `row` string
+//    `row1` string,
+//    `row2` string,
+//    `row3` string,
+//    `row4` string,
+//    `row5` string,
+//    `row6` string,
+//    `row7` string,
+//    `row8` string,
+//    `row9` string
 //  )row format delimited
 //  fields terminated by ','
 //  lines terminated by '\n'
