@@ -10,12 +10,19 @@ import com.liang.spark.basic.SparkSessionFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 @Slf4j
 public class DorisJob {
@@ -35,6 +42,28 @@ public class DorisJob {
         spark.sql(sparkSql)
                 .repartition()
                 .foreachPartition(new DorisSink(ConfigUtils.getConfig(), sinkDatabase, sinkTable));
+        try (KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(getProperties())) {
+            HashMap<String, Object> kafkaColumnMap = new HashMap<>();
+            kafkaColumnMap.put("dbType", "DORIS");
+            kafkaColumnMap.put("taskId", 19999);
+            kafkaColumnMap.put("database", sinkDatabase);
+            kafkaColumnMap.put("table", sinkTable);
+            kafkaColumnMap.put("pt", LocalDateTime.now().plusDays(-1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            kafkaColumnMap.put("syncStatus", "success");
+            kafkaColumnMap.put("timestamp", System.currentTimeMillis());
+            kafkaProducer.send(new ProducerRecord<>("user_tag_status", JsonUtils.toString(kafkaColumnMap)));
+            kafkaProducer.flush();
+        }
+    }
+
+    private static Properties getProperties() {
+        Properties properties = new Properties();
+        properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092");
+        properties.setProperty(ProducerConfig.ACKS_CONFIG, "all");
+        properties.setProperty(ProducerConfig.RETRIES_CONFIG, "3");
+        properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class.getName());
+        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class.getName());
+        return properties;
     }
 
     @Slf4j

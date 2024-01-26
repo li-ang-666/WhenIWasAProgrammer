@@ -11,6 +11,13 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
+        <!--kafka-->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.2.3</version>
+        </dependency>
+
         <!--doris-->
         <dependency>
             <groupId>org.apache.doris</groupId>
