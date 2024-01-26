@@ -31,6 +31,10 @@ import java.util.Map;
 //    `row` string
 //  )stored as textfile location 'obs://hadoop-obs/flink/graph/node';
 
+//  create table if not exists test.graph_export_node_invalid(
+//    `row` string
+//  )stored as textfile location 'obs://hadoop-obs/flink/graph/node_invalid';
+
 //  -- 建表后再写入数据
 //  select count(1) from test.graph_export_edge;
 //  select count(1) from test.graph_export_node;
