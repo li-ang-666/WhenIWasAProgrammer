@@ -19,10 +19,7 @@ import org.apache.spark.sql.SparkSession;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 public class DorisJob {
@@ -43,7 +40,7 @@ public class DorisJob {
                 .repartition()
                 .foreachPartition(new DorisSink(ConfigUtils.getConfig(), sinkDatabase, sinkTable));
         try (KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(getProperties())) {
-            HashMap<String, Object> kafkaColumnMap = new HashMap<>();
+            HashMap<String, Object> kafkaColumnMap = new LinkedHashMap<>();
             kafkaColumnMap.put("dbType", "DORIS");
             kafkaColumnMap.put("taskId", 19999);
             kafkaColumnMap.put("database", sinkDatabase);
