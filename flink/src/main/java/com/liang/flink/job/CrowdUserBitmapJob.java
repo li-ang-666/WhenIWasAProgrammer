@@ -18,7 +18,6 @@ public class CrowdUserBitmapJob {
     private static final String PASSWORD = "";
     private static final List<String> HIVE_CONFIG_SQLS = Arrays.asList(
             "set spark.yarn.priority=999",
-            "set spark.hadoop.yarn.nm.liveness-monitor.expiry-interval-ms=5000",
             // executor
             "set spark.executor.cores=1",
             "set spark.executor.memory=8g",
