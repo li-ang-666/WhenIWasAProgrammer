@@ -48,6 +48,7 @@ public class DorisJob {
             kafkaColumnMap.put("pt", LocalDateTime.now().plusDays(-1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             kafkaColumnMap.put("syncStatus", "success");
             kafkaColumnMap.put("timestamp", System.currentTimeMillis());
+            kafkaColumnMap.put("user", "liang");
             kafkaProducer.send(new ProducerRecord<>("user_tag_status_test", JsonUtils.toString(kafkaColumnMap)));
             kafkaProducer.flush();
         }
