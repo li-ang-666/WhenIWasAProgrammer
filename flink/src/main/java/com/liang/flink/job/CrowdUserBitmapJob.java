@@ -18,26 +18,29 @@ public class CrowdUserBitmapJob {
     private static final String PASSWORD = "";
     private static final List<String> HIVE_CONFIG_SQLS = Arrays.asList(
             "set spark.yarn.priority=999",
+            "set spark.hadoop.yarn.nm.liveness-monitor.expiry-interval-ms=5000",
             // executor
             "set spark.executor.cores=1",
             "set spark.executor.memory=8g",
             "set spark.executor.memoryOverhead=512m",
             // driver
             "set spark.driver.memory=2g",
-            "set spark.driver.memoryOverhead=512m"
+            "set spark.driver.memoryOverhead=512m",
+            // name
+            "set spark.app.name=abc"
     );
 
     public static void main(String[] args) throws Exception {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            for (String hiveConfigSql : HIVE_CONFIG_SQLS) {
-                connection.prepareStatement(hiveConfigSql).executeUpdate();
-            }
-            ResultSet resultSet = connection.prepareStatement("select 1").executeQuery();
-            while (resultSet.next()) {
-                System.out.println(resultSet.getString(1));
-            }
+        Class.forName(DRIVER);
+        Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        for (String hiveConfigSql : HIVE_CONFIG_SQLS) {
+            connection.prepareStatement(hiveConfigSql).executeUpdate();
+        }
+        ResultSet resultSet = connection.prepareStatement("select count(1) from hudi_ods.company_bond_plates").executeQuery();
+        while (resultSet.next()) {
+            System.out.println(resultSet.getString(1));
         }
         while (true) ;
     }
