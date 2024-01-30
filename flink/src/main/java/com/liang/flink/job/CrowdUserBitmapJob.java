@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -50,27 +49,6 @@ public class CrowdUserBitmapJob {
                     connection.prepareStatement(String.format(sql, crowdId, CREATE_TIMESTAMP, crowdId)).executeUpdate();
                     connection.close();
                     log.info("insert-{} done", crowdId);
-                    countDownLatch.countDown();
-                }
-            }).start();
-        }
-        countDownLatch.await();
-        for (int i = 0; i < THREAD_NUM; i++) {
-            final int crowdId = i;
-            new Thread(new Runnable() {
-                @SneakyThrows
-                @Override
-                public void run() {
-                    Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                    for (String hiveConfigSql : HIVE_CONFIG_SQLS) {
-                        connection.prepareStatement(hiveConfigSql).executeUpdate();
-                    }
-                    String sql = "select doris.bitmap_count(user_id_bitmap) from test.crowd_user_bitmap where pt = 20240129 and create_timestamp = %s and crowd_id = %s";
-                    ResultSet resultSet = connection.prepareStatement(String.format(sql, CREATE_TIMESTAMP, crowdId)).executeQuery();
-                    while (resultSet.next()) {
-                        log.info("{} -> {}", crowdId, resultSet.getString(1));
-                    }
-                    connection.close();
                     countDownLatch.countDown();
                 }
             }).start();
