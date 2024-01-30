@@ -1,7 +1,6 @@
 package com.liang.flink.job;
 
-import com.liang.common.dto.Config;
-import com.liang.common.util.ConfigUtils;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
@@ -9,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 public class CrowdUserBitmapJob {
@@ -28,19 +28,53 @@ public class CrowdUserBitmapJob {
             // name
             "set spark.app.name=abc"
     );
+    private static final int THREAD_NUM = 40;
+    private static final int CREATE_TIMESTAMP = -1;
 
     public static void main(String[] args) throws Exception {
-        Config config = ConfigUtils.createConfig("");
-        ConfigUtils.setConfig(config);
         Class.forName(DRIVER);
-        Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-        for (String hiveConfigSql : HIVE_CONFIG_SQLS) {
-            connection.prepareStatement(hiveConfigSql).executeUpdate();
+        CountDownLatch countDownLatch = new CountDownLatch(THREAD_NUM);
+        for (int i = 0; i < THREAD_NUM; i++) {
+            final int crowdId = i;
+            new Thread(new Runnable() {
+                @SneakyThrows
+                @Override
+                public void run() {
+                    Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                    for (String hiveConfigSql : HIVE_CONFIG_SQLS) {
+                        connection.prepareStatement(hiveConfigSql).executeUpdate();
+                    }
+                    String sql = "INSERT INTO test.crowd_user_bitmap PARTITION(pt=20240129)\n" +
+                            "SELECT %s crowd_id, %s create_timestamp, doris.bitmap_union(t.uid) user_id_bitmap\n" +
+                            "FROM (SELECT %s c, doris.to_bitmap(t1.old_user_id) uid FROM dim_offline.dim_user_comparison_df t1 where t1.pt = 20240129 and t1.old_user_id regexp '^\\\\d+$') t GROUP BY t.c";
+                    connection.prepareStatement(String.format(sql, crowdId, CREATE_TIMESTAMP, crowdId)).executeUpdate();
+                    connection.close();
+                    log.info("insert-{} done", crowdId);
+                    countDownLatch.countDown();
+                }
+            }).start();
         }
-        ResultSet resultSet = connection.prepareStatement("select count(1) from hudi_ods.company_bond_plates").executeQuery();
-        while (resultSet.next()) {
-            System.out.println(resultSet.getString(1));
+        countDownLatch.await();
+        for (int i = 0; i < THREAD_NUM; i++) {
+            final int crowdId = i;
+            new Thread(new Runnable() {
+                @SneakyThrows
+                @Override
+                public void run() {
+                    Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                    for (String hiveConfigSql : HIVE_CONFIG_SQLS) {
+                        connection.prepareStatement(hiveConfigSql).executeUpdate();
+                    }
+                    String sql = "select doris.bitmap_count(user_id_bitmap) from test.crowd_user_bitmap where pt = 20240129 and create_timestamp = %s and crowd_id = %s";
+                    ResultSet resultSet = connection.prepareStatement(String.format(sql, CREATE_TIMESTAMP, crowdId)).executeQuery();
+                    while (resultSet.next()) {
+                        log.info("{} -> {}", crowdId, resultSet.getString(1));
+                    }
+                    connection.close();
+                    countDownLatch.countDown();
+                }
+            }).start();
         }
-        while (true) ;
+        countDownLatch.await();
     }
 }
