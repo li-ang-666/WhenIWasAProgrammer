@@ -26,7 +26,7 @@ public class CrowdUserBitmapJob {
             "set spark.driver.memoryOverhead=512m"
     );
     private static final int THREAD_NUM = 40;
-    private static final int CREATE_TIMESTAMP = -10;
+    private static final int CREATE_TIMESTAMP = -1;
 
     public static void main(String[] args) throws Exception {
         Class.forName(DRIVER);
@@ -42,9 +42,10 @@ public class CrowdUserBitmapJob {
                         connection.prepareStatement(hiveConfigSql).executeUpdate();
                     }
                     connection.prepareStatement("set spark.app.name=abc-" + crowdId).executeUpdate();
+                    connection.prepareStatement("set hive.output.file.extension=.crowd=" + crowdId).executeUpdate();
                     String sql = "INSERT INTO test.crowd_user_bitmap PARTITION(pt=20240129) " +
-                            "SELECT %s crowd_id, %s create_timestamp, cast(count(t1.old_user_id) as string) user_id_bitmap " +
-                            "FROM dim_offline.dim_user_comparison_df t1 where t1.pt = 20240129 ";
+                            "SELECT %s crowd_id, %s create_timestamp, doris.to_bitmap(t1.old_user_id) user_id_bitmap " +
+                            "FROM dim_offline.dim_user_comparison_df t1 where t1.pt = 20240129 and t1.old_user_id regexp '^\\\\d+$' ";
                     connection.prepareStatement(String.format(sql, crowdId, CREATE_TIMESTAMP)).executeUpdate();
                     connection.close();
                     log.info("insert-{} done", crowdId);
