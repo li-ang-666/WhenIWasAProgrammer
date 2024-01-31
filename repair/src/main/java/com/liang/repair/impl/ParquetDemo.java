@@ -21,11 +21,11 @@ public class ParquetDemo extends ConfigHolder {
         ParquetWriter<GenericRecord> writer = AvroParquetWriter.<GenericRecord>builder(new Path("file:///Users/liang/Desktop/aaa.parquet"))
                 .withSchema(schema)
                 .build();
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= 21000000; i++) {
             GenericRecord record = new GenericData.Record(schema);
             record.put("id", i);
             record.put("name", UUID.randomUUID().toString());
-            record.put("__DORIS_DELETE_SIGN__", 1);
+            record.put("__DORIS_DELETE_SIGN__", 0);
             writer.write(record);
         }
         writer.close();
