@@ -11,6 +11,17 @@
 
     <artifactId>repair</artifactId>
     <dependencies>
+        <!--parquet-->
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-hadoop</artifactId>
+            <version>1.11.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-avro</artifactId>
+            <version>1.11.1</version>
+        </dependency>
         <!--delete kafka topic-->
         <!--<dependency>
             <groupId>org.apache.kafka</groupId>
