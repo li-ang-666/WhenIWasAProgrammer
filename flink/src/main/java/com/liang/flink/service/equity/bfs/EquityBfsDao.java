@@ -3,7 +3,7 @@ package com.liang.flink.service.equity.bfs;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
-import com.liang.flink.service.equity.bfs.dto.CompanyEquityRelationDetailsDto;
+import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -3,7 +3,12 @@ package com.liang.flink.service.equity.bfs;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.TycUtils;
-import com.liang.flink.service.equity.bfs.dto.*;
+import com.liang.flink.service.equity.bfs.dto.Operation;
+import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
+import com.liang.flink.service.equity.bfs.dto.mysql.RatioPathCompanyDto;
+import com.liang.flink.service.equity.bfs.dto.pojo.Edge;
+import com.liang.flink.service.equity.bfs.dto.pojo.Node;
+import com.liang.flink.service.equity.bfs.dto.pojo.Path;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -21,7 +26,7 @@ public class EquityBfsService {
     private static final int MAX_LEVEL = 1000;
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
-    private final Queue<Chain> bfsQueue = new ArrayDeque<>();
+    private final Queue<Path> bfsQueue = new ArrayDeque<>();
     private String companyId;
     private String companyName;
     private int currentLevel;
@@ -42,23 +47,22 @@ public class EquityBfsService {
         bfsQueue.clear();
         currentLevel = -1;
         // start bfs
-        bfsQueue.offer(new Chain(new Node(companyId, companyName)));
+        bfsQueue.offer(Path.newPath(new Node(companyId, companyName)));
         while (!bfsQueue.isEmpty() && currentLevel++ < MAX_LEVEL) {
             log.debug("开始遍历第 {} 层", currentLevel);
-            if (currentLevel == 1) ;
             int size = bfsQueue.size();
             while (size-- > 0) {
                 // queue.poll()
-                Chain polledChain = Objects.requireNonNull(bfsQueue.poll());
-                Node polledChainLastNode = polledChain.getLast();
-                log.debug("queue poll: {}", polledChainLastNode);
+                Path polledPath = Objects.requireNonNull(bfsQueue.poll());
+                Node polledPathLastNode = polledPath.getLast();
+                log.debug("queue poll: {}", polledPathLastNode);
                 // query shareholders
-                List<CompanyEquityRelationDetailsDto> companyEquityRelationDetailsDtos = dao.queryShareholder(polledChainLastNode.getId());
+                List<CompanyEquityRelationDetailsDto> shareholders = dao.queryShareholder(polledPathLastNode.getId());
                 // queue.offer()
-                for (CompanyEquityRelationDetailsDto dto : companyEquityRelationDetailsDtos) {
+                for (CompanyEquityRelationDetailsDto shareholder : shareholders) {
                     // chain archive? chain update? ratio update?
-                    Operation judgeResult = judgeQueriedShareholder(polledChain, dto);
-                    processQueriedShareholder(polledChain, dto, judgeResult);
+                    Operation judgeResult = judgeQueriedShareholder(polledPath, shareholder);
+                    processQueriedShareholder(polledPath, shareholder, judgeResult);
                 }
             }
         }
@@ -68,32 +72,24 @@ public class EquityBfsService {
     /**
      * `allShareholders` 在该方法中只读不写
      */
-    private Operation judgeQueriedShareholder(Chain polledChain, CompanyEquityRelationDetailsDto dto) {
-        String shareholderId = dto.getShareholderId();
-        String shareholderName = dto.getShareholderName();
-        BigDecimal ratio = dto.getRatio();
+    private Operation judgeQueriedShareholder(Path polledPath, CompanyEquityRelationDetailsDto shareholder) {
+        String shareholderId = shareholder.getShareholderId();
+        String shareholderName = shareholder.getShareholderName();
+        BigDecimal ratio = shareholder.getRatio();
         Edge newEdge = new Edge(ratio, false);
         Node newNode = new Node(shareholderId, shareholderName);
-        Chain newChain = new Chain(polledChain, newEdge, newNode);
+        Path newPath = Path.newPath(polledPath, newEdge, newNode);
         // 是否重复根结点
         if (companyId.equals(shareholderId)) {
             return DROP;
         }
-        // 直接股权比例是否到达停止穿透的阈值
-        if (THRESHOLD.compareTo(ratio) > 0) {
-            return DROP;
-        }
-        // 间接股权比例是否到达停止穿透的阈值
-        if (THRESHOLD.compareTo(newChain.getValidRatio()) > 0) {
+        // 股权比例是否到达停止穿透的阈值
+        if (THRESHOLD.compareTo(newPath.getValidRatio()) > 0) {
             return DROP;
         }
         // 是否在本条路径上出现过
-        if (polledChain.getIds().contains(shareholderId)) {
+        if (polledPath.getNodeIds().contains(shareholderId)) {
             return UPDATE_CHAIN_ONLY;
-        }
-        // 是否在其他路径上出现过
-        if (allShareholders.containsKey(shareholderId)) {
-            return UPDATE_CHAIN_AND_RATIO;
         }
         // 是否是自然人
         if (TycUtils.isTycUniqueEntityId(shareholderId) && shareholderId.length() == 17) {
@@ -106,22 +102,22 @@ public class EquityBfsService {
     /**
      * `allShareholders` 与 `bfsQueue` 在该方法中发生写入
      */
-    private void processQueriedShareholder(Chain polledChain, CompanyEquityRelationDetailsDto dto, Operation judgeResult) {
+    private void processQueriedShareholder(Path polledPath, CompanyEquityRelationDetailsDto shareholder, Operation judgeResult) {
         if (judgeResult == DROP) {
             return;
         }
-        String shareholderId = dto.getShareholderId();
-        String shareholderName = dto.getShareholderName();
-        String shareholderNameId = dto.getShareholderNameId();
-        BigDecimal ratio = dto.getRatio();
+        String shareholderId = shareholder.getShareholderId();
+        String shareholderName = shareholder.getShareholderName();
+        String shareholderNameId = shareholder.getShareholderNameId();
+        BigDecimal ratio = shareholder.getRatio();
         Edge newEdge = new Edge(ratio, judgeResult == UPDATE_CHAIN_ONLY);
         Node newNode = new Node(shareholderId, shareholderName);
-        Chain newChain = new Chain(polledChain, newEdge, newNode);
+        Path newPath = Path.newPath(polledPath, newEdge, newNode);
         allShareholders.compute(shareholderId, (k, v) -> {
             RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName, shareholderNameId);
-            // 路径list & 总股比
-            ratioPathCompanyDto.getChains().add(newChain);
-            ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newChain.getValidRatio()));
+            // 路径case & 总股比
+            ratioPathCompanyDto.getPaths().add(newPath);
+            ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newPath.getValidRatio()));
             // 是否某条路径终点
             if (!ratioPathCompanyDto.isEnd()) {
                 ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE);
@@ -134,7 +130,7 @@ public class EquityBfsService {
             return ratioPathCompanyDto;
         });
         if (judgeResult == NOT_ARCHIVE) {
-            bfsQueue.offer(newChain);
+            bfsQueue.offer(newPath);
         }
     }
 
@@ -145,11 +141,11 @@ public class EquityBfsService {
                 .forEach(e -> {
                     RatioPathCompanyDto dto = e.getValue();
                     log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalValidRatio().setScale(12, DOWN).stripTrailingZeros().toPlainString());
-                    dto.getChains()
+                    dto.getPaths()
                             .stream()
                             .sorted((o1, o2) -> o2.getValidRatio().compareTo(o1.getValidRatio()))
-                            .forEach(chain -> {
-                                String debugString = chain.toDebugString();
+                            .forEach(path -> {
+                                String debugString = path.toDebugString();
                                 log.debug("chain: {}", debugString);
                             });
                 });
