@@ -20,9 +20,6 @@ import static java.math.RoundingMode.DOWN;
 @Slf4j
 public class EquityBfsService {
     private static final BigDecimal THRESHOLD = new BigDecimal("0.000001");
-    private static final BigDecimal PERCENT_FIVE = new BigDecimal("0.05");
-    private static final BigDecimal PERCENT_TEN = new BigDecimal("0.10");
-    private static final BigDecimal PERCENT_HALF = new BigDecimal("0.5");
     private static final int MAX_LEVEL = 1000;
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -89,11 +86,11 @@ public class EquityBfsService {
         }
         // 是否在本条路径上出现过
         if (polledPath.getNodeIds().contains(shareholderId)) {
-            return UPDATE_CHAIN_ONLY;
+            return ARCHIVE_WITH_UPDATE_PATH_ONLY;
         }
         // 是否是自然人
         if (TycUtils.isTycUniqueEntityId(shareholderId) && shareholderId.length() == 17) {
-            return UPDATE_CHAIN_AND_RATIO;
+            return ARCHIVE_WITH_UPDATE_PATH_AND_RATIO;
         }
         // 其他
         return NOT_ARCHIVE;
@@ -110,7 +107,7 @@ public class EquityBfsService {
         String shareholderName = shareholder.getShareholderName();
         String shareholderNameId = shareholder.getShareholderNameId();
         BigDecimal ratio = shareholder.getRatio();
-        Edge newEdge = new Edge(ratio, judgeResult == UPDATE_CHAIN_ONLY);
+        Edge newEdge = new Edge(ratio, judgeResult == ARCHIVE_WITH_UPDATE_PATH_ONLY);
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
         allShareholders.compute(shareholderId, (k, v) -> {
