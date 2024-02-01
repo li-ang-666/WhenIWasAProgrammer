@@ -3,7 +3,7 @@ package com.liang.spark.job;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
-import com.liang.common.service.database.template.DorisParquetWriter;
+import com.liang.common.service.database.template.DorisWriter;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.spark.basic.SparkSessionFactory;
@@ -74,7 +74,8 @@ public class DorisJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-            DorisParquetWriter dorisWriter = new DorisParquetWriter("dorisSink", 64 * 1024 * 1024);
+            //DorisParquetWriter dorisWriter = new DorisParquetWriter("dorisSink", 64 * 1024 * 1024);
+            DorisWriter dorisWriter = new DorisWriter("dorisSink", 64 * 1024 * 1024);
             DorisSchema schema = DorisSchema.builder().database(database).tableName(table).build();
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
