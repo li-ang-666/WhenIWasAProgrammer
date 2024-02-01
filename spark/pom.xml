@@ -11,6 +11,16 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
+        <!--parquet-->
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-avro</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-hadoop</artifactId>
+        </dependency>
+
         <!--kafka-->
         <dependency>
             <groupId>org.apache.kafka</groupId>

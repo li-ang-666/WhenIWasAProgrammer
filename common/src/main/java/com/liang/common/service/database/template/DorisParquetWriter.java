@@ -57,9 +57,9 @@ public class DorisParquetWriter {
     private final List<String> fe;
     private final String auth;
     private Schema avroSchema;
-    private ParquetWriter<GenericRecord> parquetWriter;
     private DorisSchema dorisSchema;
     private List<String> keys;
+    private ParquetWriter<GenericRecord> parquetWriter;
 
     public DorisParquetWriter(String name, int bufferSize) {
         maxBufferSize = bufferSize;
@@ -78,30 +78,37 @@ public class DorisParquetWriter {
                 SchemaBuilder.FieldAssembler<Schema> schemaBuilder = SchemaBuilder.record("DorisOneRow").fields();
                 columnMap.keySet().forEach(key -> schemaBuilder.name(key).type().stringType().noDefault());
                 avroSchema = schemaBuilder.endRecord();
-                parquetWriter = AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
-                        .withCompressionCodec(CompressionCodecName.GZIP)
-                        .withSchema(avroSchema)
-                        .build();
                 dorisSchema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
+            }
+            if (parquetWriter == null) {
+                parquetWriter = AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
+                        .withSchema(avroSchema)
+                        .withCompressionCodec(CompressionCodecName.GZIP)
+                        .build();
             }
             GenericRecord genericRecord = new GenericData.Record(avroSchema);
             columnMap.forEach(genericRecord::put);
             parquetWriter.write(genericRecord);
-            if (buffer.position() > maxBufferSize * 0.8) {
+            log.info("id: {}, parquetWriter.getDataSize(): {}", columnMap.get("id"), parquetWriter.getDataSize());
+            if (parquetWriter.getDataSize() > maxBufferSize * 0.8) {
                 flush();
+
             }
         }
     }
 
+    @SneakyThrows(IOException.class)
     public void flush() {
         synchronized (buffer) {
-            if (buffer.position() > 0) {
+            if (parquetWriter != null && parquetWriter.getDataSize() > 0) {
+                parquetWriter.close();
                 HttpPut put = getCommonHttpPut();
                 put.setEntity(new ByteArrayEntity(buffer.array(), 0, buffer.position()));
                 executePut(put);
             }
             buffer.clear();
+            parquetWriter = null;
         }
     }
 
