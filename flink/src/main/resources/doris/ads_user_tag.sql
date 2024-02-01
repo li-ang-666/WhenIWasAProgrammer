@@ -1,10 +1,11 @@
-insert into ads.ads_user_tag with label %s (tyc_user_id,vip_unpay_time,svip_pay_last_time,vip_pay_last_time,svip_unpay_time,first_show_vip_paypoint_time)
+insert into ads.ads_user_tag with label %s
 select COALESCE (t1.tyc_user_id,t2.tyc_user_id) as tyc_user_id, -- 用户id
        vip_unpay_time,                -- 下单VIP未支付时间
        svip_pay_last_time,            -- 最后一次付费svip时间
        vip_pay_last_time,             -- 最后一次付费vip时间
        svip_unpay_time,               -- 下单svip未支付时间
-       first_show_vip_paypoint_time   -- 当日首次触发VIP痒点时间
+       first_show_vip_paypoint_time,  -- 当日首次触发VIP痒点时间
+       now() update_time              -- 数据更新时间
 from (SELECT tyc_user_id,
              MAX(CASE
                      WHEN sku_id >= 50 AND sku_id <= 70 AND order_status NOT IN ('1', '-10')  THEN create_date END) AS vip_unpay_time,

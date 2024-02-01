@@ -8,6 +8,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ public class ParquetDemo extends ConfigHolder {
                 .name("__DORIS_DELETE_SIGN__").type().stringType().noDefault()
                 .endRecord();
         ParquetWriter<GenericRecord> writer = AvroParquetWriter.<GenericRecord>builder(new Path("file:///Users/liang/Desktop/aaa.parquet"))
+                .withCompressionCodec(CompressionCodecName.GZIP)
                 .withSchema(schema)
                 .build();
         for (int i = 1; i <= 21000000; i++) {

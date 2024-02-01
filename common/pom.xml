@@ -12,6 +12,13 @@
 
     <artifactId>common</artifactId>
     <dependencies>
+        <!--parquet-->
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-avro</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+
         <!--debezium-->
         <dependency>
             <groupId>io.debezium</groupId>
