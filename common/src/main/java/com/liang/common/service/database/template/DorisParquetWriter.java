@@ -92,7 +92,6 @@ public class DorisParquetWriter {
                     genericRecord.put(k, v != null ? String.valueOf(v) : null)
             );
             parquetWriter.write(genericRecord);
-            log.info("id: {}, parquetWriter.getDataSize(): {}", columnMap.get("id"), parquetWriter.getDataSize());
             if (parquetWriter.getDataSize() > maxBufferSize * 0.8) {
                 flush();
             }
