@@ -6,14 +6,14 @@ import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.dto.config.DorisConfig;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hadoop.fs.Path;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
@@ -63,7 +63,6 @@ public class DorisParquetWriter {
     private ParquetWriter<GenericRecord> parquetWriter;
     private DorisSchema dorisSchema;
     private List<String> keys;
-    private int currentBufferSize = 0;
 
     public DorisParquetWriter(String name, int bufferSize) {
         maxBufferSize = bufferSize;
@@ -82,34 +81,30 @@ public class DorisParquetWriter {
                 SchemaBuilder.FieldAssembler<Schema> schemaBuilder = SchemaBuilder.record("DorisOneRow").fields();
                 columnMap.keySet().forEach(key -> schemaBuilder.name(key).type().stringType().noDefault());
                 avroSchema = schemaBuilder.endRecord();
-                parquetWriter = AvroParquetWriter.<GenericRecord>builder(new Path("file:///Users/liang/Desktop/aaa.parquet"))
+                parquetWriter = AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
                         .withCompressionCodec(CompressionCodecName.GZIP)
                         .withSchema(avroSchema)
                         .build();
                 dorisSchema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
             }
-            byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
-            // 1(separator) + content + 1(suffix)
-            if (currentBufferSize + (1 + content.length + 1) > maxBufferSize) flush();
-            buffer.put(JSON_SEPARATOR);
-            currentBufferSize += 1;
-            buffer.put(content);
-            currentBufferSize += content.length;
+            GenericRecord genericRecord = new GenericData.Record(avroSchema);
+            columnMap.forEach(genericRecord::put);
+            parquetWriter.write(genericRecord);
+            if (buffer.position() > maxBufferSize * 0.8) {
+                flush();
+            }
         }
     }
 
     public void flush() {
         synchronized (buffer) {
-            if (currentBufferSize > 0) {
-                buffer.put(0, JSON_PREFIX);
-                buffer.put(JSON_SUFFIX);
+            if (buffer.position() > 0) {
                 HttpPut put = getCommonHttpPut();
-                put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentBufferSize + 1));
+                put.setEntity(new ByteArrayEntity(buffer.array(), 0, buffer.position()));
                 executePut(put);
             }
             buffer.clear();
-            currentBufferSize = 0;
         }
     }
 
@@ -118,23 +113,14 @@ public class DorisParquetWriter {
         HttpPut put = new HttpPut();
         put.setHeader(EXPECT, "100-continue");
         put.setHeader(AUTHORIZATION, auth);
-        put.setHeader("format", "json");
-        put.setHeader("strip_outer_array", "true");
-        put.setHeader("fuzzy_parse", "true");
-        put.setHeader("num_as_string", "true");
-        // columns
-        if (CollUtil.isNotEmpty(dorisSchema.getDerivedColumns())) {
-            put.setHeader("columns", parseColumns());
-        }
+        put.setHeader("format", "parquet");
         // unique delete
         if (StrUtil.isNotBlank(dorisSchema.getUniqueDeleteOn())) {
             put.setHeader("merge_type", "MERGE");
             put.setHeader("delete", dorisSchema.getUniqueDeleteOn());
-            // delete must contains columns or hidden_columns
-            if (!put.containsHeader("columns")) {
-                put.setHeader("hidden_columns", DorisSchema.DEFAULT_UNIQUE_DELETE_COLUMN);
-            }
         }
+        // columns
+        put.setHeader("columns", parseColumns());
         // where
         if (StrUtil.isNotBlank(dorisSchema.getWhere())) {
             put.setHeader("where", dorisSchema.getWhere());
@@ -146,7 +132,9 @@ public class DorisParquetWriter {
         List<String> columns = keys.parallelStream()
                 .map(e -> "`" + e + "`")
                 .collect(Collectors.toList());
-        columns.addAll(dorisSchema.getDerivedColumns());
+        if (CollUtil.isNotEmpty(dorisSchema.getDerivedColumns())) {
+            columns.addAll(dorisSchema.getDerivedColumns());
+        }
         return String.join(",", columns);
     }
 
@@ -203,15 +191,18 @@ public class DorisParquetWriter {
         }
     }
 
+    @RequiredArgsConstructor
     private static final class OutputFileBuffer implements OutputFile {
+        private final ByteBuffer byteBuffer;
+
         @Override
         public PositionOutputStream create(long blockSizeHint) {
-            return null;
+            return new PositionOutputStreamBuffer(byteBuffer);
         }
 
         @Override
         public PositionOutputStream createOrOverwrite(long blockSizeHint) {
-            return null;
+            return new PositionOutputStreamBuffer(byteBuffer);
         }
 
         @Override
@@ -222,6 +213,21 @@ public class DorisParquetWriter {
         @Override
         public long defaultBlockSize() {
             return 0;
+        }
+
+        @RequiredArgsConstructor
+        private final static class PositionOutputStreamBuffer extends PositionOutputStream {
+            private final ByteBuffer byteBuffer;
+
+            @Override
+            public long getPos() {
+                return byteBuffer.position();
+            }
+
+            @Override
+            public void write(int b) {
+                byteBuffer.put((byte) b);
+            }
         }
     }
 }
