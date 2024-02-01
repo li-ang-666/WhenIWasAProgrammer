@@ -48,9 +48,6 @@ import static org.apache.http.HttpHeaders.EXPECT;
 @Slf4j
 public class DorisParquetWriter {
     private static final int MAX_TRY_TIMES = 3;
-    private static final byte JSON_PREFIX = (byte) '[';
-    private static final byte JSON_SEPARATOR = (byte) ',';
-    private static final byte JSON_SUFFIX = (byte) ']';
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
