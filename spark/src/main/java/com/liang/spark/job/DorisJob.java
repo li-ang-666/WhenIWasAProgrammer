@@ -74,8 +74,7 @@ public class DorisJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-            //DorisParquetWriter dorisWriter = new DorisParquetWriter("dorisSink", 64 * 1024 * 1024);
-            DorisWriter dorisWriter = new DorisWriter("dorisSink", 64 * 1024 * 1024);
+            DorisWriter dorisWriter = new DorisWriter("dorisSink", 256 * 1024 * 1024);
             DorisSchema schema = DorisSchema.builder().database(database).tableName(table).build();
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
