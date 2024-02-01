@@ -11,13 +11,6 @@
 
     <artifactId>spark</artifactId>
     <dependencies>
-        <!--snappy-->
-        <dependency>
-            <groupId>org.xerial.snappy</groupId>
-            <artifactId>snappy-java</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!--parquet-->
         <dependency>
             <groupId>org.apache.parquet</groupId>
