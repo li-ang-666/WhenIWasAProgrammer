@@ -88,13 +88,9 @@ public class DorisParquetWriter {
                         .build();
             }
             GenericRecord genericRecord = new GenericData.Record(avroSchema);
-            columnMap.forEach((k, v) ->
-                    genericRecord.put(k, v != null ? String.valueOf(v) : null)
-            );
+            columnMap.forEach((k, v) -> genericRecord.put(k, v != null ? String.valueOf(v) : null));
             parquetWriter.write(genericRecord);
-            if (parquetWriter.getDataSize() > maxBufferSize * 0.8) {
-                flush();
-            }
+            if (parquetWriter.getDataSize() > maxBufferSize * 0.8) flush();
         }
     }
 
