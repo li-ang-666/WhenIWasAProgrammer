@@ -19,7 +19,7 @@ public class ParquetDemo extends ConfigHolder {
                 .name("name").type().stringType().noDefault()
                 .name("__DORIS_DELETE_SIGN__").type().stringType().noDefault()
                 .endRecord();
-        ParquetWriter<GenericRecord> writer = AvroParquetWriter.<GenericRecord>builder(new Path("file:///Users/liang/Desktop/aaa.parquet"))
+        ParquetWriter<GenericRecord> writer = AvroParquetWriter.<GenericRecord>builder(new Path("file:///Users/liang/Desktop/parquet-demo.parquet.gz"))
                 .withCompressionCodec(CompressionCodecName.GZIP)
                 .withSchema(schema)
                 .build();
@@ -31,5 +31,6 @@ public class ParquetDemo extends ConfigHolder {
             writer.write(record);
         }
         writer.close();
+        log.info("finish");
     }
 }

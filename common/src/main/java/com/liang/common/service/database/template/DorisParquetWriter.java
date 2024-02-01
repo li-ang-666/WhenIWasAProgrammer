@@ -93,7 +93,6 @@ public class DorisParquetWriter {
             log.info("id: {}, parquetWriter.getDataSize(): {}", columnMap.get("id"), parquetWriter.getDataSize());
             if (parquetWriter.getDataSize() > maxBufferSize * 0.8) {
                 flush();
-
             }
         }
     }
