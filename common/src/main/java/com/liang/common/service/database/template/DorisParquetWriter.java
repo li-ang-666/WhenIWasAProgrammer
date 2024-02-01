@@ -76,7 +76,7 @@ public class DorisParquetWriter {
             // the first row
             if (avroSchema == null) {
                 SchemaBuilder.FieldAssembler<Schema> schemaBuilder = SchemaBuilder.record("DorisOneRow").fields();
-                columnMap.keySet().forEach(key -> schemaBuilder.name(key).type().stringType().noDefault());
+                columnMap.keySet().forEach(key -> schemaBuilder.name(key).type().nullable().stringType().noDefault());
                 avroSchema = schemaBuilder.endRecord();
                 dorisSchema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
