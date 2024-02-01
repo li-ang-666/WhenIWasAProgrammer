@@ -84,7 +84,7 @@ public class DorisParquetWriter {
             if (parquetWriter == null) {
                 parquetWriter = AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
                         .withSchema(avroSchema)
-                        .withCompressionCodec(CompressionCodecName.SNAPPY)
+                        .withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
                         .build();
             }
             GenericRecord genericRecord = new GenericData.Record(avroSchema);
