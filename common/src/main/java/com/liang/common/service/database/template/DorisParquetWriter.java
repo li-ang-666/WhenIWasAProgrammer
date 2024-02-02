@@ -50,7 +50,7 @@ public class DorisParquetWriter {
     private static final int MAX_TRY_TIMES = 3;
     private static final int MAX_BUFFER_SIZE = 100 * 1024 * 1024;
     private static final int PARQUET_ROW_GROUP_SIZE = 64 * 1024 * 1024;
-    private static final int PARQUET_PAGE_SIZE = 4 * 1024 * 1024;
+    private static final int PARQUET_PAGE_SIZE = 8 * 1024 * 1024;
     private static final int PARQUET_MAGIC_NUMBER = 4;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
