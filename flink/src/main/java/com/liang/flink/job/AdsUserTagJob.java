@@ -81,7 +81,6 @@ public class AdsUserTagJob {
             String insertSqlV2 = String.format(INSERT_SQL_TEMPLATE_V2, labelV2);
             doris.update(insertSqlV2);
             log.info("insert finish, see: `show load from ads where label = '{}'\\G` or `show transaction from ads where label = '{}'\\G`", labelV2, labelV2);
-
         }
     }
 }
