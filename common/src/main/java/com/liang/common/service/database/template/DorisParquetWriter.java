@@ -48,12 +48,15 @@ import static org.apache.http.HttpHeaders.EXPECT;
 @Slf4j
 public class DorisParquetWriter {
     private static final int MAX_TRY_TIMES = 3;
+    private static final int MAX_BUFFER_SIZE = 64 * 1024 * 1024;
+    private static final int PARQUET_ROW_GROUP_SIZE = 32 * 1024 * 1024;
+    private static final int PARQUET_PAGE_SIZE = 4 * 1024 * 1024;
+    private static final int PARQUET_MAGIC_NUMBER = 4;
     private final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
     private final AtomicInteger fePointer = new AtomicInteger(0);
-    private final int maxBufferSize;
-    private final ByteBuffer buffer;
+    private final ByteBuffer buffer = ByteBuffer.allocate(MAX_BUFFER_SIZE);
     private final List<String> fe;
     private final String auth;
     private Schema avroSchema;
@@ -61,9 +64,7 @@ public class DorisParquetWriter {
     private List<String> keys;
     private ParquetWriter<GenericRecord> parquetWriter;
 
-    public DorisParquetWriter(String name, int bufferSize) {
-        maxBufferSize = bufferSize;
-        buffer = ByteBuffer.allocate(bufferSize);
+    public DorisParquetWriter(String name) {
         DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
         fe = dorisConfig.getFe();
         auth = basicAuthHeader(dorisConfig.getUser(), dorisConfig.getPassword());
@@ -84,20 +85,22 @@ public class DorisParquetWriter {
             if (parquetWriter == null) {
                 parquetWriter = AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
                         .withSchema(avroSchema)
+                        .withRowGroupSize(PARQUET_ROW_GROUP_SIZE)
+                        .withPageSize(PARQUET_PAGE_SIZE)
                         .withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
                         .build();
             }
             GenericRecord genericRecord = new GenericData.Record(avroSchema);
             columnMap.forEach((k, v) -> genericRecord.put(k, v != null ? String.valueOf(v) : null));
             parquetWriter.write(genericRecord);
-            if (parquetWriter.getDataSize() > maxBufferSize * 0.8) flush();
+            if (buffer.position() > PARQUET_MAGIC_NUMBER) flush();
         }
     }
 
     @SneakyThrows(IOException.class)
     public void flush() {
         synchronized (buffer) {
-            if (parquetWriter != null && parquetWriter.getDataSize() > 0) {
+            if (buffer.position() > PARQUET_MAGIC_NUMBER) {
                 parquetWriter.close();
                 HttpPut put = getCommonHttpPut();
                 put.setEntity(new ByteArrayEntity(buffer.array(), 0, buffer.position()));

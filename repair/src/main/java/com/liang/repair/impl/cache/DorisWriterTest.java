@@ -8,7 +8,7 @@ import com.liang.repair.service.ConfigHolder;
 
 public class DorisWriterTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        DorisParquetWriter dorisWriter = new DorisParquetWriter("dorisSink", 1024 * 1024);
+        DorisParquetWriter dorisWriter = new DorisParquetWriter("dorisSink");
         DorisSchema uniqueSchema = DorisSchema.builder()
                 .database("test")
                 .tableName("parquet_test")
