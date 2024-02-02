@@ -74,7 +74,6 @@ public class DorisJob {
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
-            //DorisWriter dorisWriter = new DorisWriter("dorisSink", 256 * 1024 * 1024);
             DorisParquetWriter dorisWriter = new DorisParquetWriter("dorisSink");
             DorisSchema schema = DorisSchema.builder().database(database).tableName(table).build();
             while (iterator.hasNext()) {

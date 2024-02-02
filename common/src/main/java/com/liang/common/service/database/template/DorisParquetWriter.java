@@ -100,7 +100,7 @@ public class DorisParquetWriter {
     @SneakyThrows(IOException.class)
     public void flush() {
         synchronized (buffer) {
-            if (buffer.position() > PARQUET_MAGIC_NUMBER) {
+            if (buffer.position() > 0) {
                 parquetWriter.close();
                 HttpPut put = getCommonHttpPut();
                 put.setEntity(new ByteArrayEntity(buffer.array(), 0, buffer.position()));
