@@ -44,16 +44,13 @@ public class DorisWriter {
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
     private final AtomicInteger fePointer = new AtomicInteger(0);
-    private final int maxBufferSize;
     private final ByteBuffer buffer;
     private final List<String> fe;
     private final String auth;
     private DorisSchema schema;
     private List<String> keys;
-    private int currentBufferSize = 0;
 
     public DorisWriter(String name, int bufferSize) {
-        maxBufferSize = bufferSize;
         buffer = ByteBuffer.allocate(bufferSize);
         DorisConfig dorisConfig = ConfigUtils.getConfig().getDorisConfigs().get(name);
         fe = dorisConfig.getFe();
@@ -70,25 +67,22 @@ public class DorisWriter {
             }
             byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
             // 1(separator) + content + 1(suffix)
-            if (currentBufferSize + (1 + content.length + 1) > maxBufferSize) flush();
+            if (buffer.position() + (1 + content.length + 1) > buffer.limit()) flush();
             buffer.put(JSON_SEPARATOR);
-            currentBufferSize += 1;
             buffer.put(content);
-            currentBufferSize += content.length;
         }
     }
 
     public void flush() {
         synchronized (buffer) {
-            if (currentBufferSize > 0) {
+            if (buffer.position() > 0) {
                 buffer.put(0, JSON_PREFIX);
                 buffer.put(JSON_SUFFIX);
                 HttpPut put = getCommonHttpPut();
-                put.setEntity(new ByteArrayEntity(buffer.array(), 0, currentBufferSize + 1));
+                put.setEntity(new ByteArrayEntity(buffer.array(), 0, buffer.position()));
                 executePut(put);
             }
             buffer.clear();
-            currentBufferSize = 0;
         }
     }
 
