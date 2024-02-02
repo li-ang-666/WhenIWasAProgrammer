@@ -59,6 +59,7 @@ public class AdsUserTagJob {
     @RequiredArgsConstructor
     private final static class AdsUserTagSink extends RichSinkFunction<String> {
         private static final String INSERT_SQL_TEMPLATE = IoUtil.read(AdsUserTagSink.class.getClassLoader().getResourceAsStream("doris/ads_user_tag.sql"), StandardCharsets.UTF_8);
+        private static final String INSERT_SQL_TEMPLATE_V2 = IoUtil.read(AdsUserTagSink.class.getClassLoader().getResourceAsStream("doris/ads_user_tag_v2.sql"), StandardCharsets.UTF_8);
         private final Config config;
         private JdbcTemplate doris;
 
@@ -70,10 +71,17 @@ public class AdsUserTagJob {
 
         @Override
         public void invoke(String value, Context context) {
-            String label = String.format("ads_user_tag_%s", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+            // ads.ads_user_tag
+            String label = String.format("ads_ads_user_tag_%s", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
             String insertSql = String.format(INSERT_SQL_TEMPLATE, label);
             doris.update(insertSql);
             log.info("insert finish, see: `show load from ads where label = '{}'\\G` or `show transaction from ads where label = '{}'\\G`", label, label);
+            // ads.ads_user_tag_v2
+            String labelV2 = String.format("ads_ads_user_tag_v2_%s", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+            String insertSqlV2 = String.format(INSERT_SQL_TEMPLATE_V2, labelV2);
+            doris.update(insertSqlV2);
+            log.info("insert finish, see: `show load from ads where label = '{}'\\G` or `show transaction from ads where label = '{}'\\G`", labelV2, labelV2);
+
         }
     }
 }
