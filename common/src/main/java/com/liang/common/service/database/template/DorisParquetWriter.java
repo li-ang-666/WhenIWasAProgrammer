@@ -87,7 +87,7 @@ public class DorisParquetWriter {
                         .withSchema(avroSchema)
                         .withRowGroupSize(PARQUET_ROW_GROUP_SIZE)
                         .withPageSize(PARQUET_PAGE_SIZE)
-                        .withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
+                        .withCompressionCodec(CompressionCodecName.GZIP)
                         .build();
             }
             GenericRecord genericRecord = new GenericData.Record(avroSchema);
