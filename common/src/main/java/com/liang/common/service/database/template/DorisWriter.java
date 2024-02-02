@@ -65,7 +65,7 @@ public class DorisWriter {
                 schema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
             }
-            byte[] content = JsonUtils.toString(columnMap).getBytes(StandardCharsets.UTF_8);
+            byte[] content = JsonUtils.toBytes(columnMap);
             // 1(separator) + content + 1(suffix)
             if (buffer.position() + (1 + content.length + 1) > buffer.limit()) flush();
             buffer.put(JSON_SEPARATOR);

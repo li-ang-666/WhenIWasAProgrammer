@@ -19,7 +19,7 @@ import java.util.TimeZone;
 @SuppressWarnings("unchecked")
 @UtilityClass
 public class JsonUtils {
-    private static final ObjectMapper objectMapper = new ObjectMapper()
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .setTimeZone(TimeZone.getTimeZone("GTM+8"))
             // 可以识别单引号
             .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
@@ -43,7 +43,7 @@ public class JsonUtils {
     public static <T> T parseJsonObj(String json, Class<T> clz) {
         T t;
         try {
-            t = objectMapper.readValue(json, clz);
+            t = OBJECT_MAPPER.readValue(json, clz);
         } catch (Exception e) {
             log.error("JsonUtils error", e);
             t = null;
@@ -59,8 +59,8 @@ public class JsonUtils {
     public static <T> List<T> parseJsonArr(String json, Class<T> clz) {
         List<T> result;
         try {
-            JavaType javaType = objectMapper.getTypeFactory().constructParametricType(List.class, clz);
-            result = objectMapper.readValue(json, javaType);
+            JavaType javaType = OBJECT_MAPPER.getTypeFactory().constructParametricType(List.class, clz);
+            result = OBJECT_MAPPER.readValue(json, javaType);
         } catch (Exception e) {
             log.error("JsonUtils error", e);
             result = null;
@@ -72,7 +72,18 @@ public class JsonUtils {
     public static String toString(Object o) {
         String result;
         try {
-            result = objectMapper.writeValueAsString(o);
+            result = OBJECT_MAPPER.writeValueAsString(o);
+        } catch (Exception e) {
+            log.error("JsonUtils error", e);
+            result = null;
+        }
+        return result;
+    }
+
+    public static byte[] toBytes(Object o) {
+        byte[] result;
+        try {
+            result = OBJECT_MAPPER.writeValueAsBytes(o);
         } catch (Exception e) {
             log.error("JsonUtils error", e);
             result = null;
