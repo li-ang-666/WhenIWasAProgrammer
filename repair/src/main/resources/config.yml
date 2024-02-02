@@ -1,2 +1,2 @@
 dbConfigs:
-  doris: { host: "10.99.202.70", database: "test_db", user: "dba", password: "Tyc@1234", port: 6060 }
+  doris: { host: "10.99.197.34", database: "test_db", user: "dba", password: "Tyc@1234", port: 9030 }
