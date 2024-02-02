@@ -18,6 +18,7 @@ public class ReadHbase extends ConfigHolder {
         HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, "K001N90002B0E2JCY");
         HbaseOneRow queryResult = query(hbaseOneRow);
         queryResult.put("num_control_ability", null);
+        queryResult.put("num_benefit_ability", null);
         update(queryResult);
     }
 
