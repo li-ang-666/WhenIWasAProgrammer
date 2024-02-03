@@ -31,7 +31,7 @@ class OutputFileBuffer implements OutputFile {
     }
 
     @RequiredArgsConstructor
-    private final static class PositionOutputStreamBuffer extends PositionOutputStream {
+    private static final class PositionOutputStreamBuffer extends PositionOutputStream {
         private final ByteBuffer byteBuffer;
 
         @Override
