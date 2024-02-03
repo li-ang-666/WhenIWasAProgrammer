@@ -1,4 +1,4 @@
-package com.liang.common.service.database.template;
+package com.liang.common.service.database.template.doris;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
@@ -9,14 +9,8 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -28,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
 import static org.apache.http.HttpHeaders.AUTHORIZATION;
@@ -36,13 +29,10 @@ import static org.apache.http.HttpHeaders.EXPECT;
 
 @Slf4j
 public class DorisWriter {
-    private static final int MAX_TRY_TIMES = 3;
     private static final byte JSON_PREFIX = (byte) '[';
     private static final byte JSON_SEPARATOR = (byte) ',';
     private static final byte JSON_SUFFIX = (byte) ']';
-    private final HttpClientBuilder httpClientBuilder = HttpClients
-            .custom()
-            .setRedirectStrategy(new DorisRedirectStrategy());
+    private final HttpPutExecutor putExecutor = new HttpPutExecutor();
     private final AtomicInteger fePointer = new AtomicInteger(0);
     private final ByteBuffer buffer;
     private final List<String> fe;
@@ -80,7 +70,7 @@ public class DorisWriter {
                 buffer.put(JSON_SUFFIX);
                 HttpPut put = getCommonHttpPut();
                 put.setEntity(new ByteArrayEntity(buffer.array(), 0, buffer.position()));
-                executePut(put);
+                putExecutor.execute(put, getUri(), getLabel());
             }
             buffer.clear();
         }
@@ -123,34 +113,6 @@ public class DorisWriter {
         return String.join(",", columns);
     }
 
-    private void executePut(HttpPut put) {
-        try (CloseableHttpClient client = httpClientBuilder.build()) {
-            int tryTimes = MAX_TRY_TIMES;
-            while (tryTimes-- > 0) {
-                // 负载均衡 & label
-                put.setURI(getUri());
-                put.setHeader("label", getLabel());
-                try (CloseableHttpResponse response = client.execute(put)) {
-                    int statusCode = response.getStatusLine().getStatusCode();
-                    String loadResult = EntityUtils.toString(response.getEntity());
-                    if (statusCode == 200 && loadResult.contains("Success") && loadResult.contains("OK")) { // Status = Success, Message = OK
-                        log.info("stream load success, loadResult:\n{}", loadResult);
-                        tryTimes = 0;
-                    } else if (statusCode == 200 && loadResult.contains("Publish Timeout") && loadResult.contains("PUBLISH_TIMEOUT")) { // Status = Publish Timeout, Message = PUBLISH_TIMEOUT
-                        log.warn("stream load success, loadResult:\n{}", loadResult);
-                        tryTimes = 0;
-                    } else if (tryTimes == 0) {
-                        log.error("stream load failed for {} times, statusCode: {}, loadResult:\n{}", MAX_TRY_TIMES, statusCode, loadResult);
-                    } else {
-                        LockSupport.parkUntil(System.currentTimeMillis() + 1000);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("stream load failed without loadResult", e);
-        }
-    }
-
     private URI getUri() {
         String targetFe = fe.get(fePointer.getAndIncrement() % fe.size());
         return URI.create(String.format("http://%s/api/%s/%s/_stream_load", targetFe, schema.getDatabase(), schema.getTableName()));
@@ -166,13 +128,5 @@ public class DorisWriter {
         String tobeEncode = username + ":" + password;
         byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
         return "Basic " + new String(encoded);
-    }
-
-    @Slf4j
-    private static class DorisRedirectStrategy extends DefaultRedirectStrategy {
-        @Override
-        protected boolean isRedirectable(String method) {
-            return true;
-        }
     }
 }
