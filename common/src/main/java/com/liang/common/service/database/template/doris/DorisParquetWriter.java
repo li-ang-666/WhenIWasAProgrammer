@@ -85,12 +85,12 @@ public class DorisParquetWriter {
         synchronized (buffer) {
             if (buffer.position() > 0) {
                 parquetWriter.close();
+                parquetWriter = null;
                 HttpPut put = getCommonHttpPut();
                 put.setEntity(new ByteArrayEntity(buffer.array(), 0, buffer.position()));
                 putExecutor.execute(put, getUri(), getLabel());
             }
             buffer.clear();
-            parquetWriter = null;
         }
     }
 
