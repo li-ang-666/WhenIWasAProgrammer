@@ -9,7 +9,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.http.client.methods.HttpPut;
@@ -31,13 +30,12 @@ public class DorisParquetWriter {
     private static final int MAX_BUFFER_SIZE = (int) (1.1 * PARQUET_ROW_GROUP_SIZE);
     private final DorisHelper dorisHelper;
     private final ByteBuffer buffer = ByteBuffer.allocate(MAX_BUFFER_SIZE);
-    // parquet
-    private GenericRecordBuilder recordBuilder;
-    private AvroParquetWriter.Builder<GenericRecord> parquetWriterBuilder;
-    private ParquetWriter<GenericRecord> parquetWriter;
     // init when first row
     private DorisSchema dorisSchema;
     private List<String> keys;
+    // parquet
+    private Schema avroSchema;
+    private ParquetWriter<GenericRecord> parquetWriter;
 
     public DorisParquetWriter(String name) {
         dorisHelper = new DorisHelper(ConfigUtils.getConfig().getDorisConfigs().get(name));
@@ -52,16 +50,10 @@ public class DorisParquetWriter {
                 dorisSchema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
                 // parquet
-                Schema avroSchema = getAvroSchema();
-                recordBuilder = new GenericRecordBuilder(avroSchema);
-                parquetWriterBuilder = AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
-                        .withSchema(avroSchema)
-                        .withRowGroupSize(PARQUET_ROW_GROUP_SIZE);
-                parquetWriter = parquetWriterBuilder.build();
+                avroSchema = getAvroSchema();
+                parquetWriter = getParquetWriter();
             }
-            GenericData.Record record = recordBuilder.build();
-            columnMap.forEach((k, v) -> record.put(k, StrUtil.toStringOrNull(v)));
-            parquetWriter.write(record);
+            parquetWriter.write(getRecord(columnMap));
             if (buffer.position() > PARQUET_MAGIC_NUMBER) flush();
         }
     }
@@ -71,7 +63,7 @@ public class DorisParquetWriter {
         synchronized (buffer) {
             if (buffer.position() > 0) {
                 parquetWriter.close();
-                parquetWriter = parquetWriterBuilder.build();
+                parquetWriter = getParquetWriter();
                 dorisHelper.execute(dorisSchema.getDatabase(), dorisSchema.getTableName(), this::setPut);
             }
             buffer.clear();
@@ -82,6 +74,20 @@ public class DorisParquetWriter {
         SchemaBuilder.FieldAssembler<Schema> schemaBuilder = SchemaBuilder.record(DorisOneRow.class.getSimpleName()).fields();
         keys.forEach(schemaBuilder::optionalString);
         return schemaBuilder.endRecord();
+    }
+
+    private GenericRecord getRecord(Map<String, Object> columnMap) {
+        GenericRecord record = new GenericRecordBuilder(avroSchema).build();
+        columnMap.forEach((k, v) -> record.put(k, StrUtil.toStringOrNull(v)));
+        return record;
+    }
+
+    @SneakyThrows(IOException.class)
+    private ParquetWriter<GenericRecord> getParquetWriter() {
+        return AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
+                .withSchema(avroSchema)
+                .withRowGroupSize(PARQUET_ROW_GROUP_SIZE)
+                .build();
     }
 
     private void setPut(HttpPut put) {
