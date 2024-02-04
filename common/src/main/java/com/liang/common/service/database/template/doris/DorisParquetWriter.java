@@ -38,7 +38,7 @@ import static org.apache.http.HttpHeaders.EXPECT;
 public class DorisParquetWriter {
     private static final int PARQUET_MAGIC_NUMBER = 4;
     private static final int PARQUET_ROW_GROUP_SIZE = 32 * 1024 * 1024;
-    private static final int MAX_BUFFER_SIZE = (int) (1.5 * PARQUET_ROW_GROUP_SIZE);
+    private static final int MAX_BUFFER_SIZE = (int) (1.1 * PARQUET_ROW_GROUP_SIZE);
     private final HttpPutExecutor putExecutor = new HttpPutExecutor();
     private final AtomicInteger fePointer = new AtomicInteger(0);
     private final ByteBuffer buffer = ByteBuffer.allocate(MAX_BUFFER_SIZE);
