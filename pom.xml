@@ -31,13 +31,6 @@
                 <version>1.10.0</version>
             </dependency>
 
-            <!--debezium-->
-            <dependency>
-                <groupId>io.debezium</groupId>
-                <artifactId>debezium-core</artifactId>
-                <version>1.9.7.Final</version>
-            </dependency>
-
             <!--mybatis-->
             <dependency>
                 <groupId>org.mybatis</groupId>

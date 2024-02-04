@@ -10,9 +10,9 @@ public class DorisCopyJob {
     public static void main(String[] args) {
         SparkSession spark = SparkSessionFactory.createSpark(null);
         spark.read().format("doris")
-                .option("doris.fenodes", "10.99.197.34:8030,10.99.202.71:8030,10.99.203.88:8030")
+                .option("doris.fenodes", "")
                 .option("doris.table.identifier", "bak.test_ads_user_tag")
-                .option("user", "dba")
+                .option("user", "admin")
                 .option("password", "Tyc@1234")
                 .option("doris.batch.size", "10240")
                 .option("doris.request.tablet.size", "1")

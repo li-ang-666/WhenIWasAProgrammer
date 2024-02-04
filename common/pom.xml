@@ -24,12 +24,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!--debezium-->
-        <dependency>
-            <groupId>io.debezium</groupId>
-            <artifactId>debezium-core</artifactId>
-        </dependency>
-
         <!--hutool-->
         <dependency>
             <groupId>cn.hutool</groupId>

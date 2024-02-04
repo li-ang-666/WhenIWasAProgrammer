@@ -23,12 +23,6 @@
             <artifactId>hive-jdbc</artifactId>
         </dependency>
 
-        <!--debezium-->
-        <dependency>
-            <groupId>io.debezium</groupId>
-            <artifactId>debezium-core</artifactId>
-        </dependency>
-
         <!--obs-->
         <dependency>
             <groupId>com.huaweicloud</groupId>
