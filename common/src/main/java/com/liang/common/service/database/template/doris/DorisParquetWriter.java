@@ -9,8 +9,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.parquet.avro.AvroParquetWriter;
@@ -46,22 +46,15 @@ public class DorisParquetWriter {
         synchronized (buffer) {
             Map<String, Object> columnMap = dorisOneRow.getColumnMap();
             // the first row
-            if (keys == null) {
-                SchemaBuilder.FieldAssembler<Schema> schemaBuilder = SchemaBuilder.record(DorisOneRow.class.getSimpleName()).fields();
-                columnMap.keySet().forEach(schemaBuilder::optionalString);
-                avroSchema = schemaBuilder.endRecord();
+            if (dorisSchema == null) {
                 dorisSchema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
+                avroSchema = getAvroSchema();
             }
             if (parquetWriter == null) {
-                parquetWriter = AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
-                        .withSchema(avroSchema)
-                        .withRowGroupSize(PARQUET_ROW_GROUP_SIZE)
-                        .build();
+                parquetWriter = getParquetWriter();
             }
-            GenericRecord genericRecord = new GenericData.Record(avroSchema);
-            columnMap.forEach((k, v) -> genericRecord.put(k, StrUtil.toStringOrNull(v)));
-            parquetWriter.write(genericRecord);
+            parquetWriter.write(columnMap2GenericRecord(columnMap));
             if (buffer.position() > PARQUET_MAGIC_NUMBER) flush();
         }
     }
@@ -76,6 +69,26 @@ public class DorisParquetWriter {
             }
             buffer.clear();
         }
+    }
+
+    private Schema getAvroSchema() {
+        SchemaBuilder.FieldAssembler<Schema> schemaBuilder = SchemaBuilder.record(DorisOneRow.class.getSimpleName()).fields();
+        keys.forEach(schemaBuilder::optionalString);
+        return schemaBuilder.endRecord();
+    }
+
+    @SneakyThrows(IOException.class)
+    private ParquetWriter<GenericRecord> getParquetWriter() {
+        return AvroParquetWriter.<GenericRecord>builder(new OutputFileBuffer(buffer))
+                .withSchema(avroSchema)
+                .withRowGroupSize(PARQUET_ROW_GROUP_SIZE)
+                .build();
+    }
+
+    private GenericRecord columnMap2GenericRecord(Map<String, Object> columnMap) {
+        GenericRecordBuilder genericRecordBuilder = new GenericRecordBuilder(avroSchema);
+        columnMap.forEach((k, v) -> genericRecordBuilder.set(k, StrUtil.toStringOrNull(v)));
+        return genericRecordBuilder.build();
     }
 
     private void setPut(HttpPut put) {

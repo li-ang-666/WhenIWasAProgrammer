@@ -36,7 +36,7 @@ public class DorisWriter {
         synchronized (buffer) {
             Map<String, Object> columnMap = dorisOneRow.getColumnMap();
             // the first row
-            if (keys == null) {
+            if (dorisSchema == null) {
                 dorisSchema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
             }
