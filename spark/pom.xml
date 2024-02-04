@@ -83,10 +83,20 @@
             <artifactId>fastjson</artifactId>
         </dependency>
 
-        <!--flink Tuple-->
+        <!--flink-->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-java</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-core</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
