@@ -86,10 +86,10 @@
         <!--flink Tuple-->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-core</artifactId>
+            <artifactId>flink-java</artifactId>
             <exclusions>
                 <exclusion>
-                    <groupId>com.esotericsoftware.kryo</groupId>
+                    <groupId>*</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
