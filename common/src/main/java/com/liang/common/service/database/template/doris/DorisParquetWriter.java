@@ -30,10 +30,12 @@ public class DorisParquetWriter {
     private static final int MAX_BUFFER_SIZE = (int) (1.1 * PARQUET_ROW_GROUP_SIZE);
     private final DorisHelper dorisHelper;
     private final ByteBuffer buffer = ByteBuffer.allocate(MAX_BUFFER_SIZE);
+    // parquet writer
     private Schema avroSchema;
+    private ParquetWriter<GenericRecord> parquetWriter;
+    // init when first row
     private DorisSchema dorisSchema;
     private List<String> keys;
-    private ParquetWriter<GenericRecord> parquetWriter;
 
     public DorisParquetWriter(String name) {
         dorisHelper = new DorisHelper(ConfigUtils.getConfig().getDorisConfigs().get(name));
@@ -44,7 +46,7 @@ public class DorisParquetWriter {
         synchronized (buffer) {
             Map<String, Object> columnMap = dorisOneRow.getColumnMap();
             // the first row
-            if (avroSchema == null) {
+            if (keys == null) {
                 SchemaBuilder.FieldAssembler<Schema> schemaBuilder = SchemaBuilder.record(DorisOneRow.class.getSimpleName()).fields();
                 columnMap.keySet().forEach(schemaBuilder::optionalString);
                 avroSchema = schemaBuilder.endRecord();

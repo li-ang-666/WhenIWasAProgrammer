@@ -23,6 +23,7 @@ public class DorisWriter {
     private static final byte JSON_SUFFIX = (byte) ']';
     private final DorisHelper dorisHelper;
     private final ByteBuffer buffer;
+    // init when first row
     private DorisSchema dorisSchema;
     private List<String> keys;
 
@@ -35,7 +36,7 @@ public class DorisWriter {
         synchronized (buffer) {
             Map<String, Object> columnMap = dorisOneRow.getColumnMap();
             // the first row
-            if (dorisSchema == null) {
+            if (keys == null) {
                 dorisSchema = dorisOneRow.getSchema();
                 keys = new ArrayList<>(columnMap.keySet());
             }
