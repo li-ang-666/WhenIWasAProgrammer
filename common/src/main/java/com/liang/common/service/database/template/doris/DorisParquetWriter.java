@@ -63,10 +63,11 @@ public class DorisParquetWriter {
         synchronized (buffer) {
             if (buffer.position() > 0) {
                 parquetWriter.close();
-                parquetWriter = getParquetWriter();
                 dorisHelper.execute(dorisSchema.getDatabase(), dorisSchema.getTableName(), this::setPut);
             }
             buffer.clear();
+            // must after buffer clear, because of magic number
+            parquetWriter = getParquetWriter();
         }
     }
 
@@ -77,9 +78,9 @@ public class DorisParquetWriter {
     }
 
     private GenericRecord getRecord(Map<String, Object> columnMap) {
-        GenericRecord record = new GenericRecordBuilder(avroSchema).build();
-        columnMap.forEach((k, v) -> record.put(k, StrUtil.toStringOrNull(v)));
-        return record;
+        GenericRecordBuilder genericRecordBuilder = new GenericRecordBuilder(avroSchema);
+        columnMap.forEach((k, v) -> genericRecordBuilder.set(k, StrUtil.toStringOrNull(v)));
+        return genericRecordBuilder.build();
     }
 
     @SneakyThrows(IOException.class)
