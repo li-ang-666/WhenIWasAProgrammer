@@ -17,7 +17,7 @@ class OutputFileBuffer implements OutputFile {
 
     @Override
     public PositionOutputStream createOrOverwrite(long blockSizeHint) {
-        return new PositionOutputStreamBuffer(byteBuffer);
+        return create(blockSizeHint);
     }
 
     @Override
