@@ -1,19 +1,36 @@
 package com.liang.common.service.database.template.doris;
 
+import com.liang.common.dto.config.DorisConfig;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.Consumer;
+
+import static org.apache.http.HttpHeaders.AUTHORIZATION;
+import static org.apache.http.HttpHeaders.EXPECT;
 
 @Slf4j
-public class HttpPutExecutor {
+@RequiredArgsConstructor
+class DorisHelper {
+    // stream load
+    private static final String ABSTRACT_URI = "http://%s/api/%s/%s/_stream_load";
+    private static final String EXPECT_VALUE = "100-continue";
+    // execute put
     private static final int SUCCESS_STATUS_CODE = 200;
     private static final String SUCCESS_STATUS = "Success";
     private static final String SUCCESS_MESSAGE = "OK";
@@ -21,16 +38,22 @@ public class HttpPutExecutor {
     private static final String PUBLISH_TIMEOUT_MESSAGE = "PUBLISH_TIMEOUT";
     private static final int MAX_TRY_TIMES = 3;
     private static final int RETRY_INTERVAL_MILLISECOND = 1000;
-    private final HttpClientBuilder httpClientBuilder = HttpClients
+    private static final HttpClientBuilder httpClientBuilder = HttpClients
             .custom()
             .setRedirectStrategy(new DorisRedirectStrategy());
+    // next fe
+    private final AtomicLong fePointer = new AtomicLong(0);
+    // doris config
+    private final DorisConfig dorisConfig;
 
-    public void execute(HttpPut put, URI uri, String label) {
+    public void execute(String database, String table, Consumer<HttpPut> httpPutSetter) {
+        HttpPut put = initPut();
+        httpPutSetter.accept(put);
         try (CloseableHttpClient client = httpClientBuilder.build()) {
             int tryTimes = MAX_TRY_TIMES;
             while (tryTimes-- > 0) {
-                put.setURI(uri);
-                put.setHeader("label", label);
+                put.setURI(getUri(database, table));
+                put.setHeader("label", getLabel(database, table));
                 try (CloseableHttpResponse response = client.execute(put)) {
                     int statusCode = response.getStatusLine().getStatusCode();
                     String loadResult = EntityUtils.toString(response.getEntity());
@@ -52,11 +75,32 @@ public class HttpPutExecutor {
         }
     }
 
-    @Slf4j
-    private static final class DorisRedirectStrategy extends DefaultRedirectStrategy {
-        @Override
-        protected boolean isRedirectable(String method) {
-            return true;
-        }
+    private HttpPut initPut() {
+        HttpPut put = new HttpPut();
+        put.setHeader(EXPECT, EXPECT_VALUE);
+        put.setHeader(AUTHORIZATION, getBasicAuth());
+        return put;
+    }
+
+    private String getBasicAuth() {
+        String tobeEncode = dorisConfig.getUser() + ":" + dorisConfig.getPassword();
+        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
+        return "Basic " + new String(encoded);
+    }
+
+    private URI getUri(String database, String table) {
+        String nextFe = getNextFe();
+        return URI.create(String.format(ABSTRACT_URI, nextFe, database, table));
+    }
+
+    private String getNextFe() {
+        List<String> feList = dorisConfig.getFe();
+        return feList.get((int) (fePointer.getAndIncrement() % feList.size()));
+    }
+
+    private String getLabel(String database, String table) {
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+        return String.format("%s_%s_%s_%s", database, table,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), uuid);
     }
 }

@@ -29,19 +29,4 @@ class OutputFileBuffer implements OutputFile {
     public long defaultBlockSize() {
         return 0;
     }
-
-    @RequiredArgsConstructor
-    private static final class PositionOutputStreamBuffer extends PositionOutputStream {
-        private final ByteBuffer byteBuffer;
-
-        @Override
-        public long getPos() {
-            return byteBuffer.position();
-        }
-
-        @Override
-        public void write(int b) {
-            byteBuffer.put((byte) b);
-        }
-    }
 }
