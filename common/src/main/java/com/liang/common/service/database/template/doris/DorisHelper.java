@@ -45,6 +45,8 @@ class DorisHelper {
     private final AtomicLong fePointer = new AtomicLong(0);
     // doris config
     private final DorisConfig dorisConfig;
+    // auth
+    private String basicAuth;
 
     public void execute(String database, String table, Consumer<HttpPut> httpPutSetter) {
         HttpPut put = initPut();
@@ -83,9 +85,12 @@ class DorisHelper {
     }
 
     private String getBasicAuth() {
-        String tobeEncode = dorisConfig.getUser() + ":" + dorisConfig.getPassword();
-        byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
-        return "Basic " + new String(encoded);
+        if (basicAuth == null) {
+            String tobeEncode = dorisConfig.getUser() + ":" + dorisConfig.getPassword();
+            byte[] encoded = Base64.encodeBase64(tobeEncode.getBytes(StandardCharsets.UTF_8));
+            basicAuth = "Basic " + new String(encoded);
+        }
+        return basicAuth;
     }
 
     private URI getUri(String database, String table) {
