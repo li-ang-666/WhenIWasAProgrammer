@@ -15,10 +15,12 @@ public class ReadHbase extends ConfigHolder {
     }
 
     public static void main(String[] args) {
-        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, "802MNMP02L699B5PN");
+        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, "6196064486");
         HbaseOneRow queryResult = query(hbaseOneRow);
         queryResult.put("num_control_ability", null);
         queryResult.put("num_benefit_ability", null);
+        queryResult.put("has_beneficiary", null);
+        queryResult.put("has_controller", null);
         update(queryResult);
     }
 
