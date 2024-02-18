@@ -76,7 +76,7 @@ public class BitmapToDorisUDF extends GenericUDF {
     @Override
     public Object evaluate(DeferredObject[] args) {
         ConfigUtils.setConfig(ConfigUtils.createConfig(""));
-        DorisWriter dorisWriter = new DorisWriter("dorisSink", 256 * 1024 * 1024);
+        DorisWriter dorisWriter = new DorisWriter("dorisSink", 128 * 1024 * 1024);
         try {
             String crowdId = String.valueOf(this.inputOI0.getPrimitiveJavaObject(args[0].get()));
             String createTimestamp = String.valueOf(this.inputOI1.getPrimitiveJavaObject(args[1].get()));
