@@ -63,7 +63,7 @@ public class DorisParquetWriter {
         synchronized (buffer) {
             if (buffer.position() > 0) {
                 parquetWriter.close();
-                dorisHelper.execute(dorisSchema.getDatabase(), dorisSchema.getTableName(), this::setPut);
+                dorisHelper.executePut(dorisSchema.getDatabase(), dorisSchema.getTableName(), this::setPut);
             }
             buffer.clear();
             // must after buffer clear, because of magic number

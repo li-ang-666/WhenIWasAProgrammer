@@ -53,7 +53,7 @@ public class DorisWriter {
             if (buffer.position() > 0) {
                 buffer.put(0, JSON_PREFIX);
                 buffer.put(JSON_SUFFIX);
-                dorisHelper.execute(dorisSchema.getDatabase(), dorisSchema.getTableName(), this::setPut);
+                dorisHelper.executePut(dorisSchema.getDatabase(), dorisSchema.getTableName(), this::setPut);
             }
             buffer.clear();
         }

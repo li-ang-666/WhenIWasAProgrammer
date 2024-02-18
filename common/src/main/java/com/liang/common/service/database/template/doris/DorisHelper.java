@@ -48,7 +48,7 @@ class DorisHelper {
     // auth
     private String basicAuth;
 
-    public void execute(String database, String table, Consumer<HttpPut> httpPutSetter) {
+    public void executePut(String database, String table, Consumer<HttpPut> httpPutSetter) {
         HttpPut put = initPut();
         httpPutSetter.accept(put);
         try (CloseableHttpClient client = httpClientBuilder.build()) {
