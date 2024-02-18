@@ -30,7 +30,7 @@ dbConfigs:
   469.entity_operation_development: { host: "01ddd99760f64c8cbe2d396ebc64345ain01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "entity_operation_development" }
   ali.prism_app: { host: "rm-2zeo8i398c85fxu12108.mysql.rds.aliyuncs.com", database: "prism_app", user: "jindi_d_data_r", password: "31YJN6yMlKKYBPc" }
   localhost: { host: "127.0.0.1", database: "test", user: "root", password: "Moka20190520" }
-  doris: { host: "10.99.202.70", database: "test", user: "admin", password: "Tyc@1234", port: 6060 }
+  doris: { host: "10.99.202.70", database: "init", user: "admin", password: "Tyc@1234", port: 6060 }
   gauss: { host: "10.99.129.180", database: "company_base", user: "jdhw_d_data_dml", password: "4XsMdq!Q4DRj" }
 
 redisConfigs:
