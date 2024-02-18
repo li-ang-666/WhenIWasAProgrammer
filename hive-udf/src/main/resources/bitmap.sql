@@ -28,4 +28,12 @@ create function doris.bitmap_to_doris as 'com.liang.udf.BitmapToDorisUDF' USING 
 -- 测试
 desc function extended doris.to_bitmap;
 desc function extended doris.bitmap_to_doris;
+-- select create_timestamp from project.crowd_user_bitmap where crowd_id = 158 and pt = 20240217;
 set spark.executor.memory=8g;
+select doris.bitmap_to_doris(
+  cast(-1 as bigint),
+  cast(-1 as bigint),
+  user_id_bitmap,
+  'TEST'
+) from project.crowd_user_bitmap where crowd_id = 158 and pt = 20240217 and create_timestamp = 1708197000883;
+
