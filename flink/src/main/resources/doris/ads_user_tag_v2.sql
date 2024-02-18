@@ -31,7 +31,7 @@ from (select COALESCE(t1.tyc_user_id, t2.tyc_user_id) as tyc_user_id,
                        AND sku_id <= 70
                 OR sku_id >= 71
                        AND sku_id <= 73)
-              AND update_time >= TIMESTAMPADD(MINUTE, -5, CURRENT_TIMESTAMP())
+              AND update_time >= TIMESTAMPADD(MINUTE, -2, CURRENT_TIMESTAMP())
               and update_time <= CURRENT_TIMESTAMP()
               and tyc_user_id is not null
             GROUP BY tyc_user_id) t1 full join
@@ -44,7 +44,7 @@ from (select COALESCE(t1.tyc_user_id, t2.tyc_user_id) as tyc_user_id,
   where
     sensor_event in ('Show', 'VIP_show')
     and tyc_user_id is not null
-    AND update_time >= TIMESTAMPADD(MINUTE,-5,CURRENT_TIMESTAMP()) and update_time <= CURRENT_TIMESTAMP()
+    AND update_time >= TIMESTAMPADD(MINUTE, -2, CURRENT_TIMESTAMP()) and update_time <= CURRENT_TIMESTAMP()
     GROUP by
       tyc_user_id
 ) t2
