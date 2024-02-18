@@ -39,12 +39,12 @@ class DorisHelper {
     private static final String PUBLISH_TIMEOUT_MESSAGE = "PUBLISH_TIMEOUT";
     private static final int MAX_TRY_TIMES = 3;
     private static final int RETRY_INTERVAL_MILLISECOND = 1000;
-    private static final int STREAM_LOAD_TIMEOUT_MILLI = 1000 * 60 * 20;
+    private static final int STREAM_LOAD_TIMEOUT_SECONDS = 300;
     private static final RequestConfig REQUEST_CONFIG = RequestConfig
             .custom()
-            .setConnectionRequestTimeout(STREAM_LOAD_TIMEOUT_MILLI)
-            .setSocketTimeout(STREAM_LOAD_TIMEOUT_MILLI)
-            .setConnectTimeout(STREAM_LOAD_TIMEOUT_MILLI)
+            .setConnectionRequestTimeout(STREAM_LOAD_TIMEOUT_SECONDS * 1000)
+            .setSocketTimeout(STREAM_LOAD_TIMEOUT_SECONDS * 1000)
+            .setConnectTimeout(STREAM_LOAD_TIMEOUT_SECONDS * 1000)
             .build();
     private static final HttpClientBuilder HTTP_CLIENT_BUILDER = HttpClients
             .custom()
@@ -90,6 +90,7 @@ class DorisHelper {
         HttpPut put = new HttpPut();
         put.setHeader(EXPECT, EXPECT_VALUE);
         put.setHeader(AUTHORIZATION, getBasicAuth());
+        put.setHeader("timeout", String.valueOf(STREAM_LOAD_TIMEOUT_SECONDS));
         return put;
     }
 

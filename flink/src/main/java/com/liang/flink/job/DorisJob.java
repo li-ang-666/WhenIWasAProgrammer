@@ -80,7 +80,7 @@ public class DorisJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            dorisWriter = new DorisWriter("dorisSink", 256 * 1024 * 1024);
+            dorisWriter = new DorisWriter("dorisSink", 128 * 1024 * 1024);
         }
 
         @Override
