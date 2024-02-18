@@ -4,6 +4,7 @@ import com.liang.common.dto.config.DorisConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -38,8 +39,16 @@ class DorisHelper {
     private static final String PUBLISH_TIMEOUT_MESSAGE = "PUBLISH_TIMEOUT";
     private static final int MAX_TRY_TIMES = 3;
     private static final int RETRY_INTERVAL_MILLISECOND = 1000;
-    private static final HttpClientBuilder httpClientBuilder = HttpClients
+    private static final int STREAM_LOAD_TIMEOUT_MILLI = 1000 * 60 * 20;
+    private static final RequestConfig REQUEST_CONFIG = RequestConfig
             .custom()
+            .setConnectionRequestTimeout(STREAM_LOAD_TIMEOUT_MILLI)
+            .setSocketTimeout(STREAM_LOAD_TIMEOUT_MILLI)
+            .setConnectTimeout(STREAM_LOAD_TIMEOUT_MILLI)
+            .build();
+    private static final HttpClientBuilder HTTP_CLIENT_BUILDER = HttpClients
+            .custom()
+            .setDefaultRequestConfig(REQUEST_CONFIG)
             .setRedirectStrategy(new DorisRedirectStrategy());
     // next fe
     private final AtomicLong fePointer = new AtomicLong(0);
@@ -51,7 +60,7 @@ class DorisHelper {
     public void executePut(String database, String table, Consumer<HttpPut> httpPutSetter) {
         HttpPut put = initPut();
         httpPutSetter.accept(put);
-        try (CloseableHttpClient client = httpClientBuilder.build()) {
+        try (CloseableHttpClient client = HTTP_CLIENT_BUILDER.build()) {
             int tryTimes = MAX_TRY_TIMES;
             while (tryTimes-- > 0) {
                 put.setURI(getUri(database, table));

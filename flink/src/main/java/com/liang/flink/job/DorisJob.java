@@ -1,6 +1,5 @@
 package com.liang.flink.job;
 
-import com.alibaba.google.common.util.concurrent.RateLimiter;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.DorisOneRow;
@@ -71,7 +70,6 @@ public class DorisJob {
 
     @RequiredArgsConstructor
     private final static class DorisSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
-        private static final RateLimiter RATE_LIMITER = RateLimiter.create(6000);
         private final Config config;
         private DorisWriter dorisWriter;
 
@@ -87,7 +85,6 @@ public class DorisJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            RATE_LIMITER.acquire();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             columnMap.put(DorisSchema.DEFAULT_UNIQUE_DELETE_COLUMN, singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE ? 1 : 0);
             dorisWriter.write(new DorisOneRow(config.getDorisSchema(), columnMap));
