@@ -76,20 +76,32 @@ public class EquityBfsService {
         Edge newEdge = new Edge(ratio, false);
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
-        // 是否重复根结点
+        // 异常id
+        if (!TycUtils.isTycUniqueEntityId(shareholderId)) {
+            return DROP;
+        }
+        // 自然人
+        if (shareholderId.length() == 17) {
+            return ARCHIVE_WITH_UPDATE_PATH_AND_RATIO;
+        }
+        // 重复根结点
         if (companyId.equals(shareholderId)) {
             return DROP;
         }
-        // 股权比例是否到达停止穿透的阈值
+        // 股权比例低于停止穿透的阈值
         if (THRESHOLD.compareTo(newPath.getValidRatio()) > 0) {
             return DROP;
         }
-        // 是否在本条路径上出现过
+        // 注吊销
+        if (!dao.isAlive(shareholderId)) {
+            return DROP;
+        }
+        // 在本条路径上出现过
         if (polledPath.getNodeIds().contains(shareholderId)) {
             return ARCHIVE_WITH_UPDATE_PATH_ONLY;
         }
-        // 是否是自然人
-        if (TycUtils.isTycUniqueEntityId(shareholderId) && shareholderId.length() == 17) {
+        // 001
+        if (dao.is001(shareholderId)) {
             return ARCHIVE_WITH_UPDATE_PATH_AND_RATIO;
         }
         // 其他

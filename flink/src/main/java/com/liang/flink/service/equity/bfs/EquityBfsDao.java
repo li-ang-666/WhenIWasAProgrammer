@@ -41,4 +41,12 @@ public class EquityBfsDao {
             return new CompanyEquityRelationDetailsDto(id, name, nameId, ratio);
         });
     }
+
+    public boolean isAlive(String companyId) {
+        return false;
+    }
+
+    public boolean is001(String companyId) {
+        return false;
+    }
 }
