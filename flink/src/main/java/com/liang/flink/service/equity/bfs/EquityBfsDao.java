@@ -6,21 +6,22 @@ import com.liang.common.util.SqlUtils;
 import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EquityBfsDao {
+    private static final List<String> ALIVE_TAG_ID_LIST = Arrays.asList("30", "31", "32", "33", "41", "42", "45", "50", "62", "63", "64", "65", "66");
     private final JdbcTemplate graphData = new JdbcTemplate("430.graph_data");
-    private final JdbcTemplate prismShareholderPath = new JdbcTemplate("457.prism_shareholder_path");
-    private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
-    private final JdbcTemplate humanBase = new JdbcTemplate("040.human_base");
-    private final JdbcTemplate listedBase = new JdbcTemplate("157.listed_base");
+    private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
+    private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base");
 
     public String queryCompanyName(String companyId) {
         String sql = new SQL().SELECT("company_name")
                 .FROM("company_index")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .toString();
-        return companyBase.queryForObject(sql, rs -> rs.getString(1));
+        return companyBase435.queryForObject(sql, rs -> rs.getString(1));
     }
 
     public List<CompanyEquityRelationDetailsDto> queryShareholder(String companyId) {
@@ -43,10 +44,22 @@ public class EquityBfsDao {
     }
 
     public boolean isAlive(String companyId) {
-        return false;
+        String sql = new SQL()
+                .SELECT("1")
+                .FROM("bdp_company_profile_tag_details_total")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("profile_tag_id in " + ALIVE_TAG_ID_LIST.stream().collect(Collectors.joining(",", "(", ")")))
+                .toString();
+        return companyBase142.queryForObject(sql, rs -> rs.getString(1)) != null;
     }
 
     public boolean is001(String companyId) {
-        return false;
+        String sql = new SQL()
+                .SELECT("unified_social_credit_code")
+                .FROM("company_index")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .toString();
+        String uscc = companyBase435.queryForObject(sql, rs -> rs.getString(1));
+        return uscc != null && uscc.startsWith("11");
     }
 }
