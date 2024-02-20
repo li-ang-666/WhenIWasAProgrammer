@@ -7,7 +7,9 @@ import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetails
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EquityBfsDao {
@@ -15,6 +17,7 @@ public class EquityBfsDao {
     private final JdbcTemplate graphData = new JdbcTemplate("430.graph_data");
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base");
+    private final JdbcTemplate humanBase040 = new JdbcTemplate("040.human_base");
 
     public String queryCompanyName(String companyId) {
         String sql = new SQL().SELECT("company_name")
@@ -59,5 +62,22 @@ public class EquityBfsDao {
                 .toString();
         String uscc = companyBase435.queryForObject(sql, rs -> rs.getString(1));
         return uscc != null && uscc.startsWith("11");
+    }
+
+    public Map<String, Object> queryHumanInfo(String humanPid) {
+        String sql = new SQL()
+                .SELECT("human_name_id", "master_company_id")
+                .FROM("human")
+                .WHERE("human_id = " + SqlUtils.formatValue(humanPid))
+                .toString();
+        HashMap<String, Object> columnMap = humanBase040.queryForObject(sql, rs -> {
+            String humanNameId = rs.getString(1);
+            String masterCompanyId = rs.getString(2);
+            return new HashMap<String, Object>() {{
+                put("human_name_id", humanNameId);
+                put("master_company_id", masterCompanyId);
+            }};
+        });
+        return columnMap != null ? columnMap : new HashMap<>();
     }
 }

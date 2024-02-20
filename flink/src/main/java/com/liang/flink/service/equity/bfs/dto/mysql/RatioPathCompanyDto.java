@@ -13,9 +13,15 @@ import static java.math.BigDecimal.ZERO;
 @Data
 @RequiredArgsConstructor
 public class RatioPathCompanyDto {
-    // 基本属性
+    // 被投资公司基本属性
+    private final String companyId;
+    private final String companyName;
+    // 股东基本属性
+    private final String shareholderType;
     private final String shareholderId;
     private final String shareholderName;
+    private final String shareholderNameId;
+    private final String shareholderMasterCompanyId;
     // 路径明细 & 比例
     private List<Path> paths = new ArrayList<>();
     private BigDecimal totalValidRatio = ZERO;

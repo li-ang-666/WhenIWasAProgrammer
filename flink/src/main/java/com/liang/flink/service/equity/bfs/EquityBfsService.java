@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static com.liang.flink.service.equity.bfs.dto.Operation.*;
-import static java.math.RoundingMode.DOWN;
 
 @Slf4j
 public class EquityBfsService {
@@ -127,7 +126,24 @@ public class EquityBfsService {
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
         allShareholders.compute(shareholderId, (k, v) -> {
-            RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName);
+            RatioPathCompanyDto ratioPathCompanyDto;
+            if (v != null) {
+                ratioPathCompanyDto = v;
+            } else {
+                // 自然人股东
+                if (shareholderId.length() == 17) {
+                    String shareholderType = "2";
+                    Map<String, Object> shareholderInfoColumnMap = dao.queryHumanInfo(shareholderId);
+                    String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("human_name_id"));
+                    String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("master_company_id"));
+                    ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderType, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
+                }
+                // 公司股东
+                else {
+                    String shareholderType = "1";
+                    ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderType, shareholderId, shareholderName, shareholderId, shareholderId);
+                }
+            }
             // 路径case & 总股比
             ratioPathCompanyDto.getPaths().add(newPath);
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newPath.getValidRatio()));
@@ -147,23 +163,6 @@ public class EquityBfsService {
         }
     }
 
-    private void debugShareholderMap() {
-        allShareholders.entrySet()
-                .stream()
-                .sorted((o1, o2) -> o2.getValue().getTotalValidRatio().compareTo(o1.getValue().getTotalValidRatio()))
-                .forEach(e -> {
-                    RatioPathCompanyDto dto = e.getValue();
-                    log.debug("shareholder: {}({}), {}", dto.getShareholderName(), dto.getShareholderId(), dto.getTotalValidRatio().setScale(12, DOWN).stripTrailingZeros().toPlainString());
-                    dto.getPaths()
-                            .stream()
-                            .sorted((o1, o2) -> o2.getValidRatio().compareTo(o1.getValidRatio()))
-                            .forEach(path -> {
-                                String debugString = path.toDebugString();
-                                log.debug("chain: {}", debugString);
-                            });
-                });
-    }
-
     private Map<String, Object> ratioPathCompanyDto2ColumnMap(RatioPathCompanyDto ratioPathCompanyDto) {
         List<List<Map<String, Object>>> pathList = new ArrayList<>();
         // 每条path
@@ -173,18 +172,18 @@ public class EquityBfsService {
             pathElementList.add(path2Head(path));
             // 每个元素(点、边)
             for (PathElement element : path.getElements()) {
-                pathElementList.add(1, element2Map(element));
+                pathElementList.add(1, element2Map(element, ratioPathCompanyDto));
             }
             // save
             pathList.add(pathElementList);
         }
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("equity_holding_path", JsonUtils.toString(pathList));
-        columnMap.put("company_id", companyId);
-        columnMap.put("company_name", companyName);
+        columnMap.put("company_id", ratioPathCompanyDto.getCompanyId());
+        columnMap.put("company_name", ratioPathCompanyDto.getCompanyName());
         columnMap.put("shareholder_id", ratioPathCompanyDto.getShareholderId());
         columnMap.put("shareholder_name", ratioPathCompanyDto.getShareholderName());
-        columnMap.put("shareholder_name_id", "???");
+        columnMap.put("shareholder_name_id", ratioPathCompanyDto.getShareholderNameId());
         columnMap.put("investment_ratio_total", ratioPathCompanyDto.getTotalValidRatio().stripTrailingZeros().toPlainString());
         columnMap.put("is_deleted", 0);
         return columnMap;
@@ -199,7 +198,7 @@ public class EquityBfsService {
         }};
     }
 
-    private Map<String, Object> element2Map(PathElement element) {
+    private Map<String, Object> element2Map(PathElement element, RatioPathCompanyDto ratioPathCompanyDto) {
         Map<String, Object> pathElementInfoMap = new LinkedHashMap<>();
         // 点
         if (element instanceof Node) {
@@ -207,8 +206,8 @@ public class EquityBfsService {
             // 自然人
             if (shareholderId.length() == 17) {
                 pathElementInfoMap.put("type", "human");
-                pathElementInfoMap.put("cid", "cid");
-                pathElementInfoMap.put("hid", "hid");
+                pathElementInfoMap.put("cid", ratioPathCompanyDto.getShareholderMasterCompanyId());
+                pathElementInfoMap.put("hid", ratioPathCompanyDto.getShareholderNameId());
                 pathElementInfoMap.put("pid", shareholderId);
                 pathElementInfoMap.put("name", ((Node) element).getName());
             }
