@@ -2,7 +2,6 @@ package com.liang.flink.service.equity.bfs;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.service.equity.bfs.dto.Operation;
 import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
@@ -10,7 +9,6 @@ import com.liang.flink.service.equity.bfs.dto.mysql.RatioPathCompanyDto;
 import com.liang.flink.service.equity.bfs.dto.pojo.Edge;
 import com.liang.flink.service.equity.bfs.dto.pojo.Node;
 import com.liang.flink.service.equity.bfs.dto.pojo.Path;
-import com.liang.flink.service.equity.bfs.dto.pojo.PathElement;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -21,7 +19,6 @@ import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 @Slf4j
 public class EquityBfsService {
     private static final BigDecimal THRESHOLD = new BigDecimal("0.000001");
-    private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
     private static final int MAX_LEVEL = 1000;
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -65,7 +62,7 @@ public class EquityBfsService {
                 }
             }
         }
-        Map<String, Object> columnMap = ratioPathCompanyDto2ColumnMap(allShareholders.get("V0M9EM200ND6FPNUP"));
+        Map<String, Object> columnMap = allShareholders.get("V0M9EM200ND6FPNUP").toColumnMap();
         columnMap.forEach((k, v) -> System.out.println(k + " -> " + v));
     }
 
@@ -160,80 +157,5 @@ public class EquityBfsService {
         if (judgeResult == NOT_ARCHIVE) {
             bfsQueue.offer(newPath);
         }
-    }
-
-    private Map<String, Object> ratioPathCompanyDto2ColumnMap(RatioPathCompanyDto ratioPathCompanyDto) {
-        List<List<Map<String, Object>>> pathList = new ArrayList<>();
-        // 每条path
-        for (Path path : ratioPathCompanyDto.getPaths()) {
-            List<Map<String, Object>> pathElementList = new ArrayList<>();
-            // head
-            pathElementList.add(path2Head(path));
-            // 每个元素(点、边)
-            for (PathElement element : path.getElements()) {
-                pathElementList.add(1, element2Map(element, ratioPathCompanyDto));
-            }
-            // save
-            pathList.add(pathElementList);
-        }
-        Map<String, Object> columnMap = new HashMap<>();
-        // 公司
-        columnMap.put("company_id", ratioPathCompanyDto.getCompanyId());
-        columnMap.put("company_name", ratioPathCompanyDto.getCompanyName());
-        // 股东
-        columnMap.put("shareholder_entity_type", ratioPathCompanyDto.getShareholderType());
-        columnMap.put("shareholder_id", ratioPathCompanyDto.getShareholderId());
-        columnMap.put("shareholder_name", ratioPathCompanyDto.getShareholderName());
-        columnMap.put("shareholder_name_id", ratioPathCompanyDto.getShareholderNameId());
-        columnMap.put("shareholder_master_company_id", ratioPathCompanyDto.getShareholderMasterCompanyId());
-        // 投资
-        columnMap.put("investment_ratio_total", ratioPathCompanyDto.getTotalValidRatio().stripTrailingZeros().toPlainString());
-        columnMap.put("equity_holding_path", JsonUtils.toString(pathList));
-        // 其他
-        columnMap.put("is_deleted", 0);
-        return columnMap;
-    }
-
-    private Map<String, Object> path2Head(Path path) {
-        return new LinkedHashMap<String, Object>() {{
-            put("is_red", "0");
-            put("path_usage", "1");
-            put("total_percent", path.getValidRatio().multiply(ONE_HUNDRED).stripTrailingZeros().toPlainString() + "%");
-            put("type", "summary");
-        }};
-    }
-
-    private Map<String, Object> element2Map(PathElement element, RatioPathCompanyDto ratioPathCompanyDto) {
-        Map<String, Object> pathElementInfoMap = new LinkedHashMap<>();
-        // 点
-        if (element instanceof Node) {
-            String shareholderId = ((Node) element).getId();
-            // 自然人
-            if (shareholderId.length() == 17) {
-                pathElementInfoMap.put("type", "human");
-                pathElementInfoMap.put("cid", ratioPathCompanyDto.getShareholderMasterCompanyId());
-                pathElementInfoMap.put("hid", ratioPathCompanyDto.getShareholderNameId());
-                pathElementInfoMap.put("pid", shareholderId);
-                pathElementInfoMap.put("name", ((Node) element).getName());
-            }
-            // 公司
-            else {
-                pathElementInfoMap.put("type", "company");
-                pathElementInfoMap.put("cid", shareholderId);
-                pathElementInfoMap.put("name", ((Node) element).getName());
-            }
-        }
-        // 边
-        else {
-            pathElementInfoMap.put("type_count", "1");
-            pathElementInfoMap.put("edges", new ArrayList<Map<String, Object>>() {{
-                add(new LinkedHashMap<String, Object>() {{
-                    put("type", "INVEST");
-                    put("percent", ((Edge) element).getRatio().multiply(ONE_HUNDRED).stripTrailingZeros().toPlainString() + "%");
-                    put("source", "80");
-                }});
-            }});
-        }
-        return pathElementInfoMap;
     }
 }
