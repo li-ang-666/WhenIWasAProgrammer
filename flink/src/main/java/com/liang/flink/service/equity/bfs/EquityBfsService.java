@@ -167,9 +167,7 @@ public class EquityBfsService {
     private void shareholderMap2Json() {
         // 每个股东
         for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
-            if (!entry.getKey().equals("V0M9EM200ND6FPNUP")) {
-                continue;
-            }
+            if (!entry.getKey().equals("V0M9EM200ND6FPNUP")) continue;
             // 每条path
             List<List<Map<String, Object>>> resultJson = new ArrayList<>();
             for (Path path : entry.getValue().getPaths()) {
