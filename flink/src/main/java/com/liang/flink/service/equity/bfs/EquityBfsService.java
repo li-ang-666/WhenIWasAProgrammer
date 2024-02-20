@@ -2,6 +2,7 @@ package com.liang.flink.service.equity.bfs;
 
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.service.equity.bfs.dto.Operation;
 import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
@@ -9,6 +10,7 @@ import com.liang.flink.service.equity.bfs.dto.mysql.RatioPathCompanyDto;
 import com.liang.flink.service.equity.bfs.dto.pojo.Edge;
 import com.liang.flink.service.equity.bfs.dto.pojo.Node;
 import com.liang.flink.service.equity.bfs.dto.pojo.Path;
+import com.liang.flink.service.equity.bfs.dto.pojo.PathElement;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -20,6 +22,7 @@ import static java.math.RoundingMode.DOWN;
 @Slf4j
 public class EquityBfsService {
     private static final BigDecimal THRESHOLD = new BigDecimal("0.000001");
+    private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
     private static final int MAX_LEVEL = 1000;
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -63,7 +66,8 @@ public class EquityBfsService {
                 }
             }
         }
-        debugShareholderMap();
+        //debugShareholderMap();
+        shareholderMap2Json();
     }
 
     /**
@@ -158,5 +162,43 @@ public class EquityBfsService {
                                 log.debug("chain: {}", debugString);
                             });
                 });
+    }
+
+    private void shareholderMap2Json() {
+        // 每个股东
+        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
+            if (!entry.getKey().equals("V0M9EM200ND6FPNUP")) {
+                continue;
+            }
+            // 每条path
+            List<List<Map<String, Object>>> resultJson = new ArrayList<>();
+            for (Path path : entry.getValue().getPaths()) {
+                List<Map<String, Object>> pathJson = new ArrayList<>();
+                // path head
+                Map<String, Object> head = new LinkedHashMap<String, Object>() {{
+                    put("is_red", 0);
+                    put("path_usage", 1);
+                    put("total_percent", path.getValidRatio().multiply(ONE_HUNDRED).toPlainString());
+                    put("type", "summary");
+                }};
+                pathJson.add(head);
+                // node - edge - node
+                for (PathElement element : path.getElements()) {
+                    if (element instanceof Node) {
+                        Map<String, Object> node = new LinkedHashMap<String, Object>() {{
+                            put("shareholder_id", ((Node) element).getId());
+                        }};
+                        pathJson.add(1, node);
+                    } else {
+                        Map<String, Object> edge = new LinkedHashMap<String, Object>() {{
+                            put("ratio", ((Edge) element).getRatio().multiply(ONE_HUNDRED).toPlainString());
+                        }};
+                        pathJson.add(1, edge);
+                    }
+                }
+                resultJson.add(pathJson);
+            }
+            System.out.println(JsonUtils.toString(resultJson));
+        }
     }
 }
