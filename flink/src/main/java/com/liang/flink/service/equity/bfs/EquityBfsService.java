@@ -31,7 +31,7 @@ public class EquityBfsService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
-        new EquityBfsService().bfs("2318455639");
+        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("6796845364");
     }
 
     public List<Map<String, Object>> bfs(Object companyGid) {
