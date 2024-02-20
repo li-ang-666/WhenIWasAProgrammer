@@ -65,7 +65,6 @@ public class EquityBfsService {
                 }
             }
         }
-        //debugShareholderMap();
         Map<String, Object> columnMap = ratioPathCompanyDto2ColumnMap(allShareholders.get("V0M9EM200ND6FPNUP"));
         columnMap.forEach((k, v) -> System.out.println(k + " -> " + v));
     }
@@ -178,13 +177,19 @@ public class EquityBfsService {
             pathList.add(pathElementList);
         }
         Map<String, Object> columnMap = new HashMap<>();
-        columnMap.put("equity_holding_path", JsonUtils.toString(pathList));
+        // 公司
         columnMap.put("company_id", ratioPathCompanyDto.getCompanyId());
         columnMap.put("company_name", ratioPathCompanyDto.getCompanyName());
+        // 股东
+        columnMap.put("shareholder_entity_type", ratioPathCompanyDto.getShareholderType());
         columnMap.put("shareholder_id", ratioPathCompanyDto.getShareholderId());
         columnMap.put("shareholder_name", ratioPathCompanyDto.getShareholderName());
         columnMap.put("shareholder_name_id", ratioPathCompanyDto.getShareholderNameId());
+        columnMap.put("shareholder_master_company_id", ratioPathCompanyDto.getShareholderMasterCompanyId());
+        // 投资
         columnMap.put("investment_ratio_total", ratioPathCompanyDto.getTotalValidRatio().stripTrailingZeros().toPlainString());
+        columnMap.put("equity_holding_path", JsonUtils.toString(pathList));
+        // 其他
         columnMap.put("is_deleted", 0);
         return columnMap;
     }
