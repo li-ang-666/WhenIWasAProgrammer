@@ -67,7 +67,7 @@ public class EquityBfsService {
             }
         }
         //debugShareholderMap();
-        shareholderMap2Json();
+        ratioPathCompanyDto2ColumnMap(allShareholders.get("V0M9EM200ND6FPNUP"));
     }
 
     /**
@@ -121,13 +121,12 @@ public class EquityBfsService {
         }
         String shareholderId = shareholder.getShareholderId();
         String shareholderName = shareholder.getShareholderName();
-        String shareholderNameId = shareholder.getShareholderNameId();
         BigDecimal ratio = shareholder.getRatio();
         Edge newEdge = new Edge(ratio, judgeResult == ARCHIVE_WITH_UPDATE_PATH_ONLY);
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
         allShareholders.compute(shareholderId, (k, v) -> {
-            RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName, shareholderNameId);
+            RatioPathCompanyDto ratioPathCompanyDto = (v != null) ? v : new RatioPathCompanyDto(shareholderId, shareholderName);
             // 路径case & 总股比
             ratioPathCompanyDto.getPaths().add(newPath);
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newPath.getValidRatio()));
@@ -164,39 +163,71 @@ public class EquityBfsService {
                 });
     }
 
-    private void shareholderMap2Json() {
-        // 每个股东
-        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
-            if (!entry.getKey().equals("V0M9EM200ND6FPNUP")) continue;
-            // 每条path
-            List<List<Map<String, Object>>> resultJson = new ArrayList<>();
-            for (Path path : entry.getValue().getPaths()) {
-                List<Map<String, Object>> pathJson = new ArrayList<>();
-                // path head
-                Map<String, Object> head = new LinkedHashMap<String, Object>() {{
-                    put("is_red", 0);
-                    put("path_usage", 1);
-                    put("total_percent", path.getValidRatio().multiply(ONE_HUNDRED).toPlainString());
-                    put("type", "summary");
-                }};
-                pathJson.add(head);
-                // node - edge - node
-                for (PathElement element : path.getElements()) {
-                    if (element instanceof Node) {
-                        Map<String, Object> node = new LinkedHashMap<String, Object>() {{
-                            put("shareholder_id", ((Node) element).getId());
-                        }};
-                        pathJson.add(1, node);
-                    } else {
-                        Map<String, Object> edge = new LinkedHashMap<String, Object>() {{
-                            put("ratio", ((Edge) element).getRatio().multiply(ONE_HUNDRED).toPlainString());
-                        }};
-                        pathJson.add(1, edge);
-                    }
-                }
-                resultJson.add(pathJson);
+    private void ratioPathCompanyDto2ColumnMap(RatioPathCompanyDto ratioPathCompanyDto) {
+        Map<String, Object> columnMap = new HashMap<>();
+        List<List<Map<String, Object>>> pathList = new ArrayList<>();
+        // 每条path
+        for (Path path : ratioPathCompanyDto.getPaths()) {
+            List<Map<String, Object>> pathElementList = new ArrayList<>();
+            // head
+            pathElementList.add(path2Head(path));
+            // 每个元素(点、边)
+            for (PathElement element : path.getElements()) {
+                pathElementList.add(1, element2Map(element));
             }
-            System.out.println(JsonUtils.toString(resultJson));
+            // save
+            pathList.add(pathElementList);
         }
+        columnMap.put("equity_holding_path", JsonUtils.toString(pathList));
+        columnMap.put("company_id", companyId);
+        columnMap.put("company_name", companyName);
+        columnMap.put("shareholder_id", ratioPathCompanyDto.getShareholderId());
+        columnMap.put("shareholder_name", ratioPathCompanyDto.getShareholderName());
+        columnMap.put("shareholder_name_id", "???");
+        columnMap.put("investment_ratio_total", ratioPathCompanyDto.getTotalValidRatio().stripTrailingZeros().toPlainString());
+        columnMap.put("is_deleted", 0);
+    }
+
+    private Map<String, Object> path2Head(Path path) {
+        return new LinkedHashMap<String, Object>() {{
+            put("is_red", "0");
+            put("path_usage", "1");
+            put("total_percent", path.getValidRatio().multiply(ONE_HUNDRED).stripTrailingZeros().toPlainString() + "%");
+            put("type", "summary");
+        }};
+    }
+
+    private Map<String, Object> element2Map(PathElement element) {
+        Map<String, Object> pathElementInfoMap = new LinkedHashMap<>();
+        // 点
+        if (element instanceof Node) {
+            String shareholderId = ((Node) element).getId();
+            // 自然人
+            if (shareholderId.length() == 17) {
+                pathElementInfoMap.put("type", "human");
+                pathElementInfoMap.put("cid", "cid");
+                pathElementInfoMap.put("hid", "hid");
+                pathElementInfoMap.put("pid", shareholderId);
+                pathElementInfoMap.put("name", ((Node) element).getName());
+            }
+            // 公司
+            else {
+                pathElementInfoMap.put("type", "company");
+                pathElementInfoMap.put("cid", shareholderId);
+                pathElementInfoMap.put("name", ((Node) element).getName());
+            }
+        }
+        // 边
+        else {
+            pathElementInfoMap.put("type_count", "1");
+            pathElementInfoMap.put("edges", new ArrayList<Map<String, Object>>() {{
+                add(new LinkedHashMap<String, Object>() {{
+                    put("type", "INVEST");
+                    put("percent", ((Edge) element).getRatio().multiply(ONE_HUNDRED).stripTrailingZeros().toPlainString() + "%");
+                    put("source", "80");
+                }});
+            }});
+        }
+        return pathElementInfoMap;
     }
 }

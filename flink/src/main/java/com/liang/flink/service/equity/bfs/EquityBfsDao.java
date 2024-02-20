@@ -28,7 +28,6 @@ public class EquityBfsDao {
         String sql = new SQL()
                 .SELECT("tyc_unique_entity_id_investor")
                 .SELECT("tyc_unique_entity_name_investor")
-                .SELECT("company_id_investor")
                 .SELECT("equity_ratio")
                 .FROM("company_equity_relation_details")
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
@@ -37,9 +36,8 @@ public class EquityBfsDao {
         return graphData.queryForList(sql, rs -> {
             String id = rs.getString(1);
             String name = rs.getString(2);
-            String nameId = rs.getString(3);
-            BigDecimal ratio = new BigDecimal(rs.getString(4));
-            return new CompanyEquityRelationDetailsDto(id, name, nameId, ratio);
+            BigDecimal ratio = new BigDecimal(rs.getString(3));
+            return new CompanyEquityRelationDetailsDto(id, name, ratio);
         });
     }
 
