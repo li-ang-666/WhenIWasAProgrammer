@@ -29,7 +29,7 @@ public class RatioPathCompanyDto {
     private final String shareholderNameId;
     private final String shareholderMasterCompanyId;
 
-    // 路径明细 & 比例
+    // 路径明细 & 总比例
     private List<Path> paths = new ArrayList<>();
     private BigDecimal totalValidRatio = ZERO;
 
@@ -52,6 +52,9 @@ public class RatioPathCompanyDto {
         columnMap.put("shareholder_name_id", shareholderNameId);
         columnMap.put("shareholder_master_company_id", shareholderMasterCompanyId);
         // 投资
+        columnMap.put("is_direct_shareholder", isDirectShareholder);
+        columnMap.put("investment_ratio_direct", directRatio.stripTrailingZeros().toPlainString());
+        columnMap.put("max_deliver", getMaxDeliver());
         columnMap.put("investment_ratio_total", totalValidRatio.stripTrailingZeros().toPlainString());
         columnMap.put("equity_holding_path", JsonUtils.toString(allPaths2List()));
         // 其他
@@ -124,5 +127,21 @@ public class RatioPathCompanyDto {
             }});
         }
         return pathElementInfoMap;
+    }
+
+    /*
+     * path不可能为empty
+     * 所以直接optional.orElse(ZERO)
+     */
+    public BigDecimal getMaxDeliver() {
+        return paths.parallelStream()
+                .map(singlePath -> singlePath.getElements().parallelStream()
+                        .filter(element -> element instanceof Edge)
+                        .map(element -> ((Edge) element).getRatio())
+                        .min(BigDecimal::compareTo)
+                        .orElse(ZERO)
+                )
+                .max(BigDecimal::compareTo)
+                .orElse(ZERO);
     }
 }

@@ -11,7 +11,6 @@ import java.util.Set;
 
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
-import static java.math.RoundingMode.DOWN;
 
 @Data
 public class Path implements Serializable {
@@ -46,17 +45,5 @@ public class Path implements Serializable {
 
     public Node getLast() {
         return (Node) elements.get(elements.size() - 1);
-    }
-
-    public String toDebugString() {
-        StringBuilder builder = new StringBuilder(String.format("[%s]", validRatio.setScale(12, DOWN).toPlainString()));
-        for (PathElement element : elements) {
-            if (element instanceof Node) {
-                builder.append(String.format("%s(%s)", ((Node) element).getName(), ((Node) element).getId()));
-            } else if (element instanceof Edge) {
-                builder.append(String.format("-%s%s->", ((Edge) element).getRatio().setScale(12, DOWN).stripTrailingZeros().toPlainString(), ((Edge) element).isValid() ? "(x)" : ""));
-            }
-        }
-        return builder.toString();
     }
 }
