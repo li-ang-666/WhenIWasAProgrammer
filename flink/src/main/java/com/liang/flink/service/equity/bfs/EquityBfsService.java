@@ -67,7 +67,8 @@ public class EquityBfsService {
             }
         }
         //debugShareholderMap();
-        ratioPathCompanyDto2ColumnMap(allShareholders.get("V0M9EM200ND6FPNUP"));
+        Map<String, Object> columnMap = ratioPathCompanyDto2ColumnMap(allShareholders.get("V0M9EM200ND6FPNUP"));
+        columnMap.forEach((k, v) -> System.out.println(k + " -> " + v));
     }
 
     /**
@@ -163,8 +164,7 @@ public class EquityBfsService {
                 });
     }
 
-    private void ratioPathCompanyDto2ColumnMap(RatioPathCompanyDto ratioPathCompanyDto) {
-        Map<String, Object> columnMap = new HashMap<>();
+    private Map<String, Object> ratioPathCompanyDto2ColumnMap(RatioPathCompanyDto ratioPathCompanyDto) {
         List<List<Map<String, Object>>> pathList = new ArrayList<>();
         // 每条path
         for (Path path : ratioPathCompanyDto.getPaths()) {
@@ -178,6 +178,7 @@ public class EquityBfsService {
             // save
             pathList.add(pathElementList);
         }
+        Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("equity_holding_path", JsonUtils.toString(pathList));
         columnMap.put("company_id", companyId);
         columnMap.put("company_name", companyName);
@@ -186,6 +187,7 @@ public class EquityBfsService {
         columnMap.put("shareholder_name_id", "???");
         columnMap.put("investment_ratio_total", ratioPathCompanyDto.getTotalValidRatio().stripTrailingZeros().toPlainString());
         columnMap.put("is_deleted", 0);
+        return columnMap;
     }
 
     private Map<String, Object> path2Head(Path path) {
