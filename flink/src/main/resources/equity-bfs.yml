@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "430.graph_data"
     tableName: "company_equity_relation_details"
     columns: "*"
-    where: "id = 1703989168"
+    where: "id = 1244389308"
     scanMode: Direct
 
 kafkaConfigs:

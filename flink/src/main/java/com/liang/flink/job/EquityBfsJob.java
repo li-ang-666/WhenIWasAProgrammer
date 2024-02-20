@@ -91,9 +91,7 @@ public class EquityBfsJob {
             synchronized (companyIdBuffer) {
                 for (String companyId : companyIdBuffer) {
                     List<Map<String, Object>> columnMaps = service.bfs(companyId);
-                    if (columnMaps.isEmpty()) {
-                        continue;
-                    }
+                    if (columnMaps.isEmpty()) continue;
                     String deleteSql = new SQL()
                             .DELETE_FROM("prism_shareholder_path.ratio_path_company_new")
                             .WHERE("company_id = " + SqlUtils.formatValue(companyId))
