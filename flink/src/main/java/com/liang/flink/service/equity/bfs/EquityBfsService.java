@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 
@@ -33,12 +34,12 @@ public class EquityBfsService {
         new EquityBfsService().bfs("2318455639");
     }
 
-    public void bfs(Object companyGid) {
+    public List<Map<String, Object>> bfs(Object companyGid) {
         // prepare
         this.companyId = String.valueOf(companyGid);
-        if (!TycUtils.isUnsignedId(companyId)) return;
+        if (!TycUtils.isUnsignedId(companyId)) return new ArrayList<>();
         this.companyName = dao.queryCompanyName(companyId);
-        if (!TycUtils.isValidName(companyName)) return;
+        if (!TycUtils.isValidName(companyName)) return new ArrayList<>();
         allShareholders.clear();
         bfsQueue.clear();
         currentLevel = -1;
@@ -62,8 +63,7 @@ public class EquityBfsService {
                 }
             }
         }
-        Map<String, Object> columnMap = allShareholders.get("V0M9EM200ND6FPNUP").toColumnMap();
-        columnMap.forEach((k, v) -> System.out.println(k + " -> " + v));
+        return allShareholders.values().stream().map(RatioPathCompanyDto::toColumnMap).collect(Collectors.toList());
     }
 
     /**
