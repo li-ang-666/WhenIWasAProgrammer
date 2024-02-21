@@ -104,6 +104,7 @@ public class EquityBfsJob {
                             .toString();
                     sink.update(deleteSql, insertSql);
                 }
+                companyIdBuffer.clear();
             }
         }
     }

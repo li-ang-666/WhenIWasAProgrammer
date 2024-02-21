@@ -40,6 +40,7 @@ public class EquityBfsService {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
         }
+        System.out.println("size: " + columnMaps.size());
     }
 
     public List<Map<String, Object>> bfs(Object companyGid) {
@@ -114,12 +115,17 @@ public class EquityBfsService {
         if (!dao.isAlive(shareholderId)) {
             return DROP;
         }
+        String uscc = dao.getUscc(shareholderId);
+        // 在company_index表缺失
+        if (uscc == null) {
+            return DROP;
+        }
         // 在本条路径上出现过
         if (polledPath.getNodeIds().contains(shareholderId)) {
             return ARCHIVE_WITH_UPDATE_PATH_ONLY;
         }
         // 001
-        if (dao.is001(shareholderId)) {
+        if (uscc.startsWith("11")) {
             return ARCHIVE_WITH_UPDATE_PATH_AND_RATIO;
         }
         // 其他

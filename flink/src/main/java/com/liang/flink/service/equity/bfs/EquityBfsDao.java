@@ -54,14 +54,13 @@ public class EquityBfsDao {
         return companyBase142.queryForObject(sql, rs -> rs.getString(1)) == null;
     }
 
-    public boolean is001(String companyId) {
+    public String getUscc(String companyId) {
         String sql = new SQL()
                 .SELECT("unified_social_credit_code")
                 .FROM("company_index")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .toString();
-        String uscc = companyBase435.queryForObject(sql, rs -> rs.getString(1));
-        return uscc != null && uscc.startsWith("11");
+        return companyBase435.queryForObject(sql, rs -> rs.getString(1));
     }
 
     /**
