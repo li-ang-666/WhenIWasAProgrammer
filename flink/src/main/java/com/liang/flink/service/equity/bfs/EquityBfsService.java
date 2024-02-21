@@ -32,7 +32,8 @@ public class EquityBfsService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
-        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("2318455639");
+        //List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("2318455639");
+        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("13484671");
         columnMaps.sort(Comparator.comparing(map -> String.valueOf(map.get("shareholder_id"))));
         for (Map<String, Object> columnMap : columnMaps) {
             System.out.println(StrUtil.repeat("=", 100));
@@ -51,10 +52,10 @@ public class EquityBfsService {
         if (!TycUtils.isValidName(companyName)) return new ArrayList<>();
         allShareholders.clear();
         bfsQueue.clear();
-        currentLevel = -1;
+        currentLevel = 0;
         // start bfs
         bfsQueue.offer(Path.newPath(new Node(companyId, companyName)));
-        while (!bfsQueue.isEmpty() && currentLevel++ < MAX_LEVEL) {
+        while (!bfsQueue.isEmpty() && currentLevel++ <= MAX_LEVEL) {
             log.debug("开始遍历第 {} 层", currentLevel);
             int size = bfsQueue.size();
             while (size-- > 0) {
@@ -64,6 +65,10 @@ public class EquityBfsService {
                 log.debug("queue poll: {}", polledPathLastNode);
                 // query shareholders
                 List<CompanyEquityRelationDetailsDto> shareholders = dao.queryShareholder(polledPathLastNode.getId());
+                // no more shareholders
+                if (shareholders.isEmpty()) {
+                    processNoMoreShareholder(polledPath);
+                }
                 // queue.offer()
                 for (CompanyEquityRelationDetailsDto shareholder : shareholders) {
                     // chain archive? chain update? ratio update?
@@ -72,17 +77,7 @@ public class EquityBfsService {
                 }
             }
         }
-        return allShareholders
-                .values()
-                .stream()
-                .filter(ratioPathCompanyDto ->
-                        TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
-                                TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
-                                TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
-                                TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderMasterCompanyId()) &&
-                                TycUtils.isValidName(ratioPathCompanyDto.getCompanyName()) &&
-                                TycUtils.isValidName(ratioPathCompanyDto.getShareholderName()))
-                .map(RatioPathCompanyDto::toColumnMap).collect(Collectors.toList());
+        return allShareholders2ColumnMaps();
     }
 
     /**
@@ -167,12 +162,43 @@ public class EquityBfsService {
             // 是否直接股东 & 直接股比
             if (currentLevel == 0) {
                 ratioPathCompanyDto.setDirectShareholder(true);
-                ratioPathCompanyDto.setDirectRatio(new BigDecimal(ratioPathCompanyDto.getTotalValidRatio().toPlainString()));
+                ratioPathCompanyDto.setDirectRatio(newPath.getValidRatio());
             }
             return ratioPathCompanyDto;
         });
         if (judgeResult == NOT_ARCHIVE) {
             bfsQueue.offer(newPath);
         }
+    }
+
+    private void processNoMoreShareholder(Path polledPath) {
+        // 无任何投资关系
+        if (currentLevel == 0) {
+            RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, "1", companyId, companyName, companyId, companyId);
+            ratioPathCompanyDto.getPaths().add(polledPath);
+            ratioPathCompanyDto.setTotalValidRatio(polledPath.getValidRatio());
+            ratioPathCompanyDto.setDirectShareholder(true);
+            ratioPathCompanyDto.setDirectRatio(polledPath.getValidRatio());
+            ratioPathCompanyDto.setEnd(true);
+            allShareholders.put(companyId, ratioPathCompanyDto);
+        }
+        // 股权穿透尽头
+        else {
+            allShareholders.get(polledPath.getLast().getId()).setEnd(true);
+        }
+    }
+
+    private List<Map<String, Object>> allShareholders2ColumnMaps() {
+        return allShareholders
+                .values()
+                .stream()
+                .filter(ratioPathCompanyDto ->
+                        TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
+                                TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
+                                TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
+                                TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderMasterCompanyId()) &&
+                                TycUtils.isValidName(ratioPathCompanyDto.getCompanyName()) &&
+                                TycUtils.isValidName(ratioPathCompanyDto.getShareholderName()))
+                .map(RatioPathCompanyDto::toColumnMap).collect(Collectors.toList());
     }
 }
