@@ -64,8 +64,11 @@ public class EquityBfsJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
+            String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = String.valueOf(columnMap.get("company_id_invested"));
+            String companyId = table.equals("company_index") ?
+                    String.valueOf(columnMap.get("company_id")) :
+                    String.valueOf(columnMap.get("company_id_invested"));
             String sql = new SQL()
                     .SELECT("company_id")
                     .FROM(SINK_TABLE)
