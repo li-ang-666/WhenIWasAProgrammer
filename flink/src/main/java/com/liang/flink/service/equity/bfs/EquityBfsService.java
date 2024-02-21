@@ -21,7 +21,6 @@ import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 @Slf4j
 public class EquityBfsService {
     private static final BigDecimal THRESHOLD = new BigDecimal("0.000001");
-    private static final int MAX_LEVEL = 1000;
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
@@ -55,7 +54,7 @@ public class EquityBfsService {
         currentLevel = 0;
         // start bfs
         bfsQueue.offer(Path.newPath(new Node(companyId, companyName)));
-        while (!bfsQueue.isEmpty() && currentLevel++ <= MAX_LEVEL) {
+        while (!bfsQueue.isEmpty()) {
             log.debug("开始遍历第 {} 层", currentLevel);
             int size = bfsQueue.size();
             while (size-- > 0) {
@@ -76,6 +75,7 @@ public class EquityBfsService {
                     processQueriedShareholder(polledPath, shareholder, judgeResult);
                 }
             }
+            currentLevel++;
         }
         return allShareholders2ColumnMaps();
     }
@@ -171,14 +171,21 @@ public class EquityBfsService {
         }
     }
 
+    /**
+     * `allShareholders` 在该方法中发生写入
+     */
     private void processNoMoreShareholder(Path polledPath) {
         // 无任何投资关系
         if (currentLevel == 0) {
+            BigDecimal ratio = BigDecimal.ONE;
+            Edge newEdge = new Edge(ratio, false);
+            Node newNode = new Node(companyId, companyName);
+            Path newPath = Path.newPath(polledPath, newEdge, newNode);
             RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, "1", companyId, companyName, companyId, companyId);
-            ratioPathCompanyDto.getPaths().add(polledPath);
-            ratioPathCompanyDto.setTotalValidRatio(polledPath.getValidRatio());
+            ratioPathCompanyDto.getPaths().add(newPath);
+            ratioPathCompanyDto.setTotalValidRatio(newPath.getValidRatio());
             ratioPathCompanyDto.setDirectShareholder(true);
-            ratioPathCompanyDto.setDirectRatio(polledPath.getValidRatio());
+            ratioPathCompanyDto.setDirectRatio(newPath.getValidRatio());
             ratioPathCompanyDto.setEnd(true);
             allShareholders.put(companyId, ratioPathCompanyDto);
         }
