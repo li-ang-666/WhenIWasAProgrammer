@@ -1,5 +1,6 @@
 package com.liang.flink.service.equity.bfs;
 
+import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.TycUtils;
@@ -31,7 +32,14 @@ public class EquityBfsService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
-        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("6796845364");
+        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("2318455639");
+        columnMaps.sort(Comparator.comparing(map -> String.valueOf(map.get("shareholder_id"))));
+        for (Map<String, Object> columnMap : columnMaps) {
+            System.out.println(StrUtil.repeat("=", 100));
+            for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
+                System.out.println(entry.getKey() + " -> " + entry.getValue());
+            }
+        }
     }
 
     public List<Map<String, Object>> bfs(Object companyGid) {
@@ -63,7 +71,17 @@ public class EquityBfsService {
                 }
             }
         }
-        return allShareholders.values().stream().map(RatioPathCompanyDto::toColumnMap).collect(Collectors.toList());
+        return allShareholders
+                .values()
+                .stream()
+                .filter(ratioPathCompanyDto ->
+                        TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
+                                TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
+                                TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
+                                TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderMasterCompanyId()) &&
+                                TycUtils.isValidName(ratioPathCompanyDto.getCompanyName()) &&
+                                TycUtils.isValidName(ratioPathCompanyDto.getShareholderName()))
+                .map(RatioPathCompanyDto::toColumnMap).collect(Collectors.toList());
     }
 
     /**
@@ -121,24 +139,17 @@ public class EquityBfsService {
         Edge newEdge = new Edge(ratio, judgeResult == ARCHIVE_WITH_UPDATE_PATH_ONLY);
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
+        // 更新股东列表
         allShareholders.compute(shareholderId, (k, v) -> {
             RatioPathCompanyDto ratioPathCompanyDto;
             if (v != null) {
                 ratioPathCompanyDto = v;
             } else {
-                // 自然人股东
-                if (shareholderId.length() == 17) {
-                    String shareholderType = "2";
-                    Map<String, Object> shareholderInfoColumnMap = dao.queryHumanInfo(shareholderId);
-                    String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("human_name_id"));
-                    String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("master_company_id"));
-                    ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderType, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
-                }
-                // 公司股东
-                else {
-                    String shareholderType = "1";
-                    ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderType, shareholderId, shareholderName, shareholderId, shareholderId);
-                }
+                String shareholderType = (shareholderId.length() == 17) ? "2" : "1";
+                Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(shareholderId, shareholderType);
+                String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
+                String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
+                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderType, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
             }
             // 路径case & 总股比
             ratioPathCompanyDto.getPaths().add(newPath);

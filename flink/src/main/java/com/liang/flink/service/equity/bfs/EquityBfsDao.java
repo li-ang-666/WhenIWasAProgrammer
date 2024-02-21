@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EquityBfsDao {
-    private static final List<String> ALIVE_TAG_ID_LIST = Arrays.asList("30", "31", "32", "33", "41", "42", "45", "50", "62", "63", "64", "65", "66");
+    private static final List<String> NOT_ALIVE_TAG_ID_LIST = Arrays.asList("34", "35", "36", "37", "38", "39", "40", "43", "44", "46", "47", "48", "49", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "67", "68");
     private final JdbcTemplate graphData = new JdbcTemplate("430.graph_data");
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base");
@@ -49,9 +49,9 @@ public class EquityBfsDao {
                 .SELECT("1")
                 .FROM("bdp_company_profile_tag_details_total")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                .WHERE("profile_tag_id in " + ALIVE_TAG_ID_LIST.stream().collect(Collectors.joining(",", "(", ")")))
+                .WHERE("profile_tag_id in " + NOT_ALIVE_TAG_ID_LIST.stream().collect(Collectors.joining(",", "(", ")")))
                 .toString();
-        return companyBase142.queryForObject(sql, rs -> rs.getString(1)) != null;
+        return companyBase142.queryForObject(sql, rs -> rs.getString(1)) == null;
     }
 
     public boolean is001(String companyId) {
@@ -64,18 +64,30 @@ public class EquityBfsDao {
         return uscc != null && uscc.startsWith("11");
     }
 
-    public Map<String, Object> queryHumanInfo(String humanPid) {
-        String sql = new SQL()
-                .SELECT("human_name_id", "master_company_id")
-                .FROM("human")
-                .WHERE("human_id = " + SqlUtils.formatValue(humanPid))
-                .toString();
-        HashMap<String, Object> columnMap = humanBase040.queryForObject(sql, rs -> {
-            String humanNameId = rs.getString(1);
-            String masterCompanyId = rs.getString(2);
+    /**
+     * human or company
+     */
+    public Map<String, Object> queryHumanOrCompanyInfo(String id, String shareholderType) {
+        String sql = "2".equals(shareholderType) ?
+                new SQL()
+                        .SELECT("human_name_id", "master_company_id")
+                        .FROM("human")
+                        .WHERE("human_id = " + SqlUtils.formatValue(id))
+                        .toString() :
+                new SQL()
+                        .SELECT("company_id", "company_id")
+                        .FROM("company_index")
+                        .WHERE("company_id = " + SqlUtils.formatValue(id))
+                        .toString();
+        JdbcTemplate jdbcTemplate = "2".equals(shareholderType) ?
+                humanBase040 :
+                companyBase435;
+        Map<String, Object> columnMap = jdbcTemplate.queryForObject(sql, rs -> {
+            String nameId = rs.getString(1);
+            String companyId = rs.getString(2);
             return new HashMap<String, Object>() {{
-                put("human_name_id", humanNameId);
-                put("master_company_id", masterCompanyId);
+                put("name_id", nameId);
+                put("company_id", companyId);
             }};
         });
         return columnMap != null ? columnMap : new HashMap<>();

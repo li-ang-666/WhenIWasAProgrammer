@@ -57,6 +57,7 @@ public class RatioPathCompanyDto {
         columnMap.put("max_deliver", getMaxDeliver());
         columnMap.put("investment_ratio_total", totalValidRatio.stripTrailingZeros().toPlainString());
         columnMap.put("equity_holding_path", JsonUtils.toString(allPaths2List()));
+        columnMap.put("is_end", isEnd);
         return columnMap;
     }
 
