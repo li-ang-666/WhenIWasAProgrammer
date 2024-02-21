@@ -7,10 +7,10 @@ flinkConfig:
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "430.graph_data"
-    tableName: "company_equity_relation_details"
+    sourceName: "435.company_base"
+    tableName: "company_index"
     columns: "*"
-    where: "id = 1244389308"
+    where: "company_id = 2318455639"
     scanMode: Direct
 
 kafkaConfigs:
