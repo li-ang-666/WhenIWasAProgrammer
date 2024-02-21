@@ -46,9 +46,9 @@ public class RatioPathCompanyDto {
         columnMap.put("shareholder_master_company_id", shareholderMasterCompanyId);
         // 投资
         columnMap.put("is_direct_shareholder", isDirectShareholder);
-        columnMap.put("investment_ratio_direct", formatBigDecimal(directRatio, 12));
-        columnMap.put("max_deliver", formatBigDecimal(getMaxDeliver(), 12));
-        columnMap.put("investment_ratio_total", formatBigDecimal(totalValidRatio, 12));
+        columnMap.put("investment_ratio_direct", formatBigDecimal(directRatio, 6));
+        columnMap.put("max_deliver", formatBigDecimal(getMaxDeliver(), 6));
+        columnMap.put("investment_ratio_total", formatBigDecimal(totalValidRatio, 6));
         columnMap.put("equity_holding_path", JsonUtils.toString(allPaths2List()));
         columnMap.put("is_end", isEnd);
         return columnMap;
