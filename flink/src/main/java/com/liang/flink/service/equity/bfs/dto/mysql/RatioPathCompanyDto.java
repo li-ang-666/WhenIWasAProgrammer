@@ -12,32 +12,24 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-import static java.math.BigDecimal.ZERO;
-
 @Data
 @RequiredArgsConstructor
 public class RatioPathCompanyDto {
-    private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
-
     // 被投资公司基本属性
     private final String companyId;
     private final String companyName;
-
     // 股东基本属性
     private final String shareholderType;
     private final String shareholderId;
     private final String shareholderName;
     private final String shareholderNameId;
     private final String shareholderMasterCompanyId;
-
     // 路径明细 & 总比例
     private List<Path> paths = new ArrayList<>();
-    private BigDecimal totalValidRatio = ZERO;
-
+    private BigDecimal totalValidRatio = BigDecimal.ZERO;
     // 直接关系
     private boolean isDirectShareholder = false;
-    private BigDecimal directRatio = ZERO;
-
+    private BigDecimal directRatio = BigDecimal.ZERO;
     // 是否穿透终点
     private boolean isEnd = false;
 
@@ -55,7 +47,7 @@ public class RatioPathCompanyDto {
         // 投资
         columnMap.put("is_direct_shareholder", isDirectShareholder);
         columnMap.put("investment_ratio_direct", formatBigDecimal(directRatio, 12));
-        columnMap.put("max_deliver", getMaxDeliver());
+        columnMap.put("max_deliver", formatBigDecimal(getMaxDeliver(), 12));
         columnMap.put("investment_ratio_total", formatBigDecimal(totalValidRatio, 12));
         columnMap.put("equity_holding_path", JsonUtils.toString(allPaths2List()));
         columnMap.put("is_end", isEnd);
@@ -65,8 +57,8 @@ public class RatioPathCompanyDto {
     /*
      * json数据结构:
      * [
-     *   [ {head...} {node...} {edge...} {node...} {edge...} {node...} ],
-     *   [ {head...} {node...} {edge...} {node...} ]
+     *   [ {head...}, {node...}, {edge...}, {node...}, {edge...}, {node...} ],
+     *   [ {head...}, {node...}, {edge...}, {node...} ]
      * ]
      */
     private List<List<Map<String, Object>>> allPaths2List() {
@@ -89,7 +81,7 @@ public class RatioPathCompanyDto {
     private Map<String, Object> singlePath2HeadMap(Path path) {
         return new LinkedHashMap<String, Object>() {{
             put("is_red", "0");
-            put("total_percent", formatBigDecimal(path.getValidRatio().multiply(ONE_HUNDRED), 2) + "%");
+            put("total_percent", formatBigDecimal(path.getValidRatio().movePointRight(2), 2) + "%");
             put("path_usage", "1");
             put("type", "summary");
         }};
@@ -121,7 +113,7 @@ public class RatioPathCompanyDto {
             pathElementInfoMap.put("edges", new ArrayList<Map<String, Object>>() {{
                 add(new LinkedHashMap<String, Object>() {{
                     put("type", "INVEST");
-                    put("percent", formatBigDecimal(((Edge) element).getRatio().multiply(ONE_HUNDRED), 2) + "%");
+                    put("percent", formatBigDecimal(((Edge) element).getRatio().movePointRight(2), 2) + "%");
                     put("source", "80");
                 }});
             }});
@@ -139,10 +131,10 @@ public class RatioPathCompanyDto {
                         .filter(element -> element instanceof Edge)
                         .map(element -> ((Edge) element).getRatio())
                         .min(BigDecimal::compareTo)
-                        .orElse(ZERO)
+                        .orElse(BigDecimal.ZERO)
                 )
                 .max(BigDecimal::compareTo)
-                .orElse(ZERO);
+                .orElse(BigDecimal.ZERO);
     }
 
     public String formatBigDecimal(BigDecimal bigDecimal, int scale) {

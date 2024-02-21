@@ -9,14 +9,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static java.math.BigDecimal.ONE;
-import static java.math.BigDecimal.ZERO;
-
 @Data
 public class Path implements Serializable {
     private List<PathElement> elements = new ArrayList<>();
     private Set<String> nodeIds = new HashSet<>();
-    private BigDecimal validRatio = ONE;
+    private BigDecimal validRatio = BigDecimal.ONE;
 
     private Path() {
     }
@@ -39,7 +36,7 @@ public class Path implements Serializable {
         // NodeIds
         path.nodeIds.addAll(oldPath.nodeIds);
         path.nodeIds.add(node.getId());
-        path.validRatio = oldPath.getValidRatio().multiply(edge.isValid() ? edge.getRatio() : ZERO);
+        path.validRatio = oldPath.getValidRatio().multiply(edge.isValid() ? edge.getRatio() : BigDecimal.ZERO);
         return path;
     }
 
