@@ -127,11 +127,14 @@ public class EquityBfsJob {
             synchronized (companyIdBuffer) {
                 for (String companyId : companyIdBuffer) {
                     List<Map<String, Object>> columnMaps = service.bfs(companyId);
-                    if (columnMaps.isEmpty()) continue;
                     String deleteSql = new SQL()
                             .DELETE_FROM(SINK_TABLE)
                             .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                             .toString();
+                    if (columnMaps.isEmpty()) {
+                        sink.update(deleteSql);
+                        continue;
+                    }
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                     String insertSql = new SQL()
                             .INSERT_INTO(SINK_TABLE)
