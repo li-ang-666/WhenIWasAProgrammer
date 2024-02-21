@@ -162,7 +162,7 @@ public class EquityBfsService {
             // 是否直接股东 & 直接股比
             if (currentLevel == 0) {
                 ratioPathCompanyDto.setDirectShareholder(true);
-                ratioPathCompanyDto.setDirectRatio(newPath.getValidRatio());
+                ratioPathCompanyDto.setDirectRatio(ratioPathCompanyDto.getTotalValidRatio());
             }
             return ratioPathCompanyDto;
         });
