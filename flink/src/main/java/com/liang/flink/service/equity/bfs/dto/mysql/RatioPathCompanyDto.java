@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import static java.math.BigDecimal.ZERO;
@@ -53,9 +54,9 @@ public class RatioPathCompanyDto {
         columnMap.put("shareholder_master_company_id", shareholderMasterCompanyId);
         // 投资
         columnMap.put("is_direct_shareholder", isDirectShareholder);
-        columnMap.put("investment_ratio_direct", directRatio.stripTrailingZeros().toPlainString());
+        columnMap.put("investment_ratio_direct", formatBigDecimal(directRatio, 12));
         columnMap.put("max_deliver", getMaxDeliver());
-        columnMap.put("investment_ratio_total", totalValidRatio.stripTrailingZeros().toPlainString());
+        columnMap.put("investment_ratio_total", formatBigDecimal(totalValidRatio, 12));
         columnMap.put("equity_holding_path", JsonUtils.toString(allPaths2List()));
         columnMap.put("is_end", isEnd);
         return columnMap;
@@ -88,7 +89,7 @@ public class RatioPathCompanyDto {
     private Map<String, Object> singlePath2HeadMap(Path path) {
         return new LinkedHashMap<String, Object>() {{
             put("is_red", "0");
-            put("total_percent", path.getValidRatio().multiply(ONE_HUNDRED).stripTrailingZeros().toPlainString() + "%");
+            put("total_percent", formatBigDecimal(path.getValidRatio().multiply(ONE_HUNDRED), 2) + "%");
             put("path_usage", "1");
             put("type", "summary");
         }};
@@ -120,7 +121,7 @@ public class RatioPathCompanyDto {
             pathElementInfoMap.put("edges", new ArrayList<Map<String, Object>>() {{
                 add(new LinkedHashMap<String, Object>() {{
                     put("type", "INVEST");
-                    put("percent", ((Edge) element).getRatio().multiply(ONE_HUNDRED).stripTrailingZeros().toPlainString() + "%");
+                    put("percent", formatBigDecimal(((Edge) element).getRatio().multiply(ONE_HUNDRED), 2) + "%");
                     put("source", "80");
                 }});
             }});
@@ -142,5 +143,9 @@ public class RatioPathCompanyDto {
                 )
                 .max(BigDecimal::compareTo)
                 .orElse(ZERO);
+    }
+
+    public String formatBigDecimal(BigDecimal bigDecimal, int scale) {
+        return bigDecimal.setScale(scale, RoundingMode.DOWN).toPlainString();
     }
 }
