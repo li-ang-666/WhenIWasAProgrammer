@@ -44,14 +44,14 @@ public class EquityBfsDao {
         });
     }
 
-    public boolean isAlive(String companyId) {
+    public boolean isClosed(String companyId) {
         String sql = new SQL()
                 .SELECT("1")
                 .FROM("bdp_company_profile_tag_details_total")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("profile_tag_id in " + NOT_ALIVE_TAG_ID_LIST.stream().collect(Collectors.joining(",", "(", ")")))
                 .toString();
-        return companyBase142.queryForObject(sql, rs -> rs.getString(1)) == null;
+        return companyBase142.queryForObject(sql, rs -> rs.getString(1)) != null;
     }
 
     public String getUscc(String companyId) {

@@ -102,7 +102,7 @@ public class EquityBfsService {
             return DROP;
         }
         // 注吊销公司
-        if (shareholderId.length() != 17 && !dao.isAlive(shareholderId)) {
+        if (shareholderId.length() != 17 && dao.isClosed(shareholderId)) {
             return DROP;
         }
         String uscc = shareholderId.length() == 17 ? "" : dao.getUscc(shareholderId);
@@ -133,6 +133,7 @@ public class EquityBfsService {
         if (judgeResult == DROP) {
             return;
         }
+        // 构造newPath
         String shareholderId = shareholder.getShareholderId();
         String shareholderName = shareholder.getShareholderName();
         BigDecimal ratio = shareholder.getRatio();
@@ -151,7 +152,7 @@ public class EquityBfsService {
                 String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
                 ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderType, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
             }
-            // 路径case & 总股比
+            // 新路径 & 总股比
             ratioPathCompanyDto.getPaths().add(newPath);
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newPath.getValidRatio()));
             // 是否某条路径终点
