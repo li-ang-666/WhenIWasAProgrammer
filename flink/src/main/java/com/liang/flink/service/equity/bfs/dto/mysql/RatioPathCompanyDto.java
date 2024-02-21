@@ -81,7 +81,7 @@ public class RatioPathCompanyDto {
     private Map<String, Object> singlePath2HeadMap(Path path) {
         return new LinkedHashMap<String, Object>() {{
             put("is_red", "0");
-            put("total_percent", formatBigDecimal(path.getValidRatio().movePointRight(2), 2) + "%");
+            put("total_percent", formatBigDecimal(path.getValidRatio().movePointRight(2), 4) + "%");
             put("path_usage", "1");
             put("type", "summary");
         }};
@@ -113,7 +113,7 @@ public class RatioPathCompanyDto {
             pathElementInfoMap.put("edges", new ArrayList<Map<String, Object>>() {{
                 add(new LinkedHashMap<String, Object>() {{
                     put("type", "INVEST");
-                    put("percent", formatBigDecimal(((Edge) element).getRatio().movePointRight(2), 2) + "%");
+                    put("percent", formatBigDecimal(((Edge) element).getRatio().movePointRight(2), 4) + "%");
                     put("source", "80");
                 }});
             }});
