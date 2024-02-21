@@ -87,16 +87,12 @@ public class EquityBfsService {
         String shareholderId = shareholder.getShareholderId();
         String shareholderName = shareholder.getShareholderName();
         BigDecimal ratio = shareholder.getRatio();
-        Edge newEdge = new Edge(ratio, false);
+        Edge newEdge = new Edge(ratio, true);
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
         // 异常id
         if (!TycUtils.isTycUniqueEntityId(shareholderId)) {
             return DROP;
-        }
-        // 自然人
-        if (shareholderId.length() == 17) {
-            return ARCHIVE_WITH_UPDATE_PATH_AND_RATIO;
         }
         // 重复根结点
         if (companyId.equals(shareholderId)) {
@@ -106,11 +102,11 @@ public class EquityBfsService {
         if (THRESHOLD.compareTo(newPath.getValidRatio()) > 0) {
             return DROP;
         }
-        // 注吊销
-        if (!dao.isAlive(shareholderId)) {
+        // 注吊销公司
+        if (shareholderId.length() != 17 && !dao.isAlive(shareholderId)) {
             return DROP;
         }
-        String uscc = dao.getUscc(shareholderId);
+        String uscc = shareholderId.length() == 17 ? "" : dao.getUscc(shareholderId);
         // 在company_index表缺失
         if (uscc == null) {
             return DROP;
@@ -121,6 +117,10 @@ public class EquityBfsService {
         }
         // 001
         if (uscc.startsWith("11")) {
+            return ARCHIVE_WITH_UPDATE_PATH_AND_RATIO;
+        }
+        // 自然人
+        if (shareholderId.length() == 17) {
             return ARCHIVE_WITH_UPDATE_PATH_AND_RATIO;
         }
         // 其他
@@ -137,7 +137,7 @@ public class EquityBfsService {
         String shareholderId = shareholder.getShareholderId();
         String shareholderName = shareholder.getShareholderName();
         BigDecimal ratio = shareholder.getRatio();
-        Edge newEdge = new Edge(ratio, judgeResult == ARCHIVE_WITH_UPDATE_PATH_ONLY);
+        Edge newEdge = new Edge(ratio, judgeResult != ARCHIVE_WITH_UPDATE_PATH_ONLY);
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
         // 更新股东列表
@@ -178,7 +178,7 @@ public class EquityBfsService {
         // 无任何投资关系
         if (currentLevel == 0) {
             BigDecimal ratio = BigDecimal.ONE;
-            Edge newEdge = new Edge(ratio, false);
+            Edge newEdge = new Edge(ratio, true);
             Node newNode = new Node(companyId, companyName);
             Path newPath = Path.newPath(polledPath, newEdge, newNode);
             RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, "1", companyId, companyName, companyId, companyId);

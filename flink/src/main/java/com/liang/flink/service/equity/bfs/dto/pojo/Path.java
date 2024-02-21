@@ -39,7 +39,7 @@ public class Path implements Serializable {
         // NodeIds
         path.nodeIds.addAll(oldPath.nodeIds);
         path.nodeIds.add(node.getId());
-        path.validRatio = oldPath.getValidRatio().multiply(edge.isValid() ? ZERO : edge.getRatio());
+        path.validRatio = oldPath.getValidRatio().multiply(edge.isValid() ? edge.getRatio() : ZERO);
         return path;
     }
 
