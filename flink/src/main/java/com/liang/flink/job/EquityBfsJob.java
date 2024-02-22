@@ -105,7 +105,7 @@ public class EquityBfsJob {
             }
             synchronized (companyIdBuffer) {
                 companyIdBuffer.add(companyId);
-                if (companyIdBuffer.size() >= 1) {
+                if (companyIdBuffer.size() >= 128) {
                     flush();
                 }
             }
