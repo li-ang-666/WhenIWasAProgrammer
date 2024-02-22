@@ -1,6 +1,8 @@
 package com.liang.flink.service.equity.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.liang.common.dto.Config;
+import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.service.equity.bfs.EquityBfsDao;
 
@@ -13,27 +15,38 @@ public class EquityControllerService {
     private final EquityControllerDao controllerDap = new EquityControllerDao();
     private final EquityBfsDao bfsDao = new EquityBfsDao();
 
-    public void processController(String companyId) {
+    public static void main(String[] args) {
+        Config config = ConfigUtils.createConfig("");
+        ConfigUtils.setConfig(config);
+        List<Map<String, Object>> columnMaps = new EquityControllerService().processController("14427175");
+        for (Map<String, Object> columnMap : columnMaps) {
+            for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
+                System.out.println(entry.getKey() + " -> " + entry.getValue());
+            }
+        }
+    }
+
+    public List<Map<String, Object>> processController(String companyId) {
         List<Map<String, Object>> columnMaps = new ArrayList<>();
         // 非法id
         if (!TycUtils.isUnsignedId(companyId)) {
-            return;
+            return new ArrayList<>();
         }
         // 查询company_index
         Map<String, Object> companyInfo = controllerDap.queryCompanyInfo(companyId);
         // 在company_index不存在
         if (companyInfo.isEmpty()) {
-            return;
+            return new ArrayList<>();
         }
         // 非法名称
         String companyName = String.valueOf(companyInfo.get("company_name"));
         if (!TycUtils.isValidName(companyName)) {
-            return;
+            return new ArrayList<>();
         }
         // 企业类型屏蔽逻辑
         String usccPrefixTwo = String.valueOf(companyInfo.get("unified_social_credit_code")).substring(0, 2);
         if (!USCC_TWO_WHITE_LIST.contains(usccPrefixTwo)) {
-            return;
+            return new ArrayList<>();
         }
         // 上市公告的实际控制人
         List<Map<String, Object>> listedAnnouncedControllers = controllerDap.queryListedAnnouncedControllers(companyId);
@@ -46,9 +59,9 @@ public class EquityControllerService {
                 // 排除非人非公司
                 if (!StrUtil.equalsAny(controllerType, "0", "1")) continue;
                 // 公司必须有gid
-                if ("0".equals(controllerType) && !TycUtils.isUnsignedId(controllerGid)) continue;
+                if ("1".equals(controllerType) && !TycUtils.isUnsignedId(controllerGid)) continue;
                 // 自然人必须有pid
-                if ("1".equals(controllerType) && controllerPid.length() != 17) continue;
+                if ("0".equals(controllerType) && controllerPid.length() != 17) continue;
                 // 必须有ratio
                 BigDecimal ratio;
                 try {
@@ -57,7 +70,7 @@ public class EquityControllerService {
                     continue;
                 }
                 // 查询名字
-                Map<String, Object> shareholderInfo = ("0".equals(controllerType)) ?
+                Map<String, Object> shareholderInfo = ("1".equals(controllerType)) ?
                         bfsDao.queryHumanOrCompanyInfo(controllerGid, "1") :
                         bfsDao.queryHumanOrCompanyInfo(controllerPid, "2");
                 String controllerName = String.valueOf(shareholderInfo.get("name"));
@@ -81,7 +94,10 @@ public class EquityControllerService {
                 columnMap.put("controlling_equity_relation_path_detail", "???");
                 columnMap.put("control_validation_time_year", "2023");
                 columnMap.put("is_controller_tyc_unique_entity_id", "1");
+                columnMaps.add(columnMap);
             }
+            return columnMaps;
         }
+        return null;
     }
 }
