@@ -69,26 +69,24 @@ public class EquityBfsDao {
     public Map<String, Object> queryHumanOrCompanyInfo(String id, String shareholderType) {
         String sql = "2".equals(shareholderType) ?
                 new SQL()
-                        .SELECT("human_name_id", "master_company_id")
+                        .SELECT("human_name_id", "master_company_id", "human_name")
                         .FROM("human")
                         .WHERE("human_id = " + SqlUtils.formatValue(id))
                         .toString() :
                 new SQL()
-                        .SELECT("company_id", "company_id")
+                        .SELECT("company_id", "company_id", "company_name")
                         .FROM("company_index")
                         .WHERE("company_id = " + SqlUtils.formatValue(id))
                         .toString();
         JdbcTemplate jdbcTemplate = "2".equals(shareholderType) ?
                 humanBase040 :
                 companyBase435;
-        Map<String, Object> columnMap = jdbcTemplate.queryForObject(sql, rs -> {
-            String nameId = rs.getString(1);
-            String companyId = rs.getString(2);
-            return new HashMap<String, Object>() {{
-                put("name_id", nameId);
-                put("company_id", companyId);
-            }};
-        });
+        Map<String, Object> columnMap = jdbcTemplate.queryForObject(sql, rs -> new HashMap<String, Object>() {{
+            put("name_id", rs.getString(1));
+            put("company_id", rs.getString(2));
+            put("name", rs.getString(3));
+            put("id", id);
+        }});
         return columnMap != null ? columnMap : new HashMap<>();
     }
 }
