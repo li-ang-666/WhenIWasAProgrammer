@@ -11,9 +11,7 @@ import java.util.Map;
 public class EquityControllerDao {
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate dataListedCompany110 = new JdbcTemplate("110.data_listed_company");
-
-    private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base");
-    private final JdbcTemplate humanBase040 = new JdbcTemplate("040.human_base");
+    private final JdbcTemplate prismShareholderPath457 = new JdbcTemplate("457.prism_shareholder_path");
 
     public Map<String, Object> queryCompanyInfo(String companyId) {
         String sql = new SQL()
@@ -33,5 +31,14 @@ public class EquityControllerDao {
                 .WHERE("is_deleted = 0")
                 .toString();
         return dataListedCompany110.queryForColumnMaps(sql);
+    }
+
+    public List<Map<String, Object>> queryRatioPathCompany(String companyId) {
+        String sql = new SQL()
+                .SELECT("*")
+                .FROM("prism_shareholder_path.ratio_path_company")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .toString();
+        return prismShareholderPath457.queryForColumnMaps(sql);
     }
 }

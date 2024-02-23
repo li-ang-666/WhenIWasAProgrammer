@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class EquityBfsDao {
     private static final List<String> NOT_ALIVE_TAG_ID_LIST = Arrays.asList("34", "35", "36", "37", "38", "39", "40", "43", "44", "46", "47", "48", "49", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "67", "68");
-    private final JdbcTemplate graphData = new JdbcTemplate("430.graph_data");
+    private final JdbcTemplate graphData = new JdbcTemplate("427.test");
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base");
     private final JdbcTemplate humanBase040 = new JdbcTemplate("040.human_base");
@@ -32,7 +32,7 @@ public class EquityBfsDao {
                 .SELECT("tyc_unique_entity_id_investor")
                 .SELECT("tyc_unique_entity_name_investor")
                 .SELECT("equity_ratio")
-                .FROM("company_equity_relation_details")
+                .FROM("graph_data.company_equity_relation_details")
                 .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
                 .WHERE("reference_pt_year = 2024")
                 .toString();

@@ -33,5 +33,7 @@ public class BlackList extends ConfigHolder {
         // 数字安徽有限责任公司 实控人
         new JdbcTemplate("457.prism_shareholder_path")
                 .update("delete from investment_relation where company_id_invested = 5565229730 and company_entity_inlink like '%:1186041:company%'");
+        new JdbcTemplate("457.prism_shareholder_path")
+                .update("delete from investment_relation where company_id_invested = 6808965");
     }
 }
