@@ -12,6 +12,8 @@ import java.math.RoundingMode;
 import java.util.*;
 
 public class EquityControllerService {
+    private static final BigDecimal THRESHOLD_PERCENT_THIRTY = new BigDecimal("0.3");
+    private static final BigDecimal THRESHOLD_PERCENT_FIFTY = new BigDecimal("0.5");
     private static final Set<String> USCC_TWO_WHITE_LIST = new HashSet<>(Arrays.asList("31", "91", "92", "93"));
     private final EquityControllerDao controllerDao = new EquityControllerDao();
     private final EquityBfsDao bfsDao = new EquityBfsDao();
@@ -59,32 +61,59 @@ public class EquityControllerService {
                 String ratio;
                 try {
                     ratio = new BigDecimal(holdingRatio).setScale(6, RoundingMode.DOWN).toPlainString();
-                } catch (Exception e) {
+                } catch (Exception ignore) {
                     continue;
                 }
-                // 查询名字
+                // 查询股东维表
                 Map<String, Object> shareholderInfo = ("1".equals(controllerType)) ?
                         bfsDao.queryHumanOrCompanyInfo(controllerGid, "1") :
                         bfsDao.queryHumanOrCompanyInfo(controllerPid, "2");
-                String shareholderName = String.valueOf(shareholderInfo.get("name"));
-                // 非法名称
-                if (!TycUtils.isValidName(shareholderName)) continue;
-                // 非法name_id
-                String nameId = String.valueOf(shareholderInfo.get("name_id"));
-                if (!TycUtils.isUnsignedId(nameId)) continue;
-                // 非法master_company_id
-                String masterCompanyId = String.valueOf(shareholderInfo.get("company_id"));
-                if (!TycUtils.isUnsignedId(masterCompanyId)) continue;
-                String shareholderId = String.valueOf(shareholderInfo.get("id"));
+                // 在维表不存在
+                if (!isValidShareholder(shareholderInfo)) continue;
                 // 构造columnMap
-                columnMaps.add(getColumnMap(companyId, companyName, shareholderId, shareholderName, nameId, masterCompanyId, ratio));
+                columnMaps.add(getColumnMap(companyId, companyName, String.valueOf(shareholderInfo.get("id")), String.valueOf(shareholderInfo.get("name")), String.valueOf(shareholderInfo.get("name_id")), String.valueOf(shareholderInfo.get("company_id")), ratio));
             }
             return columnMaps;
         }
         // 股权穿透
         List<Map<String, Object>> shareholders = controllerDao.queryRatioPathCompany(companyId);
+        // 没有股东 or 股东是自己(个体工商户)
+        if (shareholders.isEmpty() || (shareholders.size() == 1 && String.valueOf(shareholders.get(0).get("company_id")).equals(String.valueOf(shareholders.get(0).get("shareholder_id"))))) {
+            List<Map<String, Object>> personnels = controllerDao.queryPersonnel(companyId);
+            // 没有董事
+            if (personnels.isEmpty()) return columnMaps;
+            // 有董事
+            for (Map<String, Object> personnel : personnels) {
+                String shareholderId = String.valueOf(personnel.get("human_id"));
+                // 非法id
+                if (!TycUtils.isTycUniqueEntityId(shareholderId)) continue;
+                // 查询股东维表
+                Map<String, Object> shareholderInfo = bfsDao.queryHumanOrCompanyInfo(shareholderId, "2");
+                // 在维表不存在
+                if (!isValidShareholder(shareholderInfo)) continue;
+                // 构造columnMap
+                columnMaps.add(getColumnMap(companyId, companyName, String.valueOf(shareholderInfo.get("id")), String.valueOf(shareholderInfo.get("name")), String.valueOf(shareholderInfo.get("name_id")), String.valueOf(shareholderInfo.get("company_id")), "0"));
+            }
+            return columnMaps;
+        }
+        // 有股东
+        // 判断最大股比例
+        BigDecimal maxInvestmentRatioTotal = shareholders.stream().map(e -> new BigDecimal(String.valueOf(e.get("investment_ratio_total")))).max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+
 
         return columnMaps;
+    }
+
+    private boolean isValidShareholder(Map<String, Object> shareholderInfo) {
+        return
+                // 股东id
+                TycUtils.isTycUniqueEntityId(String.valueOf(shareholderInfo.get("id"))) &&
+                        // 股东名称
+                        TycUtils.isValidName(String.valueOf(shareholderInfo.get("name"))) &&
+                        // 股东内链1
+                        TycUtils.isUnsignedId(String.valueOf(shareholderInfo.get("name_id"))) &&
+                        // 股东内链2
+                        TycUtils.isUnsignedId(String.valueOf(shareholderInfo.get("company_id")));
     }
 
     private Map<String, Object> getColumnMap(String companyId, String companyName, String shareholderId, String shareholderName, String shareholderNameId, String humanMasterCompanyId, String ratio) {

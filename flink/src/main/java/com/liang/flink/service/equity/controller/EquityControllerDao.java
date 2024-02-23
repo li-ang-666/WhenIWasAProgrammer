@@ -41,4 +41,14 @@ public class EquityControllerDao {
                 .toString();
         return prismShareholderPath457.queryForColumnMaps(sql);
     }
+
+    public List<Map<String, Object>> queryPersonnel(String companyId) {
+        String sql = new SQL()
+                .SELECT("*")
+                .FROM("personnel")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("personnel_position like '%董事%'")
+                .toString();
+        return companyBase435.queryForColumnMaps(sql);
+    }
 }
