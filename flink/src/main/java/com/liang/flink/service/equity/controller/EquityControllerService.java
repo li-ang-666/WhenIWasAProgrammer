@@ -32,6 +32,12 @@ public class EquityControllerService {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
         }
+        System.out.println(StrUtil.repeat("=", 10));
+        for (Map<String, Object> columnMap : new EquityControllerService().processController("579967963")) {
+            for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
+                System.out.println(entry.getKey() + " -> " + entry.getValue());
+            }
+        }
     }
 
     public List<Map<String, Object>> processController(String companyId) {
@@ -69,7 +75,7 @@ public class EquityControllerService {
                 // 验证股东维表
                 if (isInvalidShareholder(shareholderInfo)) continue;
                 // 构造columnMap
-                columnMaps.add(getColumnMap(companyId, companyName, String.valueOf(shareholderInfo.get("id")), String.valueOf(shareholderInfo.get("name")), String.valueOf(shareholderInfo.get("name_id")), String.valueOf(shareholderInfo.get("company_id")), ratio));
+                columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderInfo, ratio));
             }
             return columnMaps;
         }
@@ -92,17 +98,28 @@ public class EquityControllerService {
         // 预测总持股比例>=50%且预测总持股比例>=50%的股东数量=1的
         if (maxRatio.compareTo(THRESHOLD_PERCENT_FIFTY) >= 0 && maxRatioShareholders.size() == 1) {
             // 无论该最终股东是否为自然人, 均可为实际控制人
+            columnMaps.add(getColumnMap(companyId, companyName, maxRatioShareholders.get(0)));
             return columnMaps;
         }
-        // 预测总持股比例>=30%且完整穿透后股东数量>1的
-        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && maxRatioShareholders.size() > 1) {
-            // 非自然人, 则直接为实际控制人
-            // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
+        // 存在预测总持股比例>=30%的股东
+        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0) {
+            for (Map<String, Object> maxRatioShareholder : maxRatioShareholders) {
+                String shareholderType = String.valueOf(maxRatioShareholder.get("shareholder_entity_type"));
+                String shareholderId = String.valueOf(maxRatioShareholder.get("shareholder_id"));
+                // 非自然人, 则直接为实际控制人
+                if (shareholderType.equals("1")) {
+                    columnMaps.add(getColumnMap(companyId, companyName, maxRatioShareholder));
+                }
+                // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
+                else if (shareholderType.equals("2") && controllerDao.queryIsPersonnel(companyId, shareholderId)) {
+                    columnMaps.add(getColumnMap(companyId, companyName, maxRatioShareholder));
+                }
+            }
             return columnMaps;
         }
         // 选用董事长 or 执行事务合伙人 为 实控人
         else {
-            List<Map<String, Object>> vips = controllerDao.isPartnership(companyId) ? controllerDao.queryLegals(companyId) : controllerDao.queryPersonnels(companyId, "董事长");
+            List<Map<String, Object>> vips = controllerDao.isPartnership(companyId) ? controllerDao.queryLegals(companyId) : controllerDao.queryAllPersonnels(companyId);
             for (Map<String, Object> vip : vips) {
                 String vipId = String.valueOf(vip.get("id"));
                 // 验证id
@@ -118,7 +135,7 @@ public class EquityControllerService {
                         .findAny()
                         .orElse("0");
                 // 构造columnMap
-                columnMaps.add(getColumnMap(companyId, companyName, String.valueOf(shareholderInfo.get("id")), String.valueOf(shareholderInfo.get("name")), String.valueOf(shareholderInfo.get("name_id")), String.valueOf(shareholderInfo.get("company_id")), ratio));
+                columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderInfo, ratio));
             }
             return columnMaps;
         }
@@ -136,22 +153,41 @@ public class EquityControllerService {
                         !TycUtils.isUnsignedId(String.valueOf(shareholderInfo.get("company_id")));
     }
 
-    private Map<String, Object> getColumnMap(String companyId, String companyName, String shareholderId, String shareholderName, String shareholderNameId, String humanMasterCompanyId, String ratio) {
+    private Map<String, Object> getColumnMap(String companyId, String companyName, Map<String, Object> ratioPathCompanyMap) {
         Map<String, Object> columnMap = new HashMap<>();
-        columnMap.put("tyc_unique_entity_id", shareholderId);
-        columnMap.put("entity_type_id", shareholderId.length() == 17 ? "2" : "1");
-        columnMap.put("entity_name_valid", shareholderName);
+        columnMap.put("tyc_unique_entity_id", String.valueOf(ratioPathCompanyMap.get("shareholder_id")));
+        columnMap.put("entity_type_id", String.valueOf(ratioPathCompanyMap.get("shareholder_entity_type")));
+        columnMap.put("entity_name_valid", String.valueOf(ratioPathCompanyMap.get("shareholder_name")));
         columnMap.put("company_id_controlled", companyId);
         columnMap.put("company_name_controlled", companyName);
         columnMap.put("equity_relation_path_cnt", 1);
-        columnMap.put("estimated_equity_ratio_total", ratio);
-        columnMap.put("controlling_equity_relation_path_detail", getJson(companyId, companyName, shareholderId, shareholderName, shareholderNameId, humanMasterCompanyId, ratio));
+        columnMap.put("estimated_equity_ratio_total", String.valueOf(ratioPathCompanyMap.get("investment_ratio_total")));
+        columnMap.put("controlling_equity_relation_path_detail", "{}");
         columnMap.put("control_validation_time_year", "2023");
         columnMap.put("is_controller_tyc_unique_entity_id", "1");
         return columnMap;
     }
 
-    private String getJson(String companyId, String companyName, String shareholderId, String shareholderName, String shareholderNameId, String humanMasterCompanyId, String ratio) {
+    private Map<String, Object> getSpecialColumnMap(String companyId, String companyName, Map<String, Object> shareholderInfoMap, String ratio) {
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("tyc_unique_entity_id", String.valueOf(shareholderInfoMap.get("id")));
+        columnMap.put("entity_type_id", String.valueOf(shareholderInfoMap.get("id")).length() == 17 ? "2" : "1");
+        columnMap.put("entity_name_valid", String.valueOf(shareholderInfoMap.get("name")));
+        columnMap.put("company_id_controlled", companyId);
+        columnMap.put("company_name_controlled", companyName);
+        columnMap.put("equity_relation_path_cnt", 1);
+        columnMap.put("estimated_equity_ratio_total", ratio);
+        columnMap.put("controlling_equity_relation_path_detail", getJson(companyId, companyName, shareholderInfoMap, ratio));
+        columnMap.put("control_validation_time_year", "2023");
+        columnMap.put("is_controller_tyc_unique_entity_id", "1");
+        return columnMap;
+    }
+
+    private String getJson(String companyId, String companyName, Map<String, Object> shareholderInfoMap, String ratio) {
+        String shareholderId = String.valueOf(shareholderInfoMap.get("id"));
+        String shareholderName = String.valueOf(shareholderInfoMap.get("name"));
+        String shareholderNameId = String.valueOf(shareholderInfoMap.get("name_id"));
+        String humanMasterCompanyId = String.valueOf(shareholderInfoMap.get("company_id"));
         ArrayList<List<Map<String, Object>>> pathList = new ArrayList<List<Map<String, Object>>>() {{
             add(new ArrayList<Map<String, Object>>() {{
                 add(new LinkedHashMap<String, Object>() {{
