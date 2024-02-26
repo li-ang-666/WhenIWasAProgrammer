@@ -19,7 +19,6 @@ public class RatioPathCompanyDto {
     private final String companyId;
     private final String companyName;
     // 股东基本属性
-    private final String shareholderType;
     private final String shareholderId;
     private final String shareholderName;
     private final String shareholderNameId;
@@ -39,7 +38,7 @@ public class RatioPathCompanyDto {
         columnMap.put("company_id", companyId);
         columnMap.put("company_name", companyName);
         // 股东
-        columnMap.put("shareholder_entity_type", shareholderType);
+        columnMap.put("shareholder_entity_type", shareholderId.length() == 17 ? "2" : "1");
         columnMap.put("shareholder_id", shareholderId);
         columnMap.put("shareholder_name", shareholderName);
         columnMap.put("shareholder_name_id", shareholderNameId);

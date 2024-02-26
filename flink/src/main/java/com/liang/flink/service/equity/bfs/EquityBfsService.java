@@ -147,10 +147,10 @@ public class EquityBfsService {
                 ratioPathCompanyDto = v;
             } else {
                 String shareholderType = (shareholderId.length() == 17) ? "2" : "1";
-                Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(shareholderId, shareholderType);
+                Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(shareholderId);
                 String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
                 String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
-                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderType, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
+                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
             }
             // 新路径 & 总股比
             ratioPathCompanyDto.getPaths().add(newPath);
@@ -181,7 +181,7 @@ public class EquityBfsService {
             Edge newEdge = new Edge(ratio, true);
             Node newNode = new Node(companyId, companyName);
             Path newPath = Path.newPath(polledPath, newEdge, newNode);
-            RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, "1", companyId, companyName, companyId, companyId);
+            RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyId, companyName, companyId, companyId);
             ratioPathCompanyDto.getPaths().add(newPath);
             ratioPathCompanyDto.setTotalValidRatio(newPath.getValidRatio());
             ratioPathCompanyDto.setDirectShareholder(true);

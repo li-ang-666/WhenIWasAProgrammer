@@ -12,6 +12,7 @@ public class EquityControllerDao {
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate dataListedCompany110 = new JdbcTemplate("110.data_listed_company");
     private final JdbcTemplate prismShareholderPath457 = new JdbcTemplate("457.prism_shareholder_path");
+    private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
 
     public Map<String, Object> queryCompanyInfo(String companyId) {
         String sql = new SQL()
@@ -25,7 +26,8 @@ public class EquityControllerDao {
 
     public List<Map<String, Object>> queryListedAnnouncedControllers(String companyId) {
         String sql = new SQL()
-                .SELECT("*")
+                .SELECT("case when controller_type = 1 then controller_gid when controller_type = 0 then controller_pid else 0 end id")
+                .SELECT("holding_ratio")
                 .FROM("stock_actual_controller")
                 .WHERE("graph_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("is_deleted = 0")
@@ -38,16 +40,36 @@ public class EquityControllerDao {
                 .SELECT("*")
                 .FROM("prism_shareholder_path.ratio_path_company")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("company_id != shareholder_id")
                 .toString();
         return prismShareholderPath457.queryForColumnMaps(sql);
     }
 
-    public List<Map<String, Object>> queryPersonnel(String companyId) {
+    public boolean isPartnership(String companyId) {
+        String sql = new SQL().SELECT("1")
+                .FROM("tyc_entity_general_property_reference")
+                .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("entity_property in (15,16)")
+                .toString();
+        String res = companyBase465.queryForObject(sql, rs -> rs.getString(1));
+        return res != null;
+    }
+
+    public List<Map<String, Object>> queryPersonnels(String companyId) {
         String sql = new SQL()
-                .SELECT("*")
+                .SELECT("human_id id")
                 .FROM("personnel")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("personnel_position like '%董事%'")
+                .toString();
+        return companyBase435.queryForColumnMaps(sql);
+    }
+
+    public List<Map<String, Object>> queryLegals(String companyId) {
+        String sql = new SQL()
+                .SELECT("case when legal_rep_type = 1 then legal_rep_name_id when legal_rep_type = 2 then legal_rep_human_id else 0 end id")
+                .FROM("company_legal_person")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .toString();
         return companyBase435.queryForColumnMaps(sql);
     }
