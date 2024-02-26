@@ -33,7 +33,7 @@ public class EquityControllerService {
             }
         }
         System.out.println(StrUtil.repeat("=", 10));
-        for (Map<String, Object> columnMap : new EquityControllerService().processController("579967963")) {
+        for (Map<String, Object> columnMap : new EquityControllerService().processController("1516070")) {
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
