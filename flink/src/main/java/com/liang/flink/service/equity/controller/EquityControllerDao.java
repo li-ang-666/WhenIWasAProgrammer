@@ -55,12 +55,12 @@ public class EquityControllerDao {
         return res != null;
     }
 
-    public List<Map<String, Object>> queryPersonnels(String companyId) {
+    public List<Map<String, Object>> queryPersonnels(String companyId, String position) {
         String sql = new SQL()
                 .SELECT("human_id id")
                 .FROM("personnel")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                .WHERE("personnel_position like '%董事%'")
+                .WHERE("personnel_position like '%" + position + "%'")
                 .toString();
         return companyBase435.queryForColumnMaps(sql);
     }

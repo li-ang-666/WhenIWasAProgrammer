@@ -95,14 +95,14 @@ public class EquityControllerService {
             return columnMaps;
         }
         // 预测总持股比例>=30%且完整穿透后股东数量>1的
-        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) == 0 && maxRatioShareholders.size() > 1) {
+        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && maxRatioShareholders.size() > 1) {
             // 非自然人, 则直接为实际控制人
             // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
             return columnMaps;
         }
         // 选用董事长 or 执行事务合伙人 为 实控人
         else {
-            List<Map<String, Object>> vips = controllerDao.isPartnership(companyId) ? controllerDao.queryLegals(companyId) : controllerDao.queryPersonnels(companyId);
+            List<Map<String, Object>> vips = controllerDao.isPartnership(companyId) ? controllerDao.queryLegals(companyId) : controllerDao.queryPersonnels(companyId, "董事长");
             for (Map<String, Object> vip : vips) {
                 String vipId = String.valueOf(vip.get("id"));
                 // 验证id
