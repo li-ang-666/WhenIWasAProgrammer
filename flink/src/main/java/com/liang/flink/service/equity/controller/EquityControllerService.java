@@ -78,40 +78,42 @@ public class EquityControllerService {
             }
             return columnMaps;
         }
-        // 股权穿透
+        // 走股权穿透, 查询ratio_path_company所有股东数据
         List<Map<String, Object>> ratioPathCompanyMaps = controllerDao.queryRatioPathCompany(companyId);
-        // 遍历股东, 按照ratio做group by
-        TreeMap<String, List<Map<String, Object>>> ratioToShareholdersWithSameRatio = new TreeMap<>();
-        for (Map<String, Object> shareholder : ratioPathCompanyMaps) {
-            String ratio = String.valueOf(shareholder.get("investment_ratio_total"));
-            ratioToShareholdersWithSameRatio.compute(ratio, (k, v) -> {
-                List<Map<String, Object>> shareholdersWithSameRatio = (v != null) ? v : new ArrayList<>();
-                shareholdersWithSameRatio.add(shareholder);
-                return shareholdersWithSameRatio;
+        // 按照ratio做group by
+        TreeMap<String, List<Map<String, Object>>> ratioToRatioPathCompanyMapsWithSameRatio = new TreeMap<>();
+        for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMaps) {
+            // 筛选isEnd的股东
+            if ("0".equals(String.valueOf(ratioPathCompanyMap.get("is_end")))) continue;
+            String ratio = String.valueOf(ratioPathCompanyMap.get("investment_ratio_total"));
+            ratioToRatioPathCompanyMapsWithSameRatio.compute(ratio, (k, v) -> {
+                List<Map<String, Object>> RatioPathCompanyMapsWithSameRatio = (v != null) ? v : new ArrayList<>();
+                RatioPathCompanyMapsWithSameRatio.add(ratioPathCompanyMap);
+                return RatioPathCompanyMapsWithSameRatio;
             });
         }
         // 最大比例及该比例下的股东
-        Map.Entry<String, List<Map<String, Object>>> maxRatioToShareholders = ratioToShareholdersWithSameRatio.lastEntry();
-        String maxRatio = maxRatioToShareholders.getKey();
-        List<Map<String, Object>> maxRatioShareholders = maxRatioToShareholders.getValue();
+        Map.Entry<String, List<Map<String, Object>>> maxRatioToRatioPathCompanyMaps = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry();
+        String maxRatio = maxRatioToRatioPathCompanyMaps.getKey();
+        List<Map<String, Object>> ratioPathCompanyMapsWithMaxRatio = maxRatioToRatioPathCompanyMaps.getValue();
         // 预测总持股比例>=30% 且 最大股东有且只有一位
-        if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && maxRatioShareholders.size() == 1) {
+        if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() == 1) {
             // 无论该最终股东是否为自然人, 均可为实际控制人
-            columnMaps.add(getColumnMap(companyId, companyName, maxRatioShareholders.get(0)));
+            columnMaps.add(getColumnMap(companyId, companyName, ratioPathCompanyMapsWithMaxRatio.get(0)));
             return columnMaps;
         }
         // 预测总持股比例>=30% 且 最大股东有多位
-        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && maxRatioShareholders.size() > 1) {
-            for (Map<String, Object> maxRatioShareholder : maxRatioShareholders) {
-                String shareholderType = String.valueOf(maxRatioShareholder.get("shareholder_entity_type"));
-                String shareholderId = String.valueOf(maxRatioShareholder.get("shareholder_id"));
+        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() > 1) {
+            for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMapsWithMaxRatio) {
+                String shareholderType = String.valueOf(ratioPathCompanyMap.get("shareholder_entity_type"));
+                String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
                 // 非自然人, 则直接为实际控制人
                 if (shareholderType.equals("1")) {
-                    columnMaps.add(getColumnMap(companyId, companyName, maxRatioShareholder));
+                    columnMaps.add(getColumnMap(companyId, companyName, ratioPathCompanyMap));
                 }
                 // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
                 else if (shareholderType.equals("2") && controllerDao.queryIsPersonnel(companyId, shareholderId)) {
-                    columnMaps.add(getColumnMap(companyId, companyName, maxRatioShareholder));
+                    columnMaps.add(getColumnMap(companyId, companyName, ratioPathCompanyMap));
                 }
             }
             return columnMaps;
