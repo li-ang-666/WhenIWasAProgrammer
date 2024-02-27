@@ -97,8 +97,15 @@ public class EquityControlService {
                 });
             }
             // 最大比例及该比例下的股东
-            String maxRatio = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getKey();
-            List<Map<String, Object>> ratioPathCompanyMapsWithMaxRatio = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getValue();
+            String maxRatio;
+            List<Map<String, Object>> ratioPathCompanyMapsWithMaxRatio;
+            if (ratioToRatioPathCompanyMapsWithSameRatio.isEmpty()) {
+                maxRatio = "0";
+                ratioPathCompanyMapsWithMaxRatio = new ArrayList<>();
+            } else {
+                maxRatio = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getKey();
+                ratioPathCompanyMapsWithMaxRatio = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getValue();
+            }
             // 预测总持股比例>=30% 且 最大股东有且只有一位
             if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() == 1) {
                 // 无论该最终股东是否为自然人, 均可为实际控制人
