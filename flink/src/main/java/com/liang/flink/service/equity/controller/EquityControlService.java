@@ -13,36 +13,36 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
-public class EquityControllerService {
+public class EquityControlService {
     private static final String THRESHOLD_PERCENT_THIRTY = "0.300000";
     private static final String THRESHOLD_PERCENT_FIFTY = "0.500000";
     private static final Set<String> USCC_TWO_WHITE_LIST = new HashSet<>(Arrays.asList("31", "91", "92", "93"));
-    private final EquityControllerDao controllerDao = new EquityControllerDao();
+    private final EquityControlDao controllerDao = new EquityControlDao();
     private final EquityBfsDao bfsDao = new EquityBfsDao();
 
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        for (Map<String, Object> columnMap : new EquityControllerService().processController("14427175")) {
+        for (Map<String, Object> columnMap : new EquityControlService().processControl("14427175")) {
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
         }
         System.out.println(StrUtil.repeat("=", 10));
-        for (Map<String, Object> columnMap : new EquityControllerService().processController("2318455639")) {
+        for (Map<String, Object> columnMap : new EquityControlService().processControl("2318455639")) {
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
         }
         System.out.println(StrUtil.repeat("=", 10));
-        for (Map<String, Object> columnMap : new EquityControllerService().processController("1516070")) {
+        for (Map<String, Object> columnMap : new EquityControlService().processControl("1516070")) {
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
         }
     }
 
-    public List<Map<String, Object>> processController(String companyId) {
+    public List<Map<String, Object>> processControl(String companyId) {
         List<Map<String, Object>> columnMaps = new ArrayList<>();
         // 验证id
         if (!TycUtils.isUnsignedId(companyId)) return columnMaps;

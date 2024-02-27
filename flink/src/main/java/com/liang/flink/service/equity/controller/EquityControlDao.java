@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EquityControllerDao {
+public class EquityControlDao {
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate dataListedCompany110 = new JdbcTemplate("110.data_listed_company");
     private final JdbcTemplate prismShareholderPath457 = new JdbcTemplate("457.prism_shareholder_path");
