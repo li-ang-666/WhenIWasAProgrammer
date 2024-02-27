@@ -54,12 +54,12 @@ public class EquityControllerService {
         String usccPrefixTwo = (companyInfo.get("unified_social_credit_code") + "suffix to prevent OutOfBoundsException").substring(0, 2);
         if (!USCC_TWO_WHITE_LIST.contains(usccPrefixTwo)) return columnMaps;
         // 存在上市公告的实际控制人
-        List<Map<String, Object>> listedAnnouncedControllers = controllerDao.queryListedAnnouncedControllers(companyId);
+        List<Map<String, Object>> listedAnnouncedControllerMaps = controllerDao.queryListedAnnouncedControllers(companyId);
         // 如果查询到了数据, 那一定会return, 即使是空return
-        if (!listedAnnouncedControllers.isEmpty()) {
-            for (Map<String, Object> listedAnnouncedController : listedAnnouncedControllers) {
-                String listedAnnouncedControllerId = String.valueOf(listedAnnouncedController.get("id"));
-                String holdingRatio = String.valueOf(listedAnnouncedController.get("holding_ratio"));
+        if (!listedAnnouncedControllerMaps.isEmpty()) {
+            for (Map<String, Object> listedAnnouncedControllerMap : listedAnnouncedControllerMaps) {
+                String listedAnnouncedControllerId = String.valueOf(listedAnnouncedControllerMap.get("id"));
+                String holdingRatio = String.valueOf(listedAnnouncedControllerMap.get("holding_ratio"));
                 // 验证id
                 if (!TycUtils.isTycUniqueEntityId(listedAnnouncedControllerId)) continue;
                 // 验证ratio
