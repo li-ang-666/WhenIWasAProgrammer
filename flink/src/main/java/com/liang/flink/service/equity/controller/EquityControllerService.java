@@ -53,9 +53,9 @@ public class EquityControllerService {
         // 企业类型屏蔽逻辑
         String usccPrefixTwo = (companyInfo.get("unified_social_credit_code") + "suffix to prevent OutOfBoundsException").substring(0, 2);
         if (!USCC_TWO_WHITE_LIST.contains(usccPrefixTwo)) return columnMaps;
-        // 存在上市公告的实际控制人
+        // 开始判断
         List<Map<String, Object>> listedAnnouncedControllerMaps = controllerDao.queryListedAnnouncedControllers(companyId);
-        // 如果查询到了数据, 那一定会return, 即使是空return
+        // 存在上市公告的实际控制人
         if (!listedAnnouncedControllerMaps.isEmpty()) {
             for (Map<String, Object> listedAnnouncedControllerMap : listedAnnouncedControllerMaps) {
                 String listedAnnouncedControllerId = String.valueOf(listedAnnouncedControllerMap.get("id"));
@@ -76,70 +76,73 @@ public class EquityControllerService {
                 // 构造columnMap
                 columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio));
             }
-            return columnMaps;
         }
-        // 走股权穿透, 查询ratio_path_company所有股东数据
-        List<Map<String, Object>> ratioPathCompanyMaps = controllerDao.queryRatioPathCompany(companyId);
-        // 按照ratio做group by
-        TreeMap<String, List<Map<String, Object>>> ratioToRatioPathCompanyMapsWithSameRatio = new TreeMap<>();
-        for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMaps) {
-            // 筛选isEnd的股东
-            if ("0".equals(String.valueOf(ratioPathCompanyMap.get("is_end")))) continue;
-            String ratio = String.valueOf(ratioPathCompanyMap.get("investment_ratio_total"));
-            ratioToRatioPathCompanyMapsWithSameRatio.compute(ratio, (k, v) -> {
-                List<Map<String, Object>> RatioPathCompanyMapsWithSameRatio = (v != null) ? v : new ArrayList<>();
-                RatioPathCompanyMapsWithSameRatio.add(ratioPathCompanyMap);
-                return RatioPathCompanyMapsWithSameRatio;
-            });
-        }
-        // 最大比例及该比例下的股东
-        Map.Entry<String, List<Map<String, Object>>> maxRatioToRatioPathCompanyMaps = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry();
-        String maxRatio = maxRatioToRatioPathCompanyMaps.getKey();
-        List<Map<String, Object>> ratioPathCompanyMapsWithMaxRatio = maxRatioToRatioPathCompanyMaps.getValue();
-        // 预测总持股比例>=30% 且 最大股东有且只有一位
-        if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() == 1) {
-            // 无论该最终股东是否为自然人, 均可为实际控制人
-            columnMaps.add(getNormalColumnMap(companyId, companyName, ratioPathCompanyMapsWithMaxRatio.get(0)));
-            return columnMaps;
-        }
-        // 预测总持股比例>=30% 且 最大股东有多位
-        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() > 1) {
-            for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMapsWithMaxRatio) {
-                String shareholderType = String.valueOf(ratioPathCompanyMap.get("shareholder_entity_type"));
-                String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
-                // 非自然人, 则直接为实际控制人
-                if (shareholderType.equals("1")) {
-                    columnMaps.add(getNormalColumnMap(companyId, companyName, ratioPathCompanyMap));
-                }
-                // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
-                else if (shareholderType.equals("2") && controllerDao.queryIsPersonnel(companyId, shareholderId)) {
-                    columnMaps.add(getNormalColumnMap(companyId, companyName, ratioPathCompanyMap));
-                }
-            }
-            return columnMaps;
-        }
-        // 选用董事长 or 执行事务合伙人 为 实控人
+        // 走股权穿透
         else {
-            List<Map<String, Object>> vips = controllerDao.isPartnership(companyId) ? controllerDao.queryLegals(companyId) : controllerDao.queryAllPersonnels(companyId);
-            for (Map<String, Object> vip : vips) {
-                String vipId = String.valueOf(vip.get("id"));
-                // 验证id
-                if (!TycUtils.isTycUniqueEntityId(vipId)) continue;
-                // 查询股东维表
-                Map<String, Object> shareholderMap = bfsDao.queryHumanOrCompanyInfo(vipId);
-                // 验证股东维表
-                if (isInvalidShareholder(shareholderMap)) continue;
-                // ratio
-                String ratio = ratioPathCompanyMaps.stream()
-                        .filter(e -> String.valueOf(e.get("shareholder_id")).equals(vipId))
-                        .map(e -> String.valueOf(e.get("investment_ratio_total")))
-                        .findAny()
-                        .orElse("0");
-                // 构造columnMap
-                columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio));
+            // 查询ratio_path_company所有股东数据
+            List<Map<String, Object>> ratioPathCompanyMaps = controllerDao.queryRatioPathCompany(companyId);
+            // 按照ratio做group by
+            TreeMap<String, List<Map<String, Object>>> ratioToRatioPathCompanyMapsWithSameRatio = new TreeMap<>();
+            for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMaps) {
+                // 筛选isEnd的股东
+                if ("0".equals(String.valueOf(ratioPathCompanyMap.get("is_end")))) continue;
+                String ratio = String.valueOf(ratioPathCompanyMap.get("investment_ratio_total"));
+                ratioToRatioPathCompanyMapsWithSameRatio.compute(ratio, (k, v) -> {
+                    List<Map<String, Object>> RatioPathCompanyMapsWithSameRatio = (v != null) ? v : new ArrayList<>();
+                    RatioPathCompanyMapsWithSameRatio.add(ratioPathCompanyMap);
+                    return RatioPathCompanyMapsWithSameRatio;
+                });
             }
-            return columnMaps;
+            // 最大比例及该比例下的股东
+            String maxRatio = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getKey();
+            List<Map<String, Object>> ratioPathCompanyMapsWithMaxRatio = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getValue();
+            // 预测总持股比例>=30% 且 最大股东有且只有一位
+            if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() == 1) {
+                // 无论该最终股东是否为自然人, 均可为实际控制人
+                columnMaps.add(getNormalColumnMap(companyId, companyName, ratioPathCompanyMapsWithMaxRatio.get(0)));
+            }
+            // 预测总持股比例>=30% 且 最大股东有多位
+            else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() > 1) {
+                for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMapsWithMaxRatio) {
+                    String shareholderType = String.valueOf(ratioPathCompanyMap.get("shareholder_entity_type"));
+                    String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
+                    // 非自然人, 则直接为实际控制人
+                    if (shareholderType.equals("1")) {
+                        columnMaps.add(getNormalColumnMap(companyId, companyName, ratioPathCompanyMap));
+                    }
+                    // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
+                    else if (shareholderType.equals("2") && controllerDao.queryIsPersonnel(companyId, shareholderId)) {
+                        columnMaps.add(getNormalColumnMap(companyId, companyName, ratioPathCompanyMap));
+                    }
+                }
+            }
+            // 选用董事长 or 执行事务合伙人 为 实控人
+            else {
+                List<Map<String, Object>> vips = controllerDao.isPartnership(companyId) ? controllerDao.queryLegals(companyId) : controllerDao.queryAllPersonnels(companyId);
+                for (Map<String, Object> vip : vips) {
+                    String vipId = String.valueOf(vip.get("id"));
+                    // 验证id
+                    if (!TycUtils.isTycUniqueEntityId(vipId)) continue;
+                    // 查询股东维表
+                    Map<String, Object> shareholderMap = bfsDao.queryHumanOrCompanyInfo(vipId);
+                    // 验证股东维表
+                    if (isInvalidShareholder(shareholderMap)) continue;
+                    // ratio
+                    String ratio = ratioPathCompanyMaps.stream()
+                            .filter(e -> String.valueOf(e.get("shareholder_id")).equals(vipId))
+                            .map(e -> String.valueOf(e.get("investment_ratio_total")))
+                            .findAny()
+                            .orElse("0");
+                    // 构造columnMap
+                    columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio));
+                }
+            }
         }
+        return columnMaps;
+    }
+
+    private void fillUpControlAbility(List<Map<String, Object>> ratioPathCompanyMaps, List<Map<String, Object>> controllerMaps) {
+
     }
 
     private boolean isInvalidShareholder(Map<String, Object> shareholderMap) {
