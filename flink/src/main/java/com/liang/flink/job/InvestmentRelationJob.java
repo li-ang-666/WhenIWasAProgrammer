@@ -36,6 +36,7 @@ public class InvestmentRelationJob {
                 .with("company_equity_relation_details", e -> String.valueOf(e.getColumnMap().get("company_id_invested")))
                 .with("company_legal_person", e -> String.valueOf(e.getColumnMap().get("company_id")))
                 .with("stock_actual_controller", e -> String.valueOf(e.getColumnMap().get("graph_id")))
+                .with("company_index", e -> String.valueOf(e.getColumnMap().get("company_id")))
                 .with("personnel_employment_history", e -> String.valueOf(e.getColumnMap().get("company_id")));
         stream.keyBy(distributor)
                 .addSink(new InvestmentRelationSink(config, distributor)).name("InvestmentRelationSink").setParallelism(config.getFlinkConfig().getOtherParallel());
@@ -71,7 +72,7 @@ public class InvestmentRelationJob {
             synchronized (companyIds) {
                 companyIds.add(key);
             }
-            if (companyIds.size() >= 128) {
+            if (companyIds.size() >= 1) {
                 flush();
             }
         }
