@@ -11,7 +11,7 @@ import java.util.Map;
 public class EquityControlDao {
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate dataListedCompany110 = new JdbcTemplate("110.data_listed_company");
-    private final JdbcTemplate prismShareholderPath457 = new JdbcTemplate("457.prism_shareholder_path");
+    private final JdbcTemplate prismShareholderPath457 = new JdbcTemplate("427.test");
     private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
 
     public Map<String, Object> queryCompanyInfo(String companyId) {
@@ -38,7 +38,7 @@ public class EquityControlDao {
     public List<Map<String, Object>> queryRatioPathCompany(String companyId) {
         String sql = new SQL()
                 .SELECT("*")
-                .FROM("prism_shareholder_path.ratio_path_company")
+                .FROM("prism_shareholder_path.ratio_path_company_new")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("company_id != shareholder_id")
                 .toString();

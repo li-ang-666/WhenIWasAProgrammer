@@ -63,9 +63,9 @@ public class EquityControlJob {
         public String map(SingleCanalBinlog singleCanalBinlog) {
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            if ("company_index".equals(table)) {
+            if (table.equals("company_index")) {
                 return String.valueOf(columnMap.get("company_id"));
-            } else if ("ratio_path_company_new".equals(table)) {
+            } else if (table.contains("ratio_path_company")) {
                 return String.valueOf(columnMap.get("company_id"));
             }
             return "";
@@ -97,7 +97,7 @@ public class EquityControlJob {
             }
             synchronized (companyIdBuffer) {
                 companyIdBuffer.add(companyId);
-                if (companyIdBuffer.size() >= 128) {
+                if (companyIdBuffer.size() >= 1) {
                     flush();
                 }
             }
