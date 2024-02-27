@@ -70,11 +70,11 @@ public class EquityControllerService {
                     continue;
                 }
                 // 查询股东维表
-                Map<String, Object> shareholderInfo = bfsDao.queryHumanOrCompanyInfo(listedAnnouncedControllerId);
+                Map<String, Object> shareholderMap = bfsDao.queryHumanOrCompanyInfo(listedAnnouncedControllerId);
                 // 验证股东维表
-                if (isInvalidShareholder(shareholderInfo)) continue;
+                if (isInvalidShareholder(shareholderMap)) continue;
                 // 构造columnMap
-                columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderInfo, ratio));
+                columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio));
             }
             return columnMaps;
         }
@@ -126,9 +126,9 @@ public class EquityControllerService {
                 // 验证id
                 if (!TycUtils.isTycUniqueEntityId(vipId)) continue;
                 // 查询股东维表
-                Map<String, Object> shareholderInfo = bfsDao.queryHumanOrCompanyInfo(vipId);
+                Map<String, Object> shareholderMap = bfsDao.queryHumanOrCompanyInfo(vipId);
                 // 验证股东维表
-                if (isInvalidShareholder(shareholderInfo)) continue;
+                if (isInvalidShareholder(shareholderMap)) continue;
                 // ratio
                 String ratio = ratioPathCompanyMaps.stream()
                         .filter(e -> String.valueOf(e.get("shareholder_id")).equals(vipId))
@@ -136,22 +136,22 @@ public class EquityControllerService {
                         .findAny()
                         .orElse("0");
                 // 构造columnMap
-                columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderInfo, ratio));
+                columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio));
             }
             return columnMaps;
         }
     }
 
-    private boolean isInvalidShareholder(Map<String, Object> shareholderInfo) {
+    private boolean isInvalidShareholder(Map<String, Object> shareholderMap) {
         return
                 // 股东id
-                !TycUtils.isTycUniqueEntityId(String.valueOf(shareholderInfo.get("id"))) ||
+                !TycUtils.isTycUniqueEntityId(String.valueOf(shareholderMap.get("id"))) ||
                         // 股东名称
-                        !TycUtils.isValidName(String.valueOf(shareholderInfo.get("name"))) ||
+                        !TycUtils.isValidName(String.valueOf(shareholderMap.get("name"))) ||
                         // 股东内链name_id
-                        !TycUtils.isUnsignedId(String.valueOf(shareholderInfo.get("name_id"))) ||
+                        !TycUtils.isUnsignedId(String.valueOf(shareholderMap.get("name_id"))) ||
                         // 股东内链company_id
-                        !TycUtils.isUnsignedId(String.valueOf(shareholderInfo.get("company_id")));
+                        !TycUtils.isUnsignedId(String.valueOf(shareholderMap.get("company_id")));
     }
 
     private Map<String, Object> getColumnMap(String companyId, String companyName, Map<String, Object> ratioPathCompanyMap) {
@@ -169,26 +169,26 @@ public class EquityControllerService {
         return columnMap;
     }
 
-    private Map<String, Object> getSpecialColumnMap(String companyId, String companyName, Map<String, Object> shareholderInfoMap, String ratio) {
+    private Map<String, Object> getSpecialColumnMap(String companyId, String companyName, Map<String, Object> shareholderMap, String ratio) {
         Map<String, Object> columnMap = new HashMap<>();
-        columnMap.put("tyc_unique_entity_id", String.valueOf(shareholderInfoMap.get("id")));
-        columnMap.put("entity_type_id", String.valueOf(shareholderInfoMap.get("id")).length() == 17 ? "2" : "1");
-        columnMap.put("entity_name_valid", String.valueOf(shareholderInfoMap.get("name")));
+        columnMap.put("tyc_unique_entity_id", String.valueOf(shareholderMap.get("id")));
+        columnMap.put("entity_type_id", String.valueOf(shareholderMap.get("id")).length() == 17 ? "2" : "1");
+        columnMap.put("entity_name_valid", String.valueOf(shareholderMap.get("name")));
         columnMap.put("company_id_controlled", companyId);
         columnMap.put("company_name_controlled", companyName);
         columnMap.put("equity_relation_path_cnt", 1);
         columnMap.put("estimated_equity_ratio_total", ratio);
-        columnMap.put("controlling_equity_relation_path_detail", getJson(companyId, companyName, shareholderInfoMap, ratio));
+        columnMap.put("controlling_equity_relation_path_detail", getJson(companyId, companyName, shareholderMap, ratio));
         columnMap.put("control_validation_time_year", "2023");
         columnMap.put("is_controller_tyc_unique_entity_id", "1");
         return columnMap;
     }
 
-    private String getJson(String companyId, String companyName, Map<String, Object> shareholderInfoMap, String ratio) {
-        String shareholderId = String.valueOf(shareholderInfoMap.get("id"));
-        String shareholderName = String.valueOf(shareholderInfoMap.get("name"));
-        String shareholderNameId = String.valueOf(shareholderInfoMap.get("name_id"));
-        String humanMasterCompanyId = String.valueOf(shareholderInfoMap.get("company_id"));
+    private String getJson(String companyId, String companyName, Map<String, Object> shareholderMap, String ratio) {
+        String shareholderId = String.valueOf(shareholderMap.get("id"));
+        String shareholderName = String.valueOf(shareholderMap.get("name"));
+        String shareholderNameId = String.valueOf(shareholderMap.get("name_id"));
+        String humanMasterCompanyId = String.valueOf(shareholderMap.get("company_id"));
         ArrayList<List<Map<String, Object>>> pathList = new ArrayList<List<Map<String, Object>>>() {{
             add(new ArrayList<Map<String, Object>>() {{
                 add(new LinkedHashMap<String, Object>() {{
