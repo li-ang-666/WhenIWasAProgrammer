@@ -12,6 +12,7 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unchecked")
 public class EquityControllerService {
     private static final String THRESHOLD_PERCENT_THIRTY = "0.300000";
     private static final String THRESHOLD_PERCENT_FIFTY = "0.500000";
@@ -161,10 +162,10 @@ public class EquityControllerService {
             if ("1".equals(isEnd)) continue;
             // 不是实控人 但是 在实控人路径中出现
             String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
-            if (controllerMapsString.contains(shareholderId) && !controllerSet.contains(shareholderId)) {
-                // 补充实际控制权
-                controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false));
-            }
+            if (!controllerMapsString.contains(shareholderId) || controllerSet.contains(shareholderId))
+                continue;
+            // 补充实际控制权
+            controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false));
         }
         // 控制传递
         controllerMapsString = controllerMaps.toString();
@@ -172,10 +173,10 @@ public class EquityControllerService {
         for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMaps) {
             String maxDeliver = String.valueOf(ratioPathCompanyMap.get("max_deliver"));
             String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
-            if (controllerMapsString.contains(shareholderId) && !controllerSet.contains(shareholderId) && maxDeliver.compareTo(THRESHOLD_PERCENT_FIFTY) >= 0) {
-                // 补充实际控制权
-                controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false));
-            }
+            if (!controllerMapsString.contains(shareholderId) || controllerSet.contains(shareholderId) || maxDeliver.compareTo(THRESHOLD_PERCENT_FIFTY) < 0)
+                continue;
+            // 补充实际控制权
+            controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false));
         }
     }
 
@@ -192,17 +193,69 @@ public class EquityControllerService {
     }
 
     private Map<String, Object> getNormalColumnMap(Map<String, Object> ratioPathCompanyMap, boolean isController) {
+        List<List<Map<String, Object>>> paths = getNormalJsonList(String.valueOf(ratioPathCompanyMap.get("equity_holding_path")));
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("tyc_unique_entity_id", String.valueOf(ratioPathCompanyMap.get("shareholder_id")));
         columnMap.put("entity_type_id", String.valueOf(ratioPathCompanyMap.get("shareholder_entity_type")));
         columnMap.put("entity_name_valid", String.valueOf(ratioPathCompanyMap.get("shareholder_name")));
         columnMap.put("company_id_controlled", String.valueOf(ratioPathCompanyMap.get("company_id")));
         columnMap.put("company_name_controlled", String.valueOf(ratioPathCompanyMap.get("company_name")));
-        columnMap.put("equity_relation_path_cnt", -1);
+        columnMap.put("equity_relation_path_cnt", paths.size());
         columnMap.put("estimated_equity_ratio_total", String.valueOf(ratioPathCompanyMap.get("investment_ratio_total")));
-        columnMap.put("controlling_equity_relation_path_detail", "{}");
+        columnMap.put("controlling_equity_relation_path_detail", JsonUtils.toString(paths));
         columnMap.put("is_controller_tyc_unique_entity_id", isController);
         return columnMap;
+    }
+
+    private List<List<Map<String, Object>>> getNormalJsonList(String ratioPathCompanyJson) {
+        List<List<Map<String, Object>>> resultPaths = new ArrayList<>();
+        for (Object pathObj : JsonUtils.parseJsonArr(ratioPathCompanyJson)) {
+            List<Map<String, Object>> resultPath = new ArrayList<>();
+            for (Map<String, Object> node : (List<Map<String, Object>>) pathObj) {
+                Map<String, Object> resultNode = new LinkedHashMap<>();
+                // 人
+                if (node.containsKey("pid")) {
+                    resultNode.put("id", node.get("pid"));
+                    resultNode.put("properties", new LinkedHashMap<String, Object>() {{
+                        put("name", node.get("name"));
+                        put("node_type", "2");
+                        put("human_name_id", node.get("hid"));
+                        put("human_master_company_id", node.get("cid"));
+                    }});
+                    // 上一个node是边, 为边补充endId
+                    if (!resultPath.isEmpty()) {
+                        resultPath.get(resultPath.size() - 1).put("endNode", resultNode.get("id"));
+                    }
+                }
+                // 公司
+                else if (node.containsKey("cid")) {
+                    resultNode.put("id", node.get("cid"));
+                    resultNode.put("properties", new LinkedHashMap<String, Object>() {{
+                        put("name", node.get("name"));
+                        put("node_type", "1");
+                        put("company_id", node.get("cid"));
+                    }});
+                    // 上一个node是边, 为边补充endId
+                    if (!resultPath.isEmpty()) {
+                        resultPath.get(resultPath.size() - 1).put("endNode", resultNode.get("id"));
+                    }
+                }
+                // 边
+                else if (node.containsKey("edges")) {
+                    // 上一个node是点, 获取上一个node的id
+                    resultNode.put("startNode", resultPath.get(resultPath.size() - 1).get("id"));
+                    resultNode.put("endNode", "end_node");
+                    resultNode.put("properties", new LinkedHashMap<String, Object>() {{
+                        put("equity_ratio", new BigDecimal(((List<Map<String, Object>>) node.get("edges")).get(0).get("percent").toString().replaceAll("%", "")).divide(new BigDecimal("100"), 6, RoundingMode.DOWN).toPlainString());
+                    }});
+                }
+                if (!resultNode.isEmpty()) {
+                    resultPath.add(resultNode);
+                }
+            }
+            resultPaths.add(resultPath);
+        }
+        return resultPaths;
     }
 
     private Map<String, Object> getSpecialColumnMap(String companyId, String companyName, Map<String, Object> shareholderMap, String ratio) {
@@ -214,17 +267,17 @@ public class EquityControllerService {
         columnMap.put("company_name_controlled", companyName);
         columnMap.put("equity_relation_path_cnt", 1);
         columnMap.put("estimated_equity_ratio_total", ratio);
-        columnMap.put("controlling_equity_relation_path_detail", getJson(companyId, companyName, shareholderMap, ratio));
+        columnMap.put("controlling_equity_relation_path_detail", JsonUtils.toString(getSpecialJsonList(companyId, companyName, shareholderMap, ratio)));
         columnMap.put("is_controller_tyc_unique_entity_id", "1");
         return columnMap;
     }
 
-    private String getJson(String companyId, String companyName, Map<String, Object> shareholderMap, String ratio) {
+    private List<List<Map<String, Object>>> getSpecialJsonList(String companyId, String companyName, Map<String, Object> shareholderMap, String ratio) {
         String shareholderId = String.valueOf(shareholderMap.get("id"));
         String shareholderName = String.valueOf(shareholderMap.get("name"));
         String shareholderNameId = String.valueOf(shareholderMap.get("name_id"));
         String humanMasterCompanyId = String.valueOf(shareholderMap.get("company_id"));
-        ArrayList<List<Map<String, Object>>> pathList = new ArrayList<List<Map<String, Object>>>() {{
+        return new ArrayList<List<Map<String, Object>>>() {{
             add(new ArrayList<Map<String, Object>>() {{
                 add(new LinkedHashMap<String, Object>() {{
                     put("id", shareholderId);
@@ -257,6 +310,5 @@ public class EquityControllerService {
                 }});
             }});
         }};
-        return JsonUtils.toString(pathList);
     }
 }
