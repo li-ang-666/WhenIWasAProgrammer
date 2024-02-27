@@ -13,7 +13,6 @@ import java.util.*;
 
 public class EquityControllerService {
     private static final String THRESHOLD_PERCENT_THIRTY = "0.300000";
-    private static final String THRESHOLD_PERCENT_FIFTY = "0.500000";
     private static final Set<String> USCC_TWO_WHITE_LIST = new HashSet<>(Arrays.asList("31", "91", "92", "93"));
     private final EquityControllerDao controllerDao = new EquityControllerDao();
     private final EquityBfsDao bfsDao = new EquityBfsDao();
@@ -95,14 +94,14 @@ public class EquityControllerService {
         Map.Entry<String, List<Map<String, Object>>> maxRatioToShareholders = ratioToShareholdersWithSameRatio.lastEntry();
         String maxRatio = maxRatioToShareholders.getKey();
         List<Map<String, Object>> maxRatioShareholders = maxRatioToShareholders.getValue();
-        // 预测总持股比例>=50%且预测总持股比例>=50%的股东数量=1的
-        if (maxRatio.compareTo(THRESHOLD_PERCENT_FIFTY) >= 0 && maxRatioShareholders.size() == 1) {
+        // 预测总持股比例>=30% 且 最大股东有且只有一位
+        if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && maxRatioShareholders.size() == 1) {
             // 无论该最终股东是否为自然人, 均可为实际控制人
             columnMaps.add(getColumnMap(companyId, companyName, maxRatioShareholders.get(0)));
             return columnMaps;
         }
-        // 存在预测总持股比例>=30%的股东
-        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0) {
+        // 预测总持股比例>=30% 且 最大股东有多位
+        else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && maxRatioShareholders.size() > 1) {
             for (Map<String, Object> maxRatioShareholder : maxRatioShareholders) {
                 String shareholderType = String.valueOf(maxRatioShareholder.get("shareholder_entity_type"));
                 String shareholderId = String.valueOf(maxRatioShareholder.get("shareholder_id"));
