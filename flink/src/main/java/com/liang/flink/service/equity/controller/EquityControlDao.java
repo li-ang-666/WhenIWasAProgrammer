@@ -74,14 +74,14 @@ public class EquityControlDao {
         return companyBase435.queryForColumnMaps(sql);
     }
 
-    public boolean queryIsPersonnel(String companyId, String humanId) {
+    public String queryIsPersonnel(String companyId, String humanId) {
         String sql = new SQL()
-                .SELECT("1")
+                .SELECT("personnel_position")
                 .FROM("personnel")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("(personnel_position like '%董事长%' or personnel_position like '%执行董事%')")
                 .WHERE("human_id = " + SqlUtils.formatValue(humanId))
                 .toString();
-        return companyBase435.queryForObject(sql, rs -> rs.getString(1)) != null;
+        return companyBase435.queryForObject(sql, rs -> rs.getString(1));
     }
 }

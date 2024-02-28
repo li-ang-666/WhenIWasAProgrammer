@@ -108,7 +108,8 @@ public class EquityControlService {
                         columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, REASON_EQUITY));
                     }
                     // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
-                    else if (shareholderType.equals("2") && controllerDao.queryIsPersonnel(companyId, shareholderId)) {
+                    else if (shareholderType.equals("2")) {
+                        String position = controllerDao.queryIsPersonnel(companyId, shareholderId);
                         columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, REASON_EQUITY));
                     }
                 }
