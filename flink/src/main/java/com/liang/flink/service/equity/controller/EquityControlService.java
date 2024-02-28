@@ -109,8 +109,8 @@ public class EquityControlService {
                     }
                 }
             }
-            // 选用董事长 or 执行事务合伙人 为 实控人
-            else {
+            // 经过以上判断, 未发现实控人, 选用董事长 or 执行事务合伙人 为 实控人
+            if (columnMaps.isEmpty()) {
                 List<Map<String, Object>> vips = controllerDao.isPartnership(companyId) ? controllerDao.queryLegals(companyId) : controllerDao.queryAllPersonnels(companyId);
                 for (Map<String, Object> vip : vips) {
                     String vipId = String.valueOf(vip.get("id"));
