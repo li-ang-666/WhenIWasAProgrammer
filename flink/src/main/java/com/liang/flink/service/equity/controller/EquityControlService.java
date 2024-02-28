@@ -59,7 +59,7 @@ public class EquityControlService {
                 // 验证ratio
                 String ratio;
                 try {
-                    ratio = new BigDecimal(holdingRatio).setScale(6, RoundingMode.DOWN).toPlainString();
+                    ratio = new BigDecimal(holdingRatio).divide(new BigDecimal("100"), 6, RoundingMode.DOWN).toPlainString();
                 } catch (Exception ignore) {
                     continue;
                 }
