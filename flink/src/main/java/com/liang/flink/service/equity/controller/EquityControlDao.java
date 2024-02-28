@@ -58,6 +58,7 @@ public class EquityControlDao {
     public List<Map<String, Object>> queryAllPersonnels(String companyId) {
         String sql = new SQL()
                 .SELECT("human_id id")
+                .SELECT("personnel_position position")
                 .FROM("personnel")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("personnel_position like '%董事长%'")
@@ -68,13 +69,14 @@ public class EquityControlDao {
     public List<Map<String, Object>> queryAllPartners(String companyId) {
         String sql = new SQL()
                 .SELECT("case when legal_rep_type = 1 then legal_rep_name_id when legal_rep_type = 2 then legal_rep_human_id else 0 end id")
+                .SELECT("'执行事务合伙人' position")
                 .FROM("company_legal_person")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .toString();
         return companyBase435.queryForColumnMaps(sql);
     }
 
-    public String queryIsPersonnel(String companyId, String humanId) {
+    public String queryChairMan(String companyId, String humanId) {
         String sql = new SQL()
                 .SELECT("personnel_position")
                 .FROM("personnel")

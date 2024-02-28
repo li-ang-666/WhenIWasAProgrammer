@@ -96,7 +96,7 @@ public class EquityControlService {
             // 最大比例股东有且只有一位
             if (ratioPathCompanyMapsWithMaxRatio.size() == 1) {
                 // 无论该最终股东是否为自然人, 均可为实际控制人
-                columnMaps.add(getNormalColumnMap(ratioPathCompanyMapsWithMaxRatio.get(0), true, REASON_EQUITY));
+                columnMaps.add(getNormalColumnMap(ratioPathCompanyMapsWithMaxRatio.get(0), true, String.format("%s(%s)", REASON_EQUITY, "唯一最大股东")));
             }
             // 最大比例股东有多位
             else if (ratioPathCompanyMapsWithMaxRatio.size() > 1) {
@@ -105,12 +105,12 @@ public class EquityControlService {
                     String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
                     // 非自然人, 则直接为实际控制人
                     if (shareholderType.equals("1")) {
-                        columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, REASON_EQUITY));
+                        columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, String.format("%s(%s)", REASON_EQUITY, "非自然人")));
                     }
                     // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
                     else if (shareholderType.equals("2")) {
-                        String position = controllerDao.queryIsPersonnel(companyId, shareholderId);
-                        columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, REASON_EQUITY));
+                        String position = controllerDao.queryChairMan(companyId, shareholderId);
+                        columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, String.format("%s(%s)", REASON_EQUITY, position)));
                     }
                 }
             }
@@ -133,7 +133,7 @@ public class EquityControlService {
                             .findAny()
                             .orElse("0");
                     // 构造columnMap
-                    columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio, isPartnership ? REASON_PARTNER : REASON_PERSONNEL));
+                    columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio, String.format("%s(%s)", (isPartnership ? REASON_PARTNER : REASON_PERSONNEL), vip.get("position"))));
                 }
             }
             // 补充实际控制权
@@ -161,7 +161,7 @@ public class EquityControlService {
             if (!controllerString.contains(shareholderId) || controllerSet.contains(shareholderId))
                 continue;
             // 补充实际控制权
-            controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY));
+            controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, String.format("%s(%s)", REASON_EQUITY, "实控人路径")));
         }
         // 控制传递
         controllerString = controllerMaps.toString();
@@ -172,7 +172,7 @@ public class EquityControlService {
             if (!controllerString.contains(shareholderId) || controllerSet.contains(shareholderId) || maxDeliver.compareTo(THRESHOLD_PERCENT_FIFTY) < 0)
                 continue;
             // 补充实际控制权
-            controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY));
+            controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, String.format("%s(%s)", REASON_EQUITY, "控制传递")));
         }
     }
 
