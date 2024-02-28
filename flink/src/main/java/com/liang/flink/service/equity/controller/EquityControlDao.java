@@ -65,7 +65,7 @@ public class EquityControlDao {
         return companyBase435.queryForColumnMaps(sql);
     }
 
-    public List<Map<String, Object>> queryLegals(String companyId) {
+    public List<Map<String, Object>> queryAllPartners(String companyId) {
         String sql = new SQL()
                 .SELECT("case when legal_rep_type = 1 then legal_rep_name_id when legal_rep_type = 2 then legal_rep_human_id else 0 end id")
                 .FROM("company_legal_person")
