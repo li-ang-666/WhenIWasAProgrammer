@@ -143,7 +143,7 @@ public class EquityControlService {
 
     private void fillUpControlAbility(List<Map<String, Object>> ratioPathCompanyMaps, List<Map<String, Object>> controllerMaps) {
         // 实控人路径中间节点
-        String controllerMapsString = controllerMaps.toString();
+        String controllerString = controllerMaps.toString();
         Set<String> controllerSet = controllerMaps.stream().map(e -> String.valueOf(e.get("tyc_unique_entity_id"))).collect(Collectors.toSet());
         for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMaps) {
             // 股权比例 >= 50%
@@ -157,18 +157,18 @@ public class EquityControlService {
             if ("1".equals(isEnd)) continue;
             // 不是实控人 但是 在实控人路径中出现
             String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
-            if (!controllerMapsString.contains(shareholderId) || controllerSet.contains(shareholderId))
+            if (!controllerString.contains(shareholderId) || controllerSet.contains(shareholderId))
                 continue;
             // 补充实际控制权
             controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY));
         }
         // 控制传递
-        controllerMapsString = controllerMaps.toString();
+        controllerString = controllerMaps.toString();
         controllerSet = controllerMaps.stream().map(e -> String.valueOf(e.get("tyc_unique_entity_id"))).collect(Collectors.toSet());
         for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMaps) {
             String maxDeliver = String.valueOf(ratioPathCompanyMap.get("max_deliver"));
             String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
-            if (!controllerMapsString.contains(shareholderId) || controllerSet.contains(shareholderId) || maxDeliver.compareTo(THRESHOLD_PERCENT_FIFTY) < 0)
+            if (!controllerString.contains(shareholderId) || controllerSet.contains(shareholderId) || maxDeliver.compareTo(THRESHOLD_PERCENT_FIFTY) < 0)
                 continue;
             // 补充实际控制权
             controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY));
