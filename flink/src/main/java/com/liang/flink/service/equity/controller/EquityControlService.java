@@ -110,6 +110,7 @@ public class EquityControlService {
                     // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
                     else if (shareholderType.equals("2")) {
                         String position = controllerDao.queryChairMan(companyId, shareholderId);
+                        if (position == null) continue;
                         columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, String.format("%s(%s)", REASON_EQUITY, position)));
                     }
                 }
