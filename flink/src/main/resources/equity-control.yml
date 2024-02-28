@@ -19,4 +19,4 @@ kafkaConfigs:
     topics:
       - "9349c.proto.prism_shareholder_path.ratio_path_company_new"
     groupId: "equity-control-job"
-    startFrom: "1"
+    startFrom: "2"
