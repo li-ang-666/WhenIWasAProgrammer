@@ -1,6 +1,5 @@
 package com.liang.flink.service.equity.controller;
 
-import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
@@ -24,18 +23,6 @@ public class EquityControlService {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
         for (Map<String, Object> columnMap : new EquityControlService().processControl("14427175")) {
-            for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
-                System.out.println(entry.getKey() + " -> " + entry.getValue());
-            }
-        }
-        System.out.println(StrUtil.repeat("=", 10));
-        for (Map<String, Object> columnMap : new EquityControlService().processControl("2318455639")) {
-            for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
-                System.out.println(entry.getKey() + " -> " + entry.getValue());
-            }
-        }
-        System.out.println(StrUtil.repeat("=", 10));
-        for (Map<String, Object> columnMap : new EquityControlService().processControl("1516070")) {
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
@@ -89,30 +76,26 @@ public class EquityControlService {
             for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMaps) {
                 // 筛选isEnd的股东
                 if ("0".equals(String.valueOf(ratioPathCompanyMap.get("is_end")))) continue;
+                // 筛选比例>=30%的股东
                 String ratio = String.valueOf(ratioPathCompanyMap.get("investment_ratio_total"));
+                if (ratio.compareTo(THRESHOLD_PERCENT_THIRTY) < 0) continue;
                 ratioToRatioPathCompanyMapsWithSameRatio.compute(ratio, (k, v) -> {
                     List<Map<String, Object>> RatioPathCompanyMapsWithSameRatio = (v != null) ? v : new ArrayList<>();
                     RatioPathCompanyMapsWithSameRatio.add(ratioPathCompanyMap);
                     return RatioPathCompanyMapsWithSameRatio;
                 });
             }
-            // 最大比例及该比例下的股东
-            String maxRatio;
-            List<Map<String, Object>> ratioPathCompanyMapsWithMaxRatio;
-            if (ratioToRatioPathCompanyMapsWithSameRatio.isEmpty()) {
-                maxRatio = "0";
-                ratioPathCompanyMapsWithMaxRatio = new ArrayList<>();
-            } else {
-                maxRatio = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getKey();
-                ratioPathCompanyMapsWithMaxRatio = ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getValue();
-            }
-            // 预测总持股比例>=30% 且 最大股东有且只有一位
-            if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() == 1) {
+            // 最后一个entry的value(最大比例下的股东list)
+            List<Map<String, Object>> ratioPathCompanyMapsWithMaxRatio = ratioToRatioPathCompanyMapsWithSameRatio.isEmpty() ?
+                    new ArrayList<>() :
+                    ratioToRatioPathCompanyMapsWithSameRatio.lastEntry().getValue();
+            // 最大比例股东有且只有一位
+            if (ratioPathCompanyMapsWithMaxRatio.size() == 1) {
                 // 无论该最终股东是否为自然人, 均可为实际控制人
                 columnMaps.add(getNormalColumnMap(ratioPathCompanyMapsWithMaxRatio.get(0), true));
             }
-            // 预测总持股比例>=30% 且 最大股东有多位
-            else if (maxRatio.compareTo(THRESHOLD_PERCENT_THIRTY) >= 0 && ratioPathCompanyMapsWithMaxRatio.size() > 1) {
+            // 最大比例股东有多位
+            else if (ratioPathCompanyMapsWithMaxRatio.size() > 1) {
                 for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMapsWithMaxRatio) {
                     String shareholderType = String.valueOf(ratioPathCompanyMap.get("shareholder_entity_type"));
                     String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
