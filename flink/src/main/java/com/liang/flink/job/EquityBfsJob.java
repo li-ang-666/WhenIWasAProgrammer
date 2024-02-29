@@ -64,19 +64,21 @@ public class EquityBfsJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
-            String table = singleCanalBinlog.getTable();
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = table.equals("company_index") ?
-                    String.valueOf(columnMap.get("company_id")) :
-                    String.valueOf(columnMap.get("company_id_invested"));
-            String sql = new SQL()
-                    .SELECT("company_id")
-                    .FROM(SINK_TABLE)
-                    .WHERE("shareholder_id = " + SqlUtils.formatValue(companyId))
-                    .toString();
-            List<String> companyIds = sink.queryForList(sql, rs -> rs.getString(1));
-            out.collect(companyId);
-            companyIds.forEach(out::collect);
+//            String table = singleCanalBinlog.getTable();
+//            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+//            String id;
+//            //switch (table)
+//            String id = table.equals("company_index") ?
+//                    String.valueOf(columnMap.get("company_id")) :
+//                    String.valueOf(columnMap.get("company_id_invested"));
+//            String sql = new SQL()
+//                    .SELECT("company_id")
+//                    .FROM(SINK_TABLE)
+//                    .WHERE("shareholder_id = " + SqlUtils.formatValue(id))
+//                    .toString();
+//            List<String> companyIds = sink.queryForList(sql, rs -> rs.getString(1));
+//            out.collect(id);
+//            companyIds.forEach(out::collect);
         }
     }
 

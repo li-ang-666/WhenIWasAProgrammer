@@ -57,8 +57,8 @@ public class EquityControlDao {
 
     public List<Map<String, Object>> queryAllPersonnels(String companyId) {
         String sql = new SQL()
-                .SELECT("human_id id")
-                .SELECT("personnel_position position")
+                .SELECT("human_id as id")
+                .SELECT("personnel_position as position")
                 .FROM("personnel")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("personnel_position like '%董事长%'")
