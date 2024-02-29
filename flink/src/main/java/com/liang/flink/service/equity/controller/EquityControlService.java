@@ -27,7 +27,7 @@ public class EquityControlService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        for (Map<String, Object> columnMap : new EquityControlService().processControl("390606385")) {
+        for (Map<String, Object> columnMap : new EquityControlService().processControl("250764650")) {
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
@@ -62,7 +62,7 @@ public class EquityControlService {
                 try {
                     ratio = new BigDecimal(holdingRatio).divide(new BigDecimal("100"), 6, RoundingMode.DOWN).toPlainString();
                 } catch (Exception ignore) {
-                    continue;
+                    ratio = "0.000000";
                 }
                 // 查询股东维表
                 Map<String, Object> shareholderMap = bfsDao.queryHumanOrCompanyInfo(listedAnnouncedControllerId);
