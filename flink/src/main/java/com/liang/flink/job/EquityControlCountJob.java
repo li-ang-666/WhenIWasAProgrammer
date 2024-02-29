@@ -24,7 +24,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 
-import java.util.Collections;
 import java.util.Map;
 
 @LocalConfigFile("equity-control-count.yml")
@@ -88,34 +87,37 @@ public class EquityControlCountJob {
         @Override
         public void invoke(String tycUniqueEntityId, Context context) {
             if (!TycUtils.isTycUniqueEntityId(tycUniqueEntityId)) return;
-            if (TycUtils.isUnsignedId(tycUniqueEntityId)) {
-                // 公司详情页-实控人count
-                String queryControllerCountSql = new SQL()
-                        .SELECT("count(1)")
-                        .FROM(QUERY_TABLE)
-                        .WHERE("company_id_controlled = " + SqlUtils.formatValue(tycUniqueEntityId))
-                        .WHERE("is_controller_tyc_unique_entity_id = '1'")
-                        .toString();
-                String controllerCount = jdbcTemplate.queryForObject(queryControllerCountSql, rs -> rs.getString(1));
-                sink.update(new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, tycUniqueEntityId, Collections.singletonMap("has_controller", controllerCount)));
-                // 公司详情页-实控权count
-                String queryControlCountSql = new SQL()
-                        .SELECT("count(1)")
-                        .FROM(QUERY_TABLE)
-                        .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
-                        .toString();
-                String controlCount = jdbcTemplate.queryForObject(queryControlCountSql, rs -> rs.getString(1));
-                sink.update(new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, tycUniqueEntityId, Collections.singletonMap("num_control_ability", controlCount)));
-            } else {
-                // 老板详情页-实控权count
-                String queryControlCountSql = new SQL()
-                        .SELECT("count(1)")
-                        .FROM(QUERY_TABLE)
-                        .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
-                        .toString();
-                String controlCount = jdbcTemplate.queryForObject(queryControlCountSql, rs -> rs.getString(1));
-                sink.update(new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, tycUniqueEntityId, Collections.singletonMap("num_control_ability", controlCount)));
-            }
+            HbaseOneRow hbaseOneRow = TycUtils.isUnsignedId(tycUniqueEntityId) ?
+                    new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, tycUniqueEntityId)
+                            // 公司详情页-实控人count
+                            .put("has_controller", queryControllerCountSql(tycUniqueEntityId))
+                            // 公司详情页-实控权count
+                            .put("num_control_ability", queryControlCountSql(tycUniqueEntityId)) :
+                    new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, tycUniqueEntityId)
+                            // 老板详情页-实控权count
+                            .put("num_control_ability", queryControlCountSql(tycUniqueEntityId));
+            sink.update(hbaseOneRow);
+        }
+
+        // 查询实控人count
+        private String queryControllerCountSql(String tycUniqueEntityId) {
+            String sql = new SQL()
+                    .SELECT("count(1)")
+                    .FROM(QUERY_TABLE)
+                    .WHERE("company_id_controlled = " + SqlUtils.formatValue(tycUniqueEntityId))
+                    .WHERE("is_controller_tyc_unique_entity_id = 1")
+                    .toString();
+            return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+        }
+
+        // 查询实控权count
+        private String queryControlCountSql(String tycUniqueEntityId) {
+            String sql = new SQL()
+                    .SELECT("count(1)")
+                    .FROM(QUERY_TABLE)
+                    .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
+                    .toString();
+            return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
         }
 
         @Override
