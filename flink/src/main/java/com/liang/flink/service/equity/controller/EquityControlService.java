@@ -27,7 +27,7 @@ public class EquityControlService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        for (Map<String, Object> columnMap : new EquityControlService().processControl("250764650")) {
+        for (Map<String, Object> columnMap : new EquityControlService().processControl("2309406788")) {
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
