@@ -12,7 +12,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
 import com.liang.flink.service.equity.controller.EquityControlService;
 import lombok.RequiredArgsConstructor;
-import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
@@ -21,14 +21,15 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.util.Collector;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@LocalConfigFile("equity-control.yml")
-public class EquityControlJob {
+@LocalConfigFile("equity-control-count.yml")
+public class EquityControlCountJob {
     private static final String SINK_SOURCE = "427.test";
     private static final String SINK_TABLE = "bdp_equity.entity_controller_details_new";
 
@@ -38,20 +39,20 @@ public class EquityControlJob {
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
                 .rebalance()
-                .map(new EquityControlMapper(config))
+                .flatMap(new EquityControlCountFlatMapper(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .name("EquityControlMapper")
-                .uid("EquityControlMapper")
+                .name("EquityControlCountFlatMapper")
+                .uid("EquityControlCountFlatMapper")
                 .keyBy(e -> e)
-                .addSink(new EquityControlSink(config))
+                .addSink(new EquityControlCountSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .name("EquityControlSink")
-                .uid("EquityControlSink");
-        env.execute("EquityControlJob");
+                .name("EquityControlCountSink")
+                .uid("EquityControlCountSink");
+        env.execute("EquityControlCountJob");
     }
 
     @RequiredArgsConstructor
-    private static final class EquityControlMapper extends RichMapFunction<SingleCanalBinlog, String> {
+    private static final class EquityControlCountFlatMapper extends RichFlatMapFunction<SingleCanalBinlog, String> {
         private final Config config;
 
         @Override
@@ -60,20 +61,15 @@ public class EquityControlJob {
         }
 
         @Override
-        public String map(SingleCanalBinlog singleCanalBinlog) {
-            String table = singleCanalBinlog.getTable();
+        public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            if (table.equals("company_index")) {
-                return String.valueOf(columnMap.get("company_id"));
-            } else if (table.contains("ratio_path_company")) {
-                return String.valueOf(columnMap.get("company_id"));
-            }
-            return "";
+            out.collect(String.valueOf(columnMap.get("tyc_unique_entity_id")));
+            out.collect(String.valueOf(columnMap.get("company_id_controlled")));
         }
     }
 
     @RequiredArgsConstructor
-    private static final class EquityControlSink extends RichSinkFunction<String> implements CheckpointedFunction {
+    private static final class EquityControlCountSink extends RichSinkFunction<String> implements CheckpointedFunction {
         private final Set<String> companyIdBuffer = new HashSet<>();
         private final Config config;
         private EquityControlService service;
