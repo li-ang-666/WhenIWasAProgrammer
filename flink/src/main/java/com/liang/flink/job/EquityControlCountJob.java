@@ -1,7 +1,10 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.dto.HbaseOneRow;
+import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.SQL;
+import com.liang.common.service.database.template.HbaseTemplate;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
@@ -10,10 +13,8 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
-import com.liang.flink.service.equity.controller.EquityControlService;
 import lombok.RequiredArgsConstructor;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -23,15 +24,13 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 
-import java.util.HashSet;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 @LocalConfigFile("equity-control-count.yml")
 public class EquityControlCountJob {
-    private static final String SINK_SOURCE = "427.test";
-    private static final String SINK_TABLE = "bdp_equity.entity_controller_details_new";
+    private static final String QUERY_SOURCE = "427.test";
+    private static final String QUERY_TABLE = "bdp_equity.entity_controller_details_new";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -70,10 +69,9 @@ public class EquityControlCountJob {
 
     @RequiredArgsConstructor
     private static final class EquityControlCountSink extends RichSinkFunction<String> implements CheckpointedFunction {
-        private final Set<String> companyIdBuffer = new HashSet<>();
         private final Config config;
-        private EquityControlService service;
-        private JdbcTemplate sink;
+        private JdbcTemplate jdbcTemplate;
+        private HbaseTemplate sink;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -82,60 +80,57 @@ public class EquityControlCountJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            service = new EquityControlService();
-            sink = new JdbcTemplate(SINK_SOURCE);
+            jdbcTemplate = new JdbcTemplate(QUERY_SOURCE);
+            sink = new HbaseTemplate("hbaseSink");
+            sink.enableCache();
         }
 
         @Override
-        public void invoke(String companyId, Context context) {
-            if (!TycUtils.isUnsignedId(companyId)) {
-                return;
-            }
-            synchronized (companyIdBuffer) {
-                companyIdBuffer.add(companyId);
-                if (companyIdBuffer.size() >= 128) {
-                    flush();
-                }
+        public void invoke(String tycUniqueEntityId, Context context) {
+            if (!TycUtils.isTycUniqueEntityId(tycUniqueEntityId)) return;
+            if (TycUtils.isUnsignedId(tycUniqueEntityId)) {
+                // 公司详情页-实控人count
+                String queryControllerCountSql = new SQL()
+                        .SELECT("count(1)")
+                        .FROM(QUERY_TABLE)
+                        .WHERE("company_id_controlled = " + SqlUtils.formatValue(tycUniqueEntityId))
+                        .WHERE("is_controller_tyc_unique_entity_id = '1'")
+                        .toString();
+                String controllerCount = jdbcTemplate.queryForObject(queryControllerCountSql, rs -> rs.getString(1));
+                sink.update(new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, tycUniqueEntityId, Collections.singletonMap("has_controller", controllerCount)));
+                // 公司详情页-实控权count
+                String queryControlCountSql = new SQL()
+                        .SELECT("count(1)")
+                        .FROM(QUERY_TABLE)
+                        .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
+                        .toString();
+                String controlCount = jdbcTemplate.queryForObject(queryControlCountSql, rs -> rs.getString(1));
+                sink.update(new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, tycUniqueEntityId, Collections.singletonMap("num_control_ability", controlCount)));
+            } else {
+                // 老板详情页-实控权count
+                String queryControlCountSql = new SQL()
+                        .SELECT("count(1)")
+                        .FROM(QUERY_TABLE)
+                        .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
+                        .toString();
+                String controlCount = jdbcTemplate.queryForObject(queryControlCountSql, rs -> rs.getString(1));
+                sink.update(new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, tycUniqueEntityId, Collections.singletonMap("num_control_ability", controlCount)));
             }
         }
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
-            flush();
+            sink.flush();
         }
 
         @Override
         public void finish() {
-            flush();
+            sink.flush();
         }
 
         @Override
         public void close() {
-            flush();
-        }
-
-        public void flush() {
-            synchronized (companyIdBuffer) {
-                for (String companyId : companyIdBuffer) {
-                    List<Map<String, Object>> columnMaps = service.processControl(companyId);
-                    String deleteSql = new SQL()
-                            .DELETE_FROM(SINK_TABLE)
-                            .WHERE("company_id_controlled = " + SqlUtils.formatValue(companyId))
-                            .toString();
-                    if (columnMaps.isEmpty()) {
-                        sink.update(deleteSql);
-                        continue;
-                    }
-                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                    String insertSql = new SQL()
-                            .INSERT_INTO(SINK_TABLE)
-                            .INTO_COLUMNS(insert.f0)
-                            .INTO_VALUES(insert.f1)
-                            .toString();
-                    sink.update(deleteSql, insertSql);
-                }
-                companyIdBuffer.clear();
-            }
+            sink.flush();
         }
     }
 }
