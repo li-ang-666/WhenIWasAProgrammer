@@ -17,6 +17,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "9349c.proto.prism_shareholder_path.ratio_path_company_new"
-    groupId: "equity-control-job"
+      - "9349c.proto.bdp_equity.entity_controller_details_new"
+    groupId: "equity-control-count-job"
     startFrom: "2"
