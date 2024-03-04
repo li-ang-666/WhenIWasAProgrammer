@@ -27,7 +27,8 @@ public class EquityControlService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        for (Map<String, Object> columnMap : new EquityControlService().processControl("3218079951")) {
+        for (Map<String, Object> columnMap : new EquityControlService().processControl("59837300")) {
+            System.out.println(StrUtil.repeat("=", 100));
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
@@ -164,21 +165,20 @@ public class EquityControlService {
             if ("1".equals(isEnd)) continue;
             // 不是实控人 但是 在实控人路径中出现
             String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
-            if (!controllerString.contains(shareholderId) || controllerSet.contains(shareholderId))
-                continue;
-            // 补充实际控制权
-            controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY, "补充实控权/实控人路径"));
+            if (controllerString.contains(shareholderId) & !controllerSet.contains(shareholderId)) {
+                // 补充实际控制权
+                controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY, "补充实控权/实控人路径"));
+            }
         }
         // 控制传递
-        controllerString = controllerMaps.toString();
         controllerSet = controllerMaps.stream().map(e -> String.valueOf(e.get("tyc_unique_entity_id"))).collect(Collectors.toSet());
         for (Map<String, Object> ratioPathCompanyMap : ratioPathCompanyMaps) {
             String maxDeliver = String.valueOf(ratioPathCompanyMap.get("max_deliver"));
             String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
-            if (!controllerString.contains(shareholderId) || controllerSet.contains(shareholderId) || maxDeliver.compareTo(THRESHOLD_PERCENT_FIFTY) < 0)
-                continue;
-            // 补充实际控制权
-            controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY, "补充实控权/控制传递"));
+            if (!controllerSet.contains(shareholderId) && maxDeliver.compareTo(THRESHOLD_PERCENT_FIFTY) >= 0) {
+                // 补充实际控制权
+                controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY, "补充实控权/控制传递"));
+            }
         }
     }
 
