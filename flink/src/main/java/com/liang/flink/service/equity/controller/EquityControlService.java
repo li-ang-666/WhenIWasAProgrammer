@@ -135,7 +135,11 @@ public class EquityControlService {
                             .findAny()
                             .orElse("0");
                     // 构造columnMap
-                    columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio, (isPartnership ? REASON_PARTNER : REASON_PERSONNEL), String.valueOf(vip.get("position"))));
+                    if (isPartnership) {
+                        columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio, REASON_PARTNER, String.valueOf(vip.get("position"))));
+                    } else {
+                        columnMaps.add(getSpecialColumnMap(companyId, companyName, shareholderMap, ratio, REASON_PERSONNEL + "(" + vip.get("position") + ")", String.valueOf(vip.get("position"))));
+                    }
                 }
             }
             // 补充实际控制权
