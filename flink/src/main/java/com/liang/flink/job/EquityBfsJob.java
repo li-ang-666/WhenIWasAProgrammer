@@ -64,18 +64,49 @@ public class EquityBfsJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
+            String database = singleCanalBinlog.getDatabase();
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String companyId = table.equals("company_index") ?
-                    String.valueOf(columnMap.get("company_id")) :
-                    String.valueOf(columnMap.get("company_id_invested"));
+            String id;
+            // 公司维表
+            if (table.contains("company_index")) {
+                id = String.valueOf(columnMap.get("company_id"));
+            }
+            // 股东
+            else if (table.contains("company_equity_relation_details")) {
+                id = String.valueOf(columnMap.get("company_id_invested"));
+            }
+            // 主要人员
+            else if (table.contains("personnel")) {
+                id = String.valueOf(columnMap.get("company_id"));
+            }
+            // 法人
+            else if (table.contains("company_legal_person")) {
+                id = String.valueOf(columnMap.get("company_id"));
+            }
+            // 上市公告
+            else if (table.contains("stock_actual_controller")) {
+                id = String.valueOf(columnMap.get("company_id_invested"));
+            }
+            // 分支机构
+            else if (table.contains("company_branch")) {
+                id = String.valueOf(columnMap.get("company_id"));
+            }
+            // 老板维表
+            else if (database.contains("human_base") && table.contains("human")) {
+                id = String.valueOf(columnMap.get("human_id"));
+            }
+            // 其他
+            else {
+                id = "0";
+            }
             String sql = new SQL()
                     .SELECT("company_id")
                     .FROM(SINK_TABLE)
-                    .WHERE("shareholder_id = " + SqlUtils.formatValue(companyId))
+                    .WHERE("shareholder_id = " + SqlUtils.formatValue(id))
                     .toString();
             List<String> companyIds = sink.queryForList(sql, rs -> rs.getString(1));
-            out.collect(companyId);
+            out.collect(id);
             companyIds.forEach(out::collect);
         }
     }
