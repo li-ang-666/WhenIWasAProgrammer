@@ -27,7 +27,7 @@ import java.util.*;
 
 @LocalConfigFile("equity-bfs.yml")
 public class EquityBfsJob {
-    private static final String SINK_SOURCE = "427.test";
+    private static final String SINK_SOURCE = "457.prism_shareholder_path";
     private static final String SINK_TABLE = "prism_shareholder_path.ratio_path_company_new";
 
     public static void main(String[] args) throws Exception {
@@ -106,12 +106,12 @@ public class EquityBfsJob {
                 if (TycUtils.isUnsignedId(shareholderId)) {
                     out.collect(shareholderId);
                 }
-                String sql = new SQL()
-                        .SELECT("distinct company_id")
-                        .FROM(SINK_TABLE)
-                        .WHERE("shareholder_id = " + SqlUtils.formatValue(shareholderId))
-                        .toString();
-                sink.queryForList(sql, rs -> rs.getString(1)).forEach(out::collect);
+                //String sql = new SQL()
+                //        .SELECT("distinct company_id")
+                //        .FROM(SINK_TABLE)
+                //        .WHERE("shareholder_id = " + SqlUtils.formatValue(shareholderId))
+                //        .toString();
+                //sink.queryForList(sql, rs -> rs.getString(1)).forEach(out::collect);
             }
         }
     }
