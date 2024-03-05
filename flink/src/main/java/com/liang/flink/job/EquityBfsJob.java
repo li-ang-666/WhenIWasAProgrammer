@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -106,12 +107,15 @@ public class EquityBfsJob {
                 if (TycUtils.isUnsignedId(entityId)) {
                     out.collect(entityId);
                 }
-                //String sql = new SQL()
-                //        .SELECT("distinct company_id")
-                //        .FROM(SINK_TABLE)
-                //        .WHERE("shareholder_id = " + SqlUtils.formatValue(entityId))
-                //        .toString();
-                //sink.queryForList(sql, rs -> rs.getString(1)).forEach(out::collect);
+                // 全量repair的时候不走这里
+                if (config.getFlinkConfig().getSourceType() != FlinkConfig.SourceType.Repair) {
+                    String sql = new SQL()
+                            .SELECT("distinct company_id")
+                            .FROM(SINK_TABLE)
+                            .WHERE("shareholder_id = " + SqlUtils.formatValue(entityId))
+                            .toString();
+                    sink.queryForList(sql, rs -> rs.getString(1)).forEach(out::collect);
+                }
             }
         }
     }
