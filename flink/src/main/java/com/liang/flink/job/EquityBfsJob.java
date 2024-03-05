@@ -64,52 +64,52 @@ public class EquityBfsJob {
             String database = singleCanalBinlog.getDatabase();
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            Set<String> shareholderIds = new LinkedHashSet<>();
+            Set<String> entityIds = new LinkedHashSet<>();
             // 公司维表
             if (table.contains("company_index")) {
-                shareholderIds.add(String.valueOf(columnMap.get("company_id")));
+                entityIds.add(String.valueOf(columnMap.get("company_id")));
             }
             // 股东
             else if (table.contains("company_equity_relation_details")) {
-                shareholderIds.add(String.valueOf(columnMap.get("company_id_invested")));
-                shareholderIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id_investor")));
+                entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
+                entityIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id_investor")));
             }
             // 主要人员
             else if (table.contains("personnel")) {
-                shareholderIds.add(String.valueOf(columnMap.get("company_id")));
-                shareholderIds.add(String.valueOf(columnMap.get("human_id")));
+                entityIds.add(String.valueOf(columnMap.get("company_id")));
+                entityIds.add(String.valueOf(columnMap.get("human_id")));
             }
             // 法人
             else if (table.contains("company_legal_person")) {
-                shareholderIds.add(String.valueOf(columnMap.get("company_id")));
-                shareholderIds.add(String.valueOf(columnMap.get("legal_rep_human_id")));
+                entityIds.add(String.valueOf(columnMap.get("company_id")));
+                entityIds.add(String.valueOf(columnMap.get("legal_rep_human_id")));
             }
             // 上市公告
             else if (table.contains("stock_actual_controller")) {
-                shareholderIds.add(String.valueOf(columnMap.get("graph_id")));
-                shareholderIds.add(String.valueOf(columnMap.get("controller_gid")));
-                shareholderIds.add(String.valueOf(columnMap.get("controller_pid")));
+                entityIds.add(String.valueOf(columnMap.get("graph_id")));
+                entityIds.add(String.valueOf(columnMap.get("controller_gid")));
+                entityIds.add(String.valueOf(columnMap.get("controller_pid")));
             }
             // 分支机构
             else if (table.contains("company_branch")) {
-                shareholderIds.add(String.valueOf(columnMap.get("company_id")));
-                shareholderIds.add(String.valueOf(columnMap.get("branch_company_id")));
+                entityIds.add(String.valueOf(columnMap.get("company_id")));
+                entityIds.add(String.valueOf(columnMap.get("branch_company_id")));
             }
             // 老板维表
             else if (database.contains("human_base") && table.contains("human")) {
-                shareholderIds.add(String.valueOf(columnMap.get("human_id")));
+                entityIds.add(String.valueOf(columnMap.get("human_id")));
             }
-            for (String shareholderId : shareholderIds) {
-                if (!TycUtils.isTycUniqueEntityId(shareholderId)) {
+            for (String entityId : entityIds) {
+                if (!TycUtils.isTycUniqueEntityId(entityId)) {
                     continue;
                 }
-                if (TycUtils.isUnsignedId(shareholderId)) {
-                    out.collect(shareholderId);
+                if (TycUtils.isUnsignedId(entityId)) {
+                    out.collect(entityId);
                 }
                 //String sql = new SQL()
                 //        .SELECT("distinct company_id")
                 //        .FROM(SINK_TABLE)
-                //        .WHERE("shareholder_id = " + SqlUtils.formatValue(shareholderId))
+                //        .WHERE("shareholder_id = " + SqlUtils.formatValue(entityId))
                 //        .toString();
                 //sink.queryForList(sql, rs -> rs.getString(1)).forEach(out::collect);
             }
