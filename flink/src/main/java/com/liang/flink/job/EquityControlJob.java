@@ -63,7 +63,7 @@ public class EquityControlJob {
         public String map(SingleCanalBinlog singleCanalBinlog) {
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            if (table.equals("company_index")) {
+            if (table.contains("company_index")) {
                 return String.valueOf(columnMap.get("company_id"));
             } else if (table.contains("ratio_path_company")) {
                 return String.valueOf(columnMap.get("company_id"));

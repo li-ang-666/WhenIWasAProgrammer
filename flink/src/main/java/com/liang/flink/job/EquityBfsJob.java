@@ -23,10 +23,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @LocalConfigFile("equity-bfs.yml")
 public class EquityBfsJob {
@@ -67,47 +64,55 @@ public class EquityBfsJob {
             String database = singleCanalBinlog.getDatabase();
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String id;
+            Set<String> shareholderIds = new LinkedHashSet<>();
             // 公司维表
             if (table.contains("company_index")) {
-                id = String.valueOf(columnMap.get("company_id"));
+                shareholderIds.add(String.valueOf(columnMap.get("company_id")));
             }
             // 股东
             else if (table.contains("company_equity_relation_details")) {
-                id = String.valueOf(columnMap.get("company_id_invested"));
+                shareholderIds.add(String.valueOf(columnMap.get("company_id_invested")));
+                shareholderIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id_investor")));
             }
             // 主要人员
             else if (table.contains("personnel")) {
-                id = String.valueOf(columnMap.get("company_id"));
+                shareholderIds.add(String.valueOf(columnMap.get("company_id")));
+                shareholderIds.add(String.valueOf(columnMap.get("human_id")));
             }
             // 法人
             else if (table.contains("company_legal_person")) {
-                id = String.valueOf(columnMap.get("company_id"));
+                shareholderIds.add(String.valueOf(columnMap.get("company_id")));
+                shareholderIds.add(String.valueOf(columnMap.get("legal_rep_human_id")));
             }
             // 上市公告
             else if (table.contains("stock_actual_controller")) {
-                id = String.valueOf(columnMap.get("company_id_invested"));
+                shareholderIds.add(String.valueOf(columnMap.get("graph_id")));
+                shareholderIds.add(String.valueOf(columnMap.get("controller_gid")));
+                shareholderIds.add(String.valueOf(columnMap.get("controller_pid")));
             }
             // 分支机构
             else if (table.contains("company_branch")) {
-                id = String.valueOf(columnMap.get("company_id"));
+                shareholderIds.add(String.valueOf(columnMap.get("company_id")));
+                shareholderIds.add(String.valueOf(columnMap.get("branch_company_id")));
             }
             // 老板维表
             else if (database.contains("human_base") && table.contains("human")) {
-                id = String.valueOf(columnMap.get("human_id"));
+                shareholderIds.add(String.valueOf(columnMap.get("human_id")));
             }
-            // 其他
-            else {
-                id = "0";
+            for (String shareholderId : shareholderIds) {
+                if (!TycUtils.isTycUniqueEntityId(shareholderId)) {
+                    continue;
+                }
+                if (TycUtils.isUnsignedId(shareholderId)) {
+                    out.collect(shareholderId);
+                }
+                String sql = new SQL()
+                        .SELECT("distinct company_id")
+                        .FROM(SINK_TABLE)
+                        .WHERE("shareholder_id = " + SqlUtils.formatValue(shareholderId))
+                        .toString();
+                sink.queryForList(sql, rs -> rs.getString(1)).forEach(out::collect);
             }
-            String sql = new SQL()
-                    .SELECT("company_id")
-                    .FROM(SINK_TABLE)
-                    .WHERE("shareholder_id = " + SqlUtils.formatValue(id))
-                    .toString();
-            List<String> companyIds = sink.queryForList(sql, rs -> rs.getString(1));
-            out.collect(id);
-            companyIds.forEach(out::collect);
         }
     }
 
