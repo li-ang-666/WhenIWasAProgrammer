@@ -31,7 +31,7 @@ public class EquityBfsService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
-        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("3218079951");
+        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("3469055311");
         columnMaps.sort(Comparator.comparing(map -> String.valueOf(map.get("shareholder_id"))));
         for (Map<String, Object> columnMap : columnMaps) {
             System.out.println(StrUtil.repeat("=", 100));
@@ -146,7 +146,6 @@ public class EquityBfsService {
             if (v != null) {
                 ratioPathCompanyDto = v;
             } else {
-                String shareholderType = (shareholderId.length() == 17) ? "2" : "1";
                 Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(shareholderId);
                 String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
                 String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
