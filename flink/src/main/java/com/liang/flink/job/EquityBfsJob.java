@@ -123,7 +123,8 @@ public class EquityBfsJob {
                             .FROM(SINK_TABLE)
                             .WHERE("shareholder_id = " + SqlUtils.formatValue(entityId))
                             .toString();
-                    sink.queryForList(sql, rs -> rs.getString(1)).forEach(out::collect);
+                    sink.queryForList(sql, rs -> rs.getString(1))
+                            .forEach(out::collect);
                 }
             }
         }
