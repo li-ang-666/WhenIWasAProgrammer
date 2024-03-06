@@ -22,10 +22,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @LocalConfigFile("equity-control.yml")
 public class EquityControlJob {
@@ -63,12 +60,15 @@ public class EquityControlJob {
         public String map(SingleCanalBinlog singleCanalBinlog) {
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            // 公司维表
             if (table.contains("company_index")) {
                 return String.valueOf(columnMap.get("company_id"));
-            } else if (table.contains("ratio_path_company")) {
+            }
+            // 穿透表
+            else if (table.contains("ratio_path_company")) {
                 return String.valueOf(columnMap.get("company_id"));
             }
-            return "";
+            return "-" + new Random().nextInt(1024);
         }
     }
 
