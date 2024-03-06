@@ -4,4 +4,4 @@ kafkaConfigs:
     topics:
       - "ee59d.proto.company_base.company_index"
     groupId: "hive-job"
-    startFrom: "1"
+    startFrom: "2"

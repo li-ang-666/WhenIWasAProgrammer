@@ -40,10 +40,9 @@ public class HiveJob {
         env.execute("HiveJob");
     }
 
-
     @RequiredArgsConstructor
     private static final class HiveSink extends RichSinkFunction<KafkaRecord<String>> implements CheckpointedFunction {
-        private static final String DIR = "obs://hadoop-obs/hive/warehouse/flink.db/query_log/";
+        private static final String DIR = "obs://hadoop-obs/hive/warehouse/flink.db/query_log/pt=%s/";
         private final Map<String, ObsWriter> ptToObsWriter = new HashMap<>();
         private final Config config;
 
@@ -59,13 +58,14 @@ public class HiveJob {
         @Override
         public void invoke(KafkaRecord<String> kafkaRecord, Context context) {
             synchronized (ptToObsWriter) {
-                String pt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm"));
+                String pt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
                 Map<String, Object> columnMap = new HashMap<String, Object>() {{
-                    put("id", 1);
-                    put("name", "lucia");
+                    put("id", System.currentTimeMillis() / 1000);
+                    put("name", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 }};
-                ptToObsWriter.compute(pt, (k, v) -> {
-                            ObsWriter obsWriter = (v != null) ? v : new ObsWriter(DIR + pt, ObsWriter.FileFormat.TXT);
+                ptToObsWriter
+                        .compute(pt, (k, v) -> {
+                            ObsWriter obsWriter = (v != null) ? v : new ObsWriter(String.format(DIR, pt), ObsWriter.FileFormat.TXT);
                             obsWriter.enableCache();
                             return obsWriter;
                         })
@@ -91,6 +91,8 @@ public class HiveJob {
         public void flush() {
             synchronized (ptToObsWriter) {
                 ptToObsWriter.forEach((pt, ObsWriter) -> ObsWriter.flush());
+                String yesterday = LocalDateTime.now().plusDays(-1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                ptToObsWriter.keySet().removeIf(e -> e.compareTo(yesterday) < 0);
             }
         }
     }
