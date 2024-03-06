@@ -39,6 +39,9 @@ public class CompanyBidParsedInfoPatchService {
         return dao.queryContent(mainId);
     }
 
+    /**
+     * 调整json格式为[{}, {}, {}], 同时剔除map中无用的key
+     */
     public List<Map<String, Object>> newJson(Object oldJson) {
         List<Map<String, Object>> maps = new ArrayList<>();
         String oldJsonString = String.valueOf(oldJson);
