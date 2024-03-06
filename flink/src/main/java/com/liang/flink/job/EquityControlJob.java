@@ -29,7 +29,7 @@ import java.util.Set;
 
 @LocalConfigFile("equity-control.yml")
 public class EquityControlJob {
-    private static final String SINK_SOURCE = "427.test";
+    private static final String SINK_SOURCE = "463.bdp_equity";
     private static final String SINK_TABLE = "bdp_equity.entity_controller_details_new";
 
     public static void main(String[] args) throws Exception {
