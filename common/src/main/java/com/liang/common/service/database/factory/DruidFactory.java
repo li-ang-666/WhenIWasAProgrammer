@@ -41,7 +41,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 // useSSL
                 "&useSSL=false" +
                 // 性能优化
-                "&maxAllowedPacket=67108864" + // 64MB
+                "&maxAllowedPacket=1073741824" + // 1G
                 "&rewriteBatchedStatements=true";
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setUrl(url);
