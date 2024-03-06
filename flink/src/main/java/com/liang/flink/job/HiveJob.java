@@ -23,6 +23,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * drop table if exists flink.query_log;
+ * create external table if not exists flink.query_log (
+ * id bigint,
+ * name string
+ * )partitioned by(pt string)
+ * ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+ * STORED AS TEXTFILE
+ * LOCATION 'obs://hadoop-obs/hive/warehouse/flink.db/query_log/';
+ */
 @LocalConfigFile("hive.yml")
 public class HiveJob {
     public static void main(String[] args) throws Exception {
@@ -42,6 +52,7 @@ public class HiveJob {
 
     @RequiredArgsConstructor
     private static final class HiveSink extends RichSinkFunction<KafkaRecord<String>> implements CheckpointedFunction {
+        private static final DateTimeFormatter PT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
         private static final String DIR = "obs://hadoop-obs/hive/warehouse/flink.db/query_log/pt=%s/";
         private final Map<String, ObsWriter> ptToObsWriter = new HashMap<>();
         private final Config config;
@@ -58,14 +69,14 @@ public class HiveJob {
         @Override
         public void invoke(KafkaRecord<String> kafkaRecord, Context context) {
             synchronized (ptToObsWriter) {
-                String pt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+                String pt = LocalDateTime.now().format(PT_FORMATTER);
                 Map<String, Object> columnMap = new HashMap<String, Object>() {{
                     put("id", System.currentTimeMillis() / 1000);
                     put("name", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 }};
                 ptToObsWriter
                         .compute(pt, (k, v) -> {
-                            ObsWriter obsWriter = (v != null) ? v : new ObsWriter(String.format(DIR, pt), ObsWriter.FileFormat.TXT);
+                            ObsWriter obsWriter = (v != null) ? v : new ObsWriter(String.format(DIR, k), ObsWriter.FileFormat.TXT);
                             obsWriter.enableCache();
                             return obsWriter;
                         })
@@ -91,9 +102,26 @@ public class HiveJob {
         public void flush() {
             synchronized (ptToObsWriter) {
                 ptToObsWriter.forEach((pt, ObsWriter) -> ObsWriter.flush());
-                String yesterday = LocalDateTime.now().plusDays(-1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-                ptToObsWriter.keySet().removeIf(e -> e.compareTo(yesterday) < 0);
+                String yesterdayPt = LocalDateTime.now().plusDays(-1).format(PT_FORMATTER);
+                ptToObsWriter.keySet().removeIf(e -> e.compareTo(yesterdayPt) < 0);
             }
         }
     }
+
+    //@Test
+    //public void init() throws Exception {
+    //    Class.forName("org.apache.hive.jdbc.HiveDriver");
+    //    String URL = "jdbc:hive2://10.99.202.153:2181,10.99.198.86:2181,10.99.203.51:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2";
+    //    String USER = "hive";
+    //    String PASSWORD = "";
+    //    Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+    //    LocalDateTime localDateTime = LocalDateTime.of(2024, 1, 1, 0, 0);
+    //    int i = 0;
+    //    while (true) {
+    //        String pt = localDateTime.plusDays(i++).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    //        if (pt.startsWith("2030")) break;
+    //        connection.prepareStatement("alter table flink.query_log add if not exists partition(pt = '" + pt + "')").executeUpdate();
+    //        System.out.println(pt);
+    //    }
+    //}
 }
