@@ -70,6 +70,14 @@ public class EquityBfsJob {
             if (table.contains("company_index")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id")));
             }
+            // 注吊销标签表
+            else if (table.contains("bdp_company_profile_tag_details_total")) {
+                entityIds.add(String.valueOf(columnMap.get("company_id")));
+            }
+            // 公司类型细分表
+            else if (table.contains("tyc_entity_general_property_reference")) {
+                entityIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id")));
+            }
             // 股东
             else if (table.contains("company_equity_relation_details")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
@@ -84,6 +92,7 @@ public class EquityBfsJob {
             else if (table.contains("company_legal_person")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id")));
                 entityIds.add(String.valueOf(columnMap.get("legal_rep_human_id")));
+                entityIds.add(String.valueOf(columnMap.get("legal_rep_name_id")));
             }
             // 上市公告
             else if (table.contains("stock_actual_controller")) {
