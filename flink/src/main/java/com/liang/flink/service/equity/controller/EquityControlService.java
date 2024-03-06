@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unchecked")
 public class EquityControlService {
     private static final String REASON_LISTED = "上市公告披露";
-    private static final String REASON_EQUITY = "直接/间接股权";
+    private static final String REASON_EQUITY_DIRECT = "直接持股";
+    private static final String REASON_EQUITY_INDIRECT = "间接持股";
+    private static final String REASON_EQUITY_ALL = "直接/间接持股";
     private static final String REASON_PERSONNEL = "关键决策人员";
     private static final String REASON_PARTNER = "执行事务合伙人";
     private static final String THRESHOLD_PERCENT_THIRTY = "0.300000";
@@ -98,7 +100,7 @@ public class EquityControlService {
             // 最大比例股东有且只有一位
             if (ratioPathCompanyMapsWithMaxRatio.size() == 1) {
                 // 无论该最终股东是否为自然人, 均可为实际控制人
-                columnMaps.add(getNormalColumnMap(ratioPathCompanyMapsWithMaxRatio.get(0), true, REASON_EQUITY, "唯一最大股东"));
+                columnMaps.add(getNormalColumnMap(ratioPathCompanyMapsWithMaxRatio.get(0), true, "唯一最大股东"));
             }
             // 最大比例股东有多位
             else if (ratioPathCompanyMapsWithMaxRatio.size() > 1) {
@@ -107,13 +109,13 @@ public class EquityControlService {
                     String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
                     // 非自然人, 则直接为实际控制人
                     if (shareholderType.equals("1")) {
-                        columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, REASON_EQUITY, "并列最大股东/非自然人"));
+                        columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, "并列最大股东/非自然人"));
                     }
                     // 自然人, 判断该自然人是否在当前企业担任 董事长、执行董事 职位
                     else if (shareholderType.equals("2")) {
                         String position = controllerDao.queryChairMan(companyId, shareholderId);
                         if (position == null) continue;
-                        columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, REASON_EQUITY, "并列最大股东/自然人/" + position));
+                        columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, "并列最大股东/自然人/" + position));
                     }
                 }
             }
@@ -167,7 +169,7 @@ public class EquityControlService {
             String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
             if (controllerString.contains(shareholderId) & !controllerSet.contains(shareholderId)) {
                 // 补充实际控制权
-                controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY, "补充实控权/实控人路径"));
+                controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, "补充实控权/实控人路径"));
             }
         }
         // 控制传递
@@ -177,7 +179,7 @@ public class EquityControlService {
             String shareholderId = String.valueOf(ratioPathCompanyMap.get("shareholder_id"));
             if (!controllerSet.contains(shareholderId) && maxDeliver.compareTo(THRESHOLD_PERCENT_FIFTY) >= 0) {
                 // 补充实际控制权
-                controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, REASON_EQUITY, "补充实控权/控制传递"));
+                controllerMaps.add(getNormalColumnMap(ratioPathCompanyMap, false, "补充实控权/控制传递"));
             }
         }
     }
@@ -194,19 +196,28 @@ public class EquityControlService {
                         !TycUtils.isUnsignedId(String.valueOf(shareholderMap.get("company_id")));
     }
 
-    private Map<String, Object> getNormalColumnMap(Map<String, Object> ratioPathCompanyMap, boolean isController, String reason, String reasonDetail) {
+    private Map<String, Object> getNormalColumnMap(Map<String, Object> ratioPathCompanyMap, boolean isController, String reasonDetail) {
         List<List<Map<String, Object>>> paths = getNormalJsonList(String.valueOf(ratioPathCompanyMap.get("equity_holding_path")));
+        int pathCount = paths.size();
+        int min = paths.stream().map(List::size).min(Comparator.comparingInt(i -> i)).orElse(0);
+        int max = paths.stream().map(List::size).max(Comparator.comparingInt(i -> i)).orElse(0);
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("tyc_unique_entity_id", String.valueOf(ratioPathCompanyMap.get("shareholder_id")));
         columnMap.put("entity_type_id", String.valueOf(ratioPathCompanyMap.get("shareholder_entity_type")));
         columnMap.put("entity_name_valid", String.valueOf(ratioPathCompanyMap.get("shareholder_name")));
         columnMap.put("company_id_controlled", String.valueOf(ratioPathCompanyMap.get("company_id")));
         columnMap.put("company_name_controlled", String.valueOf(ratioPathCompanyMap.get("company_name")));
-        columnMap.put("equity_relation_path_cnt", paths.size());
+        columnMap.put("equity_relation_path_cnt", pathCount);
         columnMap.put("estimated_equity_ratio_total", String.valueOf(ratioPathCompanyMap.get("investment_ratio_total")));
         columnMap.put("controlling_equity_relation_path_detail", JsonUtils.toString(paths));
         columnMap.put("is_controller_tyc_unique_entity_id", isController);
-        columnMap.put("reason", reason);
+        if (min == 3 && max == 3) {
+            columnMap.put("reason", REASON_EQUITY_DIRECT);
+        } else if (min > 3 && max > 3) {
+            columnMap.put("reason", REASON_EQUITY_INDIRECT);
+        } else {
+            columnMap.put("reason", REASON_EQUITY_ALL);
+        }
         columnMap.put("reason_detail", reasonDetail);
         return columnMap;
     }
