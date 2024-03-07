@@ -15,7 +15,7 @@ import java.util.Properties;
 public class MySQLToHiveJob {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            args = new String[]{"mysql-to-hive.yml"};
+            args = new String[]{"mysql-to-open-api-record-job.yml"};
         }
         SparkSession spark = SparkSessionFactory.createSpark(args);
         String fromTable = args[1];

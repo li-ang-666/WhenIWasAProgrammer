@@ -38,8 +38,8 @@ import java.util.concurrent.locks.LockSupport;
  * STORED AS TEXTFILE;
  * MSCK REPAIR TABLE flink.open_api_record;
  */
-@LocalConfigFile("hive.yml")
-public class HiveJob {
+@LocalConfigFile("open-api-record-job.yml")
+public class OpenApiRecordJob {
     // common
     private static final String DATABASE = "flink";
     private static final String TABLE = "open_api_record";
@@ -61,9 +61,9 @@ public class HiveJob {
                 .name("KafkaSource")
                 .uid("KafkaSource")
                 .setParallelism(1)
-                .addSink(new HiveSink(config))
-                .name("HiveSink")
-                .uid("HiveSink")
+                .addSink(new OpenApiRecordSink(config))
+                .name("OpenApiRecordSink")
+                .uid("OpenApiRecordSink")
                 .setParallelism(1);
         DaemonExecutor.launch("PartitionRepairer", () -> {
             try {
@@ -71,17 +71,19 @@ public class HiveJob {
                 while (true) {
                     try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
                         connection.prepareStatement("MSCK REPAIR TABLE " + DATABASE + "." + TABLE).executeUpdate();
+                        LockSupport.parkUntil(System.currentTimeMillis() + PARTITION_FLUSH_INTERVAL_MILLI);
+                    } catch (Exception ignore) {
                     }
-                    LockSupport.parkUntil(System.currentTimeMillis() + PARTITION_FLUSH_INTERVAL_MILLI);
                 }
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         });
-        env.execute("HiveJob");
+        env.execute("OpenApiRecordJob");
     }
 
     @RequiredArgsConstructor
-    private static final class HiveSink extends RichSinkFunction<KafkaRecord<String>> implements CheckpointedFunction {
+    private static final class OpenApiRecordSink extends RichSinkFunction<KafkaRecord<String>> implements CheckpointedFunction {
         private final Map<String, ObsWriter> pt2ObsWriter = new HashMap<>();
         private final Config config;
 
