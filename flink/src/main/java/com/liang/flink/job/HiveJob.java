@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.service.DaemonExecutor;
 import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
@@ -18,23 +19,40 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.LockSupport;
 
-/**
- * drop table if exists flink.query_log;
- * create external table if not exists flink.query_log (
- * id bigint,
- * name string
+/*
+ * drop table if exists flink.open_api_record;
+ * create external table if not exists flink.open_api_record(
+ *   id bigint,
+ *   name string,
+ *   age int
  * )partitioned by(pt string)
  * ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
- * STORED AS TEXTFILE
- * LOCATION 'obs://hadoop-obs/hive/warehouse/flink.db/query_log/';
+ * STORED AS TEXTFILE;
+ * MSCK REPAIR TABLE flink.open_api_record;
  */
 @LocalConfigFile("hive.yml")
 public class HiveJob {
+    // common
+    private static final String DATABASE = "flink";
+    private static final String TABLE = "open_api_record";
+    // hive jdbc
+    private static final String DRIVER = "org.apache.hive.jdbc.HiveDriver";
+    private static final String URL = "jdbc:hive2://10.99.202.153:2181,10.99.198.86:2181,10.99.203.51:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2";
+    private static final String USER = "hive";
+    private static final String PASSWORD = "";
+    private static final int PARTITION_FLUSH_INTERVAL_MILLI = 1000 * 60;
+    // obs
+    private static final DateTimeFormatter PT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final String DIR = "obs://hadoop-obs/hive/warehouse/" + DATABASE + ".db/" + TABLE + "/pt=%s/";
+
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
@@ -47,14 +65,24 @@ public class HiveJob {
                 .name("HiveSink")
                 .uid("HiveSink")
                 .setParallelism(1);
+        DaemonExecutor.launch("PartitionRepairer", () -> {
+            try {
+                Class.forName(DRIVER);
+                while (true) {
+                    try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+                        connection.prepareStatement("MSCK REPAIR TABLE " + DATABASE + "." + TABLE).executeUpdate();
+                    }
+                    LockSupport.parkUntil(System.currentTimeMillis() + PARTITION_FLUSH_INTERVAL_MILLI);
+                }
+            } catch (Exception ignore) {
+            }
+        });
         env.execute("HiveJob");
     }
 
     @RequiredArgsConstructor
     private static final class HiveSink extends RichSinkFunction<KafkaRecord<String>> implements CheckpointedFunction {
-        private static final DateTimeFormatter PT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-        private static final String DIR = "obs://hadoop-obs/hive/warehouse/flink.db/query_log/pt=%s/";
-        private final Map<String, ObsWriter> ptToObsWriter = new HashMap<>();
+        private final Map<String, ObsWriter> pt2ObsWriter = new HashMap<>();
         private final Config config;
 
         @Override
@@ -68,13 +96,14 @@ public class HiveJob {
 
         @Override
         public void invoke(KafkaRecord<String> kafkaRecord, Context context) {
-            synchronized (ptToObsWriter) {
+            synchronized (pt2ObsWriter) {
                 String pt = LocalDateTime.now().format(PT_FORMATTER);
                 Map<String, Object> columnMap = new HashMap<String, Object>() {{
                     put("id", System.currentTimeMillis() / 1000);
                     put("name", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    put("age", 80);
                 }};
-                ptToObsWriter
+                pt2ObsWriter
                         .compute(pt, (k, v) -> {
                             ObsWriter obsWriter = (v != null) ? v : new ObsWriter(String.format(DIR, k), ObsWriter.FileFormat.TXT);
                             obsWriter.enableCache();
@@ -100,28 +129,11 @@ public class HiveJob {
         }
 
         public void flush() {
-            synchronized (ptToObsWriter) {
-                ptToObsWriter.forEach((pt, ObsWriter) -> ObsWriter.flush());
+            synchronized (pt2ObsWriter) {
+                pt2ObsWriter.forEach((pt, ObsWriter) -> ObsWriter.flush());
                 String yesterdayPt = LocalDateTime.now().plusDays(-1).format(PT_FORMATTER);
-                ptToObsWriter.keySet().removeIf(e -> e.compareTo(yesterdayPt) < 0);
+                pt2ObsWriter.keySet().removeIf(e -> e.compareTo(yesterdayPt) < 0);
             }
         }
     }
-
-    //@Test
-    //public void init() throws Exception {
-    //    Class.forName("org.apache.hive.jdbc.HiveDriver");
-    //    String URL = "jdbc:hive2://10.99.202.153:2181,10.99.198.86:2181,10.99.203.51:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2";
-    //    String USER = "hive";
-    //    String PASSWORD = "";
-    //    Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-    //    LocalDateTime localDateTime = LocalDateTime.of(2024, 1, 1, 0, 0);
-    //    int i = 0;
-    //    while (true) {
-    //        String pt = localDateTime.plusDays(i++).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-    //        if (pt.startsWith("2030")) break;
-    //        connection.prepareStatement("alter table flink.query_log add if not exists partition(pt = '" + pt + "')").executeUpdate();
-    //        System.out.println(pt);
-    //    }
-    //}
 }
