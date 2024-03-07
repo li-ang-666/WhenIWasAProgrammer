@@ -61,17 +61,18 @@ public class CompanyBidParsedInfoPatchJob {
                 service.delete(String.valueOf(columnMap.get("id")));
                 return;
             }
-            // 先请求RDS
+            // 先请求mysql获取算法的解析json
             String uuid = String.valueOf(columnMap.get("bid_uuid"));
             List<Map<String, Object>> queryResult = service.query(uuid);
-            // 再请求AI
+            // 再请求算法接口
             List<Map<String, Object>> result = !queryResult.isEmpty() ? queryResult : service.post(content, uuid);
             if (log.isDebugEnabled()) log.debug("AI return: {} -> {}", uuid, JsonUtils.toString(result));
-            // owner 招标方
+            // 招标方(下文称 partyA(甲方))
             String sourceOwner = String.valueOf(columnMap.get("purchaser"));
-            List<Map<String, Object>> newOwner = service.newJson(sourceOwner);
-            // agent 代理方
+            List<Map<String, Object>> partyA = service.newJson(sourceOwner);
+            // 代理方(下文称 agent)
             List<Map<String, Object>> newAgent;
+            // 先从算法解析json获取
             newAgent = result.stream()
                     .filter(e -> e.containsValue("proxy_unit") && e.containsKey("company_gid") && e.containsKey("clean_word"))
                     .map(e -> new HashMap<String, Object>() {{
@@ -79,11 +80,13 @@ public class CompanyBidParsedInfoPatchJob {
                         put("name", e.get("clean_word"));
                     }})
                     .collect(Collectors.toList());
+            // 为空再采用上游binlog的数据
             if (newAgent.isEmpty()) {
                 String sourceAgent = String.valueOf(columnMap.get("proxy_unit"));
                 newAgent = service.newAgentJson(sourceAgent);
             }
-            // tenderer 投标方
+            // 投标方(下文称 tenderer)
+            // 先从算法解析json获取
             List<Map<String, Object>> newTenderer = result.stream()
                     .filter(e -> e.containsValue("tenderer_unit") && e.containsKey("company_gid") && e.containsKey("clean_word"))
                     .map(e -> new HashMap<String, Object>() {{
@@ -91,48 +94,48 @@ public class CompanyBidParsedInfoPatchJob {
                         put("name", e.get("clean_word"));
                     }})
                     .collect(Collectors.toList());
-            // candidate 候选方
+            // 候选方(下文称 candidate)
             String sourceCandidate = String.valueOf(columnMap.get("bid_winner_info_json"));
             List<Map<String, Object>> newCandidate = service.newJson(sourceCandidate);
-            // winner 中标方
+            // 中标方(下文称 winner)
             String sourceWinner = String.valueOf(columnMap.get("bid_winner"));
             List<Map<String, Object>> newWinner = service.newJson(sourceWinner);
-            // winner amt 中标金额
+            // 中标金额(下文称 winnerAmt)
             String sourceWinnerAmt = String.valueOf(columnMap.get("winning_bid_amt_json_clean"));
             List<Map<String, Object>> newWinnerAmt = service.newJson(sourceWinnerAmt);
-            // mention 其他被提及
+            // 其他被提及(下文称 mention)(来自bid_index)
             List<Map<String, Object>> mention = service.getMention(String.valueOf(columnMap.get("main_id")));
             // 去重
             HashMap<String, Object> resultMap = new HashMap<>(columnMap);
-            // 1、
-            List<Map<String, Object>> finalPartyA = service.deduplicateGidAndName(newOwner);
+            // 投标方去重
+            List<Map<String, Object>> finalPartyA = service.deduplicateGidAndName(partyA);
             String partyAString = JsonUtils.toString(finalPartyA);
             resultMap.put("party_a", partyAString);
-            // 2、
+            // 代理方去重 且 排除已经出现过的
             List<Map<String, Object>> finalAgent = service.deduplicateGidAndName(newAgent);
             finalAgent.removeIf(e -> partyAString.contains(String.valueOf(e.get("gid"))));
             String agentString = JsonUtils.toString(finalAgent);
             resultMap.put("agent", agentString);
-            // 3、
+            // 投标方去重 且 排除已经出现过的
             List<Map<String, Object>> finalTenderer = service.deduplicateGidAndName(newTenderer);
             finalTenderer.removeIf(e -> partyAString.contains(String.valueOf(e.get("gid"))) || agentString.contains(String.valueOf(e.get("gid"))));
             String tendererString = JsonUtils.toString(finalTenderer);
             resultMap.put("tenderer", tendererString);
-            // 4、
+            // 候选方去重 且 排除已经出现过的
             List<Map<String, Object>> finalCandidate = service.deduplicateGidAndName(newCandidate);
             finalCandidate.removeIf(e -> partyAString.contains(String.valueOf(e.get("gid"))) || agentString.contains(String.valueOf(e.get("gid"))));
             String candidateString = JsonUtils.toString(finalCandidate);
             resultMap.put("candidate", candidateString);
-            // 5.1、
+            // 中标方不去重,免得和中标金额对应不上,但是需要排除已经出现过的
             newWinner.removeIf(e -> partyAString.contains(String.valueOf(e.get("gid"))) || agentString.contains(String.valueOf(e.get("gid"))));
             String winnerString = JsonUtils.toString(newWinner);
             resultMap.put("winner", winnerString);
-            // 5.2、
+            // 中标金额和中标方对应不上,就全置空
             if (newWinnerAmt.size() != newWinner.size()) {
                 newWinnerAmt.clear();
             }
             resultMap.put("winner_amt", JsonUtils.toString(newWinnerAmt));
-            // 6、
+            // 其他被提及方,排除已经出现过的
             mention.removeIf(e ->
                     partyAString.contains(String.valueOf(e.get("gid")))
                             || agentString.contains(String.valueOf(e.get("gid")))
