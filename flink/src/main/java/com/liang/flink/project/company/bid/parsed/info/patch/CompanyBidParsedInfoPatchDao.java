@@ -17,7 +17,7 @@ public class CompanyBidParsedInfoPatchDao {
     private final JdbcTemplate source = new JdbcTemplate("104.data_bid");
     private final JdbcTemplate companyBase = new JdbcTemplate("435.company_base");
     private final JdbcTemplate sink = new JdbcTemplate("448.operating_info");
-    private final JdbcTemplate gauss = new JdbcTemplate("gauss");
+    private final JdbcTemplate test = new JdbcTemplate("427.test");
     private final JdbcTemplate dataEs = new JdbcTemplate("150.data_es");
 
     {
@@ -61,7 +61,7 @@ public class CompanyBidParsedInfoPatchDao {
                 .FROM("bid")
                 .WHERE("uuid = " + SqlUtils.formatValue(uuid))
                 .toString();
-        String res = gauss.queryForObject(sql, rs -> rs.getString(1));
+        String res = test.queryForObject(sql, rs -> rs.getString(1));
         if (res == null) {
             return maps;
         }
