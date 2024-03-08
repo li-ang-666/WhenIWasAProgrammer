@@ -1,0 +1,14 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 8
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - taskId: "111"
+    sourceName: "104.data_bid"
+    tableName: "company_bid"
+    columns: "*"
+    where: "id <= 100"
+    scanMode: Direct
