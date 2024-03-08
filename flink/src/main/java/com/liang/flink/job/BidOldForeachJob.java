@@ -81,7 +81,7 @@ public class BidOldForeachJob {
             synchronized (ids) {
                 if (!ids.isEmpty()) {
                     String sql = new SQL().UPDATE("company_bid")
-                            .SET("update_time = now()")
+                            .SET("update_time = date_add(update_time, interval 1 second)")
                             .WHERE("id in " + ids.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")")))
                             .toString();
                     jdbcTemplate.update(sql);
