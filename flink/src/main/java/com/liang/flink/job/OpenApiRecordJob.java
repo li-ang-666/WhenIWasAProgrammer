@@ -23,6 +23,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,8 +68,9 @@ public class OpenApiRecordJob {
     private static final String PASSWORD = "";
     private static final int PARTITION_FLUSH_INTERVAL_MILLI = 1000 * 60;
     // obs
-    private static final DateTimeFormatter PT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-    private static final String DIR = "obs://hadoop-obs/hive/warehouse/" + DATABASE + ".db/" + TABLE + "/pt=%s/";
+    private static final ZoneOffset ZONE_OFFSET = ZoneOffset.of("+8");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final String DIR = "obs://hadoop-obs/hive/warehouse/" + DATABASE + ".db/" + TABLE + "/token=%s/interface_id=%s/request_date=%s/";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -117,19 +119,63 @@ public class OpenApiRecordJob {
         @Override
         public void invoke(KafkaRecord<String> kafkaRecord, Context context) {
             synchronized (pt2ObsWriter) {
-                String pt = LocalDateTime.now().format(PT_FORMATTER);
-                Map<String, Object> columnMap = new HashMap<String, Object>() {{
-                    put("id", System.currentTimeMillis() / 1000);
-                    put("name", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                    put("age", 80);
-                }};
-                pt2ObsWriter
-                        .compute(pt, (k, v) -> {
-                            ObsWriter obsWriter = (v != null) ? v : new ObsWriter(String.format(DIR, k), ObsWriter.FileFormat.TXT);
-                            obsWriter.enableCache();
-                            return obsWriter;
-                        })
-                        .update(JsonUtils.toString(columnMap));
+                // read map
+                String columnJson = kafkaRecord.getValue();
+                Map<String, Object> columnMap = JsonUtils.parseJsonObj(columnJson);
+                String orgName = String.valueOf(columnMap.get("orgName"));
+                String orderCode = String.valueOf(columnMap.get("orderCode"));
+                String token = String.valueOf(columnMap.get("token"));
+                String interfaceId = String.valueOf(columnMap.get("interfaceId"));
+                String interfaceName = String.valueOf(columnMap.get("interfaceName"));
+                String billingRules = String.valueOf(columnMap.get("billingRules"));
+                String requestIp = String.valueOf(columnMap.get("requestIp"));
+                String requestTimestamp = String.valueOf(columnMap.get("requestTimestamp"));
+                String requestDate;
+                try {
+                    requestDate = LocalDateTime.ofEpochSecond(Long.parseLong(requestTimestamp) / 1000, 0, ZONE_OFFSET).format(FORMATTER);
+                } catch (Exception ignore) {
+                    requestDate = "2024-02-02";
+                }
+                String responseTimestamp = String.valueOf(columnMap.get("responseTimestamp"));
+                String responseDate;
+                try {
+                    responseDate = LocalDateTime.ofEpochSecond(Long.parseLong(responseTimestamp) / 1000, 0, ZONE_OFFSET).format(FORMATTER);
+                } catch (Exception e) {
+                    responseDate = "2024-02-02";
+                }
+                String cost = String.valueOf(columnMap.get("cost"));
+                String errorCode = String.valueOf(columnMap.get("errorCode"));
+                String errorMessage = String.valueOf(columnMap.get("errorMessage"));
+                String chargeStatus = String.valueOf(columnMap.get("chargeStatus"));
+                String returnStatus = String.valueOf(columnMap.get("returnStatus"));
+                String params = String.valueOf(columnMap.get("params"));
+                // write map
+                Map<String, Object> resultMap = new HashMap<>();
+                resultMap.put("org_name", orgName);
+                resultMap.put("order_code", orderCode);
+                resultMap.put("interface_name", interfaceName);
+                resultMap.put("billing_rules", billingRules);
+                resultMap.put("request_ip", requestIp);
+                resultMap.put("request_timestamp", requestTimestamp);
+                resultMap.put("response_timestamp", responseTimestamp);
+                resultMap.put("response_date", responseDate);
+                resultMap.put("cost", cost);
+                resultMap.put("error_code", errorCode);
+                resultMap.put("error_message", errorMessage);
+                resultMap.put("charge_status", chargeStatus);
+                resultMap.put("return_status", returnStatus);
+                resultMap.put("params", params);
+                // pt
+                String targetDir = String.format(DIR, token, interfaceId, requestDate);
+                // obsWriter
+                ObsWriter obsWriter = pt2ObsWriter
+                        .compute(targetDir, (dir, existedObsWriter) -> {
+                            ObsWriter newObsWriter = (existedObsWriter != null) ? existedObsWriter : new ObsWriter(targetDir, ObsWriter.FileFormat.TXT);
+                            newObsWriter.enableCache();
+                            return newObsWriter;
+                        });
+                // write
+                obsWriter.update(JsonUtils.toString(resultMap));
             }
         }
 
@@ -150,9 +196,13 @@ public class OpenApiRecordJob {
 
         public void flush() {
             synchronized (pt2ObsWriter) {
-                pt2ObsWriter.forEach((pt, ObsWriter) -> ObsWriter.flush());
-                String yesterdayPt = LocalDateTime.now().plusDays(-1).format(PT_FORMATTER);
-                pt2ObsWriter.keySet().removeIf(e -> e.compareTo(yesterdayPt) < 0);
+                pt2ObsWriter.forEach((dir, ObsWriter) -> ObsWriter.flush());
+                pt2ObsWriter.entrySet().removeIf(entry -> {
+                    String dir = entry.getKey();
+                    String requestDate = dir.replaceAll(".*?/request_date=(.*?)/.*", "$1");
+                    String yesterday = LocalDateTime.now().plusDays(-1).format(FORMATTER);
+                    return requestDate.compareTo(yesterday) < 0;
+                });
             }
         }
     }
