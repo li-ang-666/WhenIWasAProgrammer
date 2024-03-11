@@ -10,6 +10,7 @@ import com.liang.flink.basic.kafka.KafkaSourceFactory;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.kafka.source.KafkaSource;
@@ -38,6 +39,7 @@ import java.util.concurrent.locks.LockSupport;
  * STORED AS TEXTFILE;
  * MSCK REPAIR TABLE flink.open_api_record;
  */
+@Slf4j
 @LocalConfigFile("open-api-record-job.yml")
 public class OpenApiRecordJob {
     // common
@@ -72,7 +74,8 @@ public class OpenApiRecordJob {
                     try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
                         connection.prepareStatement("MSCK REPAIR TABLE " + DATABASE + "." + TABLE).executeUpdate();
                         LockSupport.parkUntil(System.currentTimeMillis() + PARTITION_FLUSH_INTERVAL_MILLI);
-                    } catch (Exception ignore) {
+                    } catch (Exception e) {
+                        log.warn("MSCK REPAIR TABLE ERROR", e);
                     }
                 }
             } catch (Exception e) {
