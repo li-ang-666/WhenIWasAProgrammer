@@ -1,7 +1,7 @@
 kafkaConfigs:
   kafkaSource:
-    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    bootstrapServers: "kafka.middleware.huawei:9092"
     topics:
-      - "ee59d.json.company_base.company_index"
-    groupId: "hive-job"
-    startFrom: "2"
+      - "open_api_record2bigdata"
+    groupId: "open-api-record-job"
+    startFrom: "1"
