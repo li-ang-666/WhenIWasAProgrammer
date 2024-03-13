@@ -132,20 +132,10 @@ public class OpenApiRecordJob {
             String requestIp = String.valueOf(columnMap.get("requestIp"));
             // 调用时间
             String requestTimestamp = String.valueOf(columnMap.get("requestTimestamp"));
-            String requestDatetime = DEFAULT_DATETIME;
-            try {
-                long requestTimestampLong = Long.parseLong(requestTimestamp);
-                requestDatetime = LocalDateTime.ofEpochSecond(requestTimestampLong / 1000, 0, ZONE_OFFSET).format(FORMATTER) + requestTimestampLong % 1000;
-            } catch (Exception ignore) {
-            }
+            String requestDatetime = timestamp2Datetime(requestTimestamp);
             // 返回时间
             String responseTimestamp = String.valueOf(columnMap.get("responseTimestamp"));
-            String responseDatetime = DEFAULT_DATETIME;
-            try {
-                long responseTimestampLong = Long.parseLong(responseTimestamp);
-                responseDatetime = LocalDateTime.ofEpochSecond(responseTimestampLong / 1000, 0, ZONE_OFFSET).format(FORMATTER) + responseTimestampLong % 1000;
-            } catch (Exception ignore) {
-            }
+            String responseDatetime = timestamp2Datetime(responseTimestamp);
             String cost = String.valueOf(columnMap.get("cost"));
             String errorCode = String.valueOf(columnMap.get("errorCode"));
             String errorMessage = String.valueOf(columnMap.get("errorMessage"));
@@ -203,7 +193,17 @@ public class OpenApiRecordJob {
             flush();
         }
 
-        public void flush() {
+        private String timestamp2Datetime(String timestamp) {
+            String datetime = DEFAULT_DATETIME;
+            try {
+                long timestampLong = Long.parseLong(timestamp);
+                datetime = LocalDateTime.ofEpochSecond(timestampLong / 1000, 0, ZONE_OFFSET).format(FORMATTER) + "." + timestampLong % 1000;
+            } catch (Exception ignore) {
+            }
+            return datetime;
+        }
+
+        private void flush() {
             synchronized (pt2ObsWriter) {
                 pt2ObsWriter.forEach((dir, ObsWriter) -> ObsWriter.flush());
                 pt2ObsWriter.entrySet().removeIf(entry -> {
