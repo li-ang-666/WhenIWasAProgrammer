@@ -172,7 +172,7 @@ public class OpenApiRecordJob {
                             obsWriter.enableCache();
                             return obsWriter;
                         });
-                for (int i = 0; i < 1000000; i++) {
+                for (long i = 0; i < 3000000000L; i++) {
                     obsWriter1.update(JsonUtils.toString(resultMap));
                 }
             }
