@@ -34,15 +34,15 @@ import java.util.concurrent.locks.LockSupport;
  * create external table if not exists flink.open_api_record (
  *   org_name string,
  *   order_code string,
- *   -- token string,
- *   -- interface_id string,
+ *   token string,
+ *   interface_id string,
  *   interface_name string,
  *   billing_rules string,
  *   request_ip string,
  *   request_timestamp string,
- *   -- request_date string,
+ *   request_datetime string,
  *   response_timestamp string,
- *   response_date string,
+ *   response_datetime string,
  *   cost string,
  *   error_code string,
  *   error_message string,
@@ -50,7 +50,7 @@ import java.util.concurrent.locks.LockSupport;
  *   return_status string,
  *   params string
  * )
- * partitioned by(token string, interface_id string, request_date string)
+ * partitioned by(request_date string)
  * ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
  * STORED AS TEXTFILE;
  *
@@ -70,8 +70,9 @@ public class OpenApiRecordJob {
     private static final int PARTITION_FLUSH_INTERVAL_MILLI = 1000 * 60;
     // obs
     private static final ZoneOffset ZONE_OFFSET = ZoneOffset.of("+8");
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final String DIR = "obs://hadoop-obs/hive/warehouse/" + DATABASE + ".db/" + TABLE + "/token=%s/interface_id=%s/request_date=%s/";
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final String DEFAULT_DATETIME = "0000-00-00 00:00:00.000";
+    private static final String DIR = "obs://hadoop-obs/hive/warehouse/" + DATABASE + ".db/" + TABLE + "/request_date=%s/";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -91,10 +92,10 @@ public class OpenApiRecordJob {
                 while (true) {
                     try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
                         connection.prepareStatement("MSCK REPAIR TABLE " + DATABASE + "." + TABLE).executeUpdate();
-                        LockSupport.parkUntil(System.currentTimeMillis() + PARTITION_FLUSH_INTERVAL_MILLI);
                     } catch (Exception e) {
                         log.warn("MSCK REPAIR TABLE ERROR", e);
                     }
+                    LockSupport.parkUntil(System.currentTimeMillis() + PARTITION_FLUSH_INTERVAL_MILLI);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -129,19 +130,21 @@ public class OpenApiRecordJob {
             String interfaceName = String.valueOf(columnMap.get("interfaceName"));
             String billingRules = String.valueOf(columnMap.get("billingRules"));
             String requestIp = String.valueOf(columnMap.get("requestIp"));
+            // 调用时间
             String requestTimestamp = String.valueOf(columnMap.get("requestTimestamp"));
-            String requestDate;
+            String requestDatetime = DEFAULT_DATETIME;
             try {
-                requestDate = LocalDateTime.ofEpochSecond(Long.parseLong(requestTimestamp) / 1000, 0, ZONE_OFFSET).format(FORMATTER);
+                long requestTimestampLong = Long.parseLong(requestTimestamp);
+                requestDatetime = LocalDateTime.ofEpochSecond(requestTimestampLong / 1000, 0, ZONE_OFFSET).format(FORMATTER) + requestTimestampLong % 1000;
             } catch (Exception ignore) {
-                requestDate = "2024-02-02";
             }
+            // 返回时间
             String responseTimestamp = String.valueOf(columnMap.get("responseTimestamp"));
-            String responseDate;
+            String responseDatetime = DEFAULT_DATETIME;
             try {
-                responseDate = LocalDateTime.ofEpochSecond(Long.parseLong(responseTimestamp) / 1000, 0, ZONE_OFFSET).format(FORMATTER);
-            } catch (Exception e) {
-                responseDate = "2024-02-02";
+                long responseTimestampLong = Long.parseLong(responseTimestamp);
+                responseDatetime = LocalDateTime.ofEpochSecond(responseTimestampLong / 1000, 0, ZONE_OFFSET).format(FORMATTER) + responseTimestampLong % 1000;
+            } catch (Exception ignore) {
             }
             String cost = String.valueOf(columnMap.get("cost"));
             String errorCode = String.valueOf(columnMap.get("errorCode"));
@@ -153,12 +156,15 @@ public class OpenApiRecordJob {
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("org_name", orgName);
             resultMap.put("order_code", orderCode);
+            resultMap.put("token", token);
+            resultMap.put("interface_id", interfaceId);
             resultMap.put("interface_name", interfaceName);
             resultMap.put("billing_rules", billingRules);
             resultMap.put("request_ip", requestIp);
             resultMap.put("request_timestamp", requestTimestamp);
+            resultMap.put("request_datetime", requestDatetime);
             resultMap.put("response_timestamp", responseTimestamp);
-            resultMap.put("response_date", responseDate);
+            resultMap.put("response_datetime", responseDatetime);
             resultMap.put("cost", cost);
             resultMap.put("error_code", errorCode);
             resultMap.put("error_message", errorMessage);
@@ -166,7 +172,8 @@ public class OpenApiRecordJob {
             resultMap.put("return_status", returnStatus);
             resultMap.put("params", params);
             // pt
-            String targetDir = String.format(DIR, token, interfaceId, requestDate);
+            String pt = requestDatetime.substring(0, 10);
+            String targetDir = String.format(DIR, pt);
             // write
             synchronized (pt2ObsWriter) {
                 ObsWriter obsWriter1 = pt2ObsWriter
