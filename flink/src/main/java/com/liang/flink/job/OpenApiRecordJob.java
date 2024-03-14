@@ -167,15 +167,13 @@ public class OpenApiRecordJob {
             String targetDir = String.format(DIR, pt);
             // write
             synchronized (pt2ObsWriter) {
-                ObsWriter obsWriter1 = pt2ObsWriter
+                pt2ObsWriter
                         .compute(targetDir, (dir, existedObsWriter) -> {
                             ObsWriter obsWriter = (existedObsWriter != null) ? existedObsWriter : new ObsWriter(targetDir, ObsWriter.FileFormat.TXT);
                             obsWriter.enableCache();
                             return obsWriter;
-                        });
-                for (long i = 0; i < 30000000; i++) {
-                    obsWriter1.update(JsonUtils.toString(resultMap));
-                }
+                        })
+                        .update(JsonUtils.toString(resultMap));
             }
         }
 
