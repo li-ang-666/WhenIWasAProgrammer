@@ -55,7 +55,7 @@ public class BidJob {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put("text", content);
             paramMap.put("bid_uuid", uuid);
-            String result = HttpUtil.post(URL, paramMap, TIMEOUT);
+            String result = HttpUtil.post(URL, paramMap, TIMEOUT).replaceAll("\n", "");
             log.info("post result: {}", result);
         }
     }
