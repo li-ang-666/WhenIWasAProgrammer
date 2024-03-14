@@ -35,7 +35,7 @@ public class BidJob {
     @RequiredArgsConstructor
     private static final class BidSink extends RichSinkFunction<SingleCanalBinlog> {
         private static final int TIMEOUT = 1000 * 60;
-        private static final String URL = "https://bid.tianyancha.com";
+        private static final String URL = "http://10.99.199.173:10040/linking_yuqing_rank";
         private final Config config;
 
         @Override
@@ -56,7 +56,7 @@ public class BidJob {
             paramMap.put("text", content);
             paramMap.put("bid_uuid", uuid);
             String result = HttpUtil.post(URL, paramMap, TIMEOUT);
-            System.out.println(result);
+            log.info("post result: {}", result);
         }
     }
 }
