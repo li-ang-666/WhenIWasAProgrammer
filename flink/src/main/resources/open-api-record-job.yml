@@ -1,6 +1,6 @@
 kafkaConfigs:
   kafkaSource:
-    bootstrapServers: "kafka.middleware.huawei:9092"
+    bootstrapServers: "kafka-pre.middleware.huawei:9092"
     topics:
       - "open_api_record2bigdata"
     groupId: "open-api-record-job"
