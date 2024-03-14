@@ -82,6 +82,7 @@ public class OpenApiRecordJob {
                 .name("KafkaSource")
                 .uid("KafkaSource")
                 .setParallelism(1)
+                .rebalance()
                 .addSink(new OpenApiRecordSink(config))
                 .name("OpenApiRecordSink")
                 .uid("OpenApiRecordSink")
@@ -172,7 +173,7 @@ public class OpenApiRecordJob {
                             obsWriter.enableCache();
                             return obsWriter;
                         });
-                for (long i = 0; i < 3000000000L; i++) {
+                for (long i = 0; i < 30000000; i++) {
                     obsWriter1.update(JsonUtils.toString(resultMap));
                 }
             }

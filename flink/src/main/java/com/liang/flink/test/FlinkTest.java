@@ -15,12 +15,9 @@ public class FlinkTest {
 
     public static void main(String[] args) throws Exception {
         Class.forName(DRIVER);
-        String sql = "INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/export/'ROW FORMAT DELIMITED FIELDS TERMINATED BY '\\t' STORED AS TEXTFILE\n" +
-                "SELECT `org_name`\n" +
-                "FROM flink.open_api_record\n" +
-                "WHERE token='aaf1704a-78ee-4e1d-bb04-039a6c8c93ab' AND interface_id=1152 AND request_date='2024-03-12';";
+        String sql = "!sh hdfs dfs -ls /";
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            connection.prepareStatement(sql).executeUpdate();
+            connection.prepareStatement("set spark.yarn.queue=offline").executeUpdate();
         } catch (Exception ignore) {
         }
     }

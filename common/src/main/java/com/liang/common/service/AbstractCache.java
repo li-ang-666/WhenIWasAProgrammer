@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractCache<K, V> {
+    // 公平锁
     private final Lock lock = new ReentrantLock(true);
     private final Map<K, Collection<V>> cache = new HashMap<>();
     private final KeySelector<K, V> keySelector;
@@ -33,6 +34,8 @@ public abstract class AbstractCache<K, V> {
         this.cacheRecords = cacheRecords;
         sender = DaemonExecutor.launch("AbstractCacheThread", () -> {
             while (true) {
+                // 先消耗掉可能存在的permit
+                LockSupport.parkNanos(1);
                 LockSupport.parkUntil(System.currentTimeMillis() + this.cacheMilliseconds);
                 flush();
             }
@@ -48,14 +51,14 @@ public abstract class AbstractCache<K, V> {
     public final void update(Collection<V> values) {
         // 拦截空值
         if (values == null || values.isEmpty()) return;
-        lock.lock();
         try {
             // 同一批次的写入, 不拆开
+            lock.lock();
             for (V value : values) {
                 if (value == null) continue;
                 K key = keySelector.selectKey(value);
                 cache.compute(key, (k, v) -> {
-                    Collection<V> buffer = (v != null) ? v : new ArrayList<>(cacheRecords);
+                    Collection<V> buffer = (v != null) ? v : new ArrayList<>();
                     buffer.add(value);
                     // 有任意分区达到条数阈值, 唤醒sender
                     if (sender != null && buffer.size() >= cacheRecords) LockSupport.unpark(sender);
@@ -69,8 +72,8 @@ public abstract class AbstractCache<K, V> {
     }
 
     public final void flush() {
-        lock.lock();
         try {
+            lock.lock();
             for (Map.Entry<K, Collection<V>> entry : cache.entrySet()) {
                 Collection<V> values = entry.getValue();
                 if (values.isEmpty()) continue;
