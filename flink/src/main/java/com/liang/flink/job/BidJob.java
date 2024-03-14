@@ -58,7 +58,7 @@ public class BidJob {
             String id = String.valueOf(columnMap.get("id"));
             String uuid = String.valueOf(columnMap.get("uuid"));
             String content = String.valueOf(columnMap.get("content"));
-            // delete
+            // delete mysql
             String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
                     .WHERE("id = " + SqlUtils.formatValue(id))
                     .toString();
@@ -68,6 +68,7 @@ public class BidJob {
             }
             // write map
             columnMap.put("post_result", doPost(content, uuid));
+            // write mysql
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             String insertSql = new SQL().REPLACE_INTO(SINK_TABlE)
                     .INTO_COLUMNS(insert.f0)
