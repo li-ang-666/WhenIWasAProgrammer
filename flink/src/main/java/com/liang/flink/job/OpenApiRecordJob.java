@@ -124,6 +124,10 @@ public class OpenApiRecordJob {
             // read map
             String columnJson = kafkaRecord.getValue();
             Map<String, Object> columnMap = JsonUtils.parseJsonObj(columnJson);
+            if (columnMap == null) {
+                log.warn("unresolvable json: {}, topic: {}, offset: {}", columnJson, kafkaRecord.getTopic(), kafkaRecord.getOffset());
+                return;
+            }
             String orgName = String.valueOf(columnMap.get("orgName"));
             String orderCode = String.valueOf(columnMap.get("orderCode"));
             String token = String.valueOf(columnMap.get("token"));
