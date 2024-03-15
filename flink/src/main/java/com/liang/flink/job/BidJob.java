@@ -70,12 +70,11 @@ public class BidJob {
                 return;
             }
             // read AI
-            String postResult = doPost(content);
+            String postResult = doPost(uuid, content);
             Map<String, Object> postResultColumnMap = JsonUtils.parseJsonObj(postResult);
             Map<String, Object> postResultColumnMapResultMap = (Map<String, Object>) (postResultColumnMap.get("result"));
             List<Map<String, Object>> entitiesList = (List<Map<String, Object>>) (postResultColumnMapResultMap.get("entities"));
             String entitiesString = JsonUtils.toString(entitiesList);
-            log.info("{} -> {}", uuid, entitiesString);
             // write map
             columnMap.put("post_result", entitiesString);
             // write mysql
@@ -87,9 +86,15 @@ public class BidJob {
             //sink.update(deleteSql, insertSql);
         }
 
-        private String doPost(String content) {
-            Map<String, Object> paramMap = Collections.singletonMap("text", content);
-            return HttpUtil.post(URL, paramMap, TIMEOUT);
+        private String doPost(String uuid, String content) {
+            do {
+                try {
+                    Map<String, Object> paramMap = Collections.singletonMap("text", content);
+                    return HttpUtil.post(URL, paramMap, TIMEOUT);
+                } catch (Exception e) {
+                    log.warn("post error, uuid: {}", uuid, e);
+                }
+            } while (true);
         }
     }
 }
