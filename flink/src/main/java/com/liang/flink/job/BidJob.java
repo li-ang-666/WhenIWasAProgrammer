@@ -20,7 +20,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -88,9 +88,7 @@ public class BidJob {
         }
 
         private String doPost(String content) {
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put("text", content);
-            paramMap.put("doc_type", "");
+            Map<String, Object> paramMap = Collections.singletonMap("text", content);
             return HttpUtil.post(URL, paramMap, TIMEOUT);
         }
     }
