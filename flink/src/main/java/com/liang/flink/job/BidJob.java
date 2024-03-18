@@ -51,13 +51,14 @@ public class BidJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            sink = new JdbcTemplate("448.operating_info");
+            sink = new JdbcTemplate("427.test");
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             // read map
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            columnMap.entrySet().removeIf(e -> e.getValue() == null);
             String id = String.valueOf(columnMap.get("id"));
             String uuid = String.valueOf(columnMap.get("uuid"));
             String content = String.valueOf(columnMap.get("content"));
@@ -66,7 +67,7 @@ public class BidJob {
                     .WHERE("id = " + SqlUtils.formatValue(id))
                     .toString();
             if (singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE) {
-                //sink.update(deleteSql);
+                sink.update(deleteSql);
                 return;
             }
             // read AI
@@ -84,7 +85,7 @@ public class BidJob {
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1)
                     .toString();
-            //sink.update(deleteSql, insertSql);
+            sink.update(deleteSql, insertSql);
         }
 
         private String doPost(String uuid, String content) {
