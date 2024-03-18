@@ -61,7 +61,7 @@ import java.util.concurrent.locks.LockSupport;
 public class OpenApiRecordJob {
     // common
     private static final String DATABASE = "flink";
-    private static final String TABLE = "open_api_record";
+    private static final String TABLE = "open_api_record_prod";
     // hive jdbc
     private static final String DRIVER = "org.apache.hive.jdbc.HiveDriver";
     private static final String URL = "jdbc:hive2://10.99.202.153:2181,10.99.198.86:2181,10.99.203.51:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2";

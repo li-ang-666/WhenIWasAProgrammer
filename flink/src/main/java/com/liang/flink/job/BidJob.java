@@ -71,15 +71,12 @@ public class BidJob {
                 return;
             }
             // read AI
-            String entitiesString = Optional.ofNullable(doPost(uuid, content))
+            String postResult = Optional.ofNullable(doPost(uuid, content))
                     .map(JsonUtils::parseJsonObj)
-                    .map(postColumnMap -> postColumnMap.get("result"))
-                    .map(result -> (Map<String, Object>) result)
-                    .map(resultMap -> resultMap.get("entities"))
                     .map(JsonUtils::toString)
-                    .orElse("[]");
+                    .orElse("{}");
             // write map
-            columnMap.put("post_result", entitiesString);
+            columnMap.put("post_result", postResult);
             // write mysql
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
             String insertSql = new SQL().REPLACE_INTO(SINK_TABlE)
