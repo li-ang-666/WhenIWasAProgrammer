@@ -73,8 +73,9 @@ public class BidJob {
             // read AI
             String entitiesString = Optional.ofNullable(doPost(uuid, content))
                     .map(JsonUtils::parseJsonObj)
-                    .map(postResultColumnMap -> postResultColumnMap.get("result"))
-                    .map(result -> ((Map<String, Object>) result).get("entities"))
+                    .map(postColumnMap -> postColumnMap.get("result"))
+                    .map(result -> (Map<String, Object>) result)
+                    .map(resultMap -> resultMap.get("entities"))
                     .map(JsonUtils::toString)
                     .orElse("[]");
             // write map
