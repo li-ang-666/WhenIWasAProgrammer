@@ -21,8 +21,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @SuppressWarnings("unchecked")
@@ -44,7 +44,7 @@ public class BidJob {
     private static final class BidSink extends RichSinkFunction<SingleCanalBinlog> {
         private static final int TIMEOUT = 1000 * 60;
         private static final String URL = "https://bid.tianyancha.com/bid_rank";
-        private static final String SINK_TABlE = "company_bid_with_post_result";
+        private static final String SINK_TABlE = "company_bid_plus";
         private final Config config;
         private JdbcTemplate sink;
 
@@ -70,11 +70,12 @@ public class BidJob {
                 return;
             }
             // read AI
-            String postResult = doPost(uuid, content);
-            Map<String, Object> postResultColumnMap = JsonUtils.parseJsonObj(postResult);
-            Map<String, Object> postResultColumnMapResultMap = (Map<String, Object>) (postResultColumnMap.get("result"));
-            List<Map<String, Object>> entitiesList = (List<Map<String, Object>>) (postResultColumnMapResultMap.get("entities"));
-            String entitiesString = JsonUtils.toString(entitiesList);
+            String entitiesString = Optional.ofNullable(doPost(uuid, content))
+                    .map(JsonUtils::parseJsonObj)
+                    .map(postResultColumnMap -> postResultColumnMap.get("result"))
+                    .map(result -> ((Map<String, Object>) result).get("entities"))
+                    .map(JsonUtils::toString)
+                    .orElse("[]");
             // write map
             columnMap.put("post_result", entitiesString);
             // write mysql
