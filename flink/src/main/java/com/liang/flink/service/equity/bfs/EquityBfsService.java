@@ -24,6 +24,7 @@ public class EquityBfsService {
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
+    // base info
     private String companyId;
     private String companyName;
     private boolean companyIsListed;
