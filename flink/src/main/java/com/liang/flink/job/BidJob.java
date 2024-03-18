@@ -63,10 +63,10 @@ public class BidJob {
             String uuid = String.valueOf(columnMap.get("uuid"));
             String content = String.valueOf(columnMap.get("content"));
             // delete mysql
-            String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
-                    .WHERE("id = " + SqlUtils.formatValue(id))
-                    .toString();
             if (singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE) {
+                String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
+                        .WHERE("id = " + SqlUtils.formatValue(id))
+                        .toString();
                 sink.update(deleteSql);
                 return;
             }
@@ -85,7 +85,7 @@ public class BidJob {
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1)
                     .toString();
-            sink.update(deleteSql, insertSql);
+            sink.update(insertSql);
         }
 
         private String doPost(String uuid, String content) {
@@ -94,7 +94,7 @@ public class BidJob {
                     Map<String, Object> paramMap = Collections.singletonMap("text", content);
                     return HttpUtil.post(URL, paramMap, TIMEOUT);
                 } catch (Exception e) {
-                    log.warn("post error, uuid: {}", uuid, e);
+                    log.warn("post error, uuid: {}, exception: {} {}", uuid, e.getClass().getName(), e.getMessage());
                 }
             } while (true);
         }
