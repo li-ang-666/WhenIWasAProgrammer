@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
-@SuppressWarnings("unchecked")
 @LocalConfigFile("bid.yml")
 public class BidJob {
     public static void main(String[] args) throws Exception {
