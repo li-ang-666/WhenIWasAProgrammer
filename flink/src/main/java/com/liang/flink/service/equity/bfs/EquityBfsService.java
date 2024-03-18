@@ -26,6 +26,7 @@ public class EquityBfsService {
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
     private String companyId;
     private String companyName;
+    private boolean companyIsListed;
     private int currentLevel;
 
     public static void main(String[] args) {
@@ -48,6 +49,7 @@ public class EquityBfsService {
         if (!TycUtils.isUnsignedId(companyId)) return new ArrayList<>();
         this.companyName = dao.queryCompanyName(companyId);
         if (!TycUtils.isValidName(companyName)) return new ArrayList<>();
+        this.companyIsListed = dao.isListed(companyId);
         allShareholders.clear();
         bfsQueue.clear();
         currentLevel = 0;
@@ -149,7 +151,7 @@ public class EquityBfsService {
                 Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(shareholderId);
                 String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
                 String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
-                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
+                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
             }
             // 新路径 & 总股比
             ratioPathCompanyDto.getPaths().add(newPath);
@@ -180,7 +182,7 @@ public class EquityBfsService {
             Edge newEdge = new Edge(ratio, true);
             Node newNode = new Node(companyId, companyName);
             Path newPath = Path.newPath(polledPath, newEdge, newNode);
-            RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyId, companyName, companyId, companyId);
+            RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyId, companyName, companyId, companyId);
             ratioPathCompanyDto.getPaths().add(newPath);
             ratioPathCompanyDto.setTotalValidRatio(newPath.getValidRatio());
             ratioPathCompanyDto.setDirectShareholder(true);

@@ -18,6 +18,7 @@ public class RatioPathCompanyDto {
     // 被投资公司基本属性
     private final String companyId;
     private final String companyName;
+    private final boolean isListed;
     // 股东基本属性
     private final String shareholderId;
     private final String shareholderName;
@@ -37,6 +38,7 @@ public class RatioPathCompanyDto {
         // 公司
         columnMap.put("company_id", companyId);
         columnMap.put("company_name", companyName);
+        columnMap.put("company_is_listed", isListed);
         // 股东
         columnMap.put("shareholder_entity_type", shareholderId.length() == 17 ? "2" : "1");
         columnMap.put("shareholder_id", shareholderId);

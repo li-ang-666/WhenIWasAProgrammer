@@ -18,6 +18,7 @@ public class EquityBfsDao {
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base");
     private final JdbcTemplate humanBase040 = new JdbcTemplate("040.human_base");
+    private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
 
     public String queryCompanyName(String companyId) {
         String sql = new SQL().SELECT("company_name")
@@ -25,6 +26,16 @@ public class EquityBfsDao {
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .toString();
         return companyBase435.queryForObject(sql, rs -> rs.getString(1));
+    }
+
+    public boolean isListed(Object companyId) {
+        String sql = new SQL().SELECT("1")
+                .FROM("equity_ratio")
+                .WHERE("company_graph_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("source = 100")
+                .WHERE("deleted = 0")
+                .toString();
+        return prism116.queryForObject(sql, rs -> rs.getString(1)) != null;
     }
 
     public List<CompanyEquityRelationDetailsDto> queryShareholder(String companyId) {
