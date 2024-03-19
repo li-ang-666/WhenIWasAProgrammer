@@ -25,22 +25,22 @@ import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
-@LocalConfigFile("bid.yml")
-public class BidJob {
+@LocalConfigFile("bid-plus.yml")
+public class BidPlusJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
                 .keyBy(e -> e.getColumnMap().get("id"))
-                .addSink(new BidSink(config))
+                .addSink(new BidPlusSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .name("BidSink")
-                .uid("BidSink");
-        env.execute("BidJob");
+                .name("BidPlusSink")
+                .uid("BidPlusSink");
+        env.execute("BidPlusJob");
     }
 
     @RequiredArgsConstructor
-    private static final class BidSink extends RichSinkFunction<SingleCanalBinlog> {
+    private static final class BidPlusSink extends RichSinkFunction<SingleCanalBinlog> {
         private static final int TIMEOUT = 1000 * 60;
         private static final String URL = "https://bid.tianyancha.com/bid_rank";
         private static final String SINK_TABlE = "company_bid_plus";
