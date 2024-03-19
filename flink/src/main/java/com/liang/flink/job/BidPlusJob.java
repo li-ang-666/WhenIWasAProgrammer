@@ -55,10 +55,10 @@ public class BidPlusJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            // read map
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             // 剔除null字段, 这些字段会用默认值
             columnMap.entrySet().removeIf(e -> e.getValue() == null);
+            // read map
             String id = String.valueOf(columnMap.get("id"));
             String uuid = String.valueOf(columnMap.get("uuid"));
             String content = String.valueOf(columnMap.get("content"));
