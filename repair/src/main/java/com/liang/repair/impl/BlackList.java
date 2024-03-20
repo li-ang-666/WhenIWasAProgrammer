@@ -54,7 +54,15 @@ public class BlackList extends ConfigHolder {
         new JdbcTemplate("463.bdp_equity").update(
                 "delete from entity_controller_details where tyc_unique_entity_id = 'F01Y09N0980P52BV3'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'F01Y09N0980P52BV3'",
-                "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'F01Y09N0980P52BV3'"
-        );
+                "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'F01Y09N0980P52BV3'");
+        // 删除老板所有数据
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'Q01589P02D8FNTBU4'");
+        new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = 'Q01589P02D8FNTBU4'");
+        new JdbcTemplate("463.bdp_equity").update(
+                "delete from entity_controller_details where tyc_unique_entity_id = 'Q01589P02D8FNTBU4'",
+                "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'Q01589P02D8FNTBU4'",
+                "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'Q01589P02D8FNTBU4'");
+
+
     }
 }
