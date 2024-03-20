@@ -978,7 +978,7 @@ public class Roaring64Map {
     public String toString() {
         final StringBuilder answer = new StringBuilder();
         final LongIterator i = this.getLongIterator();
-        answer.append("{");
+        answer.append("[");
         if (i.hasNext()) {
             if (signedLongs) {
                 answer.append(i.next());
@@ -989,10 +989,10 @@ public class Roaring64Map {
         while (i.hasNext()) {
             answer.append(",");
             // to avoid using too much memory, we limit the size
-            if (answer.length() > 0x80000) {
-                answer.append("...");
-                break;
-            }
+            //if (answer.length() > 0x80000) {
+            //    answer.append("...");
+            //    break;
+            //}
             if (signedLongs) {
                 answer.append(i.next());
             } else {
@@ -1000,7 +1000,7 @@ public class Roaring64Map {
             }
 
         }
-        answer.append("}");
+        answer.append("]");
         return answer.toString();
     }
 

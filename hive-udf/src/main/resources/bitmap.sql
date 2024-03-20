@@ -13,6 +13,9 @@ create function doris.bitmap_union as 'com.liang.udf.BitmapUnionUDAF' USING JAR 
 -- bitmap_count
 drop function if exists doris.bitmap_count;
 create function doris.bitmap_count as 'com.liang.udf.BitmapCountUDF' USING JAR 'hdfs:///hive/jars/liang-hive-udf-1.0.jar';
+-- bitmap_to_string
+drop function if exists doris.bitmap_to_string;
+create function doris.bitmap_to_string as 'com.liang.udf.BitmapToStringUDF' USING JAR 'hdfs:///hive/jars/liang-hive-udf-1.0.jar';
 -- bitmap_and
 drop function if exists doris.bitmap_and;
 create function doris.bitmap_and as 'com.liang.udf.BitmapAndUDF' USING JAR 'hdfs:///hive/jars/liang-hive-udf-1.0.jar';
