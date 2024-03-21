@@ -17,6 +17,7 @@ public class EquityBfsDao {
     private final JdbcTemplate graphData430 = new JdbcTemplate("430.graph_data");
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base");
+    private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
     private final JdbcTemplate humanBase040 = new JdbcTemplate("040.human_base");
     private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
 
@@ -99,5 +100,23 @@ public class EquityBfsDao {
             put("id", id);
         }});
         return columnMap != null ? columnMap : new HashMap<>();
+    }
+
+    public String queryOrgType(String companyId) {
+        String sql = new SQL()
+                .SELECT("org_type")
+                .FROM("company_index")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .toString();
+        return companyBase435.queryForObject(sql, rs -> rs.getString(1));
+    }
+
+    public String queryEntityProperty(String companyId) {
+        String sql = new SQL()
+                .SELECT("entity_property")
+                .FROM("tyc_entity_general_property_reference")
+                .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyId))
+                .toString();
+        return companyBase465.queryForObject(sql, rs -> rs.getString(1));
     }
 }
