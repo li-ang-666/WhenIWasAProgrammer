@@ -1,5 +1,6 @@
 package com.liang.flink.service.equity.bfs;
 
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
@@ -34,7 +35,7 @@ public class EquityBfsService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
-        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("3469055311");
+        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("1332408");
         columnMaps.sort(Comparator.comparing(map -> String.valueOf(map.get("shareholder_id"))));
         for (Map<String, Object> columnMap : columnMaps) {
             System.out.println(StrUtil.repeat("=", 100));
@@ -52,7 +53,7 @@ public class EquityBfsService {
         this.companyName = dao.queryCompanyName(companyId);
         if (!TycUtils.isValidName(companyName)) return new ArrayList<>();
         this.companyIsListed = dao.isListed(companyId);
-        this.companyUscc = dao.getUscc(companyId);
+        this.companyUscc = ObjUtil.defaultIfNull(dao.getUscc(companyId), "");
         allShareholders.clear();
         bfsQueue.clear();
         currentLevel = 0;
@@ -161,7 +162,7 @@ public class EquityBfsService {
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newPath.getValidRatio()));
             // 是否某条路径终点
             if (!ratioPathCompanyDto.isEnd()) {
-                ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE);
+                ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE && judgeResult != ARCHIVE_WITH_UPDATE_PATH_ONLY);
             }
             // 是否直接股东 & 直接股比
             if (currentLevel == 0) {

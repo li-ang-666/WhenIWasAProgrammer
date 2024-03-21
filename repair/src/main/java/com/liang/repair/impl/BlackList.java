@@ -33,8 +33,10 @@ public class BlackList extends ConfigHolder {
         // 合作伙伴
         new JdbcTemplate("467.company_base")
                 .update("delete from cooperation_partner where boss_human_pid = '604CHMA09HHC3DQ2V' ");// 合作伙伴
-        new JdbcTemplate("467.company_base")
-                .update("delete from cooperation_partner where boss_human_pid = '4007VMD00G8D0BNHB' ");// 合作伙伴
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '4007VMD00G8D0BNHB' ");// 合作伙伴
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'Y0CENMJ00GG2SN24Y' ");// 合作伙伴
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'H0MEMMQ0A9G2SN24Q' ");// 合作伙伴
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'H0M6MMQ0A9K2BF23Q' ");// 合作伙伴
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '1017NMG0128P0BNHV' ");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'C00D2MS027C197JEN' ");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'T0142MQ024R6FVJLD' and (company_name = '天津市庆军德医疗器械有限公司' or partner_human_name = '王晶')");

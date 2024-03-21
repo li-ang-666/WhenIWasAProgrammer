@@ -1,5 +1,6 @@
 package com.liang.flink.service.equity.bfs.dto.mysql;
 
+import cn.hutool.core.util.StrUtil;
 import com.liang.common.util.JsonUtils;
 import com.liang.flink.service.equity.bfs.dto.pojo.Edge;
 import com.liang.flink.service.equity.bfs.dto.pojo.Node;
@@ -15,11 +16,12 @@ import java.util.*;
 @Data
 @RequiredArgsConstructor
 public class RatioPathCompanyDto {
+    private static String[] USCC_WHITE_LIST = new String[]{"31", "91", "92", "93"};
     // 被投资公司基本属性
     private final String companyId;
     private final String companyName;
-    private final boolean isListed;
-    private final String uscc;
+    private final boolean companyIsListed;
+    private final String companyUscc;
     // 股东基本属性
     private final String shareholderId;
     private final String shareholderName;
@@ -39,8 +41,8 @@ public class RatioPathCompanyDto {
         // 公司
         columnMap.put("company_id", companyId);
         columnMap.put("company_name", companyName);
-        columnMap.put("company_is_listed", isListed);
-        columnMap.put("uscc", uscc);
+        //columnMap.put("company_is_listed", isListed);
+        //columnMap.put("company_uscc", uscc);
         // 股东
         columnMap.put("shareholder_entity_type", shareholderId.length() == 17 ? "2" : "1");
         columnMap.put("shareholder_id", shareholderId);
@@ -54,6 +56,10 @@ public class RatioPathCompanyDto {
         columnMap.put("investment_ratio_total", formatBigDecimal(totalValidRatio, 6));
         columnMap.put("equity_holding_path", JsonUtils.toString(allPaths2List()));
         columnMap.put("is_end", isEnd);
+        // 标签
+
+        columnMap.put("is_big_shareholder", StrUtil.startWithAny(companyUscc, USCC_WHITE_LIST));
+        columnMap.put("is_controlling_shareholder", StrUtil.startWithAny(companyUscc, USCC_WHITE_LIST));
         return columnMap;
     }
 

@@ -22,7 +22,7 @@ public class EquityControlService {
     private static final String REASON_PARTNER = "执行事务合伙人";
     private static final String THRESHOLD_PERCENT_THIRTY = "0.300000";
     private static final String THRESHOLD_PERCENT_FIFTY = "0.500000";
-    private static final String[] USCC_TWO_WHITE_LIST = new String[]{"31", "91", "92", "93"};
+    private static final String[] USCC_WHITE_LIST = new String[]{"31", "91", "92", "93"};
     private final EquityControlDao controllerDao = new EquityControlDao();
     private final EquityBfsDao bfsDao = new EquityBfsDao();
 
@@ -50,7 +50,7 @@ public class EquityControlService {
         if (!TycUtils.isValidName(companyName)) return columnMaps;
         // 企业类型屏蔽逻辑
         String usccPrefixTwo = String.valueOf(companyInfo.get("unified_social_credit_code"));
-        if (!StrUtil.startWithAny(usccPrefixTwo, USCC_TWO_WHITE_LIST)) return columnMaps;
+        if (!StrUtil.startWithAny(usccPrefixTwo, USCC_WHITE_LIST)) return columnMaps;
         // 开始判断
         List<Map<String, Object>> listedAnnouncedControllerMaps = controllerDao.queryListedAnnouncedControllers(companyId);
         // 存在上市公告的实际控制人

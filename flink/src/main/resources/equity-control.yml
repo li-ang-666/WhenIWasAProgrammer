@@ -1,21 +1,16 @@
-dbConfigs:
-  430.graph_data: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "graph_data", user: "jdtest_d_data_ddl", password: "dwjIFAmM39Y2O98cKu", port: 3306 }
-  457.prism_shareholder_path: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism_shareholder_path", user: "jdtest_d_data_ddl", password: "dwjIFAmM39Y2O98cKu", port: 3306 }
-  463.bdp_equity: { host: "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "bdp_equity", user: "jdtest_d_data_ddl", password: "dwjIFAmM39Y2O98cKu", port: 3306 }
-
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
   - taskId: "111"
-    sourceName: "427.test"
-    tableName: "prism_shareholder_path.ratio_path_company_new"
+    sourceName: "435.company_base"
+    tableName: "company_index"
     columns: "*"
-    where: "company_id = 22822"
+    where: "company_id in (4348153347,1332408)"
     scanMode: Direct
 
 kafkaConfigs:

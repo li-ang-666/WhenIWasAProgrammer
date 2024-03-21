@@ -109,6 +109,15 @@ public class EquityBfsJob {
             else if (database.contains("human_base") && table.contains("human")) {
                 entityIds.add(String.valueOf(columnMap.get("human_id")));
             }
+            // 老板公司关系表 9bc47.proto.prism_boss.company_human_relation
+            else if (table.contains("company_human_relation")) {
+                entityIds.add(String.valueOf(columnMap.get("company_graph_id")));
+                entityIds.add(String.valueOf(columnMap.get("human_pid")));
+            }
+            // 上市板块 9bc47.proto.listed_base.company_bond_plates
+            else if (table.contains("company_bond_plates")) {
+                entityIds.add(String.valueOf(columnMap.get("company_id")));
+            }
             for (String entityId : entityIds) {
                 if (!TycUtils.isTycUniqueEntityId(entityId)) {
                     continue;
