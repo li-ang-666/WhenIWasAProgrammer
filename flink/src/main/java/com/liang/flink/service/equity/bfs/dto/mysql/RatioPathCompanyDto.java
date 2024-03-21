@@ -17,6 +17,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class RatioPathCompanyDto {
     private static String[] USCC_WHITE_LIST = new String[]{"31", "91", "92", "93"};
+    private static BigDecimal BIG_SHAREHOLDER = new BigDecimal("0.05");
+    private static BigDecimal CONTROLLING_SHAREHOLDER = new BigDecimal("0.5");
     // 被投资公司基本属性
     private final String companyId;
     private final String companyName;
@@ -57,9 +59,9 @@ public class RatioPathCompanyDto {
         columnMap.put("equity_holding_path", JsonUtils.toString(allPaths2List()));
         columnMap.put("is_end", isEnd);
         // 标签
-
-        columnMap.put("is_big_shareholder", StrUtil.startWithAny(companyUscc, USCC_WHITE_LIST));
-        columnMap.put("is_controlling_shareholder", StrUtil.startWithAny(companyUscc, USCC_WHITE_LIST));
+        boolean isWhiteUscc = StrUtil.startWithAny(companyUscc, USCC_WHITE_LIST);
+        columnMap.put("is_big_shareholder", isWhiteUscc && isCompanyIsListed() && totalValidRatio.compareTo(directRatio) >= 0);
+        columnMap.put("is_controlling_shareholder", isWhiteUscc && totalValidRatio.compareTo(CONTROLLING_SHAREHOLDER) >= 0);
         return columnMap;
     }
 

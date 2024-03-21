@@ -162,6 +162,7 @@ public class EquityBfsService {
             ratioPathCompanyDto.setTotalValidRatio(ratioPathCompanyDto.getTotalValidRatio().add(newPath.getValidRatio()));
             // 是否某条路径终点
             if (!ratioPathCompanyDto.isEnd()) {
+                // 成环而终止的公司, 不应该拥有候选实控人的权利
                 ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE && judgeResult != ARCHIVE_WITH_UPDATE_PATH_ONLY);
             }
             // 是否直接股东 & 直接股比
