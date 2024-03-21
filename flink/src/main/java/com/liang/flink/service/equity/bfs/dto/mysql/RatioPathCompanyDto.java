@@ -64,7 +64,7 @@ public class RatioPathCompanyDto {
         columnMap.put("is_end", isEnd);
         // 标签
         boolean isWhiteUscc = StrUtil.startWithAny(companyUscc, USCC_WHITE_LIST);
-        boolean isPartnership = StrUtil.startWithAny(companyEntityProperty, "15", "16");
+        boolean isPartnership = StrUtil.equalsAny(companyEntityProperty, "15", "16");
         //columnMap.put("is_big_shareholder", !isPartnership && isWhiteUscc && isCompanyIsListed() && directRatio.compareTo(BIG_SHAREHOLDER) >= 0);
         //columnMap.put("is_controlling_shareholder", !isPartnership && isWhiteUscc && directRatio.compareTo(CONTROLLING_SHAREHOLDER) >= 0);
         return columnMap;
