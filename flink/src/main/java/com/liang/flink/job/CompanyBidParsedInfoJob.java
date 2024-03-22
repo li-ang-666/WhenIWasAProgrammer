@@ -7,6 +7,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -138,57 +139,74 @@ public class CompanyBidParsedInfoJob {
                 List<Map<String, Object>> actionMaps = (List<Map<String, Object>>) (parsedMap.getOrDefault("action", new ArrayList<>()));
                 for (Map<String, Object> actionMap : actionMaps) {
                     // raw budget
-                    budgetRawAmounts.add(new HashMap<String, Object>() {{
-                        put("amount", String.valueOf(actionMap.getOrDefault("raw_balance", "")));
-                    }});
+                    String rawBalance = String.valueOf(actionMap.getOrDefault("raw_balance", ""));
+                    // 预算, 不为空就保留
+                    if (TycUtils.isValidName(rawBalance)) {
+                        budgetRawAmounts.add(new HashMap<String, Object>() {{
+                            put("amount", rawBalance);
+                        }});
+                    }
                     // budget
-                    budgetAmounts.add(new HashMap<String, Object>() {{
-                        put("amount", String.valueOf(actionMap.getOrDefault("balance", "")));
-                    }});
+                    String balance = String.valueOf(actionMap.getOrDefault("balance", ""));
+                    // 预算, 不为空就保留
+                    if (TycUtils.isValidName(balance)) {
+                        budgetAmounts.add(new HashMap<String, Object>() {{
+                            put("amount", balance);
+                        }});
+                    }
                     // purchaser
                     List<Map<String, Object>> clientMaps = (List<Map<String, Object>>) (actionMap.getOrDefault("client", new ArrayList<>()));
                     for (Map<String, Object> clientMap : clientMaps) {
-                        purchasers.add(new LinkedHashMap<String, Object>() {{
-                            String name = String.valueOf(clientMap.getOrDefault("name", ""));
-                            put("gid", queryCompanyIdByCompanyName(name));
-                            put("name", name);
-                        }});
+                        String name = String.valueOf(clientMap.getOrDefault("name", ""));
+                        // 只要名字正确, 就保留
+                        if (TycUtils.isValidName(name)) {
+                            purchasers.add(new LinkedHashMap<String, Object>() {{
+                                put("gid", queryCompanyIdByCompanyName(name));
+                                put("name", name);
+                            }});
+                        }
                     }
                     // candidate
                     Map<String, Object> candidateMap = (Map<String, Object>) (actionMap.getOrDefault("supplier_candidate", new LinkedHashMap<>()));
                     List<Map<String, Object>> candidateEntities = (List<Map<String, Object>>) (candidateMap.getOrDefault("entity", new ArrayList<>()));
                     for (Map<String, Object> candidateEntity : candidateEntities) {
-                        candidates.add(new LinkedHashMap<String, Object>() {{
-                            String name = String.valueOf(candidateEntity.getOrDefault("name", ""));
-                            put("gid", queryCompanyIdByCompanyName(name));
-                            put("name", name);
-                            put("raw_offer_price", String.valueOf(candidateEntity.getOrDefault("raw_offer_price", "")));
-                            put("offer_price", String.valueOf(candidateEntity.getOrDefault("offer_price", "")));
-                        }});
+                        String name = String.valueOf(candidateEntity.getOrDefault("name", ""));
+                        // 只要名字正确, 就保留
+                        if (TycUtils.isValidName(name)) {
+                            candidates.add(new LinkedHashMap<String, Object>() {{
+                                put("gid", queryCompanyIdByCompanyName(name));
+                                put("name", name);
+                                put("raw_offer_price", String.valueOf(candidateEntity.getOrDefault("raw_offer_price", "")));
+                                put("offer_price", String.valueOf(candidateEntity.getOrDefault("offer_price", "")));
+                            }});
+                        }
                     }
                     // winner
                     Map<String, Object> winnerMap = (Map<String, Object>) (actionMap.getOrDefault("supplier", new LinkedHashMap<>()));
                     List<Map<String, Object>> winnerEntities = (List<Map<String, Object>>) (winnerMap.getOrDefault("entity", new ArrayList<>()));
                     for (Map<String, Object> winnerEntity : winnerEntities) {
                         String name = String.valueOf(winnerEntity.getOrDefault("name", ""));
-                        // winners
-                        winners.add(new LinkedHashMap<String, Object>() {{
-                            put("gid", queryCompanyIdByCompanyName(name));
-                            put("name", name);
-                        }});
-                        // raw winner amount
-                        winnerRawAmounts.add(new HashMap<String, Object>() {{
-                            put("amount", String.valueOf(winnerEntity.getOrDefault("raw_offer_price", "")));
-                        }});
-                        // winner amount
-                        winnerAmounts.add(new HashMap<String, Object>() {{
-                            put("amount", String.valueOf(winnerEntity.getOrDefault("offer_price", "")));
-                        }});
+                        // 只要名字正确, 就保留
+                        if (TycUtils.isValidName(name)) {
+                            // winner
+                            winners.add(new LinkedHashMap<String, Object>() {{
+                                put("gid", queryCompanyIdByCompanyName(name));
+                                put("name", name);
+                            }});
+                            // raw winner amount
+                            winnerRawAmounts.add(new HashMap<String, Object>() {{
+                                put("amount", String.valueOf(winnerEntity.getOrDefault("raw_offer_price", "")));
+                            }});
+                            // winner amount
+                            winnerAmounts.add(new HashMap<String, Object>() {{
+                                put("amount", String.valueOf(winnerEntity.getOrDefault("offer_price", "")));
+                            }});
+                        }
                     }
                 }
             }
-            columnMap.put("item_no", itemNos.get(0));
-            columnMap.put("contract_no", contractNos.get(0));
+            columnMap.put("item_no", itemNos.isEmpty() ? "" : itemNos.get(0));
+            columnMap.put("contract_no", contractNos.isEmpty() ? "" : contractNos.get(0));
             columnMap.put("purchasers", JsonUtils.toString(purchasers));
             columnMap.put("candidates", JsonUtils.toString(candidates));
             columnMap.put("winners", JsonUtils.toString(winners));
