@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import cn.hutool.core.util.ObjUtil;
+import com.google.common.collect.Lists;
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -87,7 +88,7 @@ public class CompanyBidParsedInfoJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String bidInfo = String.valueOf(columnMap.get("bid_info"));
-            Map<String, Object> parsedColumnMap = parseComplexJson(bidInfo);
+            Map<String, Object> parsedColumnMap = parseBidInfo(bidInfo);
             for (Map.Entry<String, Object> entry : parsedColumnMap.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
@@ -109,26 +110,24 @@ public class CompanyBidParsedInfoJob {
             columnMap.put("public_info_lv2", result.getOrDefault("secondary_info_type", ""));
             columnMap.put("bid_type", result.getOrDefault("bid_type", ""));
             columnMap.put("is_dirty", result.getOrDefault("is_dirty", "0"));
-            columnMap.put("ai_is_deleted", result.getOrDefault("is_deleted", "0"));
-            String bidInfo = String.valueOf(result.getOrDefault("bid_info", "[]"));
-            columnMap.putAll(parseComplexJson(bidInfo));
+            columnMap.putAll(parseBidInfo(String.valueOf(result.getOrDefault("bid_info", "[]"))));
             return columnMap;
         }
 
-        private Map<String, Object> parseComplexJson(String json) {
+        private Map<String, Object> parseBidInfo(String bidInfo) {
             Map<String, Object> columnMap = new LinkedHashMap<>();
             // prepare
-            List<String> itemNos = new ArrayList<>();
-            List<String> contractNos = new ArrayList<>();
-            List<Map<String, Object>> purchasers = new ArrayList<>();
-            List<Map<String, Object>> candidates = new ArrayList<>();
-            List<Map<String, Object>> winners = new ArrayList<>();
-            List<Map<String, Object>> winnerRawAmounts = new ArrayList<>();
-            List<Map<String, Object>> winnerAmounts = new ArrayList<>();
-            List<Map<String, Object>> budgetRawAmounts = new ArrayList<>();
-            List<Map<String, Object>> budgetAmounts = new ArrayList<>();
+            List<String> itemNos = Lists.newArrayList();
+            List<String> contractNos = Lists.newArrayList();
+            List<Map<String, Object>> purchasers = Lists.newArrayList();
+            List<Map<String, Object>> candidates = Lists.newArrayList();
+            List<Map<String, Object>> winners = Lists.newArrayList();
+            List<Map<String, Object>> winnerRawAmounts = Lists.newArrayList();
+            List<Map<String, Object>> winnerAmounts = Lists.newArrayList();
+            List<Map<String, Object>> budgetRawAmounts = Lists.newArrayList();
+            List<Map<String, Object>> budgetAmounts = Lists.newArrayList();
             // parse
-            List<Object> parsedObjects = ObjUtil.defaultIfNull(JsonUtils.parseJsonArr(json), new ArrayList<>());
+            List<Object> parsedObjects = ObjUtil.defaultIfNull(JsonUtils.parseJsonArr(bidInfo), new ArrayList<>());
             for (Object parsedObject : parsedObjects) {
                 Map<String, Object> parsedMap = (Map<String, Object>) parsedObject;
                 // item_no
