@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import cn.hutool.core.util.ObjUtil;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.google.common.collect.Lists;
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
@@ -46,6 +47,7 @@ public class CompanyBidParsedInfoJob {
         private JdbcTemplate source;
         private JdbcTemplate sink;
         private JdbcTemplate companyBase435;
+        private JdbcTemplate semanticAnalysis069;
 
         @Override
         public void open(Configuration parameters) {
@@ -53,13 +55,15 @@ public class CompanyBidParsedInfoJob {
             source = new JdbcTemplate("427.test");
             sink = new JdbcTemplate("427.test");
             companyBase435 = new JdbcTemplate("435.company_base");
+            semanticAnalysis069 = new JdbcTemplate("069.semantic_analysis");
         }
 
-        /*@Override
+        @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             // read map
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String id = String.valueOf(columnMap.get("id"));
+            String uuid = String.valueOf(columnMap.get("uuid"));
             // delete mysql
             if (singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE) {
                 String deleteSql = new SQL()
@@ -68,7 +72,8 @@ public class CompanyBidParsedInfoJob {
                         .toString();
                 sink.update(deleteSql);
             }
-            String uuid = String.valueOf(columnMap.get("uuid"));
+            Map<String, Object> resultMap = new HashMap<>();
+            //
             String postResult;
             if (columnMap.containsKey("post_result")) {
                 postResult = String.valueOf(columnMap.get("post_result"));
@@ -82,19 +87,19 @@ public class CompanyBidParsedInfoJob {
                 postResult = (queryResult != null) ? queryResult : "{}";
             }
             Map<String, Object> postResultColumnMap = parseJson(postResult);
-        }*/
-
-        @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String bidInfo = String.valueOf(columnMap.get("bid_info"));
-            Map<String, Object> parsedColumnMap = parseBidInfo(bidInfo);
-            for (Map.Entry<String, Object> entry : parsedColumnMap.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                System.out.println(key + " -> " + value);
-            }
         }
+
+        //@Override
+        //public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
+        //    Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+        //    String bidInfo = String.valueOf(columnMap.get("bid_info"));
+        //    Map<String, Object> parsedColumnMap = parseBidInfo(bidInfo);
+        //    for (Map.Entry<String, Object> entry : parsedColumnMap.entrySet()) {
+        //        String key = entry.getKey();
+        //        Object value = entry.getValue();
+        //        System.out.println(key + " -> " + value);
+        //    }
+        //}
 
         private Map<String, Object> parseJson(String json) {
             Map<String, Object> columnMap = new LinkedHashMap<>();

@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "069.semantic_analysis"
     tableName: "company_bid_info_v2"
     columns: "*"
-    where: "bid_document_uuid = 'd34e044106e94a44b72b060eb309d418'"
+    where: "bid_document_uuid = '007b1110c73511ea85737cd30aeb144c'"
     scanMode: Direct
 
 kafkaConfigs:
