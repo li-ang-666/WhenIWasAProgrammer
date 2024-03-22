@@ -41,6 +41,7 @@ public class BlackList extends ConfigHolder {
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'C00D2MS027C197JEN' ");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'T0142MQ024R6FVJLD' and (company_name = '天津市庆军德医疗器械有限公司' or partner_human_name = '王晶')");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '50E4CMQ01YRBFVJLE'");
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'V0134MP09J7AUV0Y5'");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from investment_relation where company_id_invested = 3402590853");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from investment_relation where company_id_invested = 2357995321");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from investment_relation where company_id_invested = 5049963738");

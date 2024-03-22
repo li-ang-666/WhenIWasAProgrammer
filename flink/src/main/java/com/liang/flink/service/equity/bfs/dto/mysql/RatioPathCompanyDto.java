@@ -45,10 +45,10 @@ public class RatioPathCompanyDto {
         // 公司
         columnMap.put("company_id", companyId);
         columnMap.put("company_name", companyName);
-        //columnMap.put("company_is_listed", isListed);
-        //columnMap.put("company_uscc", uscc);
-        //columnMap.put("company_org_type", companyOrgType);
-        //columnMap.put("company_entity_property", companyEntityProperty);
+        columnMap.put("company_is_listed", companyIsListed);
+        columnMap.put("company_uscc", companyUscc);
+        columnMap.put("company_org_type", companyOrgType);
+        columnMap.put("company_entity_property", companyEntityProperty);
         // 股东
         columnMap.put("shareholder_entity_type", shareholderId.length() == 17 ? "2" : "1");
         columnMap.put("shareholder_id", shareholderId);
@@ -65,8 +65,8 @@ public class RatioPathCompanyDto {
         // 标签
         boolean isWhiteUscc = StrUtil.startWithAny(companyUscc, USCC_WHITE_LIST);
         boolean isPartnership = StrUtil.equalsAny(companyEntityProperty, "15", "16");
-        //columnMap.put("is_big_shareholder", !isPartnership && isWhiteUscc && isCompanyIsListed() && directRatio.compareTo(BIG_SHAREHOLDER) >= 0);
-        //columnMap.put("is_controlling_shareholder", !isPartnership && isWhiteUscc && directRatio.compareTo(CONTROLLING_SHAREHOLDER) >= 0);
+        columnMap.put("is_big_shareholder", !isPartnership && isWhiteUscc && isCompanyIsListed() && directRatio.compareTo(BIG_SHAREHOLDER) >= 0);
+        columnMap.put("is_controlling_shareholder", !isPartnership && isWhiteUscc && directRatio.compareTo(CONTROLLING_SHAREHOLDER) >= 0);
         return columnMap;
     }
 
