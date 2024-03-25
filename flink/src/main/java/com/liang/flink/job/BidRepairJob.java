@@ -60,6 +60,7 @@ public class BidRepairJob {
                     .SET("winning_bid_amt_json_clean = " + SqlUtils.formatValue(parsedColumnMap.get("winner_amounts")))
                     .SET("budget_amt_json = " + SqlUtils.formatValue(parsedColumnMap.get("budget_raw_amounts")))
                     .SET("budget_amt_json_clean = " + SqlUtils.formatValue(parsedColumnMap.get("budget_amounts")))
+                    .SET("update_time = now()")
                     .WHERE("bid_uuid = " + SqlUtils.formatValue(columnMap.get("bid_document_uuid")))
                     .toString();
             sink.update(sql);

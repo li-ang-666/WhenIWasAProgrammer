@@ -10,5 +10,5 @@ repairTasks:
     sourceName: "069.semantic_analysis"
     tableName: "company_bid_info_v2"
     columns: "*"
-    where: "bid_document_uuid = '0004aa7953db11ea85737cd30aeb144c'"
+    where: "bid_document_uuid = '2b3a92f947184841a281529d94102821'"
     scanMode: Direct
