@@ -45,6 +45,7 @@ public class EnterpriseGidMigrationJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             sink = new JdbcTemplate("435.company_base");
+            sink.enableCache();
         }
 
         @Override
