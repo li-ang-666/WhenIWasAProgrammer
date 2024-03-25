@@ -1,0 +1,14 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 1
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - taskId: "111"
+    sourceName: "464.prism"
+    tableName: "enterprise_gid_migration"
+    columns: "*"
+    where: "1=1"
+    scanMode: TumblingWindow
