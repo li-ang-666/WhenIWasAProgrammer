@@ -1,5 +1,6 @@
 package com.liang.flink.project.bid;
 
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjUtil;
 import com.google.common.collect.Lists;
 import com.liang.common.service.SQL;
@@ -7,11 +8,29 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@Slf4j
 @SuppressWarnings("unchecked")
 public class BidUtils {
+    private static final Map<String, String> COMPANY_ID_MAPPING = new HashMap<>();
+
+    static {
+        InputStream resource = BidUtils.class.getClassLoader().getResourceAsStream("company_id_mapping.csv");
+        String lines = IoUtil.read(resource, StandardCharsets.UTF_8);
+        for (String line : lines.split("\n")) {
+            if (line.matches("\\d+,\\d+")) {
+                String[] split = line.split(",");
+                COMPANY_ID_MAPPING.put(split[0], split[1]);
+            }
+        }
+        log.info("load {} lines from company_id_mapping.csv", COMPANY_ID_MAPPING.size());
+    }
+
     public static Map<String, Object> parseBidInfo(String bidInfo) {
         Map<String, Object> columnMap = new LinkedHashMap<>();
         // prepare
@@ -121,6 +140,6 @@ public class BidUtils {
                 .WHERE("company_name = " + SqlUtils.formatValue(companyName))
                 .toString();
         String res = new JdbcTemplate("435.company_base").queryForObject(sql, rs -> rs.getString(1));
-        return ObjUtil.defaultIfNull(res, "");
+        return res != null ? COMPANY_ID_MAPPING.getOrDefault(res, res) : "";
     }
 }
