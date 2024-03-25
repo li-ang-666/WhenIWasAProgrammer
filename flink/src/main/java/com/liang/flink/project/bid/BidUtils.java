@@ -123,13 +123,13 @@ public class BidUtils {
         }
         columnMap.put("item_no", itemNos.isEmpty() ? "" : itemNos.get(0));
         columnMap.put("contract_no", contractNos.isEmpty() ? "" : contractNos.get(0));
-        columnMap.put("purchasers", purchasers.isEmpty() ? "" : JsonUtils.toString(purchasers));
-        columnMap.put("candidates", candidates.isEmpty() ? "" : JsonUtils.toString(candidates));
-        columnMap.put("winners", winners.isEmpty() ? "" : JsonUtils.toString(winners));
-        columnMap.put("winner_raw_amounts", winnerRawAmounts.isEmpty() ? "" : JsonUtils.toString(winnerRawAmounts));
-        columnMap.put("winner_amounts", winnerAmounts.isEmpty() ? "" : JsonUtils.toString(winnerAmounts));
-        columnMap.put("budget_raw_amounts", budgetRawAmounts.isEmpty() ? "" : JsonUtils.toString(budgetRawAmounts));
-        columnMap.put("budget_amounts", budgetAmounts.isEmpty() ? "" : JsonUtils.toString(budgetAmounts));
+        columnMap.put("purchasers", purchasers.isEmpty() ? "" : "[" + JsonUtils.toString(purchasers) + "]");
+        columnMap.put("candidates", candidates.isEmpty() ? "" : "[" + JsonUtils.toString(candidates) + "]");
+        columnMap.put("winners", winners.isEmpty() ? "" : "[" + JsonUtils.toString(winners) + "]");
+        columnMap.put("winner_raw_amounts", winnerRawAmounts.isEmpty() ? "" : "[" + JsonUtils.toString(winnerRawAmounts) + "]");
+        columnMap.put("winner_amounts", winnerAmounts.isEmpty() ? "" : "[" + JsonUtils.toString(winnerAmounts) + "]");
+        columnMap.put("budget_raw_amounts", budgetRawAmounts.isEmpty() ? "" : "[" + JsonUtils.toString(budgetRawAmounts) + "]");
+        columnMap.put("budget_amounts", budgetAmounts.isEmpty() ? "" : "[" + JsonUtils.toString(budgetAmounts) + "]");
         return columnMap;
     }
 
