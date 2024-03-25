@@ -34,6 +34,7 @@ public class BlackList extends ConfigHolder {
         new JdbcTemplate("467.company_base")
                 .update("delete from cooperation_partner where boss_human_pid = '604CHMA09HHC3DQ2V' ");// 合作伙伴
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '4007VMD00G8D0BNHB' ");// 合作伙伴
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'L0S80MQ093LDVD48F' ");// 合作伙伴
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'Y0CENMJ00GG2SN24Y' ");// 合作伙伴
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'H0MEMMQ0A9G2SN24Q' ");// 合作伙伴
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'H0M6MMQ0A9K2BF23Q' ");// 合作伙伴
@@ -66,6 +67,20 @@ public class BlackList extends ConfigHolder {
                 "delete from entity_controller_details where tyc_unique_entity_id = 'Q01589P02D8FNTBU4'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'Q01589P02D8FNTBU4'",
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'Q01589P02D8FNTBU4'");
+        // 删除老板所有数据
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'R01P4MP09TH6V7296'");
+        new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = 'R01P4MP09TH6V7296'");
+        new JdbcTemplate("463.bdp_equity").update(
+                "delete from entity_controller_details where tyc_unique_entity_id = 'R01P4MP09TH6V7296'",
+                "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'R01P4MP09TH6V7296'",
+                "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'R01P4MP09TH6V7296'");
+        // 删除老板所有数据
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'R01R4MP09T361FK7S'");
+        new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = 'R01R4MP09T361FK7S'");
+        new JdbcTemplate("463.bdp_equity").update(
+                "delete from entity_controller_details where tyc_unique_entity_id = 'R01R4MP09T361FK7S'",
+                "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'R01R4MP09T361FK7S'",
+                "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'R01R4MP09T361FK7S'");
 
 
     }

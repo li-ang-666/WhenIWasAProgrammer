@@ -14,6 +14,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -47,8 +48,8 @@ public class BidRepairJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String bidInfo = String.valueOf(columnMap.get("bid_info"));
+            HashMap<String, Object> resultMap = new HashMap<>();
             Map<String, Object> parsedColumnMap = BidUtils.parseBidInfo(bidInfo);
-            parsedColumnMap.forEach((k, v) -> System.out.println(k + " -> " + v));
         }
     }
 }
