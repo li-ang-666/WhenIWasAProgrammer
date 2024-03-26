@@ -43,6 +43,7 @@ public class BidRepairJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             sink = new JdbcTemplate("448.operating_info");
+            sink.enableCache();
         }
 
         @Override
