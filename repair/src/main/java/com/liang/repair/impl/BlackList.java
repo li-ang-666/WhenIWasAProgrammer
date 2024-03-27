@@ -97,6 +97,8 @@ public class BlackList extends ConfigHolder {
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = '20TVMMN02E33YF576'");
         // 删除老板所有数据
         deleteBossAll("20TVMMN02E33YF576");
+        // 删除合作伙伴
+        deletePartner("40TN89C001CR0MVL6");
     }
 
     private static void deleteBossAll(String humanPid) {
@@ -106,5 +108,9 @@ public class BlackList extends ConfigHolder {
                 "delete from entity_controller_details where tyc_unique_entity_id = '" + humanPid + "'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = '" + humanPid + "'",
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = '" + humanPid + "'");
+    }
+
+    private static void deletePartner(String humanPid) {
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '" + humanPid + "'");
     }
 }
