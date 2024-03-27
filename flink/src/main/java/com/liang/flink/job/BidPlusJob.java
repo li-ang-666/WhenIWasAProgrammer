@@ -42,7 +42,7 @@ public class BidPlusJob {
     @RequiredArgsConstructor
     private static final class BidPlusSink extends RichSinkFunction<SingleCanalBinlog> {
         private static final int TIMEOUT = 1000 * 60;
-        private static final String URL = "https://bid.tianyancha.com/bid_rank";
+        private static final String URL = "http://10.100.6.45:4567/bid_rank";
         private static final String SINK_TABlE = "company_bid_plus";
         private final Config config;
         private JdbcTemplate sink;
@@ -75,6 +75,7 @@ public class BidPlusJob {
                     .map(JsonUtils::parseJsonObj)
                     .map(JsonUtils::toString)
                     .orElse("{}");
+            log.info("postResult: {}", postResult);
             // write map
             columnMap.put("post_result", postResult);
             // write mysql

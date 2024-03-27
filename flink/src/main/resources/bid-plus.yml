@@ -10,8 +10,8 @@ repairTasks:
     sourceName: "104.data_bid"
     tableName: "company_bid"
     columns: "*"
-    where: "1=1"
-    scanMode: TumblingWindow
+    where: "uuid = '21a0ba51dbee4e079a32bc6c5c6b9aa4'"
+    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
