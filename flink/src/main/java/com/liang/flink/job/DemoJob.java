@@ -3,6 +3,7 @@ package com.liang.flink.job;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -13,7 +14,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.concurrent.locks.LockSupport;
+import java.util.Map;
 
 @Slf4j
 @LocalConfigFile("demo.yml")
@@ -39,8 +40,11 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            jdbcTemplate.update();
-            LockSupport.parkUntil(System.currentTimeMillis() + 1);
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String string = JsonUtils.toString(columnMap);
+            if (string.contains("4100752056")) {
+                log.error(JsonUtils.toString(singleCanalBinlog));
+            }
         }
     }
 }

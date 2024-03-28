@@ -1,6 +1,6 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Repair
+  sourceType: Kafka
   sourceParallel: 1
   otherParallel: 1
 
@@ -12,29 +12,11 @@ repairTasks:
     columns: "*"
     where: "1=1"
     scanMode: TumblingWindow
-  #  - taskId: "222"
-  #    sourceName: "430.graph_data"
-  #    tableName: "company_equity_relation_details"
-  #    columns: "*"
-  #    where: "1=2"
-  #    scanMode: TumblingWindow
-  - taskId: "333"
-    sourceName: "008.bigdata_online"
-    tableName: "user_blacklist"
-    columns: "*"
-    where: "1=1"
-    scanMode: TumblingWindow
-  - taskId: "444"
-    sourceName: "008.bigdata_online"
-    tableName: "user_blacklist"
-    columns: "*"
-    where: "1=2"
-    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "e1d4c.proto.prism_shareholder_path.ratio_path_company"
+      - "39398.proto.judicial_risk.enforced_info_index"
     groupId: "demo-job"
-    startFrom: "1"
+    startFrom: "2024-03-27 20:30:00"
