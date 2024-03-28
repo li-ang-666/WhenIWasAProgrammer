@@ -102,6 +102,9 @@ public class BlackList extends ConfigHolder {
         deletePartner("20ALJMQ096V0YBAZ2");
     }
 
+    /**
+     *
+     */
     private static void deleteBossAll(String humanPid) {
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '" + humanPid + "'");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = '" + humanPid + "'");
@@ -111,6 +114,9 @@ public class BlackList extends ConfigHolder {
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = '" + humanPid + "'");
     }
 
+    /**
+     *
+     */
     private static void deletePartner(String humanPid) {
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '" + humanPid + "'");
     }
