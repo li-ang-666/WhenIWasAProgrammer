@@ -99,6 +99,7 @@ public class BlackList extends ConfigHolder {
         deleteBossAll("20TVMMN02E33YF576");
         // 删除合作伙伴
         deletePartner("40TN89C001CR0MVL6");
+        deletePartner("20ALJMQ096V0YBAZ2");
     }
 
     private static void deleteBossAll(String humanPid) {
