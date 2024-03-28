@@ -97,9 +97,12 @@ public class BlackList extends ConfigHolder {
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = '20TVMMN02E33YF576'");
         // 删除老板所有数据
         deleteBossAll("20TVMMN02E33YF576");
+        deleteBossAll("K0MA4MG00PARYHCLT");
         // 删除合作伙伴
         deletePartner("40TN89C001CR0MVL6");
         deletePartner("20ALJMQ096V0YBAZ2");
+        deletePartner("20ALJMQ096V0YBAZ2");
+        deletePartner("J00LMMR0ABV5YBAZL");
     }
 
     /**
