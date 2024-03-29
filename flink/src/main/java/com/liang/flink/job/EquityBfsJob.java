@@ -25,7 +25,10 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @LocalConfigFile("equity-bfs.yml")
 public class EquityBfsJob {
@@ -50,7 +53,7 @@ public class EquityBfsJob {
                 .name("EquityBfsCalculator")
                 .uid("EquityBfsCalculator")
                 // 写入mysql
-                .keyBy(sqls -> sqls.get(0))
+                .keyBy(companyIdAndColumnMaps -> companyIdAndColumnMaps.f0)
                 .addSink(new EquityBfsSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel() / 8)
                 .name("EquityBfsSink")
@@ -117,11 +120,11 @@ public class EquityBfsJob {
      * 股权穿透
      */
     @RequiredArgsConstructor
-    private static final class EquityBfsCalculator extends RichFlatMapFunction<String, List<String>> implements CheckpointedFunction {
+    private static final class EquityBfsCalculator extends RichFlatMapFunction<String, Tuple2<String, List<Map<String, Object>>>> implements CheckpointedFunction {
         private final Roaring64Bitmap bitmap = new Roaring64Bitmap();
         private final Config config;
         private EquityBfsService service;
-        private Collector<List<String>> out;
+        private Collector<Tuple2<String, List<Map<String, Object>>>> collector;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -134,10 +137,10 @@ public class EquityBfsJob {
         }
 
         @Override
-        public void flatMap(String companyId, Collector<List<String>> out) {
+        public void flatMap(String companyId, Collector<Tuple2<String, List<Map<String, Object>>>> out) {
             synchronized (bitmap) {
-                if (this.out == null) {
-                    this.out = out;
+                if (collector == null) {
+                    collector = out;
                 }
                 if (TycUtils.isUnsignedId(companyId)) {
                     bitmap.add(Long.parseLong(companyId));
@@ -157,24 +160,9 @@ public class EquityBfsJob {
 
         public void flush() {
             synchronized (bitmap) {
-                bitmap.forEach(companyId -> {
-                    List<Map<String, Object>> columnMaps = service.bfs(companyId);
-                    String deleteSql = new SQL()
-                            .DELETE_FROM(SINK_TABLE)
-                            .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                            .toString();
-                    if (columnMaps.isEmpty()) {
-                        out.collect(Collections.singletonList(deleteSql));
-                    } else {
-                        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                        String insertSql = new SQL()
-                                .INSERT_INTO(SINK_TABLE)
-                                .INTO_COLUMNS(insert.f0)
-                                .INTO_VALUES(insert.f1)
-                                .toString();
-                        out.collect(Arrays.asList(deleteSql, insertSql));
-                    }
-                });
+                bitmap.forEach(companyId ->
+                        collector.collect(Tuple2.of(String.valueOf(companyId), service.bfs(companyId)))
+                );
                 bitmap.clear();
             }
         }
@@ -184,7 +172,7 @@ public class EquityBfsJob {
      * 写入mysql
      */
     @RequiredArgsConstructor
-    private static final class EquityBfsSink extends RichSinkFunction<List<String>> implements CheckpointedFunction {
+    private static final class EquityBfsSink extends RichSinkFunction<Tuple2<String, List<Map<String, Object>>>> implements CheckpointedFunction {
         private final Config config;
         private JdbcTemplate sink;
 
@@ -200,8 +188,23 @@ public class EquityBfsJob {
         }
 
         @Override
-        public void invoke(List<String> sqls, Context context) {
-            sink.update(sqls);
+        public void invoke(Tuple2<String, List<Map<String, Object>>> companyIdAndColumnMaps, Context context) {
+            String companyId = companyIdAndColumnMaps.f0;
+            List<Map<String, Object>> columnMaps = companyIdAndColumnMaps.f1;
+            String deleteSql = new SQL()
+                    .DELETE_FROM(SINK_TABLE)
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                    .toString();
+            sink.update(deleteSql);
+            for (Map<String, Object> columnMap : columnMaps) {
+                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+                String insertSql = new SQL()
+                        .INSERT_INTO(SINK_TABLE)
+                        .INTO_COLUMNS(insert.f0)
+                        .INTO_VALUES(insert.f1)
+                        .toString();
+                sink.update(insertSql);
+            }
         }
 
         @Override
@@ -224,3 +227,4 @@ public class EquityBfsJob {
         }
     }
 }
+
