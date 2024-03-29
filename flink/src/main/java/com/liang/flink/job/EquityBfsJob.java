@@ -36,13 +36,13 @@ public class EquityBfsJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
-                // 根据股东id, 查询所有被投资公司
+                // 根据股东id, 查询所有可能需要重新穿透的公司
                 .rebalance()
                 .flatMap(new EquityBfsFlatMapper(config))
                 .setParallelism(16)
                 .name("EquityBfsFlatMapper")
                 .uid("EquityBfsFlatMapper")
-                // 向上穿透
+                // 股权穿透
                 .keyBy(companyId -> companyId)
                 .flatMap(new EquityBfsCalculator(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
@@ -223,7 +223,7 @@ public class EquityBfsJob {
     }
 
     /**
-     * 写入Mysql
+     * 写入mysql
      */
     @RequiredArgsConstructor
     private static final class EquityBfsSink extends RichSinkFunction<List<String>> implements CheckpointedFunction {
