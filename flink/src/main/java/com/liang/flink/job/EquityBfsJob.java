@@ -129,7 +129,6 @@ public class EquityBfsJob {
         private final Config config;
         private EquityBfsService service;
         private Collector<List<String>> out;
-        private long last_process_time = System.currentTimeMillis();
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
