@@ -26,7 +26,6 @@ import org.apache.flink.util.Collector;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @LocalConfigFile("equity-bfs.yml")
 public class EquityBfsJob {
@@ -35,8 +34,6 @@ public class EquityBfsJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
-        // ckp超时时间
-        env.getCheckpointConfig().setCheckpointTimeout(TimeUnit.HOURS.toMillis(24));
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
@@ -81,12 +78,8 @@ public class EquityBfsJob {
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             Set<String> entityIds = new LinkedHashSet<>();
-            // 公司维表 ee59d.proto.company_base.company_index
-            if (table.contains("company_index")) {
-                entityIds.add(String.valueOf(columnMap.get("company_id")));
-            }
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
-            else if (table.contains("company_equity_relation_details")) {
+            if (table.contains("company_equity_relation_details")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
                 entityIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id_investor")));
             }
@@ -170,15 +163,15 @@ public class EquityBfsJob {
                             .DELETE_FROM(SINK_TABLE)
                             .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                             .toString();
-                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                    String insertSql = new SQL()
-                            .INSERT_INTO(SINK_TABLE)
-                            .INTO_COLUMNS(insert.f0)
-                            .INTO_VALUES(insert.f1)
-                            .toString();
                     if (columnMaps.isEmpty()) {
                         out.collect(Collections.singletonList(deleteSql));
                     } else {
+                        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                        String insertSql = new SQL()
+                                .INSERT_INTO(SINK_TABLE)
+                                .INTO_COLUMNS(insert.f0)
+                                .INTO_VALUES(insert.f1)
+                                .toString();
                         out.collect(Arrays.asList(deleteSql, insertSql));
                     }
                 });
