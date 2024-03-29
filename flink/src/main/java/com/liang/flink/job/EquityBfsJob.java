@@ -36,19 +36,30 @@ public class EquityBfsJob {
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
+                // 根据股东id, 查询所有被投资公司
                 .rebalance()
                 .flatMap(new EquityBfsFlatMapper(config))
-                .setParallelism(config.getFlinkConfig().getOtherParallel())
+                .setParallelism(16)
                 .name("EquityBfsFlatMapper")
                 .uid("EquityBfsFlatMapper")
-                .keyBy(e -> e)
-                .addSink(new EquityBfsSink(config))
+                // 向上穿透
+                .keyBy(companyId -> companyId)
+                .flatMap(new EquityBfsCalculator(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
+                .name("EquityBfsCalculator")
+                .uid("EquityBfsCalculator")
+                // 写入mysql
+                .keyBy(sqls -> sqls.get(0))
+                .addSink(new EquityBfsSink(config))
+                .setParallelism(16)
                 .name("EquityBfsSink")
                 .uid("EquityBfsSink");
         env.execute("EquityBfsJob");
     }
 
+    /**
+     * 查询所有可能需要重新穿透的公司
+     */
     @RequiredArgsConstructor
     private static final class EquityBfsFlatMapper extends RichFlatMapFunction<SingleCanalBinlog, String> {
         private final Config config;
@@ -139,12 +150,16 @@ public class EquityBfsJob {
         }
     }
 
+    /**
+     * 股权穿透
+     */
     @RequiredArgsConstructor
-    private static final class EquityBfsSink extends RichSinkFunction<String> implements CheckpointedFunction {
+    private static final class EquityBfsCalculator extends RichFlatMapFunction<String, List<String>> implements CheckpointedFunction {
+        private static final int CACHE_SIZE = 1024;
         private final Set<String> companyIdBuffer = new HashSet<>();
         private final Config config;
         private EquityBfsService service;
-        private JdbcTemplate sink;
+        private Collector<List<String>> out;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -154,20 +169,81 @@ public class EquityBfsJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             service = new EquityBfsService();
-            sink = new JdbcTemplate(SINK_SOURCE);
         }
 
         @Override
-        public void invoke(String companyId, Context context) {
-            if (!TycUtils.isUnsignedId(companyId)) {
-                return;
-            }
+        public void flatMap(String companyId, Collector<List<String>> out) {
             synchronized (companyIdBuffer) {
+                if (this.out == null) {
+                    this.out = out;
+                }
+                if (!TycUtils.isUnsignedId(companyId)) {
+                    return;
+                }
                 companyIdBuffer.add(companyId);
-                if (companyIdBuffer.size() >= 1024) {
+                if (companyIdBuffer.size() >= CACHE_SIZE) {
                     flush();
                 }
             }
+        }
+
+        @Override
+        public void snapshotState(FunctionSnapshotContext context) {
+            flush();
+        }
+
+        @Override
+        public void close() {
+            flush();
+        }
+
+        public void flush() {
+            synchronized (companyIdBuffer) {
+                for (String companyId : companyIdBuffer) {
+                    List<Map<String, Object>> columnMaps = service.bfs(companyId);
+                    String deleteSql = new SQL()
+                            .DELETE_FROM(SINK_TABLE)
+                            .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                            .toString();
+                    if (columnMaps.isEmpty()) {
+                        out.collect(Collections.singletonList(deleteSql));
+                        continue;
+                    }
+                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                    String insertSql = new SQL()
+                            .INSERT_INTO(SINK_TABLE)
+                            .INTO_COLUMNS(insert.f0)
+                            .INTO_VALUES(insert.f1)
+                            .toString();
+                    out.collect(Arrays.asList(deleteSql, insertSql));
+                }
+                companyIdBuffer.clear();
+            }
+        }
+    }
+
+    /**
+     * 写入Mysql
+     */
+    @RequiredArgsConstructor
+    private static final class EquityBfsSink extends RichSinkFunction<List<String>> implements CheckpointedFunction {
+        private final Config config;
+        private JdbcTemplate sink;
+
+        @Override
+        public void initializeState(FunctionInitializationContext context) {
+        }
+
+        @Override
+        public void open(Configuration parameters) {
+            ConfigUtils.setConfig(config);
+            sink = new JdbcTemplate(SINK_SOURCE);
+            sink.enableCache();
+        }
+
+        @Override
+        public void invoke(List<String> sqls, Context context) {
+            sink.update(sqls);
         }
 
         @Override
@@ -186,27 +262,7 @@ public class EquityBfsJob {
         }
 
         public void flush() {
-            synchronized (companyIdBuffer) {
-                for (String companyId : companyIdBuffer) {
-                    List<Map<String, Object>> columnMaps = service.bfs(companyId);
-                    String deleteSql = new SQL()
-                            .DELETE_FROM(SINK_TABLE)
-                            .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                            .toString();
-                    if (columnMaps.isEmpty()) {
-                        sink.update(deleteSql);
-                        continue;
-                    }
-                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                    String insertSql = new SQL()
-                            .INSERT_INTO(SINK_TABLE)
-                            .INTO_COLUMNS(insert.f0)
-                            .INTO_VALUES(insert.f1)
-                            .toString();
-                    sink.update(deleteSql, insertSql);
-                }
-                companyIdBuffer.clear();
-            }
+            sink.flush();
         }
     }
 }
