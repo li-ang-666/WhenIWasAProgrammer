@@ -13,14 +13,16 @@ import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION;
 
 @Slf4j
 @UtilityClass
 public class EnvironmentFactory {
-    private final static long CHECKPOINT_INTERVAL_LOCAL_TEST = 1000 * 60;
-    private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 3;
-    private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 30;
+    private final static long CHECKPOINT_INTERVAL_LOCAL_TEST = TimeUnit.MINUTES.toMillis(1);
+    private final static long CHECKPOINT_INTERVAL = TimeUnit.MINUTES.toMillis(3);
+    private final static long CHECKPOINT_TIMEOUT = TimeUnit.HOURS.toMillis(1);
 
     @SneakyThrows(ClassNotFoundException.class)
     public static StreamExecutionEnvironment create(String[] args) {

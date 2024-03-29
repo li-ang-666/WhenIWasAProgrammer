@@ -23,8 +23,10 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
+import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @LocalConfigFile("equity-bfs.yml")
 public class EquityBfsJob {
@@ -33,13 +35,15 @@ public class EquityBfsJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
+        // ckp超时时间
+        env.getCheckpointConfig().setCheckpointTimeout(TimeUnit.HOURS.toMillis(24));
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
                 // 根据股东id, 查询所有可能需要重新穿透的公司
                 .rebalance()
                 .flatMap(new EquityBfsFlatMapper(config))
-                .setParallelism(16)
+                .setParallelism(config.getFlinkConfig().getOtherParallel() / 8)
                 .name("EquityBfsFlatMapper")
                 .uid("EquityBfsFlatMapper")
                 // 股权穿透
@@ -51,7 +55,7 @@ public class EquityBfsJob {
                 // 写入mysql
                 .keyBy(sqls -> sqls.get(0))
                 .addSink(new EquityBfsSink(config))
-                .setParallelism(16)
+                .setParallelism(config.getFlinkConfig().getOtherParallel() / 8)
                 .name("EquityBfsSink")
                 .uid("EquityBfsSink");
         env.execute("EquityBfsJob");
@@ -155,11 +159,11 @@ public class EquityBfsJob {
      */
     @RequiredArgsConstructor
     private static final class EquityBfsCalculator extends RichFlatMapFunction<String, List<String>> implements CheckpointedFunction {
-        private static final int CACHE_SIZE = 1024;
-        private final Set<String> companyIdBuffer = new HashSet<>();
+        private final Roaring64Bitmap bitmap = new Roaring64Bitmap();
         private final Config config;
         private EquityBfsService service;
         private Collector<List<String>> out;
+        private long last_process_time = System.currentTimeMillis();
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -173,16 +177,12 @@ public class EquityBfsJob {
 
         @Override
         public void flatMap(String companyId, Collector<List<String>> out) {
-            synchronized (companyIdBuffer) {
+            synchronized (bitmap) {
                 if (this.out == null) {
                     this.out = out;
                 }
-                if (!TycUtils.isUnsignedId(companyId)) {
-                    return;
-                }
-                companyIdBuffer.add(companyId);
-                if (companyIdBuffer.size() >= CACHE_SIZE) {
-                    flush();
+                if (TycUtils.isUnsignedId(companyId)) {
+                    bitmap.add(Long.parseLong(companyId));
                 }
             }
         }
@@ -198,26 +198,26 @@ public class EquityBfsJob {
         }
 
         public void flush() {
-            synchronized (companyIdBuffer) {
-                for (String companyId : companyIdBuffer) {
+            synchronized (bitmap) {
+                bitmap.forEach(companyId -> {
                     List<Map<String, Object>> columnMaps = service.bfs(companyId);
                     String deleteSql = new SQL()
                             .DELETE_FROM(SINK_TABLE)
                             .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                             .toString();
-                    if (columnMaps.isEmpty()) {
-                        out.collect(Collections.singletonList(deleteSql));
-                        continue;
-                    }
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                     String insertSql = new SQL()
                             .INSERT_INTO(SINK_TABLE)
                             .INTO_COLUMNS(insert.f0)
                             .INTO_VALUES(insert.f1)
                             .toString();
-                    out.collect(Arrays.asList(deleteSql, insertSql));
-                }
-                companyIdBuffer.clear();
+                    if (columnMaps.isEmpty()) {
+                        out.collect(Collections.singletonList(deleteSql));
+                    } else {
+                        out.collect(Arrays.asList(deleteSql, insertSql));
+                    }
+                });
+                bitmap.clear();
             }
         }
     }
