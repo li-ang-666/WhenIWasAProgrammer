@@ -85,40 +85,10 @@ public class EquityBfsJob {
             if (table.contains("company_index")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id")));
             }
-            // 注吊销标签表 a3540.proto.company_base.bdp_company_profile_tag_details_total
-            else if (table.contains("bdp_company_profile_tag_details_total")) {
-                entityIds.add(String.valueOf(columnMap.get("company_id")));
-            }
-            // 公司类型细分表 c8ce5.proto.company_base.tyc_entity_general_property_reference
-            else if (table.contains("tyc_entity_general_property_reference")) {
-                entityIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id")));
-            }
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
             else if (table.contains("company_equity_relation_details")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
                 entityIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id_investor")));
-            }
-            // 主要人员 ee59d.proto.company_base.personnel
-            else if (table.contains("personnel")) {
-                entityIds.add(String.valueOf(columnMap.get("company_id")));
-                entityIds.add(String.valueOf(columnMap.get("human_id")));
-            }
-            // 法人 ee59d.proto.company_base.company_legal_person
-            else if (table.contains("company_legal_person")) {
-                entityIds.add(String.valueOf(columnMap.get("company_id")));
-                entityIds.add(String.valueOf(columnMap.get("legal_rep_human_id")));
-                entityIds.add(String.valueOf(columnMap.get("legal_rep_name_id")));
-            }
-            // 上市公告 7d89c.proto.data_listed_company.stock_actual_controller
-            else if (table.contains("stock_actual_controller")) {
-                entityIds.add(String.valueOf(columnMap.get("graph_id")));
-                entityIds.add(String.valueOf(columnMap.get("controller_gid")));
-                entityIds.add(String.valueOf(columnMap.get("controller_pid")));
-            }
-            // 分支机构 ee59d.proto.company_base.company_branch
-            else if (table.contains("company_branch")) {
-                entityIds.add(String.valueOf(columnMap.get("company_id")));
-                entityIds.add(String.valueOf(columnMap.get("branch_company_id")));
             }
             // 老板维表 36c60.proto.human_base.human
             else if (database.contains("human_base") && table.contains("human")) {
@@ -128,10 +98,6 @@ public class EquityBfsJob {
             else if (table.contains("company_human_relation")) {
                 entityIds.add(String.valueOf(columnMap.get("company_graph_id")));
                 entityIds.add(String.valueOf(columnMap.get("human_pid")));
-            }
-            // 上市板块 9bc47.proto.listed_base.company_bond_plates
-            else if (table.contains("company_bond_plates")) {
-                entityIds.add(String.valueOf(columnMap.get("company_id")));
             }
             for (String entityId : entityIds) {
                 if (!TycUtils.isTycUniqueEntityId(entityId)) {
