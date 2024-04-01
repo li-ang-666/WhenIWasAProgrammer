@@ -32,7 +32,7 @@ import java.util.Set;
 
 @LocalConfigFile("equity-bfs.yml")
 public class EquityBfsJob {
-    private static final String SINK_SOURCE = "457.prism_shareholder_path";
+    private static final String SINK_SOURCE = "491.prism_shareholder_path";
     private static final String SINK_TABLE = "prism_shareholder_path.ratio_path_company_new";
 
     public static void main(String[] args) throws Exception {
