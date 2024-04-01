@@ -81,8 +81,12 @@ public class EquityBfsJob {
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             Set<String> entityIds = new LinkedHashSet<>();
+            // 公司维表 ee59d.proto.company_base.company_index
+            if (table.contains("company_index")) {
+                entityIds.add(String.valueOf(columnMap.get("company_id")));
+            }
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
-            if (table.contains("company_equity_relation_details")) {
+            else if (table.contains("company_equity_relation_details")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
                 entityIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id_investor")));
             }
