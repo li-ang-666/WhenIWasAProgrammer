@@ -33,14 +33,6 @@ public class EquityBfsDao {
         return columnMaps.get(0);
     }
 
-    public String queryCompanyName(String companyId) {
-        String sql = new SQL().SELECT("company_name")
-                .FROM("company_index")
-                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                .toString();
-        return companyBase435.queryForObject(sql, rs -> rs.getString(1));
-    }
-
     public boolean isListed(Object companyId) {
         String sql = new SQL().SELECT("1")
                 .FROM("equity_ratio")
@@ -49,6 +41,15 @@ public class EquityBfsDao {
                 .WHERE("deleted = 0")
                 .toString();
         return prism116.queryForObject(sql, rs -> rs.getString(1)) != null;
+    }
+
+    public String queryEntityProperty(String companyId) {
+        String sql = new SQL()
+                .SELECT("entity_property")
+                .FROM("tyc_entity_general_property_reference")
+                .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyId))
+                .toString();
+        return companyBase465.queryForObject(sql, rs -> rs.getString(1));
     }
 
     public List<CompanyEquityRelationDetailsDto> queryShareholder(String companyId) {
@@ -114,21 +115,4 @@ public class EquityBfsDao {
         return columnMap != null ? columnMap : new HashMap<>();
     }
 
-    public String queryOrgType(String companyId) {
-        String sql = new SQL()
-                .SELECT("org_type")
-                .FROM("company_index")
-                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                .toString();
-        return companyBase435.queryForObject(sql, rs -> rs.getString(1));
-    }
-
-    public String queryEntityProperty(String companyId) {
-        String sql = new SQL()
-                .SELECT("entity_property")
-                .FROM("tyc_entity_general_property_reference")
-                .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyId))
-                .toString();
-        return companyBase465.queryForObject(sql, rs -> rs.getString(1));
-    }
 }

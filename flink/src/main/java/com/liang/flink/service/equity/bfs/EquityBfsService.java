@@ -53,10 +53,11 @@ public class EquityBfsService {
         this.companyId = String.valueOf(companyGid);
         if (!TycUtils.isUnsignedId(companyId)) return new ArrayList<>();
         Map<String, Object> companyInfo = dao.queryCompanyInfo(companyId);
+        if (companyInfo.isEmpty()) return new ArrayList<>();
         this.companyName = String.valueOf(companyInfo.getOrDefault("company_name", ""));
+        if (!TycUtils.isValidName(companyName)) return new ArrayList<>();
         this.companyUscc = String.valueOf(companyInfo.getOrDefault("unified_social_credit_code", ""));
         this.companyOrgType = String.valueOf(companyInfo.getOrDefault("org_type", ""));
-        if (!TycUtils.isValidName(companyName)) return new ArrayList<>();
         this.companyIsListed = dao.isListed(companyId);
         this.companyEntityProperty = ObjUtil.defaultIfNull(dao.queryEntityProperty(companyId), "");
         allShareholders.clear();

@@ -62,6 +62,7 @@ public class EquityControlDao {
                 .FROM("personnel")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("personnel_position like '%董事长%'")
+                .WHERE("personnel_position not like '%副董事长%'")
                 .toString();
         return companyBase435.queryForColumnMaps(sql);
     }
@@ -82,6 +83,7 @@ public class EquityControlDao {
                 .FROM("personnel")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("(personnel_position like '%董事长%' or personnel_position like '%执行董事%')")
+                .WHERE("personnel_position not like '%副董事长%'")
                 .WHERE("human_id = " + SqlUtils.formatValue(humanId))
                 .toString();
         return companyBase435.queryForObject(sql, rs -> rs.getString(1));
