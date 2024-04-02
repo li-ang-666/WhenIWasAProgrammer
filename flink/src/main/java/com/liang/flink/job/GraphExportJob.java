@@ -7,6 +7,7 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
+import com.liang.flink.service.equity.bfs.EquityBfsDao;
 import lombok.RequiredArgsConstructor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -73,6 +74,7 @@ public class GraphExportJob {
         private final Config config;
         private ObsWriter edgeObsWriter;
         private ObsWriter nodeObsWriter;
+        private EquityBfsDao dao;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -85,6 +87,7 @@ public class GraphExportJob {
             edgeObsWriter.enableCache();
             nodeObsWriter = new ObsWriter("obs://hadoop-obs/flink/graph/node", ObsWriter.FileFormat.TXT);
             nodeObsWriter.enableCache();
+            dao = new EquityBfsDao();
         }
 
         @Override
@@ -132,6 +135,7 @@ public class GraphExportJob {
         }
 
         private Tuple2<String, String> getNode(Map<String, Object> columnMap) {
+            // 被投资公司
             List<String> company = Arrays.asList(
                     String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
                     "node",
@@ -140,12 +144,12 @@ public class GraphExportJob {
                     "0",
                     String.valueOf(columnMap.get("tyc_unique_entity_name_invested")).replaceAll("[\n,\r'\"]", ""),
                     "",
-                    "true",
+                    String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""))),
                     "1704038400000"
             );
             String type = String.valueOf(columnMap.get("investor_identity_type"));
             List<String> shareholder;
-            // 公司
+            // 股东-公司
             if ("2".equals(type)) {
                 shareholder = Arrays.asList(
                         String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""),
@@ -155,11 +159,11 @@ public class GraphExportJob {
                         "0",
                         String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,\r'\"]", ""),
                         "",
-                        "true",
+                        String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""))),
                         "1704038400000"
                 );
             }
-            // 人
+            // 股东-人
             else if ("1".equals(type)) {
                 shareholder = Arrays.asList(
                         String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n,\r'\"]", ""),
