@@ -22,7 +22,8 @@ public class EquityBfsDao {
     private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
 
     public Map<String, Object> queryCompanyInfo(String companyId) {
-        String sql = new SQL().SELECT("company_id", "company_name", "unified_social_credit_code", "org_type")
+        String sql = new SQL()
+                .SELECT("company_id", "company_name", "unified_social_credit_code", "org_type")
                 .FROM("company_index")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .toString();
