@@ -30,18 +30,8 @@ import java.util.stream.Collectors;
 
 @LocalConfigFile("equity-bfs.yml")
 public class EquityBfsJob {
-    private static final String SINK_SOURCE;
-    private static final String SINK_TABLE;
-
-    static {
-        SINK_SOURCE = "491.prism_shareholder_path";
-        SINK_TABLE = "ratio_path_company_new";
-        List<String> sqls = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            String sql = String.format("select * from %s_%s", SINK_TABLE, i);
-            sqls.add(sql);
-        }
-    }
+    private static final String SINK_SOURCE = "491.prism_shareholder_path";
+    private static final String SINK_TABLE = "ratio_path_company_new";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
