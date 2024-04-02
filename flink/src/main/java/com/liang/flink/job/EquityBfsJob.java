@@ -53,7 +53,7 @@ public class EquityBfsJob {
                 // 根据股东id, 查询所有可能需要重新穿透的公司
                 .rebalance()
                 .flatMap(new EquityBfsFlatMapper(config))
-                .setParallelism(8)
+                .setParallelism(config.getFlinkConfig().getOtherParallel() / 8)
                 .name("EquityBfsFlatMapper")
                 .uid("EquityBfsFlatMapper")
                 // 股权穿透
@@ -65,7 +65,7 @@ public class EquityBfsJob {
                 // 写入mysql
                 .keyBy(companyIdAndColumnMaps -> companyIdAndColumnMaps.f0)
                 .addSink(new EquityBfsSink(config))
-                .setParallelism(8)
+                .setParallelism(config.getFlinkConfig().getOtherParallel() / 8)
                 .name("EquityBfsSink")
                 .uid("EquityBfsSink");
         env.execute("EquityBfsJob");
