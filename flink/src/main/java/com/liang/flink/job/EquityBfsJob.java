@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 public class EquityBfsJob {
     private static final String SINK_SOURCE;
     private static final String SINK_TABLE;
-    private static final String SINK_TABLE_ALL;
 
     static {
         SINK_SOURCE = "491.prism_shareholder_path";
@@ -42,7 +41,6 @@ public class EquityBfsJob {
             String sql = String.format("select * from %s_%s", SINK_TABLE, i);
             sqls.add(sql);
         }
-        SINK_TABLE_ALL = sqls.stream().collect(Collectors.joining(" union all ", "(", ") ratio_path_company_new_all"));
     }
 
     public static void main(String[] args) throws Exception {
@@ -118,11 +116,12 @@ public class EquityBfsJob {
                 }
                 // 全量repair的时候不走这里
                 if (config.getFlinkConfig().getSourceType() != FlinkConfig.SourceType.Repair) {
-                    String sql = new SQL()
-                            .SELECT("distinct company_id")
-                            .FROM(SINK_TABLE_ALL)
-                            .WHERE("shareholder_id = " + SqlUtils.formatValue(entityId))
-                            .toString();
+                    List<String> sqls = new ArrayList<>();
+                    for (int i = 0; i < 100; i++) {
+                        String sql = String.format("select company_id from %s_%s where shareholder_id = %s", SINK_TABLE, i, SqlUtils.formatValue(entityId));
+                        sqls.add(sql);
+                    }
+                    String sql = sqls.stream().collect(Collectors.joining("select company_id from (", " union all ", ") t"));
                     sink.queryForList(sql, rs -> rs.getString(1))
                             .forEach(out::collect);
                 }
