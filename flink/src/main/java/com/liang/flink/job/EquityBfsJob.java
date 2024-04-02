@@ -41,7 +41,7 @@ public class EquityBfsJob {
                 // 根据股东id, 查询所有可能需要重新穿透的公司
                 .rebalance()
                 .flatMap(new EquityBfsFlatMapper(config))
-                .setParallelism(config.getFlinkConfig().getOtherParallel() / 4)
+                .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("EquityBfsFlatMapper")
                 .uid("EquityBfsFlatMapper")
                 // 股权穿透
@@ -53,7 +53,7 @@ public class EquityBfsJob {
                 // 写入mysql
                 .keyBy(companyIdAndColumnMaps -> companyIdAndColumnMaps.f0)
                 .addSink(new EquityBfsSink(config))
-                .setParallelism(config.getFlinkConfig().getOtherParallel() / 4)
+                .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("EquityBfsSink")
                 .uid("EquityBfsSink");
         env.execute("EquityBfsJob");
@@ -105,16 +105,17 @@ public class EquityBfsJob {
                     out.collect(entityId);
                 }
                 // 全量repair的时候不走这里
-                if (config.getFlinkConfig().getSourceType() != FlinkConfig.SourceType.Repair) {
-                    List<String> sqls = new ArrayList<>();
-                    for (int i = 0; i < 100; i++) {
-                        String sql = String.format("select company_id from %s_%s where shareholder_id = %s", SINK_TABLE, i, SqlUtils.formatValue(entityId));
-                        sqls.add(sql);
-                    }
-                    String sql = sqls.stream().collect(Collectors.joining("select company_id from (", " union all ", ") t"));
-                    sink.queryForList(sql, rs -> rs.getString(1))
-                            .forEach(out::collect);
+                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
+                    continue;
                 }
+                List<String> sqls = new ArrayList<>();
+                for (int i = 0; i < 100; i++) {
+                    String sql = String.format("select company_id from %s_%s where shareholder_id = %s", SINK_TABLE, i, SqlUtils.formatValue(entityId));
+                    sqls.add(sql);
+                }
+                String sql = sqls.stream().collect(Collectors.joining(" union all ", "select company_id from (", ") t"));
+                sink.queryForList(sql, rs -> rs.getString(1))
+                        .forEach(out::collect);
             }
         }
     }
