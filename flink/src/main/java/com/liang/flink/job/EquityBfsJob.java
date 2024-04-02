@@ -42,7 +42,7 @@ public class EquityBfsJob {
             String sql = String.format("select * from %s_%s", SINK_TABLE, i);
             sqls.add(sql);
         }
-        SINK_TABLE_ALL = sqls.stream().collect(Collectors.joining(" union all ", "(", ") t"));
+        SINK_TABLE_ALL = sqls.stream().collect(Collectors.joining(" union all ", "(", ") ratio_path_company_new_all"));
     }
 
     public static void main(String[] args) throws Exception {
