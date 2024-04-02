@@ -21,6 +21,18 @@ public class EquityBfsDao {
     private final JdbcTemplate humanBase040 = new JdbcTemplate("040.human_base");
     private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
 
+    public Map<String, Object> queryCompanyInfo(String companyId) {
+        String sql = new SQL().SELECT("company_id", "company_name", "unified_social_credit_code", "org_type")
+                .FROM("company_index")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .toString();
+        List<Map<String, Object>> columnMaps = companyBase435.queryForColumnMaps(sql);
+        if (columnMaps.isEmpty()) {
+            return new HashMap<>();
+        }
+        return columnMaps.get(0);
+    }
+
     public String queryCompanyName(String companyId) {
         String sql = new SQL().SELECT("company_name")
                 .FROM("company_index")
