@@ -25,15 +25,25 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @LocalConfigFile("equity-bfs.yml")
 public class EquityBfsJob {
-    private static final String SINK_SOURCE = "491.prism_shareholder_path";
-    private static final String SINK_TABLE = "prism_shareholder_path.ratio_path_company_new";
+    private static final String SINK_SOURCE;
+    private static final String SINK_TABLE;
+    private static final String SINK_TABLE_ALL;
+
+    static {
+        SINK_SOURCE = "491.prism_shareholder_path";
+        SINK_TABLE = "ratio_path_company_new";
+        List<String> sqls = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            String sql = String.format("select * from %s_%s", SINK_TABLE, i);
+            sqls.add(sql);
+        }
+        SINK_TABLE_ALL = sqls.stream().collect(Collectors.joining(" union all ", "(", ") t"));
+    }
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -110,7 +120,7 @@ public class EquityBfsJob {
                 if (config.getFlinkConfig().getSourceType() != FlinkConfig.SourceType.Repair) {
                     String sql = new SQL()
                             .SELECT("distinct company_id")
-                            .FROM(SINK_TABLE)
+                            .FROM(SINK_TABLE_ALL)
                             .WHERE("shareholder_id = " + SqlUtils.formatValue(entityId))
                             .toString();
                     sink.queryForList(sql, rs -> rs.getString(1))
@@ -199,15 +209,16 @@ public class EquityBfsJob {
         public void invoke(Tuple2<String, List<Map<String, Object>>> companyIdAndColumnMaps, Context context) {
             String companyId = companyIdAndColumnMaps.f0;
             List<Map<String, Object>> columnMaps = companyIdAndColumnMaps.f1;
+            String sinkTable = String.format("%s_%s", SINK_TABLE, Long.parseLong(companyId) % 100);
             String deleteSql = new SQL()
-                    .DELETE_FROM(SINK_TABLE)
+                    .DELETE_FROM(sinkTable)
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                     .toString();
             sink.update(deleteSql);
             for (Map<String, Object> columnMap : columnMaps) {
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
                 String insertSql = new SQL()
-                        .INSERT_INTO(SINK_TABLE)
+                        .INSERT_INTO(sinkTable)
                         .INTO_COLUMNS(insert.f0)
                         .INTO_VALUES(insert.f1)
                         .toString();
