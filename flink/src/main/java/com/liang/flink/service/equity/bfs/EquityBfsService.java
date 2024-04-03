@@ -21,8 +21,8 @@ import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 
 @Slf4j
 public class EquityBfsService {
-    private static final BigDecimal THRESHOLD_EXACT = new BigDecimal("0.000001");
-    private static final BigDecimal THRESHOLD_ELSE = new BigDecimal("0.01");
+    private static final BigDecimal THRESHOLD_BFS = new BigDecimal("0.000001");
+    private static final BigDecimal THRESHOLD_SINK = new BigDecimal("0.01");
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
@@ -111,7 +111,7 @@ public class EquityBfsService {
             return DROP;
         }
         // 股权比例低于停止穿透的阈值
-        if (THRESHOLD_EXACT.compareTo(newPath.getValidRatio()) > 0) {
+        if (THRESHOLD_BFS.compareTo(newPath.getValidRatio()) > 0) {
             return DROP;
         }
         // 注吊销公司
@@ -213,7 +213,7 @@ public class EquityBfsService {
                 .values()
                 .stream()
                 .filter(ratioPathCompanyDto ->
-                        ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_ELSE) >= 0 &&
+                        ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0 &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
                                 TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
