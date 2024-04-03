@@ -14,5 +14,8 @@ public class EquityBfsCreateTable extends ConfigHolder {
         for (int i = 0; i < 100; i++) {
             System.out.println(read.replaceAll("ratio_path_company_new", "ratio_path_company_new_" + i));
         }
+        for (int i = 0; i < 100; i++) {
+            System.out.println("truncate table ratio_path_company_new_" + i + ";");
+        }
     }
 }

@@ -213,7 +213,7 @@ public class EquityBfsService {
                 .values()
                 .stream()
                 .filter(ratioPathCompanyDto ->
-                        ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0 &&
+                        (ratioPathCompanyDto.getFirstAppearLevel() <= 3 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
                                 TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
