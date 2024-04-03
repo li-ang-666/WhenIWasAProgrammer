@@ -31,6 +31,7 @@ public class RatioPathCompanyDto {
     private final String shareholderName;
     private final String shareholderNameId;
     private final String shareholderMasterCompanyId;
+    private final int firstAppearLevel;
     // 路径明细 & 总比例
     private List<Path> paths = new ArrayList<>();
     private BigDecimal totalValidRatio = BigDecimal.ZERO;

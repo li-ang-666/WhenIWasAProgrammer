@@ -21,7 +21,8 @@ import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 
 @Slf4j
 public class EquityBfsService {
-    private static final BigDecimal THRESHOLD = new BigDecimal("0.000001");
+    private static final BigDecimal THRESHOLD_EXACT = new BigDecimal("0.000001");
+    private static final BigDecimal THRESHOLD_ELSE = new BigDecimal("0.01");
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
@@ -32,7 +33,7 @@ public class EquityBfsService {
     private String companyUscc;
     private String companyOrgType;
     private String companyEntityProperty;
-    private int currentLevel;
+    private int currentScanLevel;
 
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig(null);
@@ -62,11 +63,11 @@ public class EquityBfsService {
         this.companyEntityProperty = ObjUtil.defaultIfNull(dao.queryEntityProperty(companyId), "");
         allShareholders.clear();
         bfsQueue.clear();
-        currentLevel = 0;
+        currentScanLevel = 0;
         // start bfs
         bfsQueue.offer(Path.newPath(new Node(companyId, companyName)));
         while (!bfsQueue.isEmpty()) {
-            log.debug("开始遍历第 {} 层", currentLevel);
+            log.debug("开始遍历第 {} 层", currentScanLevel);
             int size = bfsQueue.size();
             while (size-- > 0) {
                 // queue.poll()
@@ -86,7 +87,7 @@ public class EquityBfsService {
                     processQueriedShareholder(polledPath, shareholder, judgeResult);
                 }
             }
-            currentLevel++;
+            currentScanLevel++;
         }
         return allShareholders2ColumnMaps();
     }
@@ -110,7 +111,7 @@ public class EquityBfsService {
             return DROP;
         }
         // 股权比例低于停止穿透的阈值
-        if (THRESHOLD.compareTo(newPath.getValidRatio()) > 0) {
+        if (THRESHOLD_EXACT.compareTo(newPath.getValidRatio()) > 0) {
             return DROP;
         }
         // 注吊销公司
@@ -161,7 +162,7 @@ public class EquityBfsService {
                 Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(shareholderId);
                 String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
                 String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
-                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyUscc, companyOrgType, companyEntityProperty, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId);
+                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyUscc, companyOrgType, companyEntityProperty, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId, currentScanLevel + 1);
             }
             // 新路径 & 总股比
             ratioPathCompanyDto.getPaths().add(newPath);
@@ -172,7 +173,7 @@ public class EquityBfsService {
                 ratioPathCompanyDto.setEnd(judgeResult != NOT_ARCHIVE && judgeResult != ARCHIVE_WITH_UPDATE_PATH_ONLY);
             }
             // 是否直接股东 & 直接股比
-            if (currentLevel == 0) {
+            if (currentScanLevel == 0) {
                 ratioPathCompanyDto.setDirectShareholder(true);
                 ratioPathCompanyDto.setDirectRatio(ratioPathCompanyDto.getTotalValidRatio());
             }
@@ -188,12 +189,12 @@ public class EquityBfsService {
      */
     private void processNoMoreShareholder(Path polledPath) {
         // 无任何投资关系
-        if (currentLevel == 0) {
+        if (currentScanLevel == 0) {
             BigDecimal ratio = BigDecimal.ONE;
             Edge newEdge = new Edge(ratio, true);
             Node newNode = new Node(companyId, companyName);
             Path newPath = Path.newPath(polledPath, newEdge, newNode);
-            RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyUscc, companyOrgType, companyEntityProperty, companyId, companyName, companyId, companyId);
+            RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyUscc, companyOrgType, companyEntityProperty, companyId, companyName, companyId, companyId, currentScanLevel + 1);
             ratioPathCompanyDto.getPaths().add(newPath);
             ratioPathCompanyDto.setTotalValidRatio(newPath.getValidRatio());
             ratioPathCompanyDto.setDirectShareholder(true);
@@ -212,7 +213,8 @@ public class EquityBfsService {
                 .values()
                 .stream()
                 .filter(ratioPathCompanyDto ->
-                        TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
+                        (ratioPathCompanyDto.getFirstAppearLevel() <= 6 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_ELSE) >= 0) &&
+                                TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
                                 TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderMasterCompanyId()) &&
