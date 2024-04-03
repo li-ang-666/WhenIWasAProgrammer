@@ -32,29 +32,13 @@ import java.util.Map;
 //    `row` string
 //  )stored as textfile location 'obs://hadoop-obs/flink/graph/node';
 
-//  drop table test.graph_export_node_invalid;
-//  create table if not exists test.graph_export_node_invalid(
-//    `row1` string,
-//    `row2` string,
-//    `row3` string,
-//    `row4` string,
-//    `row5` string,
-//    `row6` string,
-//    `row7` string,
-//    `row8` string,
-//    `row9` string
-//  )row format delimited
-//  fields terminated by ','
-//  lines terminated by '\n'
-//  stored as textfile location 'obs://hadoop-obs/flink/graph/node_invalid';
-
 //  -- 建表后再写入数据
 //  select count(1) from test.graph_export_edge;
 //  select count(1) from test.graph_export_node;
 
 //  -- spark-sql
-//  insert overwrite table test.graph_export_edge select /*+ REPARTITION(12) */ * from test.graph_export_edge;
-//  insert overwrite table test.graph_export_node select /*+ REPARTITION(24) */ * from test.graph_export_node;
+//  insert overwrite table test.graph_export_edge select /*+ REPARTITION(6) */ * from test.graph_export_edge;
+//  insert overwrite table test.graph_export_node select /*+ REPARTITION(12) */ * from test.graph_export_node;
 @LocalConfigFile("graph-export.yml")
 public class GraphExportJob {
     public static void main(String[] args) throws Exception {
