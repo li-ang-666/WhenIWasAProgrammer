@@ -42,9 +42,7 @@ public class DemoJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String string = JsonUtils.toString(columnMap);
-            if (string.contains("4100752056")) {
-                log.error(JsonUtils.toString(singleCanalBinlog));
-            }
+            System.out.println(singleCanalBinlog.getEventType());
         }
     }
 }

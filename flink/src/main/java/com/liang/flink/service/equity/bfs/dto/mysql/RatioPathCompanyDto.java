@@ -80,6 +80,8 @@ public class RatioPathCompanyDto {
      */
     private List<List<Map<String, Object>>> allPaths2List() {
         List<List<Map<String, Object>>> pathList = new ArrayList<>();
+        // path按照股权大小降序
+        paths.sort((path1, path2) -> path2.getValidRatio().compareTo(path1.getValidRatio()));
         // 每条path
         for (Path path : paths) {
             List<Map<String, Object>> pathElementList = new ArrayList<>();

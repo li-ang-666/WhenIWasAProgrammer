@@ -80,8 +80,10 @@ public class EquityBfsJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             Set<String> entityIds = new LinkedHashSet<>();
             // 公司维表 ee59d.proto.company_base.company_index
-            if (table.contains("company_index") && singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
-                entityIds.add(String.valueOf(columnMap.get("company_id")));
+            if (table.contains("company_index")) {
+                if (singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
+                    entityIds.add(String.valueOf(columnMap.get("company_id")));
+                }
             }
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
             else if (table.contains("company_equity_relation_details")) {
@@ -156,13 +158,15 @@ public class EquityBfsJob {
             flush();
         }
 
-        public void flush() {
+        private void flush() {
             synchronized (bitmap) {
-                bitmap.forEach(companyId ->
-                        collector.collect(Tuple2.of(String.valueOf(companyId), service.bfs(companyId)))
-                );
+                bitmap.forEach(this::consume);
                 bitmap.clear();
             }
+        }
+
+        private void consume(Long companyId) {
+            collector.collect(Tuple2.of(String.valueOf(companyId), service.bfs(companyId)));
         }
     }
 
@@ -221,7 +225,7 @@ public class EquityBfsJob {
             flush();
         }
 
-        public void flush() {
+        private void flush() {
             sink.flush();
         }
     }
