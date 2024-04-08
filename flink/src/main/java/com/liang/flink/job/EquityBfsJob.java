@@ -86,17 +86,16 @@ public class EquityBfsJob {
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
             else if (table.contains("company_equity_relation_details")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
-                entityIds.add(String.valueOf(columnMap.get("tyc_unique_entity_id_investor")));
             }
             // 老板维表 36c60.proto.human_base.human
-            else if (database.contains("human_base") && table.contains("human")) {
+            /*else if (database.contains("human_base") && table.contains("human")) {
                 entityIds.add(String.valueOf(columnMap.get("human_id")));
-            }
+            }*/
             // 老板公司关系表 9bc47.proto.prism_boss.company_human_relation
-            else if (table.contains("company_human_relation")) {
+            /*else if (table.contains("company_human_relation")) {
                 entityIds.add(String.valueOf(columnMap.get("company_graph_id")));
                 entityIds.add(String.valueOf(columnMap.get("human_pid")));
-            }
+            }*/
             for (String entityId : entityIds) {
                 if (!TycUtils.isTycUniqueEntityId(entityId)) {
                     continue;
@@ -110,10 +109,10 @@ public class EquityBfsJob {
                 }
                 List<String> sqls = new ArrayList<>();
                 for (int i = 0; i < 100; i++) {
-                    String sql = String.format("select company_id from %s_%s where shareholder_id = %s", SINK_TABLE, i, SqlUtils.formatValue(entityId));
+                    String sql = String.format("select distinct company_id from %s_%s where shareholder_id = %s", SINK_TABLE, i, SqlUtils.formatValue(entityId));
                     sqls.add(sql);
                 }
-                String sql = sqls.stream().collect(Collectors.joining(" union all ", "select company_id from (", ") t"));
+                String sql = sqls.stream().collect(Collectors.joining(" union all ", "select distinct company_id from (", ") t"));
                 sink.queryForList(sql, rs -> rs.getString(1))
                         .forEach(out::collect);
             }
