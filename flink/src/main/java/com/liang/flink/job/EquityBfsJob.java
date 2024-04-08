@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.SQL;
@@ -75,27 +76,17 @@ public class EquityBfsJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
-            String database = singleCanalBinlog.getDatabase();
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             Set<String> entityIds = new LinkedHashSet<>();
             // 公司维表 ee59d.proto.company_base.company_index
-            if (table.contains("company_index")) {
+            if (table.contains("company_index") && singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
                 entityIds.add(String.valueOf(columnMap.get("company_id")));
             }
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
             else if (table.contains("company_equity_relation_details")) {
                 entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
             }
-            // 老板维表 36c60.proto.human_base.human
-            /*else if (database.contains("human_base") && table.contains("human")) {
-                entityIds.add(String.valueOf(columnMap.get("human_id")));
-            }*/
-            // 老板公司关系表 9bc47.proto.prism_boss.company_human_relation
-            /*else if (table.contains("company_human_relation")) {
-                entityIds.add(String.valueOf(columnMap.get("company_graph_id")));
-                entityIds.add(String.valueOf(columnMap.get("human_pid")));
-            }*/
             for (String entityId : entityIds) {
                 if (!TycUtils.isTycUniqueEntityId(entityId)) {
                     continue;
