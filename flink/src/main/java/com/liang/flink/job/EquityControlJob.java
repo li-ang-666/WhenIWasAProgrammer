@@ -1,10 +1,12 @@
 package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
+import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
+import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -20,6 +22,7 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.List;
 import java.util.Map;
@@ -76,6 +79,7 @@ public class EquityControlJob {
 
     @RequiredArgsConstructor
     private static final class EquityControlSink extends RichSinkFunction<String> implements CheckpointedFunction {
+        private final Roaring64Bitmap bitmap = new Roaring64Bitmap();
         private final Config config;
         private EquityControlService service;
         private JdbcTemplate sink;
@@ -94,20 +98,14 @@ public class EquityControlJob {
 
         @Override
         public void invoke(String companyId, Context context) {
-            List<Map<String, Object>> columnMaps = service.processControl(companyId);
-            String deleteSql = new SQL()
-                    .DELETE_FROM(SINK_TABLE)
-                    .WHERE("company_id_controlled = " + SqlUtils.formatValue(companyId))
-                    .toString();
-            sink.update(deleteSql);
-            for (Map<String, Object> columnMap : columnMaps) {
-                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
-                String insertSql = new SQL()
-                        .INSERT_INTO(SINK_TABLE)
-                        .INTO_COLUMNS(insert.f0)
-                        .INTO_VALUES(insert.f1)
-                        .toString();
-                sink.update(insertSql);
+            synchronized (bitmap) {
+                if (TycUtils.isUnsignedId(companyId)) {
+                    bitmap.add(Long.parseLong(companyId));
+                }
+                // 全量修复的时候, 来一条计算一条
+                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
+                    flush();
+                }
             }
         }
 
@@ -127,7 +125,29 @@ public class EquityControlJob {
         }
 
         private void flush() {
-            sink.flush();
+            synchronized (bitmap) {
+                bitmap.forEach(this::consume);
+                bitmap.clear();
+                sink.flush();
+            }
+        }
+
+        private void consume(Long companyId) {
+            List<Map<String, Object>> columnMaps = service.processControl(String.valueOf(companyId));
+            String deleteSql = new SQL()
+                    .DELETE_FROM(SINK_TABLE)
+                    .WHERE("company_id_controlled = " + SqlUtils.formatValue(companyId))
+                    .toString();
+            sink.update(deleteSql);
+            for (Map<String, Object> columnMap : columnMaps) {
+                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+                String insertSql = new SQL()
+                        .INSERT_INTO(SINK_TABLE)
+                        .INTO_COLUMNS(insert.f0)
+                        .INTO_VALUES(insert.f1)
+                        .toString();
+                sink.update(insertSql);
+            }
         }
     }
 }
