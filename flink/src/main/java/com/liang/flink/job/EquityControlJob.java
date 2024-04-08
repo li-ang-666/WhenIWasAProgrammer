@@ -5,7 +5,6 @@ import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
-import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -22,12 +21,14 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 @LocalConfigFile("equity-control.yml")
 public class EquityControlJob {
     private static final String SINK_SOURCE = "463.bdp_equity";
-    private static final String SINK_TABLE = "bdp_equity.entity_controller_details_new";
+    private static final String SINK_TABLE = "entity_controller_details_new";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -68,13 +69,13 @@ public class EquityControlJob {
             else if (table.contains("ratio_path_company")) {
                 return String.valueOf(columnMap.get("company_id"));
             }
+            // 返回随机负数
             return "-" + new Random().nextInt(1024);
         }
     }
 
     @RequiredArgsConstructor
     private static final class EquityControlSink extends RichSinkFunction<String> implements CheckpointedFunction {
-        private final Set<String> companyIdBuffer = new HashSet<>();
         private final Config config;
         private EquityControlService service;
         private JdbcTemplate sink;
@@ -88,18 +89,25 @@ public class EquityControlJob {
             ConfigUtils.setConfig(config);
             service = new EquityControlService();
             sink = new JdbcTemplate(SINK_SOURCE);
+            sink.enableCache();
         }
 
         @Override
         public void invoke(String companyId, Context context) {
-            if (!TycUtils.isUnsignedId(companyId)) {
-                return;
-            }
-            synchronized (companyIdBuffer) {
-                companyIdBuffer.add(companyId);
-                if (companyIdBuffer.size() >= 1024) {
-                    flush();
-                }
+            List<Map<String, Object>> columnMaps = service.processControl(companyId);
+            String deleteSql = new SQL()
+                    .DELETE_FROM(SINK_TABLE)
+                    .WHERE("company_id_controlled = " + SqlUtils.formatValue(companyId))
+                    .toString();
+            sink.update(deleteSql);
+            for (Map<String, Object> columnMap : columnMaps) {
+                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
+                String insertSql = new SQL()
+                        .INSERT_INTO(SINK_TABLE)
+                        .INTO_COLUMNS(insert.f0)
+                        .INTO_VALUES(insert.f1)
+                        .toString();
+                sink.update(insertSql);
             }
         }
 
@@ -118,28 +126,8 @@ public class EquityControlJob {
             flush();
         }
 
-        public void flush() {
-            synchronized (companyIdBuffer) {
-                for (String companyId : companyIdBuffer) {
-                    List<Map<String, Object>> columnMaps = service.processControl(companyId);
-                    String deleteSql = new SQL()
-                            .DELETE_FROM(SINK_TABLE)
-                            .WHERE("company_id_controlled = " + SqlUtils.formatValue(companyId))
-                            .toString();
-                    if (columnMaps.isEmpty()) {
-                        sink.update(deleteSql);
-                        continue;
-                    }
-                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                    String insertSql = new SQL()
-                            .INSERT_INTO(SINK_TABLE)
-                            .INTO_COLUMNS(insert.f0)
-                            .INTO_VALUES(insert.f1)
-                            .toString();
-                    sink.update(deleteSql, insertSql);
-                }
-                companyIdBuffer.clear();
-            }
+        private void flush() {
+            sink.flush();
         }
     }
 }

@@ -177,6 +177,8 @@ public class EquityBfsService {
                 ratioPathCompanyDto.setDirectShareholder(true);
                 ratioPathCompanyDto.setDirectRatio(ratioPathCompanyDto.getTotalValidRatio());
             }
+            // 最后一次出现层数
+            ratioPathCompanyDto.setShareholderLastAppearLevel(currentScanLevel + 1);
             return ratioPathCompanyDto;
         });
         if (judgeResult == NOT_ARCHIVE) {
@@ -200,6 +202,7 @@ public class EquityBfsService {
             ratioPathCompanyDto.setDirectShareholder(true);
             ratioPathCompanyDto.setDirectRatio(newPath.getValidRatio());
             ratioPathCompanyDto.setEnd(true);
+            ratioPathCompanyDto.setShareholderLastAppearLevel(currentScanLevel + 1);
             allShareholders.put(companyId, ratioPathCompanyDto);
         }
         // 股权穿透尽头
@@ -213,7 +216,7 @@ public class EquityBfsService {
                 .values()
                 .stream()
                 .filter(ratioPathCompanyDto ->
-                        (ratioPathCompanyDto.getFirstAppearLevel() <= 3 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0) &&
+                        (ratioPathCompanyDto.getShareholderFirstAppearLevel() <= 3 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
                                 TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&

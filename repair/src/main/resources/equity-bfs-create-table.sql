@@ -14,6 +14,8 @@ CREATE TABLE if not exists `prism_shareholder_path`.`ratio_path_company_new` (
   `shareholder_name` varchar(255) NOT NULL DEFAULT '' COMMENT '股东名称',
   `shareholder_name_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '股东内链中的human_name_id',
   `shareholder_master_company_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '股东内链中的company_id',
+  `shareholder_first_appear_level` int NOT NULL DEFAULT '0' COMMENT '股东第一次出现的层级',
+  `shareholder_last_appear_level` int NOT NULL DEFAULT '0' COMMENT '股东最后一次出现的层级',
   -- 投资
   `is_direct_shareholder` tinyint NOT NULL DEFAULT '0' COMMENT '是否为直接股东',
   `investment_ratio_direct` decimal(26,6) NOT NULL DEFAULT '0' COMMENT '直接持股比例',

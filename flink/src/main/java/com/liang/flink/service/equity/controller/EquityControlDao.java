@@ -36,9 +36,10 @@ public class EquityControlDao {
     }
 
     public List<Map<String, Object>> queryRatioPathCompany(String companyId) {
+        String table = "ratio_path_company_new_" + Long.parseLong(companyId) % 100;
         String sql = new SQL()
                 .SELECT("*")
-                .FROM("prism_shareholder_path.ratio_path_company_new")
+                .FROM(table)
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("company_id != shareholder_id")
                 .toString();

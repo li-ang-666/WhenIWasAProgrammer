@@ -31,7 +31,8 @@ public class RatioPathCompanyDto {
     private final String shareholderName;
     private final String shareholderNameId;
     private final String shareholderMasterCompanyId;
-    private final int firstAppearLevel;
+    private final int shareholderFirstAppearLevel;
+    private int shareholderLastAppearLevel;
     // 路径明细 & 总比例
     private List<Path> paths = new ArrayList<>();
     private BigDecimal totalValidRatio = BigDecimal.ZERO;
@@ -56,6 +57,8 @@ public class RatioPathCompanyDto {
         columnMap.put("shareholder_name", shareholderName);
         columnMap.put("shareholder_name_id", shareholderNameId);
         columnMap.put("shareholder_master_company_id", shareholderMasterCompanyId);
+        columnMap.put("shareholder_first_appear_level", shareholderFirstAppearLevel);
+        columnMap.put("shareholder_last_appear_level", shareholderLastAppearLevel);
         // 投资
         columnMap.put("is_direct_shareholder", isDirectShareholder);
         columnMap.put("investment_ratio_direct", formatBigDecimal(directRatio, 6));
