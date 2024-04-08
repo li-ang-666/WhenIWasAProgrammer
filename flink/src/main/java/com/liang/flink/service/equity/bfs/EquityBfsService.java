@@ -110,7 +110,7 @@ public class EquityBfsService {
         if (companyId.equals(shareholderId)) {
             return DROP;
         }
-        // 股权比例低于停止穿透的阈值
+        // 链路总股权比例低于停止穿透的阈值
         if (THRESHOLD_BFS.compareTo(newPath.getValidRatio()) > 0) {
             return DROP;
         }
