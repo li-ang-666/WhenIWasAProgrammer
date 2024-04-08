@@ -69,7 +69,7 @@ public class EquityControlJob {
                 return String.valueOf(columnMap.get("company_id"));
             }
             // 穿透表
-            else if (table.contains("ratio_path_company")) {
+            else if (table.contains("ratio_path_company_new")) {
                 return String.valueOf(columnMap.get("company_id"));
             }
             // 返回随机负数
