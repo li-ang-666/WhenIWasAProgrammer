@@ -55,7 +55,7 @@ public class GroupJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             service = new GroupService();
-            sink = new JdbcTemplate("427.test");
+            sink = new JdbcTemplate("491.prism_shareholder_path");
             sink.enableCache();
         }
 

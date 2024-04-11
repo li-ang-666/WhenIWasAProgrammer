@@ -17,7 +17,7 @@ public class GroupDao {
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate prismShareholderPath491 = new JdbcTemplate("491.prism_shareholder_path");
     private final JdbcTemplate listedBase157 = new JdbcTemplate("157.listed_base");
-    private final JdbcTemplate test427 = new JdbcTemplate("427.test");
+    private final JdbcTemplate sink = new JdbcTemplate("491.prism_shareholder_path");
 
     public Map<String, Object> queryCompanyIndex(String companyId) {
         String sql = new SQL()
@@ -69,7 +69,7 @@ public class GroupDao {
                 .FROM("tyc_group")
                 .WHERE("group_id = " + SqlUtils.formatValue(companyId))
                 .toString();
-        Long res = test427.queryForObject(sql, rs -> rs.getLong(1));
+        Long res = sink.queryForObject(sql, rs -> rs.getLong(1));
         return ObjUtil.defaultIfNull(res, 0L);
     }
 }
