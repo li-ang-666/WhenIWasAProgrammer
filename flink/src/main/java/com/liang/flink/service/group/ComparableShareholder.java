@@ -1,14 +1,17 @@
 package com.liang.flink.service.group;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
 @Data
+@Builder
 public class ComparableShareholder implements Comparable<ComparableShareholder> {
-    private final String companyId;
-    private final Long registerCapitalAmt;
-    private final Long groupSize;
-    private final String establishDate;
+    private String id;
+    private String name;
+    private Long registerCapitalAmt;
+    private Long groupSize;
+    private String establishDate;
 
     @Override
     public int compareTo(@NonNull ComparableShareholder another) {
