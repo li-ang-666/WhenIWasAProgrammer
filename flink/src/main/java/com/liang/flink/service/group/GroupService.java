@@ -10,9 +10,7 @@ import java.util.*;
 @Slf4j
 public class GroupService {
     private static final long REGISTER_CAPITAL_AMT = 10_000_000L;
-    // 个体工商户, 个人独资企业
     private static final List<String> ENTITY_PROPERTY_BLACK_LIST = Arrays.asList("11", "17");
-
     private final GroupDao dao = new GroupDao();
 
     public static void main(String[] args) {
@@ -55,19 +53,16 @@ public class GroupService {
             if (shareholderCompanyIndexMap.isEmpty()) {
                 continue;
             }
-            String shareholderCompanyId = String.valueOf(shareholderCompanyIndexMap.get("company_id"));
-            String shareholderCompanyName = String.valueOf(shareholderCompanyIndexMap.get("company_name"));
-            long shareholderRegisterCapitalAmt = Long.parseLong(String.valueOf(shareholderCompanyIndexMap.get("register_capital_amt")));
-            String dirtyEstablishDate = String.valueOf(shareholderCompanyIndexMap.get("establish_date"));
-            String establishDate = TycUtils.isValidName(dirtyEstablishDate) ? dirtyEstablishDate : "9999-12-31 00:00:00";
-
             // 注册资本
+            long shareholderRegisterCapitalAmt = Long.parseLong(String.valueOf(shareholderCompanyIndexMap.get("register_capital_amt")));
             if (shareholderRegisterCapitalAmt < REGISTER_CAPITAL_AMT) {
                 continue;
             }
+            String dirtyEstablishDate = String.valueOf(shareholderCompanyIndexMap.get("establish_date"));
+            String establishDate = TycUtils.isValidName(dirtyEstablishDate) ? dirtyEstablishDate : "9999-12-31 00:00:00";
             ComparableShareholder comparableShareholder = ComparableShareholder.builder()
-                    .id(shareholderCompanyId)
-                    .name(shareholderCompanyName)
+                    .id(String.valueOf(shareholderCompanyIndexMap.get("company_id")))
+                    .name(String.valueOf(shareholderCompanyIndexMap.get("company_name")))
                     .groupSize(dao.queryGroupSize(maxRatioShareholderId))
                     .registerCapitalAmt(shareholderRegisterCapitalAmt)
                     .establishDate(establishDate)
