@@ -22,26 +22,27 @@ public class GroupService {
         new GroupService().tryCreateGroup("2318455639");
     }
 
-    public void tryCreateGroup(String groupId) {
+    public List<Map<String, Object>> tryCreateGroup(String groupId) {
+        List<Map<String, Object>> result = new ArrayList<>();
         // 合法 gid
         if (!TycUtils.isUnsignedId(groupId)) {
-            return;
+            return result;
         }
         // 在 company_index 存在
         Map<String, Object> groupInfoMap = dao.queryCompanyIndex(groupId);
         if (groupInfoMap.isEmpty()) {
-            return;
+            return result;
         }
         // 判断注册资本
         String registerCapitalAmt = String.valueOf(groupInfoMap.get("register_capital_amt"));
         if (Long.parseLong(registerCapitalAmt) < REGISTER_CAPITAL_AMT) {
-            return;
+            return result;
         }
         // 查询所有被投资公司
         List<Map<String, Object>> investedCompanyMapList = dao.queryInvestedCompany(groupId);
         // 规模
         if (investedCompanyMapList.size() < TARGET_SIZE) {
-            return;
+            return result;
         }
         Map<String, Object> subCompanies = new HashMap<>();
         for (Map<String, Object> investedCompanyMap : investedCompanyMapList) {
@@ -94,10 +95,16 @@ public class GroupService {
         }
         // 规模 >= 5
         if (subCompanies.size() < TARGET_SIZE) {
-            return;
+            return result;
         }
-        for (Map.Entry<String, Object> entry : subCompanies.entrySet()) {
-            System.out.println(entry.getKey() + " -> " + entry.getValue());
+        for (Map.Entry<String, Object> subCompany : subCompanies.entrySet()) {
+            Map<String, Object> columnMap = new HashMap<>();
+            columnMap.put("group_id", groupId);
+            columnMap.put("group_name", String.valueOf(groupInfoMap.get("company_name")));
+            columnMap.put("company_id", subCompany.getKey());
+            columnMap.put("company_name", subCompany.getValue());
+            result.add(columnMap);
         }
+        return result;
     }
 }
