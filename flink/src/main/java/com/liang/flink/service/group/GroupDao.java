@@ -29,7 +29,7 @@ public class GroupDao {
         return sqls.isEmpty() ? new HashMap<>() : sqls.get(0);
     }
 
-    public List<Map<String, Object>> queryRatioPathCompanyNewByShareholder(String shareholderId) {
+    public List<Map<String, Object>> queryInvestedCompany(String shareholderId) {
         List<String> sqls = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             String sql = String.format("select * from ratio_path_company_new_%s where shareholder_id = %s", i, SqlUtils.formatValue(shareholderId));
@@ -48,7 +48,7 @@ public class GroupDao {
         return companyBase435.queryForObject(sql, rs -> rs.getString(1)) != null;
     }
 
-    public List<String> queryRatioPathCompanyNewByCompany(String companyId) {
+    public List<String> queryMaxRatioShareholder(String companyId) {
         String table = "ratio_path_company_new_" + Long.parseLong(companyId) % 100;
         String preSql = new SQL().SELECT("max(investment_ratio_total)")
                 .FROM(table)
