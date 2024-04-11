@@ -1,5 +1,6 @@
 package com.liang.flink.service.group;
 
+import cn.hutool.core.util.ObjUtil;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
@@ -16,6 +17,7 @@ public class GroupDao {
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate prismShareholderPath491 = new JdbcTemplate("491.prism_shareholder_path");
     private final JdbcTemplate listedBase157 = new JdbcTemplate("157.listed_base");
+    private final JdbcTemplate test427 = new JdbcTemplate("427.test");
 
     public Map<String, Object> queryCompanyIndex(String companyId) {
         String sql = new SQL()
@@ -62,13 +64,12 @@ public class GroupDao {
         return prismShareholderPath491.queryForList(sql, rs -> rs.getString(1));
     }
 
-    public String queryFirstParent(List<String> companyIds) {
-        String sql = new SQL().SELECT("company_id")
-                .FROM("company_index")
-                .WHERE(String.format("company_id in (%s)", String.join(",", companyIds)))
-                .ORDER_BY("register_capital_amt desc", "establish_date asc")
-                .LIMIT(1)
+    public Long queryGroupSize(String companyId) {
+        String sql = new SQL().SELECT("count(1)")
+                .FROM("tyc_group")
+                .WHERE("group_id = " + SqlUtils.formatValue(companyId))
                 .toString();
-        return companyBase435.queryForObject(sql, rs -> rs.getString(1));
+        Long res = test427.queryForObject(sql, rs -> rs.getLong(1));
+        return ObjUtil.defaultIfNull(res, 0L);
     }
 }

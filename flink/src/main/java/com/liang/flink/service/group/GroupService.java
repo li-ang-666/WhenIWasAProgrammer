@@ -5,19 +5,15 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class GroupService {
-    // 1kw
     private static final long REGISTER_CAPITAL_AMT = 10_000_000L;
     // 个体工商户, 个人独资企业
     private static final List<String> ENTITY_PROPERTY_BLACK_LIST = Arrays.asList("11", "17");
-    // 规模 5
     private static final int TARGET_SIZE = 5;
+
     private final GroupDao dao = new GroupDao();
 
     public static void main(String[] args) {
@@ -35,7 +31,7 @@ public class GroupService {
         if (companyIndexMap.isEmpty()) {
             return;
         }
-        // 注册资本 >= 1kw
+        // 注册资本
         String registerCapitalAmt = String.valueOf(companyIndexMap.get("register_capital_amt"));
         if (!TycUtils.isUnsignedId(registerCapitalAmt)) {
             return;
@@ -45,7 +41,7 @@ public class GroupService {
         }
         // 查询所有被投资公司
         List<Map<String, Object>> investedCompanyMapList = dao.queryRatioPathCompanyNewByShareholder(companyId);
-        // 规模 >= 5
+        // 规模
         if (investedCompanyMapList.size() < TARGET_SIZE) {
             return;
         }
@@ -77,9 +73,26 @@ public class GroupService {
             if (!maxRatioShareholderIds.contains(companyId)) {
                 continue;
             }
-            // 按照 注册资本desc, 创建时间asc 排序
-            String firstParent = dao.queryFirstParent(maxRatioShareholderIds);
-            if (companyId.equals(firstParent)) {
+            // 按照 注册资本desc, 集团规模asc, 成立时间asc 对股东排序
+            PriorityQueue<ComparableShareholder> comparableShareholders = new PriorityQueue<>();
+            for (String maxRatioShareholderId : maxRatioShareholderIds) {
+                Map<String, Object> queriedCompanyIndex = dao.queryCompanyIndex(maxRatioShareholderId);
+                if (queriedCompanyIndex.isEmpty()) {
+                    continue;
+                }
+                // 注册资本
+                Long shareholderRegisterCapitalAmt = Long.parseLong(String.valueOf(queriedCompanyIndex.get("register_capital_amt")));
+                // 集团规模
+                Long groupSize = dao.queryGroupSize(maxRatioShareholderId);
+                // 成立时间
+                String dirtyEstablishDate = String.valueOf(queriedCompanyIndex.get("establish_date"));
+                String establishDate = TycUtils.isValidName(dirtyEstablishDate) ? dirtyEstablishDate : "9999-12-31 00:00:00";
+                comparableShareholders.add(new ComparableShareholder(maxRatioShareholderId, shareholderRegisterCapitalAmt, groupSize, establishDate));
+            }
+            if (comparableShareholders.isEmpty()) {
+                continue;
+            }
+            if (comparableShareholders.peek().getCompanyId().equals(companyId)) {
                 subCompanies.put(investedCompanyId, investedCompanyName);
             }
         }
