@@ -19,7 +19,7 @@ public class GroupService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        new GroupService().tryCreateGroup("6552196");
+        new GroupService().tryCreateGroup("2318455639");
     }
 
     public void tryCreateGroup(String companyId) {
