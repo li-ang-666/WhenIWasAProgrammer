@@ -40,8 +40,8 @@ public class GroupJob {
     @RequiredArgsConstructor
     private final static class GroupSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
-        private JdbcTemplate sink;
         private GroupService service;
+        private JdbcTemplate sink;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -50,6 +50,7 @@ public class GroupJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
+            service = new GroupService();
             sink = new JdbcTemplate("427.test");
         }
 
