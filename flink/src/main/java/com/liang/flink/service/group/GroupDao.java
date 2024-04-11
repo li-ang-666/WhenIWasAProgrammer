@@ -6,11 +6,9 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class GroupDao {
@@ -29,16 +27,6 @@ public class GroupDao {
         return sqls.isEmpty() ? new HashMap<>() : sqls.get(0);
     }
 
-    public List<Map<String, Object>> queryInvestedCompany(String shareholderId) {
-        List<String> sqls = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            String sql = String.format("select * from ratio_path_company_new_%s where shareholder_id = %s", i, SqlUtils.formatValue(shareholderId));
-            sqls.add(sql);
-        }
-        String sql = sqls.stream().collect(Collectors.joining(" union all ", "select * from (", ") t"));
-        return prismShareholderPath491.queryForColumnMaps(sql);
-    }
-
     public boolean isCompanyBranch(String companyId) {
         String sql = new SQL().SELECT("1")
                 .FROM("company_branch")
@@ -53,6 +41,7 @@ public class GroupDao {
         String preSql = new SQL().SELECT("max(investment_ratio_total)")
                 .FROM(table)
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("company_id <> shareholder_id")
                 .LIMIT(1)
                 .toString();
         String sql = new SQL().SELECT("shareholder_id")
@@ -60,6 +49,7 @@ public class GroupDao {
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("investment_ratio_total = (" + preSql + ")")
                 .WHERE("shareholder_entity_type = 1")
+                .WHERE("company_id <> shareholder_id")
                 .toString();
         return prismShareholderPath491.queryForList(sql, rs -> rs.getString(1));
     }
