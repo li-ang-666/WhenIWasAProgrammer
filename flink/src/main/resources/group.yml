@@ -1,0 +1,22 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 1
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - taskId: "111"
+    sourceName: "435.company_base"
+    tableName: "company_index"
+    columns: "*"
+    where: "1=1"
+    scanMode: TumblingWindow
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - ""
+    groupId: "group-job"
+    startFrom: "2"
