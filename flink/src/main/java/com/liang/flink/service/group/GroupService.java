@@ -45,7 +45,7 @@ public class GroupService {
         if (maxRatioShareholderIds.isEmpty()) {
             return result;
         }
-        // 按照 注册资本desc, 集团规模desc, 成立时间asc 对股东排序
+        // 按照 注册资本desc, 实控权desc, 成立时间asc 对股东排序
         PriorityQueue<ComparableShareholder> comparableShareholders = new PriorityQueue<>();
         for (String maxRatioShareholderId : maxRatioShareholderIds) {
             Map<String, Object> shareholderCompanyIndexMap = dao.queryCompanyIndex(maxRatioShareholderId);
@@ -63,7 +63,7 @@ public class GroupService {
             ComparableShareholder comparableShareholder = ComparableShareholder.builder()
                     .id(String.valueOf(shareholderCompanyIndexMap.get("company_id")))
                     .name(String.valueOf(shareholderCompanyIndexMap.get("company_name")))
-                    .groupSize(dao.queryGroupSize(maxRatioShareholderId))
+                    .controllingSize(dao.queryControllingSize(maxRatioShareholderId))
                     .registerCapitalAmt(shareholderRegisterCapitalAmt)
                     .establishDate(establishDate)
                     .build();

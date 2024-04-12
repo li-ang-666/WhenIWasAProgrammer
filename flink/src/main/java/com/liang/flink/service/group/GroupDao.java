@@ -14,8 +14,8 @@ import java.util.Map;
 public class GroupDao {
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate prismShareholderPath491 = new JdbcTemplate("491.prism_shareholder_path");
+    private final JdbcTemplate bdpEquity463 = new JdbcTemplate("463.bdp_equity");
     private final JdbcTemplate listedBase157 = new JdbcTemplate("157.listed_base");
-    private final JdbcTemplate sink = new JdbcTemplate("491.prism_shareholder_path");
 
     public Map<String, Object> queryCompanyIndex(String companyId) {
         String sql = new SQL()
@@ -54,12 +54,12 @@ public class GroupDao {
         return prismShareholderPath491.queryForList(sql, rs -> rs.getString(1));
     }
 
-    public Long queryGroupSize(String companyId) {
+    public Long queryControllingSize(String shareholderId) {
         String sql = new SQL().SELECT("count(1)")
-                .FROM("tyc_group")
-                .WHERE("group_id = " + SqlUtils.formatValue(companyId))
+                .FROM("entity_controller_details_new")
+                .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(shareholderId))
                 .toString();
-        Long res = sink.queryForObject(sql, rs -> rs.getLong(1));
+        Long res = bdpEquity463.queryForObject(sql, rs -> rs.getLong(1));
         return ObjUtil.defaultIfNull(res, 0L);
     }
 }
