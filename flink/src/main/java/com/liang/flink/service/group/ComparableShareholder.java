@@ -26,5 +26,3 @@ public class ComparableShareholder implements Comparable<ComparableShareholder> 
         }
     }
 }
-
-
