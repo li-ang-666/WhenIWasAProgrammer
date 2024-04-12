@@ -270,7 +270,7 @@ public class EquityControlService {
             }
             resultPaths.add(resultPath);
         }
-        return resultPaths;
+        return resultPaths.size() > 10 ? resultPaths.subList(0, 10) : resultPaths;
     }
 
     private Map<String, Object> getSpecialColumnMap(String companyId, String companyName, Map<String, Object> shareholderMap, String ratio, String reason, String reasonDetail) {
