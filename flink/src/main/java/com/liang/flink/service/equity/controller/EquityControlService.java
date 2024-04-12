@@ -209,7 +209,8 @@ public class EquityControlService {
         columnMap.put("company_name_controlled", String.valueOf(ratioPathCompanyMap.get("company_name")));
         columnMap.put("equity_relation_path_cnt", pathCount);
         columnMap.put("estimated_equity_ratio_total", String.valueOf(ratioPathCompanyMap.get("investment_ratio_total")));
-        columnMap.put("controlling_equity_relation_path_detail", JsonUtils.toString(paths));
+        // 明细json只要前10
+        columnMap.put("controlling_equity_relation_path_detail", JsonUtils.toString(paths.size() <= 10 ? paths : paths.subList(0, 10)));
         columnMap.put("is_controller_tyc_unique_entity_id", isController);
         if (min == 3 && max == 3) {
             columnMap.put("reason", REASON_EQUITY_DIRECT);
@@ -270,7 +271,7 @@ public class EquityControlService {
             }
             resultPaths.add(resultPath);
         }
-        return resultPaths.size() > 10 ? resultPaths.subList(0, 10) : resultPaths;
+        return resultPaths;
     }
 
     private Map<String, Object> getSpecialColumnMap(String companyId, String companyName, Map<String, Object> shareholderMap, String ratio, String reason, String reasonDetail) {
