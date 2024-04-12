@@ -76,6 +76,7 @@ public class GroupService {
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("group_id", finalOnlyShareholder.getId());
         columnMap.put("group_name", finalOnlyShareholder.getName());
+        columnMap.put("id", companyId);
         columnMap.put("company_id", companyId);
         columnMap.put("company_name", String.valueOf(companyIndexMap.get("company_name")));
         result.add(columnMap);

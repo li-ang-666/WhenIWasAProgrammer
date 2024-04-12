@@ -21,7 +21,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -63,12 +62,13 @@ public class GroupJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyId = String.valueOf(columnMap.get("company_id"));
-            List<Map<String, Object>> columnMaps = service.tryCreateGroup(companyId);
+            // delete
             String deleteSql = new SQL().DELETE_FROM("tyc_group")
-                    .WHERE("group_id = " + SqlUtils.formatValue(companyId))
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                     .toString();
             sink.update(deleteSql);
-            for (Map<String, Object> sinkColumnMap : columnMaps) {
+            // insert
+            for (Map<String, Object> sinkColumnMap : service.tryCreateGroup(companyId)) {
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(sinkColumnMap);
                 String insertSql = new SQL().INSERT_INTO("tyc_group")
                         .INTO_COLUMNS(insert.f0)
