@@ -29,7 +29,7 @@ import java.util.Map;
 @LocalConfigFile("equity-control-count.yml")
 public class EquityControlCountJob {
     private static final String QUERY_SOURCE = "463.bdp_equity";
-    private static final String QUERY_TABLE = "bdp_equity.entity_controller_details_new";
+    private static final String QUERY_TABLE = "entity_controller_details_new";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -61,8 +61,13 @@ public class EquityControlCountJob {
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            // entity_controller_details_new
             out.collect(String.valueOf(columnMap.get("tyc_unique_entity_id")));
             out.collect(String.valueOf(columnMap.get("company_id_controlled")));
+            // company_index
+            out.collect(String.valueOf(columnMap.get("company_id")));
+            // human
+            out.collect(String.valueOf(columnMap.get("human_id")));
         }
     }
 
