@@ -9,7 +9,7 @@ import java.util.*;
 
 @Slf4j
 public class GroupService {
-    private static final long REGISTER_CAPITAL_AMT = 10_000_000L;
+    private static final long REGISTER_CAPITAL_AMT = 100 * 10_000_000L;
     private static final List<String> ENTITY_PROPERTY_BLACK_LIST = Arrays.asList("11", "17");
     private final GroupDao dao = new GroupDao();
 
