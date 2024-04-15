@@ -15,7 +15,7 @@ public class ReadHbase extends ConfigHolder {
     }
 
     public static void main(String[] args) {
-        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, "3395546448");
+        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, "3230841217");
         HbaseOneRow queryResult = query(hbaseOneRow);
         //queryResult.put("past_zhixing", null);
         //queryResult.put("num_benefit_ability", null);
