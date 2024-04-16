@@ -16,7 +16,7 @@ public class GroupService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        List<Map<String, Object>> columnMaps = new GroupService().tryCreateGroup("3069334211");
+        List<Map<String, Object>> columnMaps = new GroupService().tryCreateGroup("2318668203");
         for (Map<String, Object> columnMap : columnMaps) {
             System.out.println(columnMap);
         }
