@@ -17,6 +17,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "9349c.proto.graph_data.company_equity_relation_details"
+      - "1ae09.proto.graph_data.company_equity_relation_details"
     groupId: "equity-bfs-job"
     startFrom: "2"
