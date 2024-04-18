@@ -150,8 +150,8 @@ public class EquityTagJob {
                         sink.update(insertSql);
                     }
                 });
-                bitmap.clear();
                 sink.flush();
+                bitmap.clear();
             }
         }
 

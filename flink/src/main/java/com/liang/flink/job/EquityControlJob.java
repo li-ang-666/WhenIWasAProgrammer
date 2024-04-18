@@ -127,8 +127,8 @@ public class EquityControlJob {
         private void flush() {
             synchronized (bitmap) {
                 bitmap.forEach(this::consume);
-                bitmap.clear();
                 sink.flush();
+                bitmap.clear();
             }
         }
 
