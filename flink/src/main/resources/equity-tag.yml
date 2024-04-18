@@ -1,0 +1,22 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 1
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - taskId: "111"
+    sourceName: "435.company_base"
+    tableName: "company_index"
+    columns: "*"
+    where: "company_id = 14427175"
+    scanMode: Direct
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "48e2e.proto.bdp_equity.entity_controller_details_new"
+    groupId: "equity-control-count-job"
+    startFrom: "2"
