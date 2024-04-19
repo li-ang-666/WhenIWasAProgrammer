@@ -100,7 +100,9 @@ public class EquityControlCountJob {
                             .put("num_control_ability", queryControlCountSql(tycUniqueEntityId)) :
                     new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, tycUniqueEntityId)
                             // 老板详情页-实控权count
-                            .put("num_control_ability", queryControlCountSql(tycUniqueEntityId));
+                            //.put("num_control_ability", queryControlCountSql(tycUniqueEntityId))
+                            // 老板详情页-受益权count
+                            .put("num_benefit_ability", queryBenefitAbility(tycUniqueEntityId));
             sink.update(hbaseOneRow);
         }
 
@@ -124,6 +126,19 @@ public class EquityControlCountJob {
                     .toString();
             return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
         }
+
+        // 查询实控权count
+        private String queryBenefitAbility(String tycUniqueEntityId) {
+            String sql = new SQL()
+                    .SELECT("count(1)")
+                    .FROM("entity_beneficiary_details_new")
+                    .WHERE("tyc_unique_entity_id_beneficial = " + SqlUtils.formatValue(tycUniqueEntityId))
+                    .WHERE("is_beneficiary = 1")
+                    .WHERE("entity_special_type != 1")
+                    .toString();
+            return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+        }
+
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
