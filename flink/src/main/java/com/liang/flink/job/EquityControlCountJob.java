@@ -127,7 +127,7 @@ public class EquityControlCountJob {
             return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
         }
 
-        // 查询实控权count
+        // 查询受益权count
         private String queryBenefitAbility(String tycUniqueEntityId) {
             String sql = new SQL()
                     .SELECT("count(1)")
@@ -138,7 +138,6 @@ public class EquityControlCountJob {
                     .toString();
             return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
         }
-
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
