@@ -27,9 +27,7 @@ import org.apache.flink.util.Collector;
 import java.util.Map;
 
 @LocalConfigFile("equity-control-count.yml")
-public class EquityControlCountJob {
-    private static final String QUERY_SOURCE = "463.bdp_equity";
-    private static final String QUERY_TABLE = "entity_controller_details_new";
+public class EquityCountJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -37,20 +35,20 @@ public class EquityControlCountJob {
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
                 .rebalance()
-                .flatMap(new EquityControlCountFlatMapper(config))
+                .flatMap(new EquityCountFlatMapper(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .name("EquityControlCountFlatMapper")
-                .uid("EquityControlCountFlatMapper")
+                .name("EquityCountFlatMapper")
+                .uid("EquityCountFlatMapper")
                 .keyBy(e -> e)
-                .addSink(new EquityControlCountSink(config))
+                .addSink(new EquityCountSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .name("EquityControlCountSink")
-                .uid("EquityControlCountSink");
-        env.execute("EquityControlCountJob");
+                .name("EquityCountSink")
+                .uid("EquityCountSink");
+        env.execute("EquityCountJob");
     }
 
     @RequiredArgsConstructor
-    private static final class EquityControlCountFlatMapper extends RichFlatMapFunction<SingleCanalBinlog, String> {
+    private static final class EquityCountFlatMapper extends RichFlatMapFunction<SingleCanalBinlog, String> {
         private final Config config;
 
         @Override
@@ -72,9 +70,10 @@ public class EquityControlCountJob {
     }
 
     @RequiredArgsConstructor
-    private static final class EquityControlCountSink extends RichSinkFunction<String> implements CheckpointedFunction {
+    private static final class EquityCountSink extends RichSinkFunction<String> implements CheckpointedFunction {
         private final Config config;
-        private JdbcTemplate jdbcTemplate;
+        private JdbcTemplate jdbcTemplate457;
+        private JdbcTemplate jdbcTemplate463;
         private HbaseTemplate sink;
 
         @Override
@@ -84,7 +83,8 @@ public class EquityControlCountJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            jdbcTemplate = new JdbcTemplate(QUERY_SOURCE);
+            jdbcTemplate457 = new JdbcTemplate("457.prism_shareholder_path");
+            jdbcTemplate463 = new JdbcTemplate("463.bdp_equity");
             sink = new HbaseTemplate("hbaseSink");
             sink.enableCache();
         }
@@ -92,43 +92,50 @@ public class EquityControlCountJob {
         @Override
         public void invoke(String tycUniqueEntityId, Context context) {
             if (!TycUtils.isTycUniqueEntityId(tycUniqueEntityId)) return;
-            HbaseOneRow hbaseOneRow = TycUtils.isUnsignedId(tycUniqueEntityId) ?
-                    new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, tycUniqueEntityId)
-                            // 公司详情页-实控人count
-                            .put("has_controller", queryControllerCountSql(tycUniqueEntityId))
-                            // 公司详情页-实控权count
-                            .put("num_control_ability", queryControlCountSql(tycUniqueEntityId)) :
-                    new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, tycUniqueEntityId)
-                            // 老板详情页-实控权count
-                            //.put("num_control_ability", queryControlCountSql(tycUniqueEntityId))
-                            // 老板详情页-受益权count
-                            .put("num_benefit_ability", queryBenefitAbility(tycUniqueEntityId));
+            HbaseOneRow hbaseOneRow;
+            if (TycUtils.isUnsignedId(tycUniqueEntityId)) {
+                hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, tycUniqueEntityId)
+                        // 公司详情页-实控人count
+                        .put("has_controller", queryHasController(tycUniqueEntityId))
+                        // 公司详情页-受益人count
+                        .put("has_beneficiary", queryHasBeneficiary(tycUniqueEntityId))
+                        // 公司详情页-实控权count
+                        .put("num_control_ability", queryNumControlAbility(tycUniqueEntityId))
+                ;
+            } else {
+                hbaseOneRow = new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, tycUniqueEntityId)
+                        // 老板详情页-实控权count
+                        .put("num_control_ability", queryNumControlAbility(tycUniqueEntityId))
+                        // 老板详情页-受益权count
+                        .put("num_benefit_ability", queryNumBenefitAbility(tycUniqueEntityId))
+                ;
+            }
             sink.update(hbaseOneRow);
         }
 
         // 查询实控人count
-        private String queryControllerCountSql(String tycUniqueEntityId) {
+        private String queryHasController(String tycUniqueEntityId) {
             String sql = new SQL()
                     .SELECT("count(1)")
-                    .FROM(QUERY_TABLE)
+                    .FROM("entity_controller_details_new")
                     .WHERE("company_id_controlled = " + SqlUtils.formatValue(tycUniqueEntityId))
                     .WHERE("is_controller_tyc_unique_entity_id = 1")
                     .toString();
-            return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+            return jdbcTemplate463.queryForObject(sql, rs -> rs.getString(1));
         }
 
         // 查询实控权count
-        private String queryControlCountSql(String tycUniqueEntityId) {
+        private String queryNumControlAbility(String tycUniqueEntityId) {
             String sql = new SQL()
                     .SELECT("count(1)")
-                    .FROM(QUERY_TABLE)
+                    .FROM("entity_controller_details_new")
                     .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(tycUniqueEntityId))
                     .toString();
-            return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+            return jdbcTemplate463.queryForObject(sql, rs -> rs.getString(1));
         }
 
         // 查询受益权count
-        private String queryBenefitAbility(String tycUniqueEntityId) {
+        private String queryNumBenefitAbility(String tycUniqueEntityId) {
             String sql = new SQL()
                     .SELECT("count(1)")
                     .FROM("entity_beneficiary_details_new")
@@ -136,7 +143,18 @@ public class EquityControlCountJob {
                     .WHERE("is_beneficiary = 1")
                     .WHERE("entity_special_type != 1")
                     .toString();
-            return jdbcTemplate.queryForObject(sql, rs -> rs.getString(1));
+            return jdbcTemplate463.queryForObject(sql, rs -> rs.getString(1));
+        }
+
+        // 查询受益人count
+        private String queryHasBeneficiary(String tycUniqueEntityId) {
+            String sql = new SQL()
+                    .SELECT("count(1)")
+                    .FROM("ratio_path_company")
+                    .WHERE("company_id = " + SqlUtils.formatValue(tycUniqueEntityId))
+                    .WHERE("is_ultimate = 1")
+                    .toString();
+            return jdbcTemplate457.queryForObject(sql, rs -> rs.getString(1));
         }
 
         @Override
