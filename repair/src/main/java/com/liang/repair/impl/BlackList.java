@@ -14,7 +14,7 @@ public class BlackList extends ConfigHolder {
         // 深圳厚生新金融控股有限公司 华猛
         new JdbcTemplate("463.bdp_equity")
                 .update(
-                        "delete from entity_controller_details where tyc_unique_entity_id = 'A01UPM509B80GHTHR'",
+                        "delete from entity_controller_details_new where tyc_unique_entity_id = 'A01UPM509B80GHTHR'",
                         "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'A01UPM509B80GHTHR'",
                         "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'A01UPM509B80GHTHR'"
                 );
@@ -57,42 +57,42 @@ public class BlackList extends ConfigHolder {
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'F01Y09N0980P52BV3'");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = 'F01Y09N0980P52BV3'");
         new JdbcTemplate("463.bdp_equity").update(
-                "delete from entity_controller_details where tyc_unique_entity_id = 'F01Y09N0980P52BV3'",
+                "delete from entity_controller_details_new where tyc_unique_entity_id = 'F01Y09N0980P52BV3'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'F01Y09N0980P52BV3'",
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'F01Y09N0980P52BV3'");
         // 删除老板所有数据
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'Q01589P02D8FNTBU4'");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = 'Q01589P02D8FNTBU4'");
         new JdbcTemplate("463.bdp_equity").update(
-                "delete from entity_controller_details where tyc_unique_entity_id = 'Q01589P02D8FNTBU4'",
+                "delete from entity_controller_details_new where tyc_unique_entity_id = 'Q01589P02D8FNTBU4'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'Q01589P02D8FNTBU4'",
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'Q01589P02D8FNTBU4'");
         // 删除老板所有数据
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'R01P4MP09TH6V7296'");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = 'R01P4MP09TH6V7296'");
         new JdbcTemplate("463.bdp_equity").update(
-                "delete from entity_controller_details where tyc_unique_entity_id = 'R01P4MP09TH6V7296'",
+                "delete from entity_controller_details_new where tyc_unique_entity_id = 'R01P4MP09TH6V7296'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'R01P4MP09TH6V7296'",
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'R01P4MP09TH6V7296'");
         // 删除老板所有数据
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'R01R4MP09T361FK7S'");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = 'R01R4MP09T361FK7S'");
         new JdbcTemplate("463.bdp_equity").update(
-                "delete from entity_controller_details where tyc_unique_entity_id = 'R01R4MP09T361FK7S'",
+                "delete from entity_controller_details_new where tyc_unique_entity_id = 'R01R4MP09T361FK7S'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = 'R01R4MP09T361FK7S'",
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = 'R01R4MP09T361FK7S'");
         // 删除老板所有数据
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '90LLJM300EKUPFJ6G'");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = '90LLJM300EKUPFJ6G'");
         new JdbcTemplate("463.bdp_equity").update(
-                "delete from entity_controller_details where tyc_unique_entity_id = '90LLJM300EKUPFJ6G'",
+                "delete from entity_controller_details_new where tyc_unique_entity_id = '90LLJM300EKUPFJ6G'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = '90LLJM300EKUPFJ6G'",
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = '90LLJM300EKUPFJ6G'");
         // 删除老板所有数据
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '20TVMMN02E33YF576'");
         new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = '20TVMMN02E33YF576'");
         new JdbcTemplate("463.bdp_equity").update(
-                "delete from entity_controller_details where tyc_unique_entity_id = '20TVMMN02E33YF576'",
+                "delete from entity_controller_details_new where tyc_unique_entity_id = '20TVMMN02E33YF576'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = '20TVMMN02E33YF576'",
                 "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = '20TVMMN02E33YF576'");
         // 删除老板所有数据
