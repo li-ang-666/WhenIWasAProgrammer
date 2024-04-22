@@ -160,6 +160,8 @@ public class EquityTagJob {
                     .FROM(QUERY_TABLE + "_" + companyId % 100)
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                     .WHERE("(is_big_shareholder = 1 OR is_controlling_shareholder = 1)")
+                    .WHERE("company_name <> shareholder_name")
+                    .WHERE("company_id <> shareholder_id")
                     .toString();
             return source.queryForColumnMaps(sql);
         }
