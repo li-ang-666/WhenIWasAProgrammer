@@ -106,6 +106,7 @@ public class BlackList extends ConfigHolder {
         deleteBossAll("C0A3QMQ02M83DVTVZ");
         deleteBossAll("8062G1F01V52K6ZYL");
         deleteBossAll("901J5MY00K5GNVK1G");
+        deleteBossAll("Y02PT9J02Q83M1CAF");
         // 删除合作伙伴
         deletePartner("40TN89C001CR0MVL6");
         deletePartner("20ALJMQ096V0YBAZ2");
@@ -128,12 +129,13 @@ public class BlackList extends ConfigHolder {
      *
      */
     private static void deleteBossAll(String humanPid) {
-        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = '" + humanPid + "'");
+        deletePartner(humanPid);
         new JdbcTemplate("457.prism_shareholder_path").update("delete from ratio_path_company where shareholder_id = '" + humanPid + "'");
         new JdbcTemplate("463.bdp_equity").update(
                 "delete from entity_controller_details where tyc_unique_entity_id = '" + humanPid + "'",
                 "delete from entity_beneficiary_details where tyc_unique_entity_id_beneficiary = '" + humanPid + "'",
-                "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = '" + humanPid + "'");
+                "delete from shareholder_identity_type_details where tyc_unique_entity_id_with_shareholder_identity_type = '" + humanPid + "'",
+                "delete from entity_controller_details_new where tyc_unique_entity_id = '" + humanPid + "'");
     }
 
     /**
