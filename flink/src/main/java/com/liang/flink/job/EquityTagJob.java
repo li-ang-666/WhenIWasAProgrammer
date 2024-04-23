@@ -120,16 +120,19 @@ public class EquityTagJob {
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
             flush();
+            sink.flush();
         }
 
         @Override
         public void finish() {
             flush();
+            sink.flush();
         }
 
         @Override
         public void close() {
             flush();
+            sink.flush();
         }
 
         private void flush() {
@@ -150,7 +153,6 @@ public class EquityTagJob {
                         sink.update(insertSql);
                     }
                 });
-                sink.flush();
                 bitmap.clear();
             }
         }
