@@ -8,6 +8,7 @@ import com.liang.repair.service.ConfigHolder;
 
 public class BlackList extends ConfigHolder {
     public static void main(String[] args) {
+        new JdbcTemplate("430.graph_data").update("delete from company_equity_relation_details where company_id_invested = 353803157");
         // 深圳厚生新金融控股有限公司 华猛
         new JdbcTemplate("457.prism_shareholder_path")
                 .update("delete from ratio_path_company where shareholder_id = 'A01UPM509B80GHTHR'");
