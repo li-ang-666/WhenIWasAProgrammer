@@ -29,6 +29,7 @@ public class RatioPathCompanyRepair {
             String sql = new SQL().SELECT("distinct company_id")
                     .FROM("ratio_path_company")
                     .WHERE("shareholder_id = " + SqlUtils.formatValue(e))
+                    .WHERE("1=2")
                     .toString();
             jdbcTemplate.queryForList(sql, rs -> {
                 String companyId = rs.getString(1);
