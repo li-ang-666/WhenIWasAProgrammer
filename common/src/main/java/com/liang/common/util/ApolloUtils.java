@@ -15,6 +15,7 @@ public class ApolloUtils {
     static {
         // http://apollo.jindidata.com
         System.setProperty("apollo.meta", "http://apollo.middleware.huawei:8080");
+        System.setProperty("env", "PRO");
         System.setProperty("app.id", "ApolloUtils");
         apollo = ConfigService.getAppConfig();
         apollo.addChangeListener(configChangeEvent -> {
