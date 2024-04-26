@@ -14,6 +14,7 @@ import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
 import com.liang.flink.service.equity.bfs.EquityBfsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -115,6 +116,7 @@ public class EquityBfsJob {
     /**
      * 股权穿透
      */
+    @Slf4j
     @RequiredArgsConstructor
     private static final class EquityBfsCalculator extends RichFlatMapFunction<String, Tuple2<String, List<Map<String, Object>>>> implements CheckpointedFunction {
         private final Roaring64Bitmap bitmap = new Roaring64Bitmap();
@@ -143,23 +145,26 @@ public class EquityBfsJob {
                 }
                 // 全量修复的时候, 来一条计算一条
                 if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
-                    flush();
+                    flush(null);
                 }
             }
         }
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
-            flush();
+            flush(context);
         }
 
         @Override
         public void close() {
-            flush();
+            flush(null);
         }
 
-        private void flush() {
+        private void flush(FunctionSnapshotContext context) {
             synchronized (bitmap) {
+                if (context != null) {
+                    log.info("checkpoint id: {}, bitmap size: {}", context.getCheckpointId(), bitmap.getLongCardinality());
+                }
                 bitmap.forEach(this::consume);
                 bitmap.clear();
             }
