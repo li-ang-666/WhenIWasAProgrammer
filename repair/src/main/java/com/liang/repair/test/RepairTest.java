@@ -17,7 +17,7 @@ public class RepairTest extends ConfigHolder {
         JdbcTemplate graphData430 = new JdbcTemplate("430.graph_data");
         prism116.enableCache();
         graphData430.enableCache();
-        InputStream resourceAsStream = RepairTest.class.getClassLoader().getResourceAsStream("diff-company-ids.txt");
+        InputStream resourceAsStream = RepairTest.class.getClassLoader().getResourceAsStream("wrong-company-ids.txt");
         String[] companyIds = IoUtil.readUtf8(resourceAsStream).split("\n");
         for (String companyId : companyIds) {
             if (!TycUtils.isUnsignedId(companyId)) {
