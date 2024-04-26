@@ -169,6 +169,8 @@ public class EquityBfsJob {
             synchronized (bitmap) {
                 if (context != null) {
                     log.info("checkpoint id: {}, bitmap size: {}", context.getCheckpointId(), bitmap.getLongCardinality());
+                } else {
+                    log.info("bitmap size: {}", bitmap.getLongCardinality());
                 }
                 bitmap.forEach(this::consume);
                 bitmap.clear();
@@ -196,7 +198,7 @@ public class EquityBfsJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             sink = new JdbcTemplate(SINK_SOURCE);
-            sink.enableCache();
+            sink.enableCache(3000, 32);
         }
 
         @Override
