@@ -119,6 +119,7 @@ public class EquityBfsJob {
     @Slf4j
     @RequiredArgsConstructor
     private static final class EquityBfsCalculator extends RichFlatMapFunction<String, Tuple2<String, List<Map<String, Object>>>> implements CheckpointedFunction {
+        private static final int CATCH_SIZE = 256;
         private final Roaring64Bitmap bitmap = new Roaring64Bitmap();
         private final Config config;
         private EquityBfsService service;
@@ -145,6 +146,10 @@ public class EquityBfsJob {
                 }
                 // 全量修复的时候, 来一条计算一条
                 if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
+                    flush(null);
+                }
+                // 为保证ckp, bitmap也要定时flush
+                if (bitmap.getLongCardinality() >= CATCH_SIZE) {
                     flush(null);
                 }
             }

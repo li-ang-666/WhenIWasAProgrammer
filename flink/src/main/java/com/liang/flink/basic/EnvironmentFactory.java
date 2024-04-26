@@ -22,7 +22,7 @@ import static org.apache.flink.streaming.api.environment.CheckpointConfig.Extern
 public class EnvironmentFactory {
     private final static long CHECKPOINT_INTERVAL_LOCAL_TEST = TimeUnit.MINUTES.toMillis(1);
     private final static long CHECKPOINT_INTERVAL = TimeUnit.MINUTES.toMillis(3);
-    private final static long CHECKPOINT_TIMEOUT = TimeUnit.HOURS.toMillis(1);
+    private final static long CHECKPOINT_TIMEOUT = TimeUnit.HOURS.toMillis(24);
 
     @SneakyThrows(ClassNotFoundException.class)
     public static StreamExecutionEnvironment create(String[] args) {
@@ -81,7 +81,7 @@ public class EnvironmentFactory {
         // 超时
         checkpointConfig.setCheckpointTimeout(CHECKPOINT_TIMEOUT);
         // 可以容忍的连续checkpoint次数,次数超过后任务自动停止
-        env.getCheckpointConfig().setTolerableCheckpointFailureNumber(24);
+        env.getCheckpointConfig().setTolerableCheckpointFailureNumber(7);
         // 同时运行的checkpoint数量
         checkpointConfig.setMaxConcurrentCheckpoints(1);
         // 程序停止时保留checkpoint
