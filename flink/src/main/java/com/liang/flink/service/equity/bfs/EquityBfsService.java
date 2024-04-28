@@ -6,6 +6,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.service.equity.bfs.dto.Operation;
+import com.liang.flink.service.equity.bfs.dto.ShareholderJudgeInfo;
 import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
 import com.liang.flink.service.equity.bfs.dto.mysql.RatioPathCompanyDto;
 import com.liang.flink.service.equity.bfs.dto.pojo.Edge;
@@ -26,6 +27,7 @@ public class EquityBfsService {
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
+    private final Map<String, ShareholderJudgeInfo> shareholderJudgeInfoMap = new HashMap<>();
     // base info
     private String companyId;
     private String companyName;
@@ -63,19 +65,23 @@ public class EquityBfsService {
         this.companyEntityProperty = ObjUtil.defaultIfNull(dao.queryEntityProperty(companyId), "");
         allShareholders.clear();
         bfsQueue.clear();
+        shareholderJudgeInfoMap.clear();
         currentScanLevel = 0;
         // start bfs
         bfsQueue.offer(Path.newPath(new Node(companyId, companyName)));
         while (!bfsQueue.isEmpty()) {
             log.debug("开始遍历第 {} 层", currentScanLevel);
+            // query shareholders
+            String investedCompanyIds = bfsQueue.parallelStream().map(e -> e.getLast().getId()).collect(Collectors.joining(",", "(", ")"));
+            Map<String, List<CompanyEquityRelationDetailsDto>> investedCompanyId2Shareholders = dao.queryThisLevelShareholder(investedCompanyIds);
             int size = bfsQueue.size();
             while (size-- > 0) {
                 // queue.poll()
                 Path polledPath = Objects.requireNonNull(bfsQueue.poll());
                 Node polledPathLastNode = polledPath.getLast();
                 log.debug("queue poll: {}", polledPathLastNode);
-                // query shareholders
-                List<CompanyEquityRelationDetailsDto> shareholders = dao.queryShareholder(polledPathLastNode.getId());
+                // get shareholders from map
+                List<CompanyEquityRelationDetailsDto> shareholders = investedCompanyId2Shareholders.getOrDefault(polledPathLastNode.getId(), new ArrayList<>());
                 // no more shareholders
                 if (shareholders.isEmpty()) {
                     processNoMoreShareholder(polledPath);
@@ -102,6 +108,15 @@ public class EquityBfsService {
         Edge newEdge = new Edge(ratio, true);
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
+        ShareholderJudgeInfo shareholderJudgeInfo = shareholderJudgeInfoMap.compute(shareholderId, (k, v) -> {
+            if (v != null) {
+                return v;
+            }
+            if (shareholderId.length() == 17) {
+                return new ShareholderJudgeInfo(shareholderId, false, false);
+            }
+            return dao.queryShareholderJudgeInfo(shareholderId);
+        });
         // 异常id
         if (!TycUtils.isTycUniqueEntityId(shareholderId)) {
             return DROP;
@@ -115,20 +130,15 @@ public class EquityBfsService {
             return DROP;
         }
         // 注吊销公司
-        if (shareholderId.length() != 17 && dao.isClosed(shareholderId)) {
+        if (shareholderJudgeInfo.isClosed()) {
             return DROP;
         }
-        String uscc = shareholderId.length() == 17 ? "" : dao.getUscc(shareholderId);
-        // 在company_index表缺失
-        if (uscc == null) {
-            return DROP;
-        }
-        // 在本条路径上出现过
+        // 在本条路径上出现过(成环)
         if (polledPath.getNodeIds().contains(shareholderId)) {
             return ARCHIVE_WITH_UPDATE_PATH_ONLY;
         }
         // 001
-        if (uscc.startsWith("11")) {
+        if (shareholderJudgeInfo.is001()) {
             return ARCHIVE_WITH_UPDATE_PATH_AND_RATIO;
         }
         // 自然人

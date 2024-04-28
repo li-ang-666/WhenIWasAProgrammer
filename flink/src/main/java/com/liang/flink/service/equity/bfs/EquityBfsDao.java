@@ -3,20 +3,18 @@ package com.liang.flink.service.equity.bfs;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
+import com.liang.flink.service.equity.bfs.dto.ShareholderJudgeInfo;
 import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class EquityBfsDao {
     private static final List<String> NOT_ALIVE_TAG_ID_LIST = Arrays.asList("34", "35", "36", "37", "38", "39", "40", "43", "44", "46", "47", "48", "49", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "67", "68");
     private final JdbcTemplate graphData430 = new JdbcTemplate("430.graph_data");
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
-    private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base");
+    private final JdbcTemplate companyBase142 = new JdbcTemplate("142.company_base.ro");
     private final JdbcTemplate companyBase465 = new JdbcTemplate("465.company_base");
     private final JdbcTemplate humanBase040 = new JdbcTemplate("040.human_base");
     private final JdbcTemplate prism116 = new JdbcTemplate("116.prism");
@@ -53,40 +51,62 @@ public class EquityBfsDao {
         return companyBase465.queryForObject(sql, rs -> rs.getString(1));
     }
 
-    public List<CompanyEquityRelationDetailsDto> queryShareholder(String companyId) {
+    public Map<String, List<CompanyEquityRelationDetailsDto>> queryThisLevelShareholder(String investedCompanyIds) {
+        Map<String, List<CompanyEquityRelationDetailsDto>> investedCompanyId2Shareholders = new HashMap<>();
         String sql = new SQL()
+                .SELECT("company_id_invested")
                 .SELECT("tyc_unique_entity_id_investor")
                 .SELECT("tyc_unique_entity_name_investor")
                 .SELECT("equity_ratio")
                 .FROM("graph_data.company_equity_relation_details")
-                .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
+                .WHERE("company_id_invested in " + investedCompanyIds)
                 .WHERE("reference_pt_year = 2024")
                 .toString();
-        return graphData430.queryForList(sql, rs -> {
-            String id = rs.getString(1);
-            String name = rs.getString(2);
-            BigDecimal ratio = new BigDecimal(rs.getString(3));
-            return new CompanyEquityRelationDetailsDto(id, name, ratio);
+        graphData430.queryForList(sql, rs -> {
+            String investedCompanyId = rs.getString(1);
+            String id = rs.getString(2);
+            String name = rs.getString(3);
+            BigDecimal ratio = new BigDecimal(rs.getString(4));
+            investedCompanyId2Shareholders.compute(investedCompanyId, (k, v) -> {
+                List<CompanyEquityRelationDetailsDto> shareholders = (v != null) ? v : new ArrayList<>();
+                shareholders.add(new CompanyEquityRelationDetailsDto(id, name, ratio));
+                return shareholders;
+            });
+            return null;
         });
+        return investedCompanyId2Shareholders;
     }
 
-    public boolean isClosed(String companyId) {
-        String sql = new SQL()
-                .SELECT("1")
+    public ShareholderJudgeInfo queryShareholderJudgeInfo(String companyId) {
+        String t1 = new SQL().SELECT(companyId + " as company_id")
+                .toString();
+        String t2 = new SQL().SELECT(companyId + " as company_id", "true as is_closed")
                 .FROM("bdp_company_profile_tag_details_total")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("profile_tag_id in " + NOT_ALIVE_TAG_ID_LIST.stream().collect(Collectors.joining(",", "(", ")")))
+                .LIMIT(1)
                 .toString();
-        return companyBase142.queryForObject(sql, rs -> rs.getString(1)) != null;
-    }
-
-    public String getUscc(String companyId) {
-        String sql = new SQL()
-                .SELECT("unified_social_credit_code")
-                .FROM("company_index")
+        String t3 = new SQL()
+                .SELECT(companyId + " as company_id", "true as is_001")
+                .FROM("company_001_company_list_total")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("deleted = 0")
+                .LIMIT(1)
                 .toString();
-        return companyBase435.queryForObject(sql, rs -> rs.getString(1));
+        String sql = new SQL()
+                .SELECT("t1.company_id")
+                .SELECT("ifnull(t2.is_closed, false)")
+                .SELECT("ifnull(t3.is_001, false)")
+                .FROM(String.format("(%s)t1", t1))
+                .LEFT_OUTER_JOIN(String.format("(%s)t2 on t1.company_id = t2.company_id", t2))
+                .LEFT_OUTER_JOIN(String.format("(%s)t3 on t1.company_id = t3.company_id", t3))
+                .toString();
+        return companyBase142.queryForObject(sql, rs -> {
+            String id = rs.getString(1);
+            boolean isClosed = rs.getBoolean(2);
+            boolean is001 = rs.getBoolean(3);
+            return new ShareholderJudgeInfo(id, isClosed, is001);
+        });
     }
 
     /**
@@ -115,5 +135,4 @@ public class EquityBfsDao {
         }});
         return columnMap != null ? columnMap : new HashMap<>();
     }
-
 }
