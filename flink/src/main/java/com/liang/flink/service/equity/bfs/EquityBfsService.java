@@ -74,21 +74,9 @@ public class EquityBfsService {
         while (!bfsQueue.isEmpty()) {
             log.debug("开始遍历第 {} 层", currentScanLevel);
             // query this level new company-to-shareholders
-            Set<String> newInvestedCompanyIds = bfsQueue.parallelStream()
-                    .map(e -> e.getLast().getId())
-                    .filter(e -> !investedCompanyId2Shareholders.containsKey(e))
-                    .collect(Collectors.toSet());
-            if (!newInvestedCompanyIds.isEmpty()) {
-                investedCompanyId2Shareholders.putAll(dao.queryThisLevelShareholder(newInvestedCompanyIds));
-            }
+            findNewInvestedCompany2Shareholders();
             // query this level new shareholder-judge-info
-            Set<String> newShareholders = investedCompanyId2Shareholders.values().parallelStream()
-                    .flatMap(shareholders -> shareholders.parallelStream().map(CompanyEquityRelationDetailsDto::getShareholderId))
-                    .filter(shareholderId -> shareholderId.length() != 17 && !shareholderJudgeInfoMap.containsKey(shareholderId))
-                    .collect(Collectors.toSet());
-            if (!newShareholders.isEmpty()) {
-                shareholderJudgeInfoMap.putAll(dao.queryShareholderJudgeInfo(newShareholders));
-            }
+            findNewShareholderJudgeInfo();
             int size = bfsQueue.size();
             while (size-- > 0) {
                 // queue.poll()
@@ -113,9 +101,29 @@ public class EquityBfsService {
         return allShareholders2ColumnMaps();
     }
 
-    /**
-     * `allShareholders` 在该方法中只读不写
-     */
+    // query this level new company-to-shareholders
+    private void findNewInvestedCompany2Shareholders() {
+        Set<String> newInvestedCompanyIds = bfsQueue.parallelStream()
+                .map(e -> e.getLast().getId())
+                .filter(e -> !investedCompanyId2Shareholders.containsKey(e))
+                .collect(Collectors.toSet());
+        if (!newInvestedCompanyIds.isEmpty()) {
+            investedCompanyId2Shareholders.putAll(dao.queryThisLevelShareholder(newInvestedCompanyIds));
+        }
+    }
+
+    // query this level new shareholder-judge-info
+    private void findNewShareholderJudgeInfo() {
+        Set<String> newShareholders = investedCompanyId2Shareholders.values().parallelStream()
+                .flatMap(shareholders -> shareholders.parallelStream().map(CompanyEquityRelationDetailsDto::getShareholderId))
+                .filter(shareholderId -> shareholderId.length() != 17 && !shareholderJudgeInfoMap.containsKey(shareholderId))
+                .collect(Collectors.toSet());
+        if (!newShareholders.isEmpty()) {
+            shareholderJudgeInfoMap.putAll(dao.queryShareholderJudgeInfo(newShareholders));
+        }
+    }
+
+    //`allShareholders` 在该方法中只读不写
     private Operation judgeQueriedShareholder(Path polledPath, CompanyEquityRelationDetailsDto shareholder) {
         String shareholderId = shareholder.getShareholderId();
         String shareholderName = shareholder.getShareholderName();
@@ -157,9 +165,7 @@ public class EquityBfsService {
         return NOT_ARCHIVE;
     }
 
-    /**
-     * `allShareholders` 与 `bfsQueue` 在该方法中发生写入
-     */
+    // `allShareholders` 与 `bfsQueue` 在该方法中发生写入
     private void processQueriedShareholder(Path polledPath, CompanyEquityRelationDetailsDto shareholder, Operation judgeResult) {
         if (judgeResult == DROP) {
             return;
@@ -203,9 +209,7 @@ public class EquityBfsService {
         }
     }
 
-    /**
-     * `allShareholders` 在该方法中发生写入
-     */
+    // `allShareholders` 在该方法中发生写入
     private void processNoMoreShareholder(Path polledPath) {
         // 无任何投资关系
         if (currentScanLevel == 0) {
@@ -217,9 +221,7 @@ public class EquityBfsService {
         }
     }
 
-    /**
-     * 可能因为 Operation.DROP 导致 allShareholders 为 empty
-     */
+    // 有可能因为 Operation.DROP 导致 allShareholders 为 empty
     private List<Map<String, Object>> allShareholders2ColumnMaps() {
         if (allShareholders.isEmpty()) {
             return Collections.singletonList(getSpecialRatioPathCompanyDto().toColumnMap());
@@ -249,10 +251,7 @@ public class EquityBfsService {
                 .map(RatioPathCompanyDto::toColumnMap).collect(Collectors.toList());
     }
 
-    /**
-     * 数据完整性
-     * 自己投资自己
-     */
+    // 数据完整性, 自己投资自己
     private RatioPathCompanyDto getSpecialRatioPathCompanyDto() {
         BigDecimal ratio = BigDecimal.ONE;
         Edge newEdge = new Edge(ratio, true);
