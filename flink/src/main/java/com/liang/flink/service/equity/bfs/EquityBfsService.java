@@ -226,6 +226,7 @@ public class EquityBfsService {
         return allShareholders
                 .values()
                 .parallelStream()
+                // 比例过滤
                 .filter(ratioPathCompanyDto -> ratioPathCompanyDto.getShareholderFirstAppearLevel() <= 3 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0)
                 .peek(ratioPathCompanyDto -> {
                     Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(ratioPathCompanyDto.getShareholderId());
@@ -236,6 +237,7 @@ public class EquityBfsService {
                     ratioPathCompanyDto.setShareholderMasterCompanyId(shareholderMasterCompanyId);
                     ratioPathCompanyDto.setShareholderName(shareholderLatestName);
                 })
+                // 脏数据过滤
                 .filter(ratioPathCompanyDto ->
                         TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
                                 TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
