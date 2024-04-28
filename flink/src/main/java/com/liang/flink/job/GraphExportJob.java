@@ -128,7 +128,7 @@ public class GraphExportJob {
                     "0",
                     String.valueOf(columnMap.get("tyc_unique_entity_name_invested")).replaceAll("[\n,\r'\"]", ""),
                     "",
-                    String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""))),
+                    //String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""))),
                     "1704038400000"
             );
             String type = String.valueOf(columnMap.get("investor_identity_type"));
@@ -143,7 +143,7 @@ public class GraphExportJob {
                         "0",
                         String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,\r'\"]", ""),
                         "",
-                        String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""))),
+                        //String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""))),
                         "1704038400000"
                 );
             }
