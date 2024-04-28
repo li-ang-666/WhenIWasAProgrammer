@@ -73,13 +73,21 @@ public class EquityBfsService {
         bfsQueue.offer(Path.newPath(new Node(companyId, companyName)));
         while (!bfsQueue.isEmpty()) {
             log.debug("开始遍历第 {} 层", currentScanLevel);
-            // query shareholders
-            String investedCompanyIds = bfsQueue.parallelStream()
+            // query this level new company-to-shareholders
+            Set<String> newInvestedCompanyIds = bfsQueue.parallelStream()
                     .map(e -> e.getLast().getId())
                     .filter(e -> !investedCompanyId2Shareholders.containsKey(e))
-                    .collect(Collectors.joining(",", "(", ")"));
-            if (!"()".equals(investedCompanyIds)) {
-                investedCompanyId2Shareholders.putAll(dao.queryThisLevelShareholder(investedCompanyIds));
+                    .collect(Collectors.toSet());
+            if (!newInvestedCompanyIds.isEmpty()) {
+                investedCompanyId2Shareholders.putAll(dao.queryThisLevelShareholder(newInvestedCompanyIds));
+            }
+            // query this level new shareholder-judge-info
+            Set<String> newShareholders = investedCompanyId2Shareholders.values().parallelStream()
+                    .flatMap(shareholders -> shareholders.parallelStream().map(CompanyEquityRelationDetailsDto::getShareholderId))
+                    .filter(shareholderId -> shareholderId.length() != 17 && !shareholderJudgeInfoMap.containsKey(shareholderId))
+                    .collect(Collectors.toSet());
+            if (!newShareholders.isEmpty()) {
+                shareholderJudgeInfoMap.putAll(dao.queryShareholderJudgeInfo(newShareholders));
             }
             int size = bfsQueue.size();
             while (size-- > 0) {
@@ -115,15 +123,8 @@ public class EquityBfsService {
         Edge newEdge = new Edge(ratio, true);
         Node newNode = new Node(shareholderId, shareholderName);
         Path newPath = Path.newPath(polledPath, newEdge, newNode);
-        ShareholderJudgeInfo shareholderJudgeInfo = shareholderJudgeInfoMap.compute(shareholderId, (k, v) -> {
-            if (v != null) {
-                return v;
-            }
-            if (shareholderId.length() == 17) {
-                return new ShareholderJudgeInfo(shareholderId, false, false);
-            }
-            return dao.queryShareholderJudgeInfo(shareholderId);
-        });
+        ShareholderJudgeInfo shareholderJudgeInfo = shareholderJudgeInfoMap
+                .getOrDefault(shareholderId, new ShareholderJudgeInfo(shareholderId, false, false));
         // 异常id
         if (!TycUtils.isTycUniqueEntityId(shareholderId)) {
             return DROP;

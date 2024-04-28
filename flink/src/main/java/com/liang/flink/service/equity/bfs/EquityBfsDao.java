@@ -51,7 +51,7 @@ public class EquityBfsDao {
         return companyBase465.queryForObject(sql, rs -> rs.getString(1));
     }
 
-    public Map<String, List<CompanyEquityRelationDetailsDto>> queryThisLevelShareholder(String investedCompanyIds) {
+    public Map<String, List<CompanyEquityRelationDetailsDto>> queryThisLevelShareholder(Set<String> investedCompanyIds) {
         Map<String, List<CompanyEquityRelationDetailsDto>> investedCompanyId2Shareholders = new HashMap<>();
         String sql = new SQL()
                 .SELECT("company_id_invested")
@@ -59,7 +59,7 @@ public class EquityBfsDao {
                 .SELECT("tyc_unique_entity_name_investor")
                 .SELECT("equity_ratio")
                 .FROM("graph_data.company_equity_relation_details")
-                .WHERE("company_id_invested in " + investedCompanyIds)
+                .WHERE("company_id_invested in " + SqlUtils.formatValue(investedCompanyIds))
                 .WHERE("reference_pt_year = 2024")
                 .toString();
         graphData430.queryForList(sql, rs -> {
@@ -77,20 +77,20 @@ public class EquityBfsDao {
         return investedCompanyId2Shareholders;
     }
 
-    public ShareholderJudgeInfo queryShareholderJudgeInfo(String companyId) {
-        String t1 = new SQL().SELECT(companyId + " as company_id")
-                .toString();
-        String t2 = new SQL().SELECT(companyId + " as company_id", "true as is_closed")
+    public Map<String, ShareholderJudgeInfo> queryShareholderJudgeInfo(Set<String> companyIds) {
+        String t1 = companyIds.parallelStream().map(companyId -> String.format("select %s as company_id", companyId))
+                .collect(Collectors.joining(" union all "));
+        String t2 = new SQL().SELECT("company_id", "max(1) as is_closed")
                 .FROM("bdp_company_profile_tag_details_total")
-                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                .WHERE("profile_tag_id in " + NOT_ALIVE_TAG_ID_LIST.stream().collect(Collectors.joining(",", "(", ")")))
+                .WHERE("company_id in " + SqlUtils.formatValue(companyIds))
+                .WHERE("profile_tag_id in " + SqlUtils.formatValue(NOT_ALIVE_TAG_ID_LIST))
                 .WHERE("deleted = 0")
                 .LIMIT(1)
                 .toString();
         String t3 = new SQL()
-                .SELECT(companyId + " as company_id", "true as is_001")
+                .SELECT("company_id", "max(1) as is_001")
                 .FROM("company_001_company_list_total")
-                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("company_id in " + SqlUtils.formatValue(companyIds))
                 .WHERE("deleted = 0")
                 .LIMIT(1)
                 .toString();
@@ -102,12 +102,12 @@ public class EquityBfsDao {
                 .LEFT_OUTER_JOIN(String.format("(%s)t2 on t1.company_id = t2.company_id", t2))
                 .LEFT_OUTER_JOIN(String.format("(%s)t3 on t1.company_id = t3.company_id", t3))
                 .toString();
-        return companyBase142.queryForObject(sql, rs -> {
+        return companyBase142.queryForList(sql, rs -> {
             String id = rs.getString(1);
             boolean isClosed = rs.getBoolean(2);
             boolean is001 = rs.getBoolean(3);
             return new ShareholderJudgeInfo(id, isClosed, is001);
-        });
+        }).parallelStream().collect(Collectors.toMap(ShareholderJudgeInfo::getCompanyId, e -> e));
     }
 
     /**

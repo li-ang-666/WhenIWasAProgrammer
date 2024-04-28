@@ -5,8 +5,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class SqlUtils {
@@ -14,9 +16,14 @@ public class SqlUtils {
         return "`" + filedName.replaceAll("\\.", "`.`") + "`";
     }
 
+
     public static String formatValue(Object value) {
         if (value == null) {
             return null;
+        } else if (value instanceof Collection) {
+            return ((Collection<?>) value).parallelStream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(",", "(", ")"));
         } else if (value instanceof Boolean) {
             return (boolean) value ? "1" : "0";
         } else if (value instanceof Number || StringUtils.isNumeric(value.toString())) {
