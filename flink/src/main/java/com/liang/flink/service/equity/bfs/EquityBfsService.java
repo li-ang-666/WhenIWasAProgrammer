@@ -27,6 +27,7 @@ public class EquityBfsService {
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
+    private final Map<String, List<CompanyEquityRelationDetailsDto>> investedCompanyId2Shareholders = new HashMap<>();
     private final Map<String, ShareholderJudgeInfo> shareholderJudgeInfoMap = new HashMap<>();
     // base info
     private String companyId;
@@ -65,6 +66,7 @@ public class EquityBfsService {
         this.companyEntityProperty = ObjUtil.defaultIfNull(dao.queryEntityProperty(companyId), "");
         allShareholders.clear();
         bfsQueue.clear();
+        investedCompanyId2Shareholders.clear();
         shareholderJudgeInfoMap.clear();
         currentScanLevel = 0;
         // start bfs
@@ -72,8 +74,11 @@ public class EquityBfsService {
         while (!bfsQueue.isEmpty()) {
             log.debug("开始遍历第 {} 层", currentScanLevel);
             // query shareholders
-            String investedCompanyIds = bfsQueue.parallelStream().map(e -> e.getLast().getId()).collect(Collectors.joining(",", "(", ")"));
-            Map<String, List<CompanyEquityRelationDetailsDto>> investedCompanyId2Shareholders = dao.queryThisLevelShareholder(investedCompanyIds);
+            String investedCompanyIds = bfsQueue.parallelStream()
+                    .map(e -> e.getLast().getId())
+                    .filter(e -> !investedCompanyId2Shareholders.containsKey(e))
+                    .collect(Collectors.joining(",", "(", ")"));
+            investedCompanyId2Shareholders.putAll(dao.queryThisLevelShareholder(investedCompanyIds));
             int size = bfsQueue.size();
             while (size-- > 0) {
                 // queue.poll()

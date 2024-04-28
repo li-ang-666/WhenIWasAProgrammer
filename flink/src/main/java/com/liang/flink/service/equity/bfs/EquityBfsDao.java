@@ -84,6 +84,7 @@ public class EquityBfsDao {
                 .FROM("bdp_company_profile_tag_details_total")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("profile_tag_id in " + NOT_ALIVE_TAG_ID_LIST.stream().collect(Collectors.joining(",", "(", ")")))
+                .WHERE("deleted = 0")
                 .LIMIT(1)
                 .toString();
         String t3 = new SQL()
