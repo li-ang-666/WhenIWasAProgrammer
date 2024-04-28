@@ -28,10 +28,10 @@ public class RatioPathCompanyDto {
     private final String companyEntityProperty;
     // 股东基本属性
     private final String shareholderId;
-    private final String shareholderName;
-    private final String shareholderNameId;
-    private final String shareholderMasterCompanyId;
     private final int shareholderFirstAppearLevel;
+    private String shareholderName;
+    private String shareholderNameId;
+    private String shareholderMasterCompanyId;
     private int shareholderLastAppearLevel;
     // 路径明细 & 总比例
     private List<Path> paths = new ArrayList<>();

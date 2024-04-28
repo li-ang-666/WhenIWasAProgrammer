@@ -169,10 +169,9 @@ public class EquityBfsService {
             if (v != null) {
                 ratioPathCompanyDto = v;
             } else {
-                Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(shareholderId);
-                String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
-                String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
-                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyUscc, companyOrgType, companyEntityProperty, shareholderId, shareholderName, shareholderNameId, shareholderMasterCompanyId, currentScanLevel + 1);
+                // 确认股东最新信息, 放在过滤1%股东后再做
+                ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyUscc, companyOrgType, companyEntityProperty, shareholderId, currentScanLevel + 1);
+                ratioPathCompanyDto.setShareholderName(shareholderName);
             }
             // 新路径 & 总股比
             ratioPathCompanyDto.getPaths().add(newPath);
@@ -219,10 +218,19 @@ public class EquityBfsService {
         }
         return allShareholders
                 .values()
-                .stream()
+                .parallelStream()
+                .filter(ratioPathCompanyDto -> ratioPathCompanyDto.getShareholderFirstAppearLevel() <= 3 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0)
+                .peek(ratioPathCompanyDto -> {
+                    Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(ratioPathCompanyDto.getShareholderId());
+                    String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
+                    String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
+                    String shareholderLatestName = String.valueOf(shareholderInfoColumnMap.get("name"));
+                    ratioPathCompanyDto.setShareholderNameId(shareholderNameId);
+                    ratioPathCompanyDto.setShareholderMasterCompanyId(shareholderMasterCompanyId);
+                    ratioPathCompanyDto.setShareholderName(shareholderLatestName);
+                })
                 .filter(ratioPathCompanyDto ->
-                        (ratioPathCompanyDto.getShareholderFirstAppearLevel() <= 3 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0) &&
-                                TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
+                        TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
                                 TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
                                 TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderMasterCompanyId()) &&
@@ -240,7 +248,10 @@ public class EquityBfsService {
         Edge newEdge = new Edge(ratio, true);
         Node newNode = new Node(companyId, companyName);
         Path newPath = Path.newPath(Path.newPath(new Node(companyId, companyName)), newEdge, newNode);
-        RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyUscc, companyOrgType, companyEntityProperty, companyId, companyName, companyId, companyId, 1);
+        RatioPathCompanyDto ratioPathCompanyDto = new RatioPathCompanyDto(companyId, companyName, companyIsListed, companyUscc, companyOrgType, companyEntityProperty, companyId, 1);
+        ratioPathCompanyDto.setShareholderNameId(companyId);
+        ratioPathCompanyDto.setShareholderMasterCompanyId(companyId);
+        ratioPathCompanyDto.setShareholderName(companyName);
         ratioPathCompanyDto.getPaths().add(newPath);
         ratioPathCompanyDto.setTotalValidRatio(newPath.getValidRatio());
         ratioPathCompanyDto.setDirectShareholder(true);
