@@ -226,13 +226,26 @@ public class EquityBfsService {
         if (allShareholders.isEmpty()) {
             return Collections.singletonList(getSpecialRatioPathCompanyDto().toColumnMap());
         }
+        // 查询所有股东最新信息
+        Map<String, Map<String, Object>> allShareholderInfoMap = new HashMap<>();
+        Set<String> humanShareholderIds = allShareholders.keySet().parallelStream()
+                .filter(id -> id.length() == 17).collect(Collectors.toSet());
+        Set<String> companyShareholderIds = allShareholders.keySet().parallelStream()
+                .filter(id -> id.length() != 17).collect(Collectors.toSet());
+        if (!humanShareholderIds.isEmpty()) {
+            allShareholderInfoMap.putAll(dao.batchQueryHumanOrCompanyInfo(humanShareholderIds));
+        }
+        if (!companyShareholderIds.isEmpty()) {
+            allShareholderInfoMap.putAll(dao.batchQueryHumanOrCompanyInfo(companyShareholderIds));
+        }
         return allShareholders
                 .values()
                 .parallelStream()
                 // 比例过滤
                 .filter(ratioPathCompanyDto -> ratioPathCompanyDto.getShareholderFirstAppearLevel() <= 3 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0)
                 .peek(ratioPathCompanyDto -> {
-                    Map<String, Object> shareholderInfoColumnMap = dao.queryHumanOrCompanyInfo(ratioPathCompanyDto.getShareholderId());
+                    String shareholderId = ratioPathCompanyDto.getShareholderId();
+                    Map<String, Object> shareholderInfoColumnMap = allShareholderInfoMap.getOrDefault(shareholderId, new HashMap<>());
                     String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
                     String shareholderMasterCompanyId = String.valueOf(shareholderInfoColumnMap.get("company_id"));
                     String shareholderLatestName = String.valueOf(shareholderInfoColumnMap.get("name"));

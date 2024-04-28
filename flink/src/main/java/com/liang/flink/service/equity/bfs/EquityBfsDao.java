@@ -85,14 +85,14 @@ public class EquityBfsDao {
                 .WHERE("company_id in " + SqlUtils.formatValue(companyIds))
                 .WHERE("profile_tag_id in " + SqlUtils.formatValue(NOT_ALIVE_TAG_ID_LIST))
                 .WHERE("deleted = 0")
-                .LIMIT(1)
+                .GROUP_BY("company_id")
                 .toString();
         String t3 = new SQL()
                 .SELECT("company_id", "max(1) as is_001")
                 .FROM("company_001_company_list_total")
                 .WHERE("company_id in " + SqlUtils.formatValue(companyIds))
                 .WHERE("deleted = 0")
-                .LIMIT(1)
+                .GROUP_BY("company_id")
                 .toString();
         String sql = new SQL()
                 .SELECT("t1.company_id")
@@ -135,5 +135,29 @@ public class EquityBfsDao {
             put("id", id);
         }});
         return columnMap != null ? columnMap : new HashMap<>();
+    }
+
+    public Map<String, Map<String, Object>> batchQueryHumanOrCompanyInfo(Set<String> ids) {
+        String sampleId = new ArrayList<>(ids).get(0);
+        String sql = sampleId.length() == 17 ?
+                new SQL()
+                        .SELECT("human_name_id", "master_company_id", "human_name", "human_id")
+                        .FROM("human")
+                        .WHERE("human_id in " + SqlUtils.formatValue(ids))
+                        .toString() :
+                new SQL()
+                        .SELECT("company_id", "company_id", "company_name", "company_id")
+                        .FROM("company_index")
+                        .WHERE("company_id in " + SqlUtils.formatValue(ids))
+                        .toString();
+        JdbcTemplate jdbcTemplate = sampleId.length() == 17 ?
+                humanBase040 :
+                companyBase435;
+        return jdbcTemplate.queryForList(sql, rs -> new HashMap<String, Object>() {{
+            put("name_id", rs.getString(1));
+            put("company_id", rs.getString(2));
+            put("name", rs.getString(3));
+            put("id", rs.getString(4));
+        }}).parallelStream().collect(Collectors.toMap(e -> String.valueOf(e.get("id")), e -> e));
     }
 }

@@ -22,7 +22,7 @@ public class SqlUtils {
             return null;
         } else if (value instanceof Collection) {
             return ((Collection<?>) value).parallelStream()
-                    .map(String::valueOf)
+                    .map(SqlUtils::formatValue)
                     .collect(Collectors.joining(",", "(", ")"));
         } else if (value instanceof Boolean) {
             return (boolean) value ? "1" : "0";
