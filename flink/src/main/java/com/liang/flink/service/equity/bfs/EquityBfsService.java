@@ -78,7 +78,9 @@ public class EquityBfsService {
                     .map(e -> e.getLast().getId())
                     .filter(e -> !investedCompanyId2Shareholders.containsKey(e))
                     .collect(Collectors.joining(",", "(", ")"));
-            investedCompanyId2Shareholders.putAll(dao.queryThisLevelShareholder(investedCompanyIds));
+            if (!"()".equals(investedCompanyIds)) {
+                investedCompanyId2Shareholders.putAll(dao.queryThisLevelShareholder(investedCompanyIds));
+            }
             int size = bfsQueue.size();
             while (size-- > 0) {
                 // queue.poll()
