@@ -138,7 +138,7 @@ public class EquityBfsDao {
     }
 
     public Map<String, Map<String, Object>> batchQueryHumanOrCompanyInfo(Set<String> ids) {
-        String sampleId = new ArrayList<>(ids).get(0);
+        String sampleId = ids.iterator().next();
         String sql = sampleId.length() == 17 ?
                 new SQL()
                         .SELECT("human_name_id", "master_company_id", "human_name", "human_id")
