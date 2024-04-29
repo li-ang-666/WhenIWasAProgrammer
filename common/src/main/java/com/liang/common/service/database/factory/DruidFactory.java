@@ -73,11 +73,11 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         // 设置sql超时, 避免断电未提交的事务导致其它sql lock wait timeout
         List<String> initSqls = Arrays.asList(
-                "set wait_timeout = 300", "set interactive_timeout = 300");
+                "set wait_timeout = 1800", "set interactive_timeout = 1800");
         druidDataSource.setConnectionInitSqls(initSqls);
-        druidDataSource.setConnectTimeout(1000 * 60 * 5);
-        druidDataSource.setSocketTimeout(1000 * 60 * 5);
-        druidDataSource.setQueryTimeout(300);
-        druidDataSource.setTransactionQueryTimeout(300);
+        druidDataSource.setConnectTimeout(1000 * 1800);
+        druidDataSource.setSocketTimeout(1000 * 1800);
+        druidDataSource.setQueryTimeout(1800);
+        druidDataSource.setTransactionQueryTimeout(1800);
     }
 }
