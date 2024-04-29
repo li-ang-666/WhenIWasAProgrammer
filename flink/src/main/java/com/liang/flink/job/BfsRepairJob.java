@@ -37,13 +37,16 @@ public class BfsRepairJob {
         private final AtomicBoolean canceled = new AtomicBoolean(false);
 
         @Override
-        public void run(SourceContext<String> ctx) throws Exception {
+        public void run(SourceContext<String> ctx) {
             int i = 0;
             InputStream resourceAsStream = BfsRepairJob.class.getClassLoader().getResourceAsStream("wrong-company-ids.txt");
             String[] companyIds = IoUtil.readUtf8(resourceAsStream).split("\n");
             while (!canceled.get() && i < companyIds.length) {
                 ctx.collect(companyIds[i++]);
-                TimeUnit.SECONDS.sleep(2);
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (Exception ignore) {
+                }
             }
         }
 
@@ -80,4 +83,3 @@ public class BfsRepairJob {
         }
     }
 }
-
