@@ -22,12 +22,15 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
+import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @LocalConfigFile("equity-bfs.yml")
@@ -37,6 +40,13 @@ public class EquityBfsJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
+        if (!(env instanceof LocalStreamEnvironment)) {
+            CheckpointConfig checkpointConfig = env.getCheckpointConfig();
+            // 运行周期
+            checkpointConfig.setCheckpointInterval(TimeUnit.MINUTES.toMillis(5));
+            // 两次checkpoint之间最少间隔时间
+            checkpointConfig.setMinPauseBetweenCheckpoints(TimeUnit.MINUTES.toMillis(5));
+        }
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
@@ -119,7 +129,6 @@ public class EquityBfsJob {
     @Slf4j
     @RequiredArgsConstructor
     private static final class EquityBfsCalculator extends RichFlatMapFunction<String, Tuple2<String, List<Map<String, Object>>>> implements CheckpointedFunction {
-        private static final int CATCH_SIZE = 1024;
         private final Roaring64Bitmap bitmap = new Roaring64Bitmap();
         private final Config config;
         private EquityBfsService service;
@@ -146,10 +155,6 @@ public class EquityBfsJob {
                 }
                 // 全量修复的时候, 来一条计算一条
                 if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
-                    flush(null);
-                }
-                // 为保证ckp, bitmap也要定时flush
-                if (bitmap.getLongCardinality() >= CATCH_SIZE) {
                     flush(null);
                 }
             }
@@ -198,7 +203,7 @@ public class EquityBfsJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             sink = new JdbcTemplate(SINK_SOURCE);
-            sink.enableCache(3000, 32);
+            sink.enableCache();
         }
 
         @Override
