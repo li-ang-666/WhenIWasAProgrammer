@@ -104,8 +104,8 @@ public class EquityBfsService {
     // query this level new company-to-shareholders
     private void findNewInvestedCompany2Shareholders() {
         Set<String> newInvestedCompanyIds = bfsQueue.parallelStream()
-                .map(e -> e.getLast().getId())
-                .filter(e -> !investedCompanyId2Shareholders.containsKey(e))
+                .map(investedCompanyPath -> investedCompanyPath.getLast().getId())
+                .filter(investedCompanyId -> TycUtils.isUnsignedId(investedCompanyId) && !investedCompanyId2Shareholders.containsKey(investedCompanyId))
                 .collect(Collectors.toSet());
         if (!newInvestedCompanyIds.isEmpty()) {
             investedCompanyId2Shareholders.putAll(dao.queryThisLevelShareholder(newInvestedCompanyIds));
@@ -116,7 +116,7 @@ public class EquityBfsService {
     private void findNewShareholderJudgeInfo() {
         Set<String> newShareholders = investedCompanyId2Shareholders.values().parallelStream()
                 .flatMap(shareholders -> shareholders.parallelStream().map(CompanyEquityRelationDetailsDto::getShareholderId))
-                .filter(shareholderId -> shareholderId.length() != 17 && !shareholderJudgeInfoMap.containsKey(shareholderId))
+                .filter(shareholderId -> TycUtils.isUnsignedId(shareholderId) && !shareholderJudgeInfoMap.containsKey(shareholderId))
                 .collect(Collectors.toSet());
         if (!newShareholders.isEmpty()) {
             shareholderJudgeInfoMap.putAll(dao.queryShareholderJudgeInfo(newShareholders));
@@ -229,9 +229,9 @@ public class EquityBfsService {
         // 查询所有股东最新信息
         Map<String, Map<String, Object>> allShareholderInfoMap = new HashMap<>();
         Set<String> humanShareholderIds = allShareholders.keySet().parallelStream()
-                .filter(id -> id.length() == 17).collect(Collectors.toSet());
+                .filter(id -> TycUtils.isTycUniqueEntityId(id) && id.length() == 17).collect(Collectors.toSet());
         Set<String> companyShareholderIds = allShareholders.keySet().parallelStream()
-                .filter(id -> id.length() != 17).collect(Collectors.toSet());
+                .filter(id -> TycUtils.isTycUniqueEntityId(id) && id.length() != 17).collect(Collectors.toSet());
         if (!humanShareholderIds.isEmpty()) {
             allShareholderInfoMap.putAll(dao.batchQueryHumanOrCompanyInfo(humanShareholderIds));
         }

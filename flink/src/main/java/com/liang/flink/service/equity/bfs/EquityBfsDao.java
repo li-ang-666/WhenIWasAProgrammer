@@ -78,7 +78,7 @@ public class EquityBfsDao {
     }
 
     public Map<String, ShareholderJudgeInfo> queryShareholderJudgeInfo(Set<String> companyIds) {
-        String t1 = companyIds.parallelStream().map(companyId -> String.format("select %s as company_id", companyId))
+        String t1 = companyIds.parallelStream().map(companyId -> String.format("select %s as company_id", SqlUtils.formatValue(companyId)))
                 .collect(Collectors.joining(" union all "));
         String t2 = new SQL().SELECT("company_id", "max(1) as is_closed")
                 .FROM("bdp_company_profile_tag_details_total")
