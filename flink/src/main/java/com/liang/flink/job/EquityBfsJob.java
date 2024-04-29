@@ -43,9 +43,9 @@ public class EquityBfsJob {
         if (!(env instanceof LocalStreamEnvironment)) {
             CheckpointConfig checkpointConfig = env.getCheckpointConfig();
             // 运行周期
-            checkpointConfig.setCheckpointInterval(TimeUnit.MINUTES.toMillis(5));
+            checkpointConfig.setCheckpointInterval(TimeUnit.MINUTES.toMillis(10));
             // 两次checkpoint之间最少间隔时间
-            checkpointConfig.setMinPauseBetweenCheckpoints(TimeUnit.MINUTES.toMillis(5));
+            checkpointConfig.setMinPauseBetweenCheckpoints(TimeUnit.MINUTES.toMillis(10));
         }
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
