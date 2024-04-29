@@ -43,7 +43,7 @@ public class BfsRepairJob {
             String[] companyIds = IoUtil.readUtf8(resourceAsStream).split("\n");
             while (!canceled.get() && i < companyIds.length) {
                 ctx.collect(companyIds[i++]);
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(2);
             }
         }
 
@@ -71,12 +71,12 @@ public class BfsRepairJob {
             String deleteSql = new SQL().DELETE_FROM("company_equity_relation_details")
                     .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
                     .toString();
-            //graphData430.update(deleteSql);
+            graphData430.update(deleteSql);
             String updateSql = new SQL().UPDATE("equity_ratio")
                     .SET("update_time = now()")
                     .WHERE("company_graph_id = " + SqlUtils.formatValue(companyId))
                     .toString();
-            //prism116.update(updateSql);
+            prism116.update(updateSql);
         }
     }
 }
