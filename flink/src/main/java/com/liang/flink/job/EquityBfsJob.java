@@ -92,13 +92,17 @@ public class EquityBfsJob {
             Set<String> entityIds = new LinkedHashSet<>();
             // 公司维表 ee59d.proto.company_base.company_index
             if (table.contains("company_index")) {
+                // 只要insert、delete
                 if (singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
                     entityIds.add(String.valueOf(columnMap.get("company_id")));
                 }
             }
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
             else if (table.contains("company_equity_relation_details")) {
-                entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
+                // 不要历史年份的数据
+                if (String.valueOf(columnMap.get("reference_pt_year")).equals("2024")) {
+                    entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
+                }
             }
             for (String entityId : entityIds) {
                 if (!TycUtils.isTycUniqueEntityId(entityId)) {
