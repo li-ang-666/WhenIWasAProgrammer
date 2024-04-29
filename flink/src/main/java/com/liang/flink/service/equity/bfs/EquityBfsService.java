@@ -223,22 +223,24 @@ public class EquityBfsService {
 
     // 有可能因为 Operation.DROP 导致 allShareholders 为 empty
     private List<Map<String, Object>> allShareholders2ColumnMaps() {
-        if (allShareholders.isEmpty()) {
-            return Collections.singletonList(getSpecialRatioPathCompanyDto().toColumnMap());
+        Set<String> humanShareholderIds = new HashSet<>();
+        Set<String> companyShareholderIds = new HashSet<>();
+        for (String shareholderId : allShareholders.keySet()) {
+            if (TycUtils.isUnsignedId(shareholderId)) {
+                companyShareholderIds.add(shareholderId);
+            } else {
+                humanShareholderIds.add(shareholderId);
+            }
         }
         // 查询所有股东最新信息
         Map<String, Map<String, Object>> allShareholderInfoMap = new HashMap<>();
-        Set<String> humanShareholderIds = allShareholders.keySet().parallelStream()
-                .filter(id -> TycUtils.isTycUniqueEntityId(id) && id.length() == 17).collect(Collectors.toSet());
-        Set<String> companyShareholderIds = allShareholders.keySet().parallelStream()
-                .filter(id -> TycUtils.isTycUniqueEntityId(id) && id.length() != 17).collect(Collectors.toSet());
         if (!humanShareholderIds.isEmpty()) {
             allShareholderInfoMap.putAll(dao.batchQueryHumanOrCompanyInfo(humanShareholderIds));
         }
         if (!companyShareholderIds.isEmpty()) {
             allShareholderInfoMap.putAll(dao.batchQueryHumanOrCompanyInfo(companyShareholderIds));
         }
-        return allShareholders
+        List<Map<String, Object>> resultColumnMaps = allShareholders
                 .values()
                 .parallelStream()
                 // 比例过滤
@@ -262,6 +264,11 @@ public class EquityBfsService {
                                 TycUtils.isValidName(ratioPathCompanyDto.getCompanyName()) &&
                                 TycUtils.isValidName(ratioPathCompanyDto.getShareholderName()))
                 .map(RatioPathCompanyDto::toColumnMap).collect(Collectors.toList());
+        // 没有合法股东
+        if (resultColumnMaps.isEmpty()) {
+            return Collections.singletonList(getSpecialRatioPathCompanyDto().toColumnMap());
+        }
+        return resultColumnMaps;
     }
 
     // 数据完整性, 自己投资自己
