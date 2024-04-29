@@ -7,6 +7,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
+import jline.internal.Log;
 import lombok.RequiredArgsConstructor;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -48,6 +49,7 @@ public class BfsRepairJob {
                 } catch (Exception ignore) {
                 }
             }
+            cancel();
         }
 
         @Override
@@ -71,6 +73,7 @@ public class BfsRepairJob {
 
         @Override
         public void invoke(String companyId, Context context) {
+            Log.info("{}", companyId);
             String deleteSql = new SQL().DELETE_FROM("company_equity_relation_details")
                     .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
                     .toString();
