@@ -1,0 +1,19 @@
+SELECT i.order_code, i.order_item_code, i.order_item_status, i.create_time, i.update_time
+FROM (SELECT id, order_code, order_item_code, order_item_status, create_time, update_time
+      FROM ods.ods_orders_order_items_all_df
+      WHERE pt = '20240428'
+        AND dw_is_del = 0
+        AND create_time >= 1712764800000
+        AND create_time < 1712937600000
+        AND sku_id IN
+            (50, 60, 70, 39, 71, 72, 73, 42, 31, 33, 34, 87, 88, 89, 75, 76, 26, 83, 84, 95, 74, 930, 200, 94, 97)
+        AND order_item_status IN (60, 80)
+        AND is_deleted = 0) i
+         INNER JOIN (SELECT order_code, order_status, create_time, update_time
+                     FROM ods.ods_orders_order_all_df
+                     WHERE pt = '20240428'
+                       AND dw_is_del = 0
+                       AND create_time >= 1712764800000
+                       AND create_time < 1712937600000
+                       AND order_status IN (60, 80)
+                       AND is_deleted = 0) o ON o.order_code = i.order_code
