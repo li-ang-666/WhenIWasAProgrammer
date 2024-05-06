@@ -55,7 +55,7 @@ public class EquityBfsDao {
     }
 
     public Map<String, List<CompanyEquityRelationDetailsDto>> queryThisLevelShareholder(Set<String> investedCompanyIds) {
-        List<List<String>> splits = CollUtil.split(investedCompanyIds, 1024);
+        List<List<String>> splits = split(investedCompanyIds);
         log.debug("split to {} times query", splits.size());
         Map<String, List<CompanyEquityRelationDetailsDto>> res = new HashMap<>();
         for (List<String> split : splits) {
@@ -85,7 +85,7 @@ public class EquityBfsDao {
     }
 
     public Map<String, ShareholderJudgeInfo> queryShareholderJudgeInfo(Set<String> companyIds) {
-        List<List<String>> splits = CollUtil.split(companyIds, 1024);
+        List<List<String>> splits = split(companyIds);
         log.debug("split to {} times query", splits.size());
         Map<String, ShareholderJudgeInfo> res = new HashMap<>();
         for (List<String> split : splits) {
@@ -152,11 +152,11 @@ public class EquityBfsDao {
     }
 
     public Map<String, Map<String, Object>> batchQueryHumanOrCompanyInfo(Set<String> ids) {
-        List<List<String>> splits = CollUtil.split(ids, 1024);
+        String sampleId = CollUtil.get(ids, 0);
+        List<List<String>> splits = split(ids);
         log.debug("split to {} times query", splits.size());
         Map<String, Map<String, Object>> res = new HashMap<>();
         for (List<String> split : splits) {
-            String sampleId = split.iterator().next();
             String sql = sampleId.length() == 17 ?
                     new SQL()
                             .SELECT("human_name_id", "master_company_id", "human_name", "human_id")
@@ -180,5 +180,9 @@ public class EquityBfsDao {
             res.putAll(splitRes);
         }
         return res;
+    }
+
+    private <T> List<List<T>> split(Collection<T> collection) {
+        return CollUtil.split(collection, 512);
     }
 }
