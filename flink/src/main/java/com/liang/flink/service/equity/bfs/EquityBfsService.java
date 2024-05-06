@@ -225,7 +225,13 @@ public class EquityBfsService {
     private List<Map<String, Object>> allShareholders2ColumnMaps() {
         Set<String> humanShareholderIds = new HashSet<>();
         Set<String> companyShareholderIds = new HashSet<>();
-        for (String shareholderId : allShareholders.keySet()) {
+        // 过滤三层以内或者比例大于1%的股东, 区分自然人和公司
+        for (Map.Entry<String, RatioPathCompanyDto> entry : allShareholders.entrySet()) {
+            String shareholderId = entry.getKey();
+            RatioPathCompanyDto ratioPathCompanyDto = entry.getValue();
+            if (ratioPathCompanyDto.getShareholderFirstAppearLevel() > 3 && ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) < 0) {
+                continue;
+            }
             if (TycUtils.isUnsignedId(shareholderId)) {
                 companyShareholderIds.add(shareholderId);
             } else {
@@ -243,9 +249,8 @@ public class EquityBfsService {
         List<Map<String, Object>> resultColumnMaps = allShareholders
                 .values()
                 .parallelStream()
-                // 比例过滤
-                .filter(ratioPathCompanyDto -> ratioPathCompanyDto.getShareholderFirstAppearLevel() <= 3 || ratioPathCompanyDto.getTotalValidRatio().compareTo(THRESHOLD_SINK) >= 0)
-                .peek(ratioPathCompanyDto -> {
+                .filter(ratioPathCompanyDto -> {
+                    // 补全股东信息
                     String shareholderId = ratioPathCompanyDto.getShareholderId();
                     Map<String, Object> shareholderInfoColumnMap = allShareholderInfoMap.getOrDefault(shareholderId, new HashMap<>());
                     String shareholderNameId = String.valueOf(shareholderInfoColumnMap.get("name_id"));
@@ -254,15 +259,14 @@ public class EquityBfsService {
                     ratioPathCompanyDto.setShareholderNameId(shareholderNameId);
                     ratioPathCompanyDto.setShareholderMasterCompanyId(shareholderMasterCompanyId);
                     ratioPathCompanyDto.setShareholderName(shareholderLatestName);
+                    // 脏数据过滤
+                    return TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
+                            TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
+                            TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
+                            TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderMasterCompanyId()) &&
+                            TycUtils.isValidName(ratioPathCompanyDto.getCompanyName()) &&
+                            TycUtils.isValidName(ratioPathCompanyDto.getShareholderName());
                 })
-                // 脏数据过滤
-                .filter(ratioPathCompanyDto ->
-                        TycUtils.isUnsignedId(ratioPathCompanyDto.getCompanyId()) &&
-                                TycUtils.isTycUniqueEntityId(ratioPathCompanyDto.getShareholderId()) &&
-                                TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderNameId()) &&
-                                TycUtils.isUnsignedId(ratioPathCompanyDto.getShareholderMasterCompanyId()) &&
-                                TycUtils.isValidName(ratioPathCompanyDto.getCompanyName()) &&
-                                TycUtils.isValidName(ratioPathCompanyDto.getShareholderName()))
                 .map(RatioPathCompanyDto::toColumnMap).collect(Collectors.toList());
         // 没有合法股东
         if (resultColumnMaps.isEmpty()) {
