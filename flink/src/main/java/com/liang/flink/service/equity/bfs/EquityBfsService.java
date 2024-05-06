@@ -123,7 +123,7 @@ public class EquityBfsService {
         }
     }
 
-    //`allShareholders` 在该方法中只读不写
+    // `allShareholders` 在该方法中只读不写
     private Operation judgeQueriedShareholder(Path polledPath, CompanyEquityRelationDetailsDto shareholder) {
         String shareholderId = shareholder.getShareholderId();
         String shareholderName = shareholder.getShareholderName();
