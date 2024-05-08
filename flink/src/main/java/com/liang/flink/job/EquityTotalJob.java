@@ -140,9 +140,11 @@ public class EquityTotalJob {
                     List<Map<String, Object>> columnMaps = queryRatioPathCompany(companyId);
                     for (Map<String, Object> columnMap : columnMaps) {
                         columnMap.entrySet().removeIf(entry -> !VALID_COLUMNS.contains(entry.getKey()));
+                        // 裁剪 paths
                         List<Object> paths = JsonUtils.parseJsonArr(String.valueOf(columnMap.get("equity_holding_path")));
                         List<Object> subPaths = CollUtil.split(paths, 100).get(0);
                         columnMap.put("equity_holding_path", JsonUtils.toString(subPaths));
+                        // 写入
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
                         String insertSql = new SQL().INSERT_INTO(SINK_TABLE)
                                 .INTO_COLUMNS(insert.f0)
