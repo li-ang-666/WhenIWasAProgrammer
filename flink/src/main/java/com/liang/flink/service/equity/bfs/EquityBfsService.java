@@ -22,8 +22,8 @@ import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 
 @Slf4j
 public class EquityBfsService {
-    private static final BigDecimal THRESHOLD_BFS = new BigDecimal("0.000001");
-    private static final BigDecimal THRESHOLD_SINK = new BigDecimal("0.01");
+    private static final BigDecimal THRESHOLD_BFS = new BigDecimal("0.000000001");
+    private static final BigDecimal THRESHOLD_SINK = new BigDecimal("0.000000001");
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
@@ -38,18 +38,18 @@ public class EquityBfsService {
     private String companyEntityProperty;
     private int currentScanLevel;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
         List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("2318455639");
         columnMaps.sort(Comparator.comparing(map -> String.valueOf(map.get("shareholder_id"))));
         for (Map<String, Object> columnMap : columnMaps) {
-            System.out.println(StrUtil.repeat("=", 100));
+            log.info(StrUtil.repeat("=", 100));
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
-                System.out.println(entry.getKey() + " -> " + entry.getValue());
+                log.info(entry.getKey() + " -> " + entry.getValue());
             }
         }
-        System.out.println("size: " + columnMaps.size());
+        log.info("size: " + columnMaps.size());
     }
 
     public List<Map<String, Object>> bfs(Object companyGid) {
