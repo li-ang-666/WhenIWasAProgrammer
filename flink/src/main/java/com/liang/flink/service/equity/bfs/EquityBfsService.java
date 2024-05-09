@@ -22,8 +22,8 @@ import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 
 @Slf4j
 public class EquityBfsService {
-    private static final BigDecimal THRESHOLD_BFS = new BigDecimal("0.000000001");
-    private static final BigDecimal THRESHOLD_SINK = new BigDecimal("0.000000001");
+    private static final BigDecimal THRESHOLD_BFS = new BigDecimal("0.000001");
+    private static final BigDecimal THRESHOLD_SINK = new BigDecimal("0.01");
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
     private final Queue<Path> bfsQueue = new ArrayDeque<>();
