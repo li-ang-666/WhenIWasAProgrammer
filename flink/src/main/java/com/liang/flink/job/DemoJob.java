@@ -3,7 +3,6 @@ package com.liang.flink.job;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -13,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-
-import java.util.Map;
 
 @Slf4j
 @LocalConfigFile("demo.yml")
@@ -40,9 +37,6 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String string = JsonUtils.toString(columnMap);
-            System.out.println(singleCanalBinlog.getEventType());
         }
     }
 }

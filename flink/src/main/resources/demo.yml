@@ -6,19 +6,15 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - sourceName: "491.prism_shareholder_path"
-    tableName: "ratio_path_company.*"
+  #  - sourceName: "491.prism_shareholder_path"
+  #    tableName: "ratio_path_company.*"
+  #    columns: "*"
+  #    where: "1=1"
+  #    scanMode: TumblingWindow
+  - sourceName: "430.graph_data"
+    tableName: "company_equity_relation_details"
     columns: "*"
     where: "1=1"
-    pivot: "101"
-    upperBound: "202"
-    scanMode: TumblingWindow
-  - sourceName: "491.prism_shareholder_path"
-    tableName: "ratio_path_company_new_99"
-    columns: "*"
-    where: "1=1"
-    pivot: "10"
-    upperBound: "200"
     scanMode: TumblingWindow
 
 kafkaConfigs:

@@ -60,7 +60,7 @@ public class TaskGenerator {
             }
         }
         for (RepairTask resultRepairTask : resultRepairTasks) {
-            log.info("RepairTasks-{}: {}", resultRepairTask.getTaskId(), JsonUtils.toString(resultRepairTask));
+            log.info("RepairTask-{}: {}", resultRepairTask.getTaskId(), JsonUtils.toString(resultRepairTask));
         }
         ConfigUtils.getConfig().setRepairTasks(resultRepairTasks);
     }
