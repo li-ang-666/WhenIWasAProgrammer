@@ -49,7 +49,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void initializeState(FunctionInitializationContext context) throws Exception {
         // 初始化task与state
         ConfigUtils.setConfig(config);
-        task = TaskGenerator.generateFrom(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
         taskState = context.getOperatorStateStore().getUnionListState(TASK_STATE_DESCRIPTOR);
         // 从ckp恢复task
         for (SubRepairTask stateTask : taskState.get()) {

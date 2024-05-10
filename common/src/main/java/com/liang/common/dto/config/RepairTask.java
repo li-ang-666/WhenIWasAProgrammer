@@ -8,7 +8,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 public class RepairTask implements Serializable {
-    private String taskId;
+    private Integer taskId;
     private String sourceName;
     private String tableName;
     private String columns = "*";
