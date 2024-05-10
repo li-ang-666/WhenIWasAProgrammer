@@ -67,7 +67,7 @@ public class StreamFactory {
         Config config = ConfigUtils.getConfig();
         TaskGenerator.formatRepairTasks();
         return streamEnvironment
-                .addSource(new RepairSource())
+                .addSource(new RepairSource(config, repairKey))
                 .name("RepairSource")
                 .uid("RepairSource")
                 .setParallelism(config.getRepairTasks().size());
