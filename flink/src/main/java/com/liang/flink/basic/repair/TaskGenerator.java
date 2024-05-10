@@ -30,6 +30,7 @@ public class TaskGenerator {
         SubRepairTask subTask = new SubRepairTask(task);
         subTask.setCurrentId(minId);
         subTask.setTargetId(maxId);
+        //
         return subTask;
     }
 }
