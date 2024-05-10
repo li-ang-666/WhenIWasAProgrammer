@@ -75,7 +75,7 @@ public class EquityBfsService {
             log.debug("开始遍历第 {} 层", currentScanLevel);
             // query this level new company-to-shareholders
             findNewInvestedCompany2Shareholders();
-            // query this level new shareholder-judge-info
+            // query this level new shareholder-to-judge-info
             findNewShareholderJudgeInfo();
             int size = bfsQueue.size();
             while (size-- > 0) {
