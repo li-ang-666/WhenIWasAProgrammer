@@ -1,6 +1,7 @@
 package com.liang.flink.basic.repair;
 
 import cn.hutool.core.util.SerializeUtil;
+import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -60,7 +61,9 @@ public class TaskGenerator {
             }
         }
         for (RepairTask resultRepairTask : resultRepairTasks) {
+            log.info(StrUtil.repeat("=", 20));
             log.info("RepairTask-{}: {}", resultRepairTask.getTaskId(), JsonUtils.toString(resultRepairTask));
+            log.info(StrUtil.repeat("=", 20));
         }
         ConfigUtils.getConfig().setRepairTasks(resultRepairTasks);
     }
