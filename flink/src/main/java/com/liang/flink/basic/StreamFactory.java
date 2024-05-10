@@ -10,6 +10,7 @@ import com.liang.flink.basic.kafka.KafkaReporter;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
 import com.liang.flink.basic.repair.RepairReporter;
 import com.liang.flink.basic.repair.RepairSource;
+import com.liang.flink.basic.repair.TaskGenerator;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -64,6 +65,7 @@ public class StreamFactory {
         DaemonExecutor.launch("RepairReporter", new RepairReporter(repairKey));
         // 组装RepairSource
         Config config = ConfigUtils.getConfig();
+        TaskGenerator.formatRepairTasks();
         return streamEnvironment
                 .addSource(new RepairSource(config, repairKey))
                 .name("RepairSource")
