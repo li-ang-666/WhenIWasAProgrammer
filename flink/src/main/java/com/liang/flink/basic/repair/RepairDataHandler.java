@@ -3,7 +3,6 @@ package com.liang.flink.basic.repair;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.dto.SubRepairTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

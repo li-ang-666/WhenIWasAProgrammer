@@ -5,7 +5,6 @@ import com.liang.common.service.DaemonExecutor;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
-import com.liang.flink.dto.SubRepairTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
