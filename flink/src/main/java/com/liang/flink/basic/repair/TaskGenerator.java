@@ -36,14 +36,14 @@ public class TaskGenerator {
                 RepairTask resultRepairTask = SerializeUtil.clone(sourceRepairTask);
                 resultRepairTask.setTableName(tableName);
                 resultRepairTask.setTaskId(resultRepairTasks.size());
-                // 设置位点 直查模式
+                // 设置位点 Direct模式
                 if (resultRepairTask.getScanMode() == RepairTask.ScanMode.Direct) {
                     resultRepairTask.setPivot(0L);
                     resultRepairTask.setUpperBound(1L);
                 }
-                // 设置位点 滚动切割模式
+                // 设置位点 TumblingWindow模式
                 else {
-                    String sql = String.format("select min(id),max(id) from %s", tableName);
+                    String sql = String.format("select min(id), max(id) from %s", tableName);
                     Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(sourceName)
                             .queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
                     long minId = minAndMaxId.f0;
