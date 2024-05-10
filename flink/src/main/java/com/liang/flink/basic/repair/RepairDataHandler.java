@@ -1,55 +1,27 @@
 package com.liang.flink.basic.repair;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
-import com.liang.flink.dto.SingleCanalBinlog;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.liang.common.dto.config.RepairTask.ScanMode.Direct;
 import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 
 
 @Slf4j
-@RequiredArgsConstructor
-public class RepairDataHandler implements Runnable, Iterator<List<Map<String, Object>>> {
+public class RepairDataHandler implements Iterator<List<Map<String, Object>>> {
     private static final int QUERY_BATCH_SIZE = 1024;
-    private static final int MAX_QUEUE_SIZE = 10240;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
-    private final SubRepairTask task;
-    private final AtomicBoolean running;
-    private String baseSql;
-    private JdbcTemplate jdbcTemplate;
+    private final RepairTask task;
+    private final String baseSql;
+    private final JdbcTemplate jdbcTemplate;
 
-    @Override
-    public void run() {
-        open();
-        ConcurrentLinkedQueue<SingleCanalBinlog> queue = task.getPendingQueue();
-        while (hasNext() && running.get()) {
-            int i = MAX_QUEUE_SIZE - queue.size();
-            while (hasNext() && running.get() && i >= QUERY_BATCH_SIZE) {
-                List<Map<String, Object>> columnMaps = next();
-                synchronized (running) {
-                    for (Map<String, Object> columnMap : columnMaps) {
-                        queue.offer(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
-                    }
-                    // commit
-                    task.setCurrentId(task.getScanMode() == Direct ? DIRECT_SCAN_COMPLETE_FLAG : task.getCurrentId() + QUERY_BATCH_SIZE);
-                }
-                i -= columnMaps.size();
-            }
-        }
-        running.set(false);
-    }
-
-    public void open() {
+    public RepairDataHandler(RepairTask task) {
+        this.task = task;
         baseSql = String.format("select %s from %s where %s", task.getColumns(), task.getTableName(), task.getWhere());
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
     }

@@ -1,9 +1,10 @@
 package com.liang.flink.basic.repair;
 
 import com.liang.common.dto.Config;
-import com.liang.common.service.DaemonExecutor;
+import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ import java.util.concurrent.locks.LockSupport;
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     private static final String TASK_STATE_NAME = "TASK_STATE";
-    private static final ListStateDescriptor<SubRepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, SubRepairTask.class);
+    private static final ListStateDescriptor<RepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, RepairTask.class);
     private static final String RUNNING_REPORT_PREFIX = "[checkpoint]";
     private static final String COMPLETE_REPORT_PREFIX = "[completed]";
     // data handler thread
@@ -41,9 +42,10 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private final AtomicBoolean selfCompleted = new AtomicBoolean(false);
     private final Config config;
     private final String repairKey;
-    private volatile SubRepairTask task;
-    private ListState<SubRepairTask> taskState;
+    private volatile RepairTask task;
+    private ListState<RepairTask> taskState;
     private RedisTemplate redisTemplate;
+    private RepairDataHandler repairDataHandler;
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
@@ -51,16 +53,11 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         ConfigUtils.setConfig(config);
         taskState = context.getOperatorStateStore().getUnionListState(TASK_STATE_DESCRIPTOR);
         // 从ckp恢复task
-        for (SubRepairTask stateTask : taskState.get()) {
+        for (RepairTask stateTask : taskState.get()) {
             if (!stateTask.getTaskId().equals(task.getTaskId())) continue;
-            // 恢复queue
-            task.getPendingQueue().addAll(stateTask.getPendingQueue());
             // 跳过id
-            task.setCurrentId(stateTask.getCurrentId());
-            log.warn("task-{} restored from taskState, sql: select {} from {} where {}, currentId: {}, targetId: {}, queueSize: {}",
-                    task.getTaskId(),
-                    task.getColumns(), task.getTableName(), task.getWhere(),
-                    task.getCurrentId(), task.getTargetId(), task.getPendingQueue().size());
+            task.setPivot(stateTask.getPivot());
+            log.info("task-{} restored from taskState: {}}", task.getTaskId(), JsonUtils.toString(task));
             return;
         }
     }
@@ -68,7 +65,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void open(Configuration parameters) {
         redisTemplate = new RedisTemplate("metadata");
-        DaemonExecutor.launch("RepairDataHandler", new RepairDataHandler(task, running));
+        repairDataHandler = new RepairDataHandler(task);
     }
 
     @Override
