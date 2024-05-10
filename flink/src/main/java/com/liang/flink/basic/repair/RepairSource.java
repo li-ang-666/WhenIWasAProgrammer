@@ -74,8 +74,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void open(Configuration parameters) {
-        redisTemplate = new RedisTemplate("metadata");
         baseSql = String.format("select %s from %s where %s", task.getColumns(), task.getTableName(), task.getWhere());
+        redisTemplate = new RedisTemplate("metadata");
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
     }
 
