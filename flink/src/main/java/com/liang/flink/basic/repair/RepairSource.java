@@ -23,9 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static com.liang.common.dto.config.RepairTask.ScanMode.Direct;
 import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
@@ -47,8 +45,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     // query
     private static final int QUERY_BATCH_SIZE = 1024;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
-    // lock
-    private final Lock lock = new ReentrantLock(true);
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
@@ -86,12 +82,12 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
         while (!canceled.get() && hasNext()) {
-            lock.lock();
-            for (Map<String, Object> columnMap : next()) {
-                ctx.collect(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
+            synchronized (ctx.getCheckpointLock()) {
+                for (Map<String, Object> columnMap : next()) {
+                    ctx.collect(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
+                }
+                commit();
             }
-            commit();
-            lock.unlock();
         }
         registerSelfComplete();
         waitingAllComplete();
@@ -99,7 +95,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        lock.lock();
         RepairTask copyTask = SerializationUtils.clone(task);
         taskState.clear();
         taskState.add(copyTask);
@@ -110,7 +105,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     RUNNING_REPORT_PREFIX, pivot, upperBound, upperBound - pivot);
             redisTemplate.hSet(repairKey, String.valueOf(copyTask.getTaskId()), info);
         }
-        lock.unlock();
     }
 
     @Override
