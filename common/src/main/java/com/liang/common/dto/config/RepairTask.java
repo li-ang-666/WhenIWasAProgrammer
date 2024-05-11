@@ -13,11 +13,12 @@ public class RepairTask implements Serializable {
     private String tableName;
     private String columns = "*";
     private String where = "1 = 1";
-
+    private ScanMode scanMode = ScanMode.TumblingWindow;
+    // 游标 & 边界
     private volatile Long pivot = null;
     private Long upperBound = null;
-
-    private ScanMode scanMode = ScanMode.TumblingWindow;
+    // 并发
+    private Integer parallel = 1;
 
     public enum ScanMode implements Serializable {
         TumblingWindow, Direct
