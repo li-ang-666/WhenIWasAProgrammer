@@ -3,6 +3,7 @@ package com.liang.flink.basic.repair;
 import cn.hutool.core.util.SerializeUtil;
 import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.config.RepairTask;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
@@ -19,14 +20,13 @@ import java.util.List;
 public class TaskGenerator {
     @SneakyThrows
     public static void formatRepairTasks() {
-        List<RepairTask> sourceRepairTasks = ConfigUtils.getConfig().getRepairTasks();
         ArrayList<RepairTask> resultRepairTasks = new ArrayList<>();
         // 遍历每个task
-        for (RepairTask sourceRepairTask : sourceRepairTasks) {
+        for (RepairTask sourceRepairTask : ConfigUtils.getConfig().getRepairTasks()) {
             String sourceName = sourceRepairTask.getSourceName();
             String tableNameRegex = sourceRepairTask.getTableName();
             List<String> tableNames = new JdbcTemplate(sourceName)
-                    .queryForList("show tables", rs -> rs.getString(1));
+                    .queryForList("SHOW TABLES", rs -> rs.getString(1));
             // 遍历所有可能满足的表名
             for (String tableName : tableNames) {
                 // 表名满足
@@ -44,7 +44,10 @@ public class TaskGenerator {
                 }
                 // 设置位点 TumblingWindow模式
                 else {
-                    String sql = String.format("select min(id), max(id) from %s", tableName);
+                    String sql = new SQL()
+                            .SELECT("min(id)", "max(id)")
+                            .FROM(tableName)
+                            .toString();
                     Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(sourceName)
                             .queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
                     long minId = minAndMaxId.f0;

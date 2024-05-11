@@ -14,7 +14,7 @@ public class RepairTask implements Serializable {
     private String columns = "*";
     private String where = "1 = 1";
 
-    private Long pivot = null;
+    private volatile Long pivot = null;
     private Long upperBound = null;
 
     private ScanMode scanMode = ScanMode.TumblingWindow;

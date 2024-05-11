@@ -63,9 +63,10 @@ public class StreamFactory {
         String repairKey = String.format("%s_%s_%s", simpleName, "Repair", DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
         log.info("repairKey: {}", repairKey);
         DaemonExecutor.launch("RepairReporter", new RepairReporter(repairKey));
+        // 根据抽象任务, 生成完整任务
+        TaskGenerator.formatRepairTasks();
         // 组装RepairSource
         Config config = ConfigUtils.getConfig();
-        TaskGenerator.formatRepairTasks();
         return streamEnvironment
                 .addSource(new RepairSource(config, repairKey))
                 .name("RepairSource")

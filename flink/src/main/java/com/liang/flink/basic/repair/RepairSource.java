@@ -114,7 +114,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private List<Map<String, Object>> next() {
         StringBuilder sqlBuilder = new StringBuilder(baseSql);
         if (task.getScanMode() == TumblingWindow) {
-            sqlBuilder.append(String.format(" and %s <= id and id < %s", task.getPivot(), task.getPivot() + QUERY_BATCH_SIZE));
+            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), task.getPivot() + QUERY_BATCH_SIZE));
         }
         return jdbcTemplate.queryForColumnMaps(sqlBuilder.toString());
     }
