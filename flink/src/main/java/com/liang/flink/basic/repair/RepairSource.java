@@ -1,8 +1,10 @@
 package com.liang.flink.basic.repair;
 
+import cn.hutool.core.util.SerializeUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -10,7 +12,6 @@ import com.liang.common.util.JsonUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.configuration.Configuration;
@@ -60,8 +61,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         // 初始化task与state
         ConfigUtils.setConfig(config);
         task = config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask());
-        taskState = context.getOperatorStateStore().getUnionListState(TASK_STATE_DESCRIPTOR);
         // 从ckp恢复task
+        taskState = context.getOperatorStateStore().getUnionListState(TASK_STATE_DESCRIPTOR);
         for (RepairTask stateTask : taskState.get()) {
             if (stateTask.getTaskId().equals(task.getTaskId()) && stateTask.getTableName().equals(task.getTableName())) {
                 // 仅恢复pivot
@@ -74,7 +75,11 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void open(Configuration parameters) {
-        baseSql = String.format("select %s from %s where %s", task.getColumns(), task.getTableName(), task.getWhere());
+        baseSql = new SQL()
+                .SELECT(task.getColumns())
+                .FROM(task.getTableName())
+                .WHERE(task.getWhere())
+                .toString();
         redisTemplate = new RedisTemplate("metadata");
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
     }
@@ -89,32 +94,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 commit();
             }
         }
-        registerSelfComplete();
-        waitingAllComplete();
+        reportComplete();
+        finish();
     }
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        RepairTask copyTask = SerializationUtils.clone(task);
+        RepairTask copyTask = SerializeUtil.clone(task);
         taskState.clear();
         taskState.add(copyTask);
-        if (hasNext()) {
-            Long pivot = copyTask.getPivot();
-            Long upperBound = copyTask.getUpperBound();
-            String info = String.format("%s pivot: %s, upperBound: %s, lag: %s",
-                    RUNNING_REPORT_PREFIX, pivot, upperBound, upperBound - pivot);
-            redisTemplate.hSet(repairKey, String.valueOf(copyTask.getTaskId()), info);
-        }
-    }
-
-    @Override
-    public void cancel() {
-        canceled.set(true);
-    }
-
-    @Override
-    public void close() {
-        cancel();
+        reportCheckpoint(copyTask);
     }
 
     private boolean hasNext() {
@@ -131,15 +120,28 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     private void commit() {
-        task.setPivot(task.getScanMode() == Direct ? DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() + QUERY_BATCH_SIZE);
+        long nextPivot = task.getScanMode() == Direct ?
+                DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() + QUERY_BATCH_SIZE;
+        task.setPivot(nextPivot);
     }
 
-    private void registerSelfComplete() {
-        String info = String.format("%s final pivot: %s", COMPLETE_REPORT_PREFIX, task.getUpperBound());
-        redisTemplate.hSet(repairKey, String.valueOf(task.getTaskId()), info);
+    private void reportCheckpoint(RepairTask copyTask) {
+        if (hasNext()) {
+            Long pivot = copyTask.getPivot();
+            Long upperBound = copyTask.getUpperBound();
+            String info = String.format("%s table: %s, pivot: %,d, upperBound: %,d, lag: %,d",
+                    RUNNING_REPORT_PREFIX, copyTask.getTableName(), pivot, upperBound, upperBound - pivot);
+            redisTemplate.hSet(repairKey, String.format("%03d", copyTask.getTaskId()), info);
+        }
     }
 
-    private void waitingAllComplete() {
+    private void reportComplete() {
+        String info = String.format("%s table: %s, final pivot: %,d",
+                COMPLETE_REPORT_PREFIX, task.getTableName(), task.getPivot());
+        redisTemplate.hSet(repairKey, String.format("%03d", task.getTaskId()), info);
+    }
+
+    private void finish() {
         while (!canceled.get()) {
             LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
             Map<String, String> repairMap = redisTemplate.hScan(repairKey);
@@ -150,5 +152,15 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             log.info("detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
             cancel();
         }
+    }
+
+    @Override
+    public void close() {
+        cancel();
+    }
+
+    @Override
+    public void cancel() {
+        canceled.set(true);
     }
 }

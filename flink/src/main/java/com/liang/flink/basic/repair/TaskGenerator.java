@@ -60,11 +60,11 @@ public class TaskGenerator {
                 resultRepairTasks.add(resultRepairTask);
             }
         }
+        log.info(StrUtil.repeat("=", 20));
         for (RepairTask resultRepairTask : resultRepairTasks) {
-            log.info(StrUtil.repeat("=", 20));
             log.info("RepairTask-{}: {}", resultRepairTask.getTaskId(), JsonUtils.toString(resultRepairTask));
-            log.info(StrUtil.repeat("=", 20));
         }
+        log.info(StrUtil.repeat("=", 20));
         ConfigUtils.getConfig().setRepairTasks(resultRepairTasks);
     }
 }
