@@ -68,6 +68,7 @@ public class TaskGenerator {
         String tableName = repairTask.getTableName();
         Long pivot = repairTask.getPivot();
         Long upperBound = repairTask.getUpperBound();
+        // 确定整个表的边界
         String sql = new SQL()
                 .SELECT("min(id)", "max(id)")
                 .FROM(tableName)
@@ -76,12 +77,11 @@ public class TaskGenerator {
                 .queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
         long minId = pivot != null ? pivot : minAndMaxId.f0;
         long maxId = upperBound != null ? upperBound : minAndMaxId.f1;
-        // 多并行度
+        // 确定每个并行度的边界
         int parallel = repairTask.getParallel();
         long lag = maxId - minId;
         long interval = lag / parallel + 1;
         ArrayList<RepairTask> boundedTumblingRepairTasks = new ArrayList<>();
-        // 切分边界
         for (int i = 0; i < parallel; i++) {
             long start = minId + interval * i;
             long end = start + interval;
