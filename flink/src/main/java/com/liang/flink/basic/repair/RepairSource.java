@@ -95,7 +95,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             }
         }
         reportComplete();
-        finish();
+        checkFinish();
     }
 
     @Override
@@ -141,7 +141,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         redisTemplate.hSet(repairKey, String.format("%03d", task.getTaskId()), info);
     }
 
-    private void finish() {
+    private void checkFinish() {
         while (!canceled.get()) {
             LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
             Map<String, String> repairMap = redisTemplate.hScan(repairKey);
