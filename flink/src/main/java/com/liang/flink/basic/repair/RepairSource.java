@@ -44,13 +44,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private static final String COMPLETE_REPORT_PREFIX = "[completed]";
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     // query
-    private static final int QUERY_BATCH_SIZE = 1024;
+    private static final int MIN_QUERY_BATCH_SIZE = 1024;
+    private static final int MAX_QUERY_BATCH_SIZE = 10240;
+    private static final int SPARSE_THRESHOLD = 128;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
     private final String repairKey;
     private volatile RepairTask task;
+    private volatile int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
     private ListState<RepairTask> taskState;
     private RedisTemplate redisTemplate;
     private String baseSql;
@@ -88,10 +91,17 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void run(SourceContext<SingleCanalBinlog> ctx) {
         while (!canceled.get() && hasNext()) {
             synchronized (ctx.getCheckpointLock()) {
-                for (Map<String, Object> columnMap : next()) {
+                List<Map<String, Object>> columnMaps = next();
+                for (Map<String, Object> columnMap : columnMaps) {
                     ctx.collect(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                 }
                 commit();
+                // 遇到稀疏id区间, 尽快跳过
+                if (columnMaps.size() < SPARSE_THRESHOLD) {
+                    currentQueryBatchSize = MAX_QUERY_BATCH_SIZE;
+                } else {
+                    currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
+                }
             }
         }
         reportComplete();
@@ -114,14 +124,14 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private List<Map<String, Object>> next() {
         StringBuilder sqlBuilder = new StringBuilder(baseSql);
         if (task.getScanMode() == TumblingWindow) {
-            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), task.getPivot() + QUERY_BATCH_SIZE));
+            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), task.getPivot() + currentQueryBatchSize));
         }
         return jdbcTemplate.queryForColumnMaps(sqlBuilder.toString());
     }
 
     private void commit() {
         long nextPivot = task.getScanMode() == Direct ?
-                DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() + QUERY_BATCH_SIZE;
+                DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() + currentQueryBatchSize;
         task.setPivot(nextPivot);
     }
 
