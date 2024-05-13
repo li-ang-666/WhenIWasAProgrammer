@@ -97,12 +97,12 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     ctx.collect(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                 }
                 commit();
-                // 连续遇到空id区间
+                // 多次遇到空id区间
                 if (columnMaps.isEmpty() && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                     correctByJdbc();
                     currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
                 }
-                // 首次 or 连续遇到稀疏id区间 / 首次遇到空id区间
+                // 遇到稀疏id区间 / 少次遇到空id区间
                 else if (columnMaps.size() < SPARSE_THRESHOLD) {
                     currentQueryBatchSize = Math.min(2 * currentQueryBatchSize, MAX_QUERY_BATCH_SIZE);
                 }
