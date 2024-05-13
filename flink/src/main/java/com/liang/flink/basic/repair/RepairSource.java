@@ -99,6 +99,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 // 连续多次遇到空id区间, 采用jdbc矫正
                 if (columnMaps.isEmpty() && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                     correctByJdbc();
+                    currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
                 }
                 // 遇到稀疏id区间 / 连续少次遇到空id区间, 适当加大batch
                 else if (columnMaps.size() < MIN_QUERY_BATCH_SIZE * 0.5) {
