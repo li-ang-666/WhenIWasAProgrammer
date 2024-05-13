@@ -60,7 +60,7 @@ public class CooperationPartnerJob {
         // 写入 rds
         spark.table("hudi_ads.cooperation_partner_diff")
                 .where("pt = " + pt)
-                .repartition(2, new Column("boss_human_pid"))
+                .repartition(4, new Column("boss_human_pid"))
                 .sortWithinPartitions(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
                 .foreachPartition(new CooperationPartnerSink(config));
         // 写入 hive 正式表 0号分区
