@@ -9,6 +9,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -96,10 +97,17 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     ctx.collect(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                 }
                 commit();
-                // 遇到稀疏id区间, 尽快跳过
-                if (columnMaps.size() < SPARSE_THRESHOLD) {
-                    currentQueryBatchSize = MAX_QUERY_BATCH_SIZE;
-                } else {
+                // 连续遇到空id区间
+                if (columnMaps.isEmpty() && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
+                    correctByJdbc();
+                    currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
+                }
+                // 首次 or 连续遇到稀疏id区间 / 首次遇到空id区间
+                else if (columnMaps.size() < SPARSE_THRESHOLD) {
+                    currentQueryBatchSize = Math.min(2 * currentQueryBatchSize, MAX_QUERY_BATCH_SIZE);
+                }
+                // 正常情况
+                else {
                     currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
                 }
             }
@@ -133,6 +141,20 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         long nextPivot = task.getScanMode() == Direct ?
                 DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() + currentQueryBatchSize;
         task.setPivot(nextPivot);
+    }
+
+    private void correctByJdbc() {
+        String sql = new SQL()
+                .SELECT("min(id)")
+                .FROM(task.getTableName())
+                .WHERE("id >= " + SqlUtils.formatValue(task.getPivot()))
+                .toString();
+        Long nextPivot = jdbcTemplate.queryForObject(sql, rs -> rs.getLong(1));
+        if (nextPivot == null) {
+            task.setPivot(task.getUpperBound());
+        } else {
+            task.setPivot(Math.min(nextPivot, task.getUpperBound()));
+        }
     }
 
     private void reportCheckpoint(RepairTask copyTask) {
