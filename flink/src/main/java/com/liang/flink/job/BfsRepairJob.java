@@ -65,12 +65,14 @@ public class BfsRepairJob {
         private final Config config;
         private JdbcTemplate graphData430;
         private JdbcTemplate prism116;
+        private JdbcTemplate prismShareholderPath491;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             graphData430 = new JdbcTemplate("430.graph_data");
             prism116 = new JdbcTemplate("116.prism");
+            prismShareholderPath491 = new JdbcTemplate("491.prism_shareholder_path");
         }
 
         @Override
@@ -79,15 +81,20 @@ public class BfsRepairJob {
                 return;
             }
             log.info("{}", companyId);
-            String deleteSql = new SQL().DELETE_FROM("company_equity_relation_details")
-                    .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
-                    .toString();
-            graphData430.update(deleteSql);
-            String updateSql = new SQL().UPDATE("equity_ratio")
+            //String deleteSql = new SQL().DELETE_FROM("company_equity_relation_details")
+            //        .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
+            //        .toString();
+            //graphData430.update(deleteSql);
+            //String updateSql = new SQL().UPDATE("equity_ratio")
+            //        .SET("update_time = now()")
+            //        .WHERE("company_graph_id = " + SqlUtils.formatValue(companyId))
+            //        .toString();
+            //prism116.update(updateSql);
+            String sql = new SQL().UPDATE("ratio_path_company_new_" + Long.parseLong(companyId) % 100)
                     .SET("update_time = now()")
-                    .WHERE("company_graph_id = " + SqlUtils.formatValue(companyId))
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                     .toString();
-            prism116.update(updateSql);
+            prismShareholderPath491.update(sql);
         }
     }
 }
