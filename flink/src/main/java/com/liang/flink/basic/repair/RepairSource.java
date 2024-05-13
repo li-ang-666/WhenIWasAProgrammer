@@ -47,14 +47,13 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     // query
     private static final int MIN_QUERY_BATCH_SIZE = 1024;
     private static final int MAX_QUERY_BATCH_SIZE = 10240;
-    private static final int SPARSE_THRESHOLD = MIN_QUERY_BATCH_SIZE / 2;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
     private final String repairKey;
-    private volatile RepairTask task;
     private volatile int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
+    private RepairTask task;
     private ListState<RepairTask> taskState;
     private RedisTemplate redisTemplate;
     private String baseSql;
@@ -97,18 +96,18 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     ctx.collect(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
                 }
                 commit();
-                // 多次遇到空id区间
+                // 连续多次遇到空id区间, 采用jdbc矫正
                 if (columnMaps.isEmpty() && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                     correctByJdbc();
                     currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
                 }
-                // 遇到稀疏id区间 / 少次遇到空id区间
-                else if (columnMaps.size() < SPARSE_THRESHOLD) {
-                    currentQueryBatchSize = Math.min(2 * currentQueryBatchSize, MAX_QUERY_BATCH_SIZE);
+                // 遇到稀疏id区间 / 连续少次遇到空id区间, 适当加大batch
+                else if (columnMaps.size() < MIN_QUERY_BATCH_SIZE * 0.5) {
+                    currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
                 }
-                // 正常情况
-                else {
-                    currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
+                // 离开异常id区间, 适当降低batch
+                else if (columnMaps.size() > MIN_QUERY_BATCH_SIZE * 1.5) {
+                    currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
                 }
             }
         }
