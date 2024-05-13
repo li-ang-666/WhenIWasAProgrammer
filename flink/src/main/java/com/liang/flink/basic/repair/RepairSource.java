@@ -47,7 +47,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     // query
     private static final int MIN_QUERY_BATCH_SIZE = 1024;
     private static final int MAX_QUERY_BATCH_SIZE = 10240;
-    private static final int SPARSE_THRESHOLD = 128;
+    private static final int SPARSE_THRESHOLD = MIN_QUERY_BATCH_SIZE / 2;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
