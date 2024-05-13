@@ -150,10 +150,9 @@ public class CooperationPartnerJob {
         private final Config config;
 
         @Override
-        public void call(Iterator<Row> iterator) throws Exception {
+        public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
             JdbcTemplate jdbcTemplate = new JdbcTemplate("467.company_base");
-            jdbcTemplate.enableCache();
             List<Map<String, Object>> columnMaps = new ArrayList<>(BATCH_SIZE);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
