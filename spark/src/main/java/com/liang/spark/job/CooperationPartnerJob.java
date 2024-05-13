@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class CooperationPartnerJob {
@@ -154,6 +153,7 @@ public class CooperationPartnerJob {
         public void call(Iterator<Row> iterator) throws Exception {
             ConfigUtils.setConfig(config);
             JdbcTemplate jdbcTemplate = new JdbcTemplate("467.company_base");
+            jdbcTemplate.enableCache();
             List<Map<String, Object>> columnMaps = new ArrayList<>(BATCH_SIZE);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
@@ -165,7 +165,6 @@ public class CooperationPartnerJob {
                             .WHERE("company_gid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("company_gid"))))
                             .toString();
                     jdbcTemplate.update(delete);
-                    TimeUnit.MILLISECONDS.sleep(1);
                 } else {
                     columnMaps.add(JsonUtils.parseJsonObj(String.valueOf(obj)));
                     if (columnMaps.size() >= BATCH_SIZE) {
@@ -175,7 +174,6 @@ public class CooperationPartnerJob {
                                 .INTO_VALUES(insert.f1)
                                 .toString() + TEMPLATE;
                         jdbcTemplate.update(sql);
-                        TimeUnit.MILLISECONDS.sleep(1);
                         columnMaps.clear();
                     }
                 }
@@ -187,7 +185,6 @@ public class CooperationPartnerJob {
                         .INTO_VALUES(insert.f1)
                         .toString() + TEMPLATE;
                 jdbcTemplate.update(sql);
-                TimeUnit.MILLISECONDS.sleep(1);
                 columnMaps.clear();
             }
         }
