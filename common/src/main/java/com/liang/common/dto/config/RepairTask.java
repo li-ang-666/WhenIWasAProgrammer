@@ -18,7 +18,7 @@ public class RepairTask implements Serializable {
     private volatile Long pivot = null;
     private Long upperBound = null;
     // 并发
-    private Integer parallel = 1;
+    private Integer parallel = 2;
 
     public enum ScanMode implements Serializable {
         TumblingWindow, Direct

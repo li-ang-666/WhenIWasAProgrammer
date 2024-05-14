@@ -70,7 +70,7 @@ public class TaskGenerator {
         Long upperBound = repairTask.getUpperBound();
         // 确定整个表的边界
         String sql = new SQL()
-                .SELECT("min(id)", "max(id)")
+                .SELECT("min(id)", "max(id) + 1")
                 .FROM(tableName)
                 .toString();
         Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(sourceName)
@@ -79,7 +79,7 @@ public class TaskGenerator {
         long maxId = upperBound != null ? upperBound : minAndMaxId.f1;
         // 确定每个并行度的边界
         int parallel = repairTask.getParallel();
-        long lag = maxId - minId;
+        long lag = maxId - minId + 1;
         long interval = lag / parallel + 1;
         ArrayList<RepairTask> boundedTumblingRepairTasks = new ArrayList<>();
         for (int i = 0; i < parallel; i++) {
