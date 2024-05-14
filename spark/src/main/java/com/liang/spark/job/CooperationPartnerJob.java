@@ -44,12 +44,12 @@ public class CooperationPartnerJob {
         String redisValue = redis.get(REDIS_KEY);
         if (!STEP_2_START.equals(redisValue)) {
             redis.set(REDIS_KEY, STEP_1_START);
-            // 写入 hive 正式表 当前分区
+            // 写入 hive 正式表 昨日分区
             String sql1 = ApolloUtils.get("cooperation-partner.sql").replaceAll("\\$pt", pt);
             log.info("sql1: {}", sql1);
             spark.sql(sql1);
             assert spark.table("hudi_ads.cooperation_partner").where("pt = " + pt).count() > 700_000_000L;
-            // 写入 hive diff表 当前分区
+            // 与pt=0做diff, 写入 hive diff表 昨日分区
             String sql2 = ApolloUtils.get("cooperation-partner-diff.sql").replaceAll("\\$pt", pt);
             log.info("sql2: {}", sql2);
             spark.sql(sql2);
