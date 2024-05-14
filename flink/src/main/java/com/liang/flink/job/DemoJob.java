@@ -49,7 +49,7 @@ public class DemoJob {
             ConfigUtils.setConfig(config);
             jdbcTemplate = new JdbcTemplate("427.test");
             jdbcTemplate.enableCache();
-            obsWriter = new ObsWriter("obs://hadoop-obs/flink/", ObsWriter.FileFormat.TXT);
+            obsWriter = new ObsWriter("obs://hadoop-obs/flink/test/", ObsWriter.FileFormat.TXT);
             obsWriter.enableCache();
         }
 
