@@ -135,6 +135,8 @@ public class BlackList extends ConfigHolder {
         deletePartner("80MH79E0ATH4L0Q28");
         deletePartner("A01LSMK0TA8VSBZUJ");
         deletePartner("00Z0QMF0152Q9HQZS");
+        deletePartner("60937MC00LF5DFLNS");
+        deletePartner("S0ANCMY09Q106BHGD");
     }
 
     /**
