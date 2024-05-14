@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class CooperationPartnerJob {
@@ -60,7 +61,7 @@ public class CooperationPartnerJob {
         // 写入 rds
         spark.table("hudi_ads.cooperation_partner_diff")
                 .where("pt = " + pt)
-                .repartition(4, new Column("boss_human_pid"))
+                .repartition(2, new Column("boss_human_pid"))
                 .sortWithinPartitions(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
                 .foreachPartition(new CooperationPartnerSink(config));
         // 写入 hive 正式表 0号分区
@@ -125,6 +126,7 @@ public class CooperationPartnerJob {
 
     @RequiredArgsConstructor
     private final static class CooperationPartnerSink implements ForeachPartitionFunction<Row> {
+        private final static String SINK_TABLE = "cooperation_partner_";
         private final static String TEMPLATE = " ON DUPLICATE KEY UPDATE" +
                 " boss_human_gid = VALUES(boss_human_gid)," +
                 " boss_human_name = VALUES(boss_human_name)," +
@@ -156,19 +158,23 @@ public class CooperationPartnerJob {
             List<Map<String, Object>> columnMaps = new ArrayList<>(BATCH_SIZE);
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
-                Object obj = columnMap.get("column_map");
+                Object obj = columnMap.get("_boss_human_pid_");
                 if (obj == null) {
-                    String delete = new SQL().DELETE_FROM("cooperation_partner")
+                    String delete = new SQL().DELETE_FROM(SINK_TABLE)
                             .WHERE("boss_human_pid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("boss_human_pid"))))
                             .WHERE("partner_human_pid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("partner_human_pid"))))
                             .WHERE("company_gid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("company_gid"))))
                             .toString();
                     jdbcTemplate.update(delete);
                 } else {
-                    columnMaps.add(JsonUtils.parseJsonObj(String.valueOf(obj)));
+                    Map<String, Object> insertMap = columnMap.entrySet().parallelStream()
+                            .filter(entry -> entry.getKey().matches("_(.*?)_"))
+                            .map(entry -> Tuple2.of(entry.getKey().replaceAll("_(.*?)_", "$1"), entry.getValue()))
+                            .collect(Collectors.toMap(tp2 -> tp2.f0, tp2 -> tp2.f1));
+                    columnMaps.add(insertMap);
                     if (columnMaps.size() >= BATCH_SIZE) {
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                        String sql = new SQL().INSERT_INTO("cooperation_partner")
+                        String sql = new SQL().INSERT_INTO(SINK_TABLE)
                                 .INTO_COLUMNS(insert.f0)
                                 .INTO_VALUES(insert.f1)
                                 .toString() + TEMPLATE;
@@ -179,7 +185,7 @@ public class CooperationPartnerJob {
             }
             if (!columnMaps.isEmpty()) {
                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                String sql = new SQL().INSERT_INTO("cooperation_partner")
+                String sql = new SQL().INSERT_INTO(SINK_TABLE)
                         .INTO_COLUMNS(insert.f0)
                         .INTO_VALUES(insert.f1)
                         .toString() + TEMPLATE;

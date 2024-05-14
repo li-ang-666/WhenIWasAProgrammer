@@ -41,7 +41,7 @@ public class EquityBfsService {
     public static void main(String[] args) throws Exception {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
-        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("2318455639");
+        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("4300976841");
         columnMaps.sort(Comparator.comparing(map -> String.valueOf(map.get("shareholder_id"))));
         for (Map<String, Object> columnMap : columnMaps) {
             log.info(StrUtil.repeat("=", 100));
