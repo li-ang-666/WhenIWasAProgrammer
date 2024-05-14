@@ -20,11 +20,7 @@ import org.apache.spark.sql.types.DataTypes;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 public class CooperationPartnerJob {
@@ -169,8 +165,7 @@ public class CooperationPartnerJob {
                 } else {
                     Map<String, Object> insertMap = columnMap.entrySet().parallelStream()
                             .filter(entry -> entry.getKey().matches("_(.*?)_"))
-                            .map(entry -> Tuple2.of(entry.getKey().replaceAll("_(.*?)_", "$1"), entry.getValue()))
-                            .collect(Collectors.toMap(tp2 -> tp2.f0, tp2 -> tp2.f1));
+                            .collect(HashMap::new, (map, entry) -> map.put(entry.getKey().replaceAll("_(.*?)_", "$1"), entry.getValue()), HashMap::putAll);
                     columnMaps.add(insertMap);
                     if (columnMaps.size() >= BATCH_SIZE) {
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
