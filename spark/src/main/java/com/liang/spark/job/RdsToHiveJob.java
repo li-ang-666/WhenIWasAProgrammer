@@ -13,6 +13,6 @@ public class RdsToHiveJob {
                 .jdbc(spark, rds, table)
                 .drop("id", "create_time", "update_time")
                 .createOrReplaceTempView("t");
-        spark.sql("insert overwrite table hudi_ads.cooperation_partner(pt=1) select /*+ REPARTITION(32) */ * from t");
+        spark.sql("insert overwrite table hudi_ads.cooperation_partner partition(pt=1) select /*+ REPARTITION(32) */ * from t");
     }
 }
