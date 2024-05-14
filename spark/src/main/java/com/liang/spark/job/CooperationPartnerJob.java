@@ -126,7 +126,7 @@ public class CooperationPartnerJob {
 
     @RequiredArgsConstructor
     private final static class CooperationPartnerSink implements ForeachPartitionFunction<Row> {
-        private final static String SINK_TABLE = "cooperation_partner_";
+        private final static String SINK_TABLE = "cooperation_partner";
         private final static String TEMPLATE = " ON DUPLICATE KEY UPDATE" +
                 " boss_human_gid = VALUES(boss_human_gid)," +
                 " boss_human_name = VALUES(boss_human_name)," +
