@@ -125,21 +125,25 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     private boolean hasNext() {
         return task.getScanMode() == Direct ?
-                task.getPivot() != DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() <= task.getUpperBound();
+                task.getPivot() != DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() < task.getUpperBound();
     }
 
     private List<Map<String, Object>> next() {
         StringBuilder sqlBuilder = new StringBuilder(baseSql);
         if (task.getScanMode() == TumblingWindow) {
-            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), task.getPivot() + currentQueryBatchSize));
+            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
         }
         return jdbcTemplate.queryForColumnMaps(sqlBuilder.toString());
     }
 
     private void commit() {
-        long nextPivot = task.getScanMode() == Direct ?
-                DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() + currentQueryBatchSize;
-        task.setPivot(nextPivot);
+        long queriedPivot = task.getScanMode() == Direct ?
+                DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
+        task.setPivot(queriedPivot);
+    }
+
+    private long nextPivot() {
+        return Math.min(task.getPivot() + currentQueryBatchSize, task.getUpperBound());
     }
 
     private void correctByJdbc() {
