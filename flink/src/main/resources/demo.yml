@@ -16,8 +16,6 @@ repairTasks:
     tableName: "company_equity_relation_details"
     columns: "*"
     where: "1=1"
-    pivot: 1
-    upperBound: 1234
     parallel: 10
     scanMode: TumblingWindow
 
