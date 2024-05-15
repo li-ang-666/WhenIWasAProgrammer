@@ -11,7 +11,8 @@ nohup spark-submit \
   --driver-memory 2g --driver-cores 1 \
   --conf spark.driver.memoryOverhead=512m \
   --conf spark.dynamicAllocation.enabled=true \
-  --conf spark.dynamicAllocation.cachedExecutorIdleTimeout=180S --conf spark.dynamicAllocation.executorIdleTimeout=60s \
+  --conf spark.dynamicAllocation.cachedExecutorIdleTimeout=300s \
+  --conf spark.dynamicAllocation.executorIdleTimeout=300s \
   --conf spark.dynamicAllocation.initialExecutors=1 \
   --conf spark.dynamicAllocation.minExecutors=1 \
   --conf spark.dynamicAllocation.maxExecutors=32 \
