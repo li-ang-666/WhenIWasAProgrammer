@@ -41,12 +41,15 @@ public class CooperationPartnerJob {
         String redisValue = redis.get(REDIS_KEY);
         if (!STEP_2_START.equals(redisValue)) {
             redis.set(REDIS_KEY, STEP_1_START);
-            // 写入 hive 正式表 昨日分区
+            // -> hive.cooperation_partner(pt = 昨天)
             String sql1 = ApolloUtils.get("cooperation-partner.sql").replaceAll("\\$pt", pt);
             log.info("sql1: {}", sql1);
             spark.sql(sql1);
             assert spark.table("hudi_ads.cooperation_partner").where("pt = " + pt).count() > 700_000_000L;
-            // 与pt=0做diff, 写入 hive diff表 昨日分区
+            // hive.cooperation_partner(pt = 昨天)
+            // diff
+            // hive.cooperation_partner(pt = 0)
+            // -> hive.cooperation_partner_diff(pt = 昨天)
             String sql2 = ApolloUtils.get("cooperation-partner-diff.sql").replaceAll("\\$pt", pt);
             log.info("sql2: {}", sql2);
             spark.sql(sql2);
@@ -54,13 +57,13 @@ public class CooperationPartnerJob {
         }
         // step2
         redis.set(REDIS_KEY, STEP_2_START);
-        // 写入 rds
+        // hive.cooperation_partner_diff(pt = 昨天) -> rds467.cooperation_partner
         spark.table("hudi_ads.cooperation_partner_diff")
                 .where("pt = " + pt)
                 .repartition(2, new Column("boss_human_pid"))
                 .sortWithinPartitions(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
                 .foreachPartition(new CooperationPartnerSink(config));
-        // 写入 hive 正式表 0号分区
+        // hive.cooperation_partner(pt = 昨天) -> hive.cooperation_partner(pt = 0)
         spark.table("hudi_ads.cooperation_partner").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
         spark.sql("insert overwrite table hudi_ads.cooperation_partner partition(pt = 0) select * from current");
         Dataset<Row> tb = spark.table("hudi_ads.cooperation_partner");
