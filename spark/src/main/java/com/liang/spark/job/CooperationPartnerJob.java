@@ -167,8 +167,8 @@ public class CooperationPartnerJob {
                     jdbcTemplate.update(delete);
                 } else {
                     Map<String, Object> insertMap = columnMap.entrySet().parallelStream()
-                            .filter(entry -> entry.getKey().matches("_(.*?)_"))
-                            .collect(HashMap::new, (map, entry) -> map.put(entry.getKey().replaceAll("_(.*?)_", "$1"), entry.getValue()), HashMap::putAll);
+                            .filter(entry -> entry.getKey().matches("^_(.*)_$"))
+                            .collect(HashMap::new, (map, entry) -> map.put(entry.getKey().replaceAll("^_(.*)_$", "$1"), entry.getValue()), HashMap::putAll);
                     columnMaps.add(insertMap);
                     if (columnMaps.size() >= BATCH_SIZE) {
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
