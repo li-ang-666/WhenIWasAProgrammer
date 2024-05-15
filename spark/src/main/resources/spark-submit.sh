@@ -10,7 +10,13 @@ nohup spark-submit \
   --deploy-mode cluster \
   --driver-memory 2g --driver-cores 1 \
   --conf spark.driver.memoryOverhead=512m \
-  --executor-memory 9g --num-executors 4 --executor-cores 8 \
+  --conf spark.dynamicAllocation.enabled=true \
+  --conf spark.dynamicAllocation.cachedExecutorIdleTimeout=180S \
+  --conf spark.dynamicAllocation.executorIdleTimeout=60s \
+  --conf spark.dynamicAllocation.initialExecutors=1 \
+  --conf spark.dynamicAllocation.maxExecutors=32 \
+  --conf spark.dynamicAllocation.minExecutors=1 \
+  --executor-memory 9g --executor-cores 8 \
   --conf spark.executor.memoryOverhead=512m \
   --conf spark.memory.offHeap.enabled=true --conf spark.memory.offHeap.size=512m \
   --queue offline \
