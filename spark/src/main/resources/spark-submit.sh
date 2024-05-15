@@ -10,6 +10,7 @@ nohup spark-submit \
   --deploy-mode cluster \
   --driver-memory 2g --driver-cores 1 \
   --conf spark.driver.memoryOverhead=512m \
+  --conf spark.shuffle.service.enabled=true \
   --conf spark.dynamicAllocation.enabled=true \
   --conf spark.dynamicAllocation.cachedExecutorIdleTimeout=300s \
   --conf spark.dynamicAllocation.executorIdleTimeout=300s \
