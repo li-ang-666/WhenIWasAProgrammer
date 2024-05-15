@@ -60,7 +60,7 @@ public class CooperationPartnerJob {
         // hive.cooperation_partner_diff(pt = 昨天) -> rds467.cooperation_partner
         spark.table("hudi_ads.cooperation_partner_diff")
                 .where("pt = " + pt)
-                .repartition(2, new Column("boss_human_pid"))
+                .repartition(1, new Column("boss_human_pid"))
                 .sortWithinPartitions(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
                 .foreachPartition(new CooperationPartnerSink(config));
         // hive.cooperation_partner(pt = 昨天) -> hive.cooperation_partner(pt = 0)
