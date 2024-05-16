@@ -98,16 +98,16 @@ public class EquityCountJob {
                         // 公司详情页-实控人count
                         .put("has_controller", queryHasController(tycUniqueEntityId))
                         // 公司详情页-受益人count
-                        .put("has_beneficiary", queryHasBeneficiary(tycUniqueEntityId))
+                        //.put("has_beneficiary", queryHasBeneficiary(tycUniqueEntityId))
                         // 公司详情页-实控权count
                         .put("num_control_ability", queryNumControlAbility(tycUniqueEntityId))
                 ;
             } else {
                 hbaseOneRow = new HbaseOneRow(HbaseSchema.HUMAN_ALL_COUNT, tycUniqueEntityId)
+                        // 老板详情页-受益权count
+                        //.put("num_benefit_ability", queryNumBenefitAbility(tycUniqueEntityId))
                         // 老板详情页-实控权count
                         .put("num_control_ability", queryNumControlAbility(tycUniqueEntityId))
-                        // 老板详情页-受益权count
-                        .put("num_benefit_ability", queryNumBenefitAbility(tycUniqueEntityId))
                 ;
             }
             sink.update(hbaseOneRow);
