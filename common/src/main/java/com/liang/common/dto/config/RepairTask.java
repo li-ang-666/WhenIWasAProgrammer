@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +21,8 @@ public class RepairTask implements Serializable {
     private Long upperBound = null;
     // 并发
     private Integer parallel = 2;
+    // 所属下游并行度
+    private Set<Integer> channels = new TreeSet<>();
 
     public enum ScanMode implements Serializable {
         TumblingWindow, Direct

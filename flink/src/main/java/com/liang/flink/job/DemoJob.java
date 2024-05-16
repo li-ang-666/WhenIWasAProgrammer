@@ -57,9 +57,9 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String row = JsonUtils.toString(new TreeMap<>(columnMap));
-            obsWriter.update(row);
+            //Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            //String row = JsonUtils.toString(new TreeMap<>(columnMap));
+            //obsWriter.update(row);
         }
 
         @Override

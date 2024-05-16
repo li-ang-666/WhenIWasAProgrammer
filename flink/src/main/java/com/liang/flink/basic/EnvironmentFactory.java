@@ -88,5 +88,7 @@ public class EnvironmentFactory {
         checkpointConfig.setExternalizedCheckpointCleanup(RETAIN_ON_CANCELLATION);
         // 开启非对齐的checkpoint(可跳跃的barrier)
         checkpointConfig.enableUnalignedCheckpoints();
+        // 强制非对齐
+        checkpointConfig.setForceUnalignedCheckpoints(true);
     }
 }
