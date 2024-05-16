@@ -22,7 +22,7 @@ import static com.liang.flink.service.equity.bfs.dto.Operation.*;
 
 @Slf4j
 public class EquityBfsService {
-    private static final BigDecimal THRESHOLD_BFS = new BigDecimal("0.000001");
+    private static final BigDecimal THRESHOLD_BFS = new BigDecimal("0");
     private static final BigDecimal THRESHOLD_SINK = new BigDecimal("0.01");
     private final EquityBfsDao dao = new EquityBfsDao();
     private final Map<String, RatioPathCompanyDto> allShareholders = new HashMap<>();
@@ -41,7 +41,7 @@ public class EquityBfsService {
     public static void main(String[] args) throws Exception {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
-        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("49037");
+        List<Map<String, Object>> columnMaps = new EquityBfsService().bfs("2318455639");
         columnMaps.sort(Comparator.comparing(map -> String.valueOf(map.get("shareholder_id"))));
         for (Map<String, Object> columnMap : columnMaps) {
             log.info(StrUtil.repeat("=", 100));
