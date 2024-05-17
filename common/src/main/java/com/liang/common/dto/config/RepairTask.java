@@ -21,7 +21,7 @@ public class RepairTask implements Serializable {
     private volatile Long pivot = null;
     private Long upperBound = null;
     // 并发 & 下游subtask index
-    private Integer parallel = 2;
+    private Integer parallel = 4;
     private List<Integer> channels = new ArrayList<>();
 
     public enum ScanMode implements Serializable {

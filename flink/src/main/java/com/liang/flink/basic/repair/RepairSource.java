@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -78,6 +79,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     public void open(Configuration parameters) {
         baseDetectSql = new SQL()
                 .SELECT("count(1)")
+                .SELECT(String.format("count(if(%s, 1, null))", task.getWhere()))
                 .FROM(task.getTableName())
                 .WHERE(task.getWhere())
                 .toString();
@@ -98,20 +100,20 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                 int channel = task.getChannels().get(sendTimes % task.getChannels().size());
                 ctx.collect(new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, nextSql()));
                 if (++sendTimes % SAMPLING_INTERVAL_TIMES == 0) {
-                    int rows = detectSplitRows();
-                    // 连续多次遇到空id区间, 采用jdbc矫正
-                    if (rows == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
+                    Tuple2<Integer, Integer> rowsTuple2 = detectSplitRows();
+                    int rowsWithoutWhere = rowsTuple2.f0;
+                    int rowsWithWhere = rowsTuple2.f1;
+                    // 空区间, 采用jdbc矫正
+                    if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                         commit(true);
-                        // 避免因为自定义where导致空区间时,连续jdbc矫正
-                        currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
                     }
-                    // 遇到稀疏id区间 / 连续少次遇到空id区间, 适当加大batch
-                    else if (rows <= MIN_QUERY_BATCH_SIZE * 0.8) {
+                    // 稀疏区间, 适当加大batch
+                    else if (rowsWithWhere <= MIN_QUERY_BATCH_SIZE * 0.8) {
                         commit(false);
                         currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
                     }
-                    // 离开异常id区间, 适当降低batch
-                    else if (rows > MIN_QUERY_BATCH_SIZE * 1.8) {
+                    // 非稀疏区间, 适当降低batch
+                    else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.8) {
                         commit(false);
                         currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
                     } else {
@@ -147,6 +149,15 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         return sqlBuilder.toString();
     }
 
+    private Tuple2<Integer, Integer> detectSplitRows() {
+        StringBuilder sqlBuilder = new StringBuilder(baseDetectSql);
+        if (task.getScanMode() == TumblingWindow) {
+            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
+        }
+        return jdbcTemplate.queryForObject(sqlBuilder.toString(),
+                rs -> Tuple2.of(rs.getInt(1), rs.getInt(2)));
+    }
+
     private void commit(boolean useJdbc) {
         long queriedPivot = task.getScanMode() == Direct ?
                 DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
@@ -169,14 +180,6 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
 
     private long nextPivot() {
         return Math.min(task.getPivot() + currentQueryBatchSize, task.getUpperBound());
-    }
-
-    private int detectSplitRows() {
-        StringBuilder sqlBuilder = new StringBuilder(baseDetectSql);
-        if (task.getScanMode() == TumblingWindow) {
-            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
-        }
-        return jdbcTemplate.queryForObject(sqlBuilder.toString(), rs -> rs.getInt(1));
     }
 
     private void reportCheckpoint(RepairTask copyTask) {
