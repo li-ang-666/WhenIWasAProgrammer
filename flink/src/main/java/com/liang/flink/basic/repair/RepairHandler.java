@@ -37,9 +37,9 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
 
     @Override
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
-        log.info("get repairSplit: {}", repairSplit);
         try {
-            TimeUnit.SECONDS.sleep(111);
+            log.info("get repairSplit: {}", repairSplit);
+            TimeUnit.HOURS.sleep(1);
         } catch (Exception ignore) {
         }
         List<Map<String, Object>> columnMaps = jdbcTemplate.queryForColumnMaps(repairSplit.getSql());
