@@ -106,16 +106,19 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                     // 空区间, 采用jdbc矫正
                     if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                         commit(true);
+                        log.info("pivot corrected to {} by jdbc", task.getPivot());
                     }
                     // 稀疏区间, 适当加大batch
                     else if (rowsWithWhere <= MIN_QUERY_BATCH_SIZE * 0.8) {
                         commit(false);
                         currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
+                        log.info("query batch size upgraded to {}", currentQueryBatchSize);
                     }
                     // 非稀疏区间, 适当降低batch
                     else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.8) {
                         commit(false);
                         currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
+                        log.info("query batch size downgraded to {}", currentQueryBatchSize);
                     } else {
                         commit(false);
                     }
