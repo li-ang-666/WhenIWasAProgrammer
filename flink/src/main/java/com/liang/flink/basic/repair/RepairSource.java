@@ -101,6 +101,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                     // 连续多次遇到空id区间, 采用jdbc矫正
                     if (rows == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                         commit(true);
+                        // 避免连续jdbc矫正
                         currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
                     }
                     // 遇到稀疏id区间 / 连续少次遇到空id区间, 适当加大batch
