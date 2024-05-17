@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class RepairTask implements Serializable {
+    // 基本信息
     private Integer taskId;
     private String sourceName;
     private String tableName;
@@ -19,9 +20,8 @@ public class RepairTask implements Serializable {
     // 游标 & 边界
     private volatile Long pivot = null;
     private Long upperBound = null;
-    // 并发
+    // 并发 & 下游subtask index
     private Integer parallel = 2;
-    // 所属下游并行度
     private List<Integer> channels = new ArrayList<>();
 
     public enum ScanMode implements Serializable {

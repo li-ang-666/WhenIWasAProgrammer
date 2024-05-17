@@ -6,28 +6,26 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
+  - sourceName: "116.prism"
+    tableName: "equity_ratio"
+    columns: "*"
+    where: "id < 100"
+    scanMode: Direct
+  - sourceName: "116.prism"
+    tableName: "equity_ratio"
+    columns: "*"
+    where: "1=1"
+    scanMode: TumblingWindow
   - sourceName: "430.graph_data"
     tableName: "company_equity_relation_details"
     columns: "*"
-    where: "id=1"
+    where: "company_id_invested = 2318455639"
     scanMode: Direct
   - sourceName: "430.graph_data"
     tableName: "company_equity_relation_details"
     columns: "*"
     where: "1=1"
-    parallel: 8
     scanMode: TumblingWindow
-  - sourceName: "430.graph_data"
-    tableName: ".*?tier_201.*"
-    columns: "*"
-    where: "1=1"
-    parallel: 1
-    scanMode: TumblingWindow
-  - sourceName: "430.graph_data"
-    tableName: "company_equity_relation_details"
-    columns: "*"
-    where: "id=2"
-    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:

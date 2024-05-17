@@ -44,6 +44,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private static final int MIN_QUERY_BATCH_SIZE = 1024;
     private static final int MAX_QUERY_BATCH_SIZE = 10240;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
+    private static final int SAMPLING_INTERVAL_TIMES = 10;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
@@ -96,21 +97,21 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
             synchronized (ctx.getCheckpointLock()) {
                 int channel = task.getChannels().get(sendTimes % task.getChannels().size());
                 ctx.collect(new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, nextSql()));
-                if (++sendTimes % 10 == 0) {
+                if (++sendTimes % SAMPLING_INTERVAL_TIMES == 0) {
                     int rows = detectSplitRows();
                     // 连续多次遇到空id区间, 采用jdbc矫正
                     if (rows == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                         commit(true);
-                        // 避免连续jdbc矫正
+                        // 避免因为自定义where导致空区间时,连续jdbc矫正
                         currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
                     }
                     // 遇到稀疏id区间 / 连续少次遇到空id区间, 适当加大batch
-                    else if (rows < MIN_QUERY_BATCH_SIZE * 0.5) {
+                    else if (rows <= MIN_QUERY_BATCH_SIZE * 0.8) {
                         commit(false);
                         currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
                     }
                     // 离开异常id区间, 适当降低batch
-                    else if (rows > MIN_QUERY_BATCH_SIZE * 1.5) {
+                    else if (rows > MIN_QUERY_BATCH_SIZE * 1.8) {
                         commit(false);
                         currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
                     } else {
@@ -147,22 +148,22 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     }
 
     private void commit(boolean useJdbc) {
-        if (useJdbc) {
-            String sql = new SQL()
-                    .SELECT("min(id)")
-                    .FROM(task.getTableName())
-                    .WHERE("id >= " + SqlUtils.formatValue(task.getPivot()))
-                    .toString();
-            Long nextPivot = jdbcTemplate.queryForObject(sql, rs -> rs.getLong(1));
-            if (nextPivot == null) {
-                task.setPivot(task.getUpperBound());
-            } else {
-                task.setPivot(Math.min(nextPivot, task.getUpperBound()));
-            }
+        long queriedPivot = task.getScanMode() == Direct ?
+                DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
+        task.setPivot(queriedPivot);
+        if (!useJdbc) {
+            return;
+        }
+        String sql = new SQL()
+                .SELECT("min(id)")
+                .FROM(task.getTableName())
+                .WHERE("id >= " + SqlUtils.formatValue(task.getPivot()))
+                .toString();
+        Long nextPivot = jdbcTemplate.queryForObject(sql, rs -> rs.getLong(1));
+        if (nextPivot == null) {
+            task.setPivot(task.getUpperBound());
         } else {
-            long queriedPivot = task.getScanMode() == Direct ?
-                    DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
-            task.setPivot(queriedPivot);
+            task.setPivot(Math.min(nextPivot, task.getUpperBound()));
         }
     }
 
