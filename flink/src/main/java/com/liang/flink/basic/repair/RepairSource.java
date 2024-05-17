@@ -77,16 +77,15 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
 
     @Override
     public void open(Configuration parameters) {
-        baseDetectSql = new SQL()
-                .SELECT("count(1)")
-                .SELECT(String.format("count(if(%s, 1, null))", task.getWhere()))
-                .FROM(task.getTableName())
-                .WHERE(task.getWhere())
-                .toString();
         baseSplitSql = new SQL()
                 .SELECT(task.getColumns())
                 .FROM(task.getTableName())
                 .WHERE(task.getWhere())
+                .toString();
+        baseDetectSql = new SQL()
+                .SELECT("count(1)")
+                .SELECT(String.format("count(if(%s, 1, null))", task.getWhere()))
+                .FROM(task.getTableName())
                 .toString();
         redisTemplate = new RedisTemplate("metadata");
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
@@ -153,11 +152,9 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     }
 
     private Tuple2<Integer, Integer> detectSplitRows() {
-        StringBuilder sqlBuilder = new StringBuilder(baseDetectSql);
-        if (task.getScanMode() == TumblingWindow) {
-            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
-        }
-        return jdbcTemplate.queryForObject(sqlBuilder.toString(),
+        String sql = baseDetectSql +
+                String.format(" WHERE %s <= id AND id < %s", task.getPivot(), nextPivot());
+        return jdbcTemplate.queryForObject(sql,
                 rs -> Tuple2.of(rs.getInt(1), rs.getInt(2)));
     }
 
