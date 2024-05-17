@@ -9,27 +9,17 @@ repairTasks:
   - sourceName: "116.prism"
     tableName: "equity_ratio"
     columns: "*"
-    where: "id < 100"
-    scanMode: Direct
-  - sourceName: "116.prism"
-    tableName: "equity_ratio"
-    columns: "*"
-    where: "1=1"
-    scanMode: TumblingWindow
-  - sourceName: "430.graph_data"
-    tableName: "company_equity_relation_details"
-    columns: "*"
-    where: "company_id_invested = 2318455639"
-    scanMode: Direct
-  - sourceName: "430.graph_data"
-    tableName: "company_equity_relation_details"
-    columns: "*"
     where: "1=1"
     scanMode: TumblingWindow
   - sourceName: "430.graph_data"
     tableName: "company_equity_relation_details"
     columns: "*"
     where: "reference_pt_year=2024"
+    scanMode: TumblingWindow
+  - sourceName: "430.graph_data"
+    tableName: "company_equity_relation_details"
+    columns: "*"
+    where: "1=1"
     scanMode: TumblingWindow
 
 kafkaConfigs:
