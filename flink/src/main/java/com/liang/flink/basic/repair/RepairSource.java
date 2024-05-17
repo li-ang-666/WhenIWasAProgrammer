@@ -48,7 +48,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
     private final String repairKey;
-    private volatile int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
+    private int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
     private RepairTask task;
     private ListState<RepairTask> taskState;
     private RedisTemplate redisTemplate;
@@ -93,28 +93,33 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     public void run(SourceContext<RepairSplit> ctx) {
         int sendTimes = 0;
         while (!canceled.get() && hasNext()) {
-            for (Integer channel : task.getChannels()) {
-                synchronized (ctx.getCheckpointLock()) {
-                    String sql = next();
-                    ctx.collect(new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, sql));
-                    commit();
-                    sendTimes++;
-
-//                // 连续多次遇到空id区间, 采用jdbc矫正
-//                if (columnMaps.isEmpty() && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
-//                    correctByJdbc();
-//                    currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
-//                }
-//                // 遇到稀疏id区间 / 连续少次遇到空id区间, 适当加大batch
-//                else if (columnMaps.size() < MIN_QUERY_BATCH_SIZE * 0.5) {
-//                    currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
-//                }
-//                // 离开异常id区间, 适当降低batch
-//                else if (columnMaps.size() > MIN_QUERY_BATCH_SIZE * 1.5) {
-//                    currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
-//                }
+            synchronized (ctx.getCheckpointLock()) {
+                int channel = task.getChannels().get(sendTimes % task.getChannels().size());
+                ctx.collect(new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, nextSql()));
+                if (++sendTimes % 10 == 0) {
+                    int rows = detectSplitRows();
+                    // 连续多次遇到空id区间, 采用jdbc矫正
+                    if (rows == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
+                        commit(true);
+                        currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
+                    }
+                    // 遇到稀疏id区间 / 连续少次遇到空id区间, 适当加大batch
+                    else if (rows < MIN_QUERY_BATCH_SIZE * 0.5) {
+                        commit(false);
+                        currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
+                    }
+                    // 离开异常id区间, 适当降低batch
+                    else if (rows > MIN_QUERY_BATCH_SIZE * 1.5) {
+                        commit(false);
+                        currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
+                    } else {
+                        commit(false);
+                    }
+                } else {
+                    commit(false);
                 }
             }
+
         }
         reportComplete();
         checkFinish();
@@ -133,15 +138,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                 task.getPivot() != DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() < task.getUpperBound();
     }
 
-    private int detect() {
-        StringBuilder sqlBuilder = new StringBuilder(baseDetectSql);
-        if (task.getScanMode() == TumblingWindow) {
-            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
-        }
-        return jdbcTemplate.queryForObject(sqlBuilder.toString(), rs -> rs.getInt(1));
-    }
-
-    private String next() {
+    private String nextSql() {
         StringBuilder sqlBuilder = new StringBuilder(baseSplitSql);
         if (task.getScanMode() == TumblingWindow) {
             sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
@@ -149,28 +146,36 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         return sqlBuilder.toString();
     }
 
-    private void commit() {
-        long queriedPivot = task.getScanMode() == Direct ?
-                DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
-        task.setPivot(queriedPivot);
+    private void commit(boolean useJdbc) {
+        if (useJdbc) {
+            String sql = new SQL()
+                    .SELECT("min(id)")
+                    .FROM(task.getTableName())
+                    .WHERE("id >= " + SqlUtils.formatValue(task.getPivot()))
+                    .toString();
+            Long nextPivot = jdbcTemplate.queryForObject(sql, rs -> rs.getLong(1));
+            if (nextPivot == null) {
+                task.setPivot(task.getUpperBound());
+            } else {
+                task.setPivot(Math.min(nextPivot, task.getUpperBound()));
+            }
+        } else {
+            long queriedPivot = task.getScanMode() == Direct ?
+                    DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
+            task.setPivot(queriedPivot);
+        }
     }
 
     private long nextPivot() {
         return Math.min(task.getPivot() + currentQueryBatchSize, task.getUpperBound());
     }
 
-    private void correctByJdbc() {
-        String sql = new SQL()
-                .SELECT("min(id)")
-                .FROM(task.getTableName())
-                .WHERE("id >= " + SqlUtils.formatValue(task.getPivot()))
-                .toString();
-        Long nextPivot = jdbcTemplate.queryForObject(sql, rs -> rs.getLong(1));
-        if (nextPivot == null) {
-            task.setPivot(task.getUpperBound());
-        } else {
-            task.setPivot(Math.min(nextPivot, task.getUpperBound()));
+    private int detectSplitRows() {
+        StringBuilder sqlBuilder = new StringBuilder(baseDetectSql);
+        if (task.getScanMode() == TumblingWindow) {
+            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
         }
+        return jdbcTemplate.queryForObject(sqlBuilder.toString(), rs -> rs.getInt(1));
     }
 
     private void reportCheckpoint(RepairTask copyTask) {
