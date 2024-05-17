@@ -1,7 +1,6 @@
 package com.liang.flink.basic.repair;
 
 import cn.hutool.core.util.SerializeUtil;
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
@@ -10,19 +9,17 @@ import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
-import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
@@ -36,7 +33,7 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
+public class RepairSource extends RichParallelSourceFunction<RepairSplit> implements CheckpointedFunction {
     // state
     private static final String TASK_STATE_NAME = "TASK_STATE";
     private static final ListStateDescriptor<RepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, RepairTask.class);
@@ -48,15 +45,17 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private static final int MIN_QUERY_BATCH_SIZE = 1024;
     private static final int MAX_QUERY_BATCH_SIZE = 10240;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
+    private static final int SAMPLING_INTERVAL_TIMES = 10;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
     private final String repairKey;
-    private volatile int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
+    private int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
     private RepairTask task;
     private ListState<RepairTask> taskState;
     private RedisTemplate redisTemplate;
-    private String baseSql;
+    private String baseDetectSql;
+    private String baseSplitSql;
     private JdbcTemplate jdbcTemplate;
 
     @Override
@@ -78,7 +77,13 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void open(Configuration parameters) {
-        baseSql = new SQL()
+        baseDetectSql = new SQL()
+                .SELECT("count(1)")
+                .SELECT(String.format("count(if(%s, 1, null))", task.getWhere()))
+                .FROM(task.getTableName())
+                .WHERE(task.getWhere())
+                .toString();
+        baseSplitSql = new SQL()
                 .SELECT(task.getColumns())
                 .FROM(task.getTableName())
                 .WHERE(task.getWhere())
@@ -88,26 +93,34 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     @Override
-    public void run(SourceContext<SingleCanalBinlog> ctx) {
+    public void run(SourceContext<RepairSplit> ctx) {
+        int sendTimes = 0;
         while (!canceled.get() && hasNext()) {
             synchronized (ctx.getCheckpointLock()) {
-                List<Map<String, Object>> columnMaps = next();
-                for (Map<String, Object> columnMap : columnMaps) {
-                    ctx.collect(new SingleCanalBinlog(task.getSourceName(), task.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
-                }
-                commit();
-                // 连续多次遇到空id区间, 采用jdbc矫正
-                if (columnMaps.isEmpty() && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
-                    correctByJdbc();
-                    currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
-                }
-                // 遇到稀疏id区间 / 连续少次遇到空id区间, 适当加大batch
-                else if (columnMaps.size() < MIN_QUERY_BATCH_SIZE * 0.5) {
-                    currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
-                }
-                // 离开异常id区间, 适当降低batch
-                else if (columnMaps.size() > MIN_QUERY_BATCH_SIZE * 1.5) {
-                    currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
+                int channel = task.getChannels().get(sendTimes % task.getChannels().size());
+                ctx.collect(new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, nextSql()));
+                if (++sendTimes % SAMPLING_INTERVAL_TIMES == 0) {
+                    Tuple2<Integer, Integer> rowsTuple2 = detectSplitRows();
+                    int rowsWithoutWhere = rowsTuple2.f0;
+                    int rowsWithWhere = rowsTuple2.f1;
+                    // 空区间, 采用jdbc矫正
+                    if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
+                        commit(true);
+                    }
+                    // 稀疏区间, 适当加大batch
+                    else if (rowsWithWhere <= MIN_QUERY_BATCH_SIZE * 0.8) {
+                        commit(false);
+                        currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
+                    }
+                    // 非稀疏区间, 适当降低batch
+                    else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.8) {
+                        commit(false);
+                        currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
+                    } else {
+                        commit(false);
+                    }
+                } else {
+                    commit(false);
                 }
             }
         }
@@ -128,25 +141,30 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 task.getPivot() != DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() < task.getUpperBound();
     }
 
-    private List<Map<String, Object>> next() {
-        StringBuilder sqlBuilder = new StringBuilder(baseSql);
+    private String nextSql() {
+        StringBuilder sqlBuilder = new StringBuilder(baseSplitSql);
         if (task.getScanMode() == TumblingWindow) {
             sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
         }
-        return jdbcTemplate.queryForColumnMaps(sqlBuilder.toString());
+        return sqlBuilder.toString();
     }
 
-    private void commit() {
+    private Tuple2<Integer, Integer> detectSplitRows() {
+        StringBuilder sqlBuilder = new StringBuilder(baseDetectSql);
+        if (task.getScanMode() == TumblingWindow) {
+            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
+        }
+        return jdbcTemplate.queryForObject(sqlBuilder.toString(),
+                rs -> Tuple2.of(rs.getInt(1), rs.getInt(2)));
+    }
+
+    private void commit(boolean useJdbc) {
         long queriedPivot = task.getScanMode() == Direct ?
                 DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
         task.setPivot(queriedPivot);
-    }
-
-    private long nextPivot() {
-        return Math.min(task.getPivot() + currentQueryBatchSize, task.getUpperBound());
-    }
-
-    private void correctByJdbc() {
+        if (!useJdbc) {
+            return;
+        }
         String sql = new SQL()
                 .SELECT("min(id)")
                 .FROM(task.getTableName())
@@ -158,6 +176,10 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         } else {
             task.setPivot(Math.min(nextPivot, task.getUpperBound()));
         }
+    }
+
+    private long nextPivot() {
+        return Math.min(task.getPivot() + currentQueryBatchSize, task.getUpperBound());
     }
 
     private void reportCheckpoint(RepairTask copyTask) {

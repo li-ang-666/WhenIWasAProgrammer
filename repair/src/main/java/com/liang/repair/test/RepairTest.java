@@ -1,22 +1,30 @@
 package com.liang.repair.test;
 
+import com.liang.common.dto.config.DBConfig;
+import com.liang.common.util.ConfigUtils;
 import com.liang.repair.service.ConfigHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 @Slf4j
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        Map<Integer, Roaring64Bitmap> count2Bitmap = new HashMap<Integer, Roaring64Bitmap>();
-        Integer count = count2Bitmap
-                .entrySet()
-                .parallelStream()
-                .filter(entry -> entry.getValue().contains(2318455639L))
-                .map(Map.Entry::getKey)
-                .findFirst()
-                .get();
+        DBConfig dbConfig = ConfigUtils.getConfig().getDbConfigs().get("430.graph_data");
+        String url = String.format("jdbc:mysql://%s:3306/%s", dbConfig.getHost(), dbConfig.getDatabase());
+        Connection connection = DriverManager.getConnection(url, dbConfig.getUser(), dbConfig.getPassword());
+        Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        statement.setFetchSize(Integer.MIN_VALUE);
+        ResultSet resultSet = statement.executeQuery("select id from company_equity_relation_details where reference_pt_year = 2024");
+        int i = 0;
+        while (resultSet.next()) {
+            i++;
+            if (i % 10000 == 0) {
+                System.out.println(resultSet.getString(1));
+            }
+        }
     }
 }
