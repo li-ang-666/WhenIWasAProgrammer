@@ -119,7 +119,6 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                     commit(false);
                 }
             }
-
         }
         reportComplete();
         checkFinish();
