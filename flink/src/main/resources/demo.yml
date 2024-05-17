@@ -26,6 +26,11 @@ repairTasks:
     columns: "*"
     where: "1=1"
     scanMode: TumblingWindow
+  - sourceName: "430.graph_data"
+    tableName: "company_equity_relation_details"
+    columns: "*"
+    where: "reference_pt_year=2024"
+    scanMode: TumblingWindow
 
 kafkaConfigs:
   kafkaSource:
