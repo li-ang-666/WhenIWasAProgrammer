@@ -64,6 +64,8 @@ public class TaskGenerator {
         repairTask.setUpperBound(1L);
         // id
         repairTask.setTaskId(TASK_ID.getAndIncrement());
+        // parallel
+        repairTask.setParallel(1);
         // channels
         repairTask.getChannels().add(CHANNEL.getAndIncrement());
         return repairTask;
