@@ -15,7 +15,6 @@ import org.apache.flink.util.Collector;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -37,11 +36,11 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
 
     @Override
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
-        try {
-            log.info("get repairSplit: {}", repairSplit);
-            TimeUnit.HOURS.sleep(1);
-        } catch (Exception ignore) {
-        }
+        //try {
+        //    log.info("get repairSplit: {}", repairSplit);
+        //    TimeUnit.HOURS.sleep(1);
+        //} catch (Exception ignore) {
+        //}
         List<Map<String, Object>> columnMaps = jdbcTemplate.queryForColumnMaps(repairSplit.getSql());
         for (Map<String, Object> columnMap : columnMaps) {
             out.collect(new SingleCanalBinlog(repairTaskOfThisSubtask.getSourceName(), repairTaskOfThisSubtask.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
