@@ -113,15 +113,23 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                         // where过滤导致
                         else {
                             commit(false);
+                            int bef = currentQueryBatchSize;
                             currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
-                            log.info("query batch size upgraded to {}", currentQueryBatchSize);
+                            int aft = currentQueryBatchSize;
+                            if (bef != aft) {
+                                log.info("query batch size upgraded to {}", currentQueryBatchSize);
+                            }
                         }
                     }
                     // 数据量过多
                     else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.8) {
                         commit(false);
+                        int bef = currentQueryBatchSize;
                         currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
-                        log.info("query batch size downgraded to {}", currentQueryBatchSize);
+                        int aft = currentQueryBatchSize;
+                        if (bef != aft) {
+                            log.info("query batch size downgraded to {}", currentQueryBatchSize);
+                        }
                     }
                     // 数据量正好
                     else {
