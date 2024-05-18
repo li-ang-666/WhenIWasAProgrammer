@@ -22,6 +22,7 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
 import static com.liang.common.dto.config.RepairTask.ScanMode.Direct;
@@ -48,6 +49,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private static final int SAMPLING_INTERVAL_TIMES = 10;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
+    private final AtomicLong sendTimes = new AtomicLong(0);
     private final Config config;
     private final String repairKey;
     private int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
@@ -93,35 +95,41 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
 
     @Override
     public void run(SourceContext<RepairSplit> ctx) {
-        int sendTimes = 0;
-        while (!canceled.get() && hasNext()) {
+        while (!canceled.get() && hasNextSplit()) {
             synchronized (ctx.getCheckpointLock()) {
-                int channel = task.getChannels().get(sendTimes % task.getChannels().size());
-                ctx.collect(new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, nextSql()));
-                if (++sendTimes % SAMPLING_INTERVAL_TIMES == 0) {
+                ctx.collect(nextSplit());
+                // 定期检测分片数据量
+                if (sendTimes.incrementAndGet() % SAMPLING_INTERVAL_TIMES == 0) {
                     Tuple2<Integer, Integer> rowsTuple2 = detectSplitRows();
                     int rowsWithoutWhere = rowsTuple2.f0;
                     int rowsWithWhere = rowsTuple2.f1;
-                    // 空区间, 采用jdbc矫正
-                    if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
-                        commit(true);
-                        log.info("pivot corrected to {} by jdbc", task.getPivot());
+                    // 数据量过少
+                    if (rowsWithWhere <= MIN_QUERY_BATCH_SIZE * 0.8) {
+                        // 空白区间导致
+                        if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
+                            commit(true);
+                            log.info("pivot corrected to {} by jdbc", task.getPivot());
+                        }
+                        // where过滤导致
+                        else {
+                            commit(false);
+                            currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
+                            log.info("query batch size upgraded to {}", currentQueryBatchSize);
+                        }
                     }
-                    // 稀疏区间, 适当加大batch
-                    else if (rowsWithWhere <= MIN_QUERY_BATCH_SIZE * 0.8) {
-                        commit(false);
-                        currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
-                        log.info("query batch size upgraded to {}", currentQueryBatchSize);
-                    }
-                    // 非稀疏区间, 适当降低batch
+                    // 数据量过多
                     else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.8) {
                         commit(false);
                         currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
                         log.info("query batch size downgraded to {}", currentQueryBatchSize);
-                    } else {
+                    }
+                    // 数据量正好
+                    else {
                         commit(false);
                     }
-                } else {
+                }
+                // 不需要检测分片数据量
+                else {
                     commit(false);
                 }
             }
@@ -138,17 +146,20 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         reportCheckpoint(copyTask);
     }
 
-    private boolean hasNext() {
+    private boolean hasNextSplit() {
         return task.getScanMode() == Direct ?
                 task.getPivot() != DIRECT_SCAN_COMPLETE_FLAG : task.getPivot() < task.getUpperBound();
     }
 
-    private String nextSql() {
-        StringBuilder sqlBuilder = new StringBuilder(baseSplitSql);
+    private RepairSplit nextSplit() {
+        // channel
+        int channel = task.getChannels().get((int) (sendTimes.get() % task.getChannels().size()));
+        // sql
+        StringBuilder sql = new StringBuilder(baseSplitSql);
         if (task.getScanMode() == TumblingWindow) {
-            sqlBuilder.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
+            sql.append(String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()));
         }
-        return sqlBuilder.toString();
+        return new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, sql.toString());
     }
 
     private Tuple2<Integer, Integer> detectSplitRows() {
@@ -183,7 +194,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     }
 
     private void reportCheckpoint(RepairTask copyTask) {
-        if (hasNext()) {
+        if (hasNextSplit()) {
             Long pivot = copyTask.getPivot();
             Long upperBound = copyTask.getUpperBound();
             String info = String.format("%s table: %s, pivot: %,d, upperBound: %,d, lag: %,d",
