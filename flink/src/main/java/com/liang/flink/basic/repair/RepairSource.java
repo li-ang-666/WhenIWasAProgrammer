@@ -22,7 +22,6 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
 import static com.liang.common.dto.config.RepairTask.ScanMode.Direct;
@@ -44,14 +43,14 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     // query
     private static final int MIN_QUERY_BATCH_SIZE = 1024;
-    private static final int MAX_QUERY_BATCH_SIZE = 1024 * 16;
+    private static final int MAX_QUERY_BATCH_SIZE = 10240;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     private static final int SAMPLING_INTERVAL_TIMES = 10;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
-    private final AtomicLong sendTimes = new AtomicLong(0);
     private final Config config;
     private final String repairKey;
+    private long sendTimes = 0L;
     private int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
     private RepairTask task;
     private ListState<RepairTask> taskState;
@@ -99,37 +98,26 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
             synchronized (ctx.getCheckpointLock()) {
                 ctx.collect(nextSplit());
                 // 定期检测分片数据量
-                if (sendTimes.incrementAndGet() % SAMPLING_INTERVAL_TIMES == 0) {
+                if ((++sendTimes) % SAMPLING_INTERVAL_TIMES == 0) {
                     Tuple2<Integer, Integer> rowsTuple2 = detectSplitRows();
                     int rowsWithoutWhere = rowsTuple2.f0;
                     int rowsWithWhere = rowsTuple2.f1;
                     // 数据量过少
-                    if (rowsWithWhere <= MIN_QUERY_BATCH_SIZE * 0.8) {
+                    if (rowsWithWhere < MIN_QUERY_BATCH_SIZE * 0.8) {
                         // 空白区间导致
                         if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                             commit(true);
-                            log.info("pivot corrected to {} by jdbc", task.getPivot());
                         }
                         // where过滤导致
                         else {
                             commit(false);
-                            int bef = currentQueryBatchSize;
-                            currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
-                            int aft = currentQueryBatchSize;
-                            if (bef != aft) {
-                                log.info("query batch size upgraded to {}", currentQueryBatchSize);
-                            }
+                            currentQueryBatchSize = Math.min(currentQueryBatchSize + MIN_QUERY_BATCH_SIZE, MAX_QUERY_BATCH_SIZE);
                         }
                     }
                     // 数据量过多
                     else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.8) {
                         commit(false);
-                        int bef = currentQueryBatchSize;
-                        currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
-                        int aft = currentQueryBatchSize;
-                        if (bef != aft) {
-                            log.info("query batch size downgraded to {}", currentQueryBatchSize);
-                        }
+                        currentQueryBatchSize = Math.max(currentQueryBatchSize - MIN_QUERY_BATCH_SIZE, MIN_QUERY_BATCH_SIZE);
                     }
                     // 数据量正好
                     else {
@@ -161,7 +149,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
 
     private RepairSplit nextSplit() {
         // channel
-        int channel = task.getChannels().get((int) (sendTimes.get() % task.getChannels().size()));
+        int channel = task.getChannels().get((int) (sendTimes % task.getChannels().size()));
         // sql
         StringBuilder sql = new StringBuilder(baseSplitSql);
         if (task.getScanMode() == TumblingWindow) {
