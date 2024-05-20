@@ -33,8 +33,4 @@ public class ReadHbase extends ConfigHolder {
         log.info("row: {}", JsonUtils.toString(resultRow));
         return resultRow;
     }
-
-    private static void update(HbaseOneRow hbaseOneRow) {
-
-    }
 }
