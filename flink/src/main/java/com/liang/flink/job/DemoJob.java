@@ -74,6 +74,7 @@ public class DemoJob {
         }
 
         private void flush() {
+            jdbcTemplate.flush();
             obsWriter.flush();
         }
     }
