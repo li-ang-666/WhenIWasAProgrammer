@@ -42,8 +42,8 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private static final String COMPLETE_REPORT_PREFIX = "[completed]";
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     // query
-    private static final int MIN_QUERY_BATCH_SIZE = 1024;
-    private static final int MAX_QUERY_BATCH_SIZE = 1024 * 16;
+    private static final int MIN_QUERY_BATCH_SIZE = 2048;
+    private static final int MAX_QUERY_BATCH_SIZE = 10240;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     private static final int SAMPLING_INTERVAL_TIMES = 10;
     // flink web ui cancel
@@ -103,21 +103,30 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                     int rowsWithoutWhere = rowsTuple2.f0;
                     int rowsWithWhere = rowsTuple2.f1;
                     // 数据量过少
-                    if (rowsWithWhere < MIN_QUERY_BATCH_SIZE * 0.8) {
+                    if (rowsWithWhere < MIN_QUERY_BATCH_SIZE * 0.5) {
                         // 空白区间导致
                         if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                             commit(true);
+                            log.info("pivot corrected to {} by jdbc", task.getPivot());
                         }
                         // where过滤导致
                         else {
                             commit(false);
-                            currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
+                            int bef = currentQueryBatchSize;
+                            currentQueryBatchSize = Math.min(currentQueryBatchSize + MIN_QUERY_BATCH_SIZE, MAX_QUERY_BATCH_SIZE);
+                            if (currentQueryBatchSize != bef) {
+                                log.info("query batch size upgraded to {}", currentQueryBatchSize);
+                            }
                         }
                     }
                     // 数据量过多
-                    else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.8) {
+                    else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.5) {
                         commit(false);
-                        currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
+                        int bef = currentQueryBatchSize;
+                        currentQueryBatchSize = Math.max(currentQueryBatchSize - MIN_QUERY_BATCH_SIZE, MIN_QUERY_BATCH_SIZE);
+                        if (currentQueryBatchSize != bef) {
+                            log.info("query batch size downgraded to {}", currentQueryBatchSize);
+                        }
                     }
                     // 数据量正好
                     else {
