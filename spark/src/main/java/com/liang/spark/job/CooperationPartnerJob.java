@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
-import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -20,7 +19,9 @@ import org.apache.spark.sql.types.DataTypes;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 @Slf4j
 public class CooperationPartnerJob {
@@ -60,8 +61,7 @@ public class CooperationPartnerJob {
         // hive.cooperation_partner_diff(pt = 昨天) -> rds467.cooperation_partner
         spark.table("hudi_ads.cooperation_partner_diff")
                 .where("pt = " + pt)
-                .repartition(1, new Column("boss_human_pid"))
-                .sortWithinPartitions(new Column("boss_human_pid"), new Column("partner_human_pid"), new Column("company_gid"))
+                .repartition(1)
                 .foreachPartition(new CooperationPartnerSink(config));
         // hive.cooperation_partner(pt = 昨天) -> hive.cooperation_partner(pt = 0)
         spark.table("hudi_ads.cooperation_partner").where("pt = " + pt).drop("pt").createOrReplaceTempView("current");
@@ -147,49 +147,35 @@ public class CooperationPartnerJob {
                 " cooperation_times_with_all_partner = VALUES(cooperation_times_with_all_partner)," +
                 " total_partners = VALUES(total_partners)," +
                 " update_time = NOW()";
-        private final static int BATCH_SIZE = 128;
         private final Config config;
 
         @Override
         public void call(Iterator<Row> iterator) {
             ConfigUtils.setConfig(config);
             JdbcTemplate jdbcTemplate = new JdbcTemplate("467.company_base");
-            List<Map<String, Object>> columnMaps = new ArrayList<>(BATCH_SIZE);
+            jdbcTemplate.enableCache();
             while (iterator.hasNext()) {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(iterator.next().json());
-                Object obj = columnMap.get("_boss_human_pid_");
-                if (obj == null) {
-                    String delete = new SQL().DELETE_FROM(SINK_TABLE)
+                if (columnMap.get("_boss_human_pid_") == null) {
+                    String deleteSql = new SQL().DELETE_FROM(SINK_TABLE)
                             .WHERE("boss_human_pid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("boss_human_pid"))))
                             .WHERE("partner_human_pid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("partner_human_pid"))))
                             .WHERE("company_gid = " + SqlUtils.formatValue(String.valueOf(columnMap.get("company_gid"))))
                             .toString();
-                    jdbcTemplate.update(delete);
+                    jdbcTemplate.update(deleteSql);
                 } else {
-                    Map<String, Object> insertMap = columnMap.entrySet().parallelStream()
+                    Map<String, Object> insertColumnMap = columnMap.entrySet().parallelStream()
                             .filter(entry -> entry.getKey().matches("^_(.*)_$"))
                             .collect(HashMap::new, (map, entry) -> map.put(entry.getKey().replaceAll("^_(.*)_$", "$1"), entry.getValue()), HashMap::putAll);
-                    columnMaps.add(insertMap);
-                    if (columnMaps.size() >= BATCH_SIZE) {
-                        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                        String sql = new SQL().INSERT_INTO(SINK_TABLE)
-                                .INTO_COLUMNS(insert.f0)
-                                .INTO_VALUES(insert.f1)
-                                .toString() + TEMPLATE;
-                        jdbcTemplate.update(sql);
-                        columnMaps.clear();
-                    }
+                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(insertColumnMap);
+                    String insertSql = new SQL().INSERT_INTO(SINK_TABLE)
+                            .INTO_COLUMNS(insert.f0)
+                            .INTO_VALUES(insert.f1)
+                            .toString() + TEMPLATE;
+                    jdbcTemplate.update(insertSql);
                 }
             }
-            if (!columnMaps.isEmpty()) {
-                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                String sql = new SQL().INSERT_INTO(SINK_TABLE)
-                        .INTO_COLUMNS(insert.f0)
-                        .INTO_VALUES(insert.f1)
-                        .toString() + TEMPLATE;
-                jdbcTemplate.update(sql);
-                columnMaps.clear();
-            }
+            jdbcTemplate.flush();
         }
     }
 }
