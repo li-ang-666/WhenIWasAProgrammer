@@ -54,10 +54,10 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
     private RepairTask task;
     private ListState<RepairTask> taskState;
-    private RedisTemplate redisTemplate;
-    private String baseDetectSql;
     private String baseSplitSql;
+    private String baseDetectSql;
     private JdbcTemplate jdbcTemplate;
+    private RedisTemplate redisTemplate;
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
@@ -88,8 +88,8 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                 .SELECT(String.format("count(if(%s, 1, null))", task.getWhere()))
                 .FROM(task.getTableName())
                 .toString();
-        redisTemplate = new RedisTemplate("metadata");
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
+        redisTemplate = new RedisTemplate("metadata");
     }
 
     @Override
