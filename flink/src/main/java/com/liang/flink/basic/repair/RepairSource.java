@@ -43,7 +43,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     // query
     private static final int MIN_QUERY_BATCH_SIZE = 1024;
-    private static final int MAX_QUERY_BATCH_SIZE = 10240;
+    private static final int MAX_QUERY_BATCH_SIZE = 1024 * 8;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     private static final int SAMPLING_INTERVAL_TIMES = 10;
     // flink web ui cancel
@@ -111,13 +111,13 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                         // where过滤导致
                         else {
                             commit(false);
-                            currentQueryBatchSize = Math.min(currentQueryBatchSize + MIN_QUERY_BATCH_SIZE, MAX_QUERY_BATCH_SIZE);
+                            currentQueryBatchSize = Math.min(currentQueryBatchSize * 2, MAX_QUERY_BATCH_SIZE);
                         }
                     }
                     // 数据量过多
                     else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.8) {
                         commit(false);
-                        currentQueryBatchSize = Math.max(currentQueryBatchSize - MIN_QUERY_BATCH_SIZE, MIN_QUERY_BATCH_SIZE);
+                        currentQueryBatchSize = Math.max(currentQueryBatchSize / 2, MIN_QUERY_BATCH_SIZE);
                     }
                     // 数据量正好
                     else {
