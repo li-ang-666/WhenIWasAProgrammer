@@ -97,17 +97,36 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         while (!canceled.get() && hasNextSplit()) {
             synchronized (ctx.getCheckpointLock()) {
                 ctx.collect(nextSplit());
-                // 定期检测分片数据量
-                if ((++sendTimes) % SAMPLING_INTERVAL_TIMES == 0) {
+                // 不采样
+                if ((++sendTimes) % SAMPLING_INTERVAL_TIMES != 0) {
+                    commit(false);
+                }
+                // 采样
+                else {
                     Tuple2<Integer, Integer> rowsTuple2 = detectSplitRows();
                     int rowsWithoutWhere = rowsTuple2.f0;
                     int rowsWithWhere = rowsTuple2.f1;
-                    // 数据量过少
-                    if (rowsWithWhere < MIN_QUERY_BATCH_SIZE * 0.5) {
+                    int up = (int) (MIN_QUERY_BATCH_SIZE * 1.5);
+                    int down = (int) (MIN_QUERY_BATCH_SIZE * 0.5);
+                    // 分片数据量正常
+                    if (down <= rowsWithWhere && rowsWithWhere <= up) {
+                        commit(false);
+                    }
+                    // 分片数据量偏多
+                    else if (rowsWithWhere > up) {
+                        commit(false);
+                        int bef = currentQueryBatchSize;
+                        currentQueryBatchSize = Math.max(currentQueryBatchSize - MIN_QUERY_BATCH_SIZE, MIN_QUERY_BATCH_SIZE);
+                        if (currentQueryBatchSize != bef) {
+                            log.info("query batch size downgraded to {}", currentQueryBatchSize);
+                        }
+                    }
+                    // 分片数据量偏少
+                    else {
                         // 空白区间导致
                         if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
                             commit(true);
-                            log.info("pivot corrected to {} by jdbc", task.getPivot());
+                            log.info("pivot redirected to {} by jdbc", task.getPivot());
                         }
                         // where过滤导致
                         else {
@@ -119,23 +138,6 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                             }
                         }
                     }
-                    // 数据量过多
-                    else if (rowsWithWhere > MIN_QUERY_BATCH_SIZE * 1.5) {
-                        commit(false);
-                        int bef = currentQueryBatchSize;
-                        currentQueryBatchSize = Math.max(currentQueryBatchSize - MIN_QUERY_BATCH_SIZE, MIN_QUERY_BATCH_SIZE);
-                        if (currentQueryBatchSize != bef) {
-                            log.info("query batch size downgraded to {}", currentQueryBatchSize);
-                        }
-                    }
-                    // 数据量正好
-                    else {
-                        commit(false);
-                    }
-                }
-                // 不需要检测分片数据量
-                else {
-                    commit(false);
                 }
             }
         }
