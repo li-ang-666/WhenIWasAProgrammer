@@ -93,7 +93,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         while (!canceled.get() && hasNextSplit()) {
             synchronized (ctx.getCheckpointLock()) {
                 ctx.collect(nextSplit());
-                if ((++sendTimes) % SAMPLING_INTERVAL_TIMES == 0 && detectSplitRows() == 0) {
+                if ((++sendTimes) % SAMPLING_INTERVAL_TIMES == 0 && detectRowsWithoutWhere() == 0) {
                     commit(true);
                     log.info("pivot redirected to {} by jdbc", task.getPivot());
                 } else {
@@ -129,7 +129,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         return new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, sql.toString());
     }
 
-    private Integer detectSplitRows() {
+    private Integer detectRowsWithoutWhere() {
         String sql = baseDetectSql +
                 String.format(" WHERE %s <= id AND id < %s", task.getPivot(), nextPivot());
         return jdbcTemplate.queryForObject(sql,
