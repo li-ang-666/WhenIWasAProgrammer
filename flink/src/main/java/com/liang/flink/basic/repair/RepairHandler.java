@@ -20,12 +20,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> {
     private final Config config;
+    private int indexOfThisSubtask;
     private JdbcTemplate jdbcTemplate;
 
     @Override
     public void open(Configuration parameters) {
         ConfigUtils.setConfig(config);
-        int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
+        indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
         for (RepairTask repairTask : config.getRepairTasks()) {
             if (repairTask.getChannels().contains(indexOfThisSubtask)) {
                 jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
@@ -36,6 +37,9 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
 
     @Override
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
+        if (repairSplit.getChannel() != indexOfThisSubtask) {
+            return;
+        }
         List<Map<String, Object>> columnMaps = jdbcTemplate.queryForColumnMaps(repairSplit.getSql());
         for (Map<String, Object> columnMap : columnMaps) {
             out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));

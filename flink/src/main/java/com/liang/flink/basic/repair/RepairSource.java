@@ -45,7 +45,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private static final int MIN_QUERY_BATCH_SIZE = 2048;
     private static final int MAX_QUERY_BATCH_SIZE = 10240;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
-    private static final int SAMPLING_INTERVAL_TIMES = 10;
+    private static final int SAMPLING_INTERVAL_TIMES = 100;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
