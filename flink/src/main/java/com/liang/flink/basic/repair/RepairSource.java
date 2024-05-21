@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -42,8 +41,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private static final String COMPLETE_REPORT_PREFIX = "[completed]";
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     // query
-    private static final int MIN_QUERY_BATCH_SIZE = 2048;
-    private static final int MAX_QUERY_BATCH_SIZE = 10240;
+    private static final int QUERY_BATCH_SIZE = 10240;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     private static final int SAMPLING_INTERVAL_TIMES = 100;
     // flink web ui cancel
@@ -51,7 +49,6 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private final Config config;
     private final String repairKey;
     private long sendTimes = 0L;
-    private int currentQueryBatchSize = MIN_QUERY_BATCH_SIZE;
     private RepairTask task;
     private ListState<RepairTask> taskState;
     private String baseSplitSql;
@@ -85,7 +82,6 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                 .toString();
         baseDetectSql = new SQL()
                 .SELECT("count(1)")
-                .SELECT(String.format("count(if(%s, 1, null))", task.getWhere()))
                 .FROM(task.getTableName())
                 .toString();
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
@@ -97,47 +93,11 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         while (!canceled.get() && hasNextSplit()) {
             synchronized (ctx.getCheckpointLock()) {
                 ctx.collect(nextSplit());
-                // 不采样
-                if ((++sendTimes) % SAMPLING_INTERVAL_TIMES != 0) {
+                if ((++sendTimes) % SAMPLING_INTERVAL_TIMES == 0 && detectSplitRows() == 0) {
+                    commit(true);
+                    log.info("pivot redirected to {} by jdbc", task.getPivot());
+                } else {
                     commit(false);
-                }
-                // 采样
-                else {
-                    Tuple2<Integer, Integer> rowsTuple2 = detectSplitRows();
-                    int rowsWithoutWhere = rowsTuple2.f0;
-                    int rowsWithWhere = rowsTuple2.f1;
-                    int up = (int) (MIN_QUERY_BATCH_SIZE * 1.5);
-                    int down = (int) (MIN_QUERY_BATCH_SIZE * 0.5);
-                    // 分片数据量正常
-                    if (down <= rowsWithWhere && rowsWithWhere <= up) {
-                        commit(false);
-                    }
-                    // 分片数据量偏多
-                    else if (rowsWithWhere > up) {
-                        commit(false);
-                        int bef = currentQueryBatchSize;
-                        currentQueryBatchSize = Math.max(currentQueryBatchSize - MIN_QUERY_BATCH_SIZE, MIN_QUERY_BATCH_SIZE);
-                        if (currentQueryBatchSize != bef) {
-                            log.info("query batch size downgraded to {}", currentQueryBatchSize);
-                        }
-                    }
-                    // 分片数据量偏少
-                    else {
-                        // 空白区间导致
-                        if (rowsWithoutWhere == 0 && currentQueryBatchSize == MAX_QUERY_BATCH_SIZE) {
-                            commit(true);
-                            log.info("pivot redirected to {} by jdbc", task.getPivot());
-                        }
-                        // where过滤导致
-                        else {
-                            commit(false);
-                            int bef = currentQueryBatchSize;
-                            currentQueryBatchSize = Math.min(currentQueryBatchSize + MIN_QUERY_BATCH_SIZE, MAX_QUERY_BATCH_SIZE);
-                            if (currentQueryBatchSize != bef) {
-                                log.info("query batch size upgraded to {}", currentQueryBatchSize);
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -169,11 +129,11 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         return new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, sql.toString());
     }
 
-    private Tuple2<Integer, Integer> detectSplitRows() {
+    private Integer detectSplitRows() {
         String sql = baseDetectSql +
                 String.format(" WHERE %s <= id AND id < %s", task.getPivot(), nextPivot());
         return jdbcTemplate.queryForObject(sql,
-                rs -> Tuple2.of(rs.getInt(1), rs.getInt(2)));
+                rs -> rs.getInt(1));
     }
 
     private void commit(boolean useJdbc) {
@@ -197,7 +157,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     }
 
     private long nextPivot() {
-        return Math.min(task.getPivot() + currentQueryBatchSize, task.getUpperBound());
+        return Math.min(task.getPivot() + QUERY_BATCH_SIZE, task.getUpperBound());
     }
 
     private void reportCheckpoint(RepairTask copyTask) {

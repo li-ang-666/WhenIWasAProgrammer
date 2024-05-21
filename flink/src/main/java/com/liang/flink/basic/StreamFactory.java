@@ -73,7 +73,6 @@ public class StreamFactory {
                 .name("RepairSource")
                 .uid("RepairSource")
                 .setParallelism(config.getRepairTasks().size())
-                //.partitionCustom(new RepairPartitioner(), RepairSplit -> RepairSplit)
                 .broadcast()
                 .flatMap(new RepairHandler(config))
                 .name("RepairHandler")
