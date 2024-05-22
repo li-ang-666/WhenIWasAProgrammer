@@ -77,7 +77,7 @@ public class TaskGenerator {
         Long pivot = repairTask.getPivot();
         Long upperBound = repairTask.getUpperBound();
         String sql = new SQL()
-                .SELECT("min(id)", "max(id) + 1")
+                .SELECT("min(id)", "max(id)")
                 .FROM(tableName)
                 .toString();
         Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(sourceName)
@@ -86,7 +86,8 @@ public class TaskGenerator {
         long maxId = upperBound != null ? upperBound : minAndMaxId.f1;
         // 边界
         repairTask.setPivot(minId);
-        repairTask.setUpperBound(maxId);
+        // 后续查询sql是前闭后开, +1保证最终扫描结果是前闭后闭
+        repairTask.setUpperBound(maxId + 1);
         // id
         repairTask.setTaskId(TASK_ID.getAndIncrement());
         // channels
