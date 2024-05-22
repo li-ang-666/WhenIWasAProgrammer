@@ -20,7 +20,14 @@ public class SingleCanalBinlog implements Serializable {
     private String table;
     private long executeMilliseconds;
     private CanalEntry.EventType eventType;
-    private Map<String, Object> columnMap;
     private Map<String, Object> beforeColumnMap;
     private Map<String, Object> afterColumnMap;
+
+    public Map<String, Object> getColumnMap() {
+        if (eventType == CanalEntry.EventType.DELETE) {
+            return getBeforeColumnMap();
+        } else {
+            return getAfterColumnMap();
+        }
+    }
 }

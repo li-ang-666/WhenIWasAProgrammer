@@ -68,7 +68,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
                 for (int i = 1; i <= columnCount; i++) {
                     columnMap.put(metaData.getColumnName(i), resultSet.getString(i));
                 }
-                out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
+                out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
             }
         } catch (Exception e) {
             log.error("repair split execute error: {}", repairSplit, e);

@@ -46,7 +46,7 @@ public class DorisJob {
         if (config.getKafkaConfigs().get("kafkaSource").getBootstrapServers().contains("ods")) {
             MapFunction<KafkaRecord<String>, SingleCanalBinlog> mapper = e -> {
                 Map<String, Object> columnMap = JsonUtils.parseJsonObj(e.getValue());
-                return new SingleCanalBinlog("", "", -1L, CanalEntry.EventType.INSERT, columnMap, columnMap, columnMap);
+                return new SingleCanalBinlog("", "", -1L, CanalEntry.EventType.INSERT, columnMap, columnMap);
             };
             stream = env.fromSource(KafkaSourceFactory.create(String::new), WatermarkStrategy.noWatermarks(), "KafkaSource")
                     .setParallelism(config.getFlinkConfig().getSourceParallel())
