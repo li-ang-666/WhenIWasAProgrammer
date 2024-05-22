@@ -28,10 +28,11 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> implements CheckpointedFunction {
-    private static final int FETCH_SIZE = Integer.MIN_VALUE;
-    private static final int TIME_OUT = (int) TimeUnit.HOURS.toSeconds(24);
+    private static final boolean AUTO_COMMIT = false;
     private static final int RESULT_SET_TYPE = ResultSet.TYPE_FORWARD_ONLY;
     private static final int RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY;
+    private static final int FETCH_SIZE = Integer.MIN_VALUE;
+    private static final int TIME_OUT = (int) TimeUnit.HOURS.toSeconds(24);
     private final ReentrantLock lock = new ReentrantLock(true);
     private final Config config;
     private DruidDataSource druidDataSource;
@@ -56,7 +57,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
         lock.lock();
         try (Connection connection = druidDataSource.getConnection()) {
-            connection.setAutoCommit(false);
+            connection.setAutoCommit(AUTO_COMMIT);
             Statement statement = connection.createStatement(RESULT_SET_TYPE, RESULT_SET_CONCURRENCY);
             statement.setFetchSize(FETCH_SIZE);
             statement.setQueryTimeout(TIME_OUT);
