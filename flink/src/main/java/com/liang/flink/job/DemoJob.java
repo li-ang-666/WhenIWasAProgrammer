@@ -4,6 +4,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -16,6 +17,9 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 @Slf4j
 @LocalConfigFile("demo.yml")
@@ -53,9 +57,9 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            //Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            //String row = JsonUtils.toString(new TreeMap<>(columnMap));
-            //obsWriter.update(row);
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String row = JsonUtils.toString(new TreeMap<>(columnMap));
+            obsWriter.update(row);
         }
 
         @Override
