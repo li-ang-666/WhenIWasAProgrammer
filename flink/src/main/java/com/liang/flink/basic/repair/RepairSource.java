@@ -81,7 +81,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                 .WHERE(task.getWhere())
                 .toString();
         baseDetectSql = new SQL()
-                .SELECT("count(1)")
+                .SELECT("if(count(1) = 0, true, false)")
                 .FROM(task.getTableName())
                 .toString();
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
@@ -92,12 +92,14 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     public void run(SourceContext<RepairSplit> ctx) {
         while (!canceled.get() && hasNextSplit()) {
             synchronized (ctx.getCheckpointLock()) {
-                ctx.collect(nextSplit());
-                if ((++sendTimes) % SAMPLING_INTERVAL_TIMES == 0 && detectRowsWithoutWhere() == 0) {
-                    commit(true);
-                    log.info("pivot redirected to {} by jdbc", task.getPivot());
-                } else {
-                    commit(false);
+                if (sendTimes % SAMPLING_INTERVAL_TIMES == 0 && detectBlank()) {
+                    redirectPivot();
+                    log.info("pivot redirected to {}", task.getPivot());
+                }
+                // 重定向后, 重新计算一次hasNextSplit()
+                if (hasNextSplit()) {
+                    ctx.collect(nextSplit());
+                    commit();
                 }
             }
         }
@@ -129,20 +131,14 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         return new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, sql.toString());
     }
 
-    private Integer detectRowsWithoutWhere() {
+    private boolean detectBlank() {
         String sql = baseDetectSql +
                 String.format(" WHERE %s <= id AND id < %s", task.getPivot(), nextPivot());
         return jdbcTemplate.queryForObject(sql,
-                rs -> rs.getInt(1));
+                rs -> rs.getBoolean(1));
     }
 
-    private void commit(boolean useJdbc) {
-        long queriedPivot = task.getScanMode() == Direct ?
-                DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
-        task.setPivot(queriedPivot);
-        if (!useJdbc) {
-            return;
-        }
+    private void redirectPivot() {
         String sql = new SQL()
                 .SELECT("min(id)")
                 .FROM(task.getTableName())
@@ -154,6 +150,13 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
         } else {
             task.setPivot(Math.min(nextPivot, task.getUpperBound()));
         }
+    }
+
+    private void commit() {
+        long queriedPivot = task.getScanMode() == Direct ?
+                DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
+        task.setPivot(queriedPivot);
+        sendTimes++;
     }
 
     private long nextPivot() {
