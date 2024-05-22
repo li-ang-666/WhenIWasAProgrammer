@@ -28,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> implements CheckpointedFunction {
-    private static final int FETCH_SIZE = Integer.MIN_VALUE;
+    private static final int FETCH_SIZE = 1000;
     private static final int TIME_OUT = (int) TimeUnit.HOURS.toSeconds(24);
     private static final int RESULT_SET_TYPE = ResultSet.TYPE_FORWARD_ONLY;
     private static final int RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY;
