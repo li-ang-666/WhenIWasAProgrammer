@@ -153,9 +153,9 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     }
 
     private void commit() {
-        long queriedPivot = task.getScanMode() == Direct ?
+        long nextPivot = task.getScanMode() == Direct ?
                 DIRECT_SCAN_COMPLETE_FLAG : nextPivot();
-        task.setPivot(queriedPivot);
+        task.setPivot(nextPivot);
         sendTimes++;
     }
 
