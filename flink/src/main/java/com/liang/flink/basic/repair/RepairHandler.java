@@ -52,6 +52,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
         lock.lock();
         try (Connection connection = druidDataSource.getConnection()) {
+            connection.setAutoCommit(false);
             Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             statement.setFetchSize(Integer.MIN_VALUE);
             statement.setQueryTimeout((int) TimeUnit.HOURS.toSeconds(24));

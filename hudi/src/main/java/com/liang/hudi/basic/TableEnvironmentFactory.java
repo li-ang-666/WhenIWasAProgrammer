@@ -9,6 +9,8 @@ import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION;
 
 @Slf4j
@@ -63,5 +65,11 @@ public class TableEnvironmentFactory {
         checkpointConfig.enableUnalignedCheckpoints();
         // hudi bucket索引 需要开启这个
         checkpointConfig.setForceUnalignedCheckpoints(true);
+        if (env instanceof LocalStreamEnvironment) {
+            // 运行周期
+            checkpointConfig.setCheckpointInterval(TimeUnit.SECONDS.toMillis(5));
+            // 两次checkpoint之间最少间隔时间
+            checkpointConfig.setMinPauseBetweenCheckpoints(TimeUnit.SECONDS.toMillis(5));
+        }
     }
 }
