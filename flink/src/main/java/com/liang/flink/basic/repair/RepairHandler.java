@@ -1,6 +1,7 @@
 package com.liang.flink.basic.repair;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.holder.DruidHolder;
@@ -27,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> implements CheckpointedFunction {
-    private static final int FETCH_SIZE = 2000;
+    private static final int FETCH_SIZE = 1000;
     private static final int TIME_OUT = (int) TimeUnit.HOURS.toSeconds(24);
     private static final int RESULT_SET_TYPE = ResultSet.TYPE_FORWARD_ONLY;
     private static final int RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY;
@@ -55,6 +56,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
         lock.lock();
         try (Connection connection = druidDataSource.getConnection()) {
+            connection.setAutoCommit(false);
             Statement statement = connection.createStatement(RESULT_SET_TYPE, RESULT_SET_CONCURRENCY);
             statement.setFetchSize(FETCH_SIZE);
             statement.setQueryTimeout(TIME_OUT);
@@ -66,7 +68,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
                 for (int i = 1; i <= columnCount; i++) {
                     columnMap.put(metaData.getColumnName(i), resultSet.getString(i));
                 }
-                //out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
+                out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, columnMap, new HashMap<>(), columnMap));
             }
         } catch (Exception e) {
             log.error("repair split execute error: {}", repairSplit, e);

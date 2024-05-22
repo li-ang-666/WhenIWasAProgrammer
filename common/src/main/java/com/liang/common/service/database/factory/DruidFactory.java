@@ -41,6 +41,8 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 // useSSL
                 "&useSSL=false" +
                 // 性能优化
+                "&useCursorFetch=true" +
+                "&useCompression=true" +
                 "&maxAllowedPacket=1073741824" + // 1G
                 "&rewriteBatchedStatements=true";
         DruidDataSource druidDataSource = new DruidDataSource();
