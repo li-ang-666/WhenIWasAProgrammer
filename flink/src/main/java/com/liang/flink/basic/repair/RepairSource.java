@@ -92,7 +92,8 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     public void run(SourceContext<RepairSplit> ctx) {
         while (!canceled.get() && hasNextSplit()) {
             synchronized (ctx.getCheckpointLock()) {
-                if (sendTimes % SAMPLING_INTERVAL_TIMES == 0 && detectBlank()) {
+                //if (sendTimes % SAMPLING_INTERVAL_TIMES == 0 && detectBlank()) {
+                if (sendTimes > 0 && detectBlank()) {
                     redirectPivot();
                     log.info("pivot redirected to {}", task.getPivot());
                 }
