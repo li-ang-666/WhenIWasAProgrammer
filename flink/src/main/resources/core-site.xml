@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>obs://hadoop-obs/</value>
+    </property>
+    <property>
+        <name>fs.obs.impl</name>
+        <value>org.apache.hadoop.fs.obs.OBSFileSystem</value>
+    </property>
+    <property>
+        <name>fs.obs.access.key</name>
+        <value>NT5EWZ4FRH54R2R2CB8G</value>
+    </property>
+    <property>
+        <name>fs.obs.secret.key</name>
+        <value>BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS</value>
+    </property>
+    <property>
+        <name>fs.obs.endpoint</name>
+        <value>obs.cn-north-4.myhuaweicloud.com</value>
+    </property>
+</configuration>
