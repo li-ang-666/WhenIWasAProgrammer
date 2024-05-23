@@ -81,7 +81,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                 .WHERE(task.getWhere())
                 .toString();
         baseDetectSql = new SQL()
-                .SELECT("if(count(1) = 0, true, false)")
+                .SELECT("if(COUNT(1) = 0, TRUE, FALSE)")
                 .FROM(task.getTableName())
                 .toString();
         jdbcTemplate = new JdbcTemplate(task.getSourceName());
@@ -140,7 +140,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
 
     private void redirectPivot() {
         String sql = new SQL()
-                .SELECT("min(id)")
+                .SELECT("MIN(id)")
                 .FROM(task.getTableName())
                 .WHERE("id >= " + SqlUtils.formatValue(task.getPivot()))
                 .toString();

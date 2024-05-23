@@ -77,7 +77,7 @@ public class TaskGenerator {
         Long pivot = repairTask.getPivot();
         Long upperBound = repairTask.getUpperBound();
         String sql = new SQL()
-                .SELECT("min(id)", "max(id)")
+                .SELECT("MIN(id)", "MAX(id)")
                 .FROM(tableName)
                 .toString();
         Tuple2<Long, Long> minAndMaxId = new JdbcTemplate(sourceName)
