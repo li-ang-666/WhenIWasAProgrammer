@@ -92,7 +92,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
 
     @Override
     public void run(SourceContext<RepairSplit> ctx) {
-        while (!canceled.get()) {
+        while (!canceled.get() && hasNextSplit()) {
             for (Integer channel : task.getChannels()) {
                 if (hasNextSplit()) {
                     synchronized (ctx.getCheckpointLock()) {
