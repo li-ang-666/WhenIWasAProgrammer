@@ -58,18 +58,20 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
         lock.lock();
         try (Connection connection = druidDataSource.getConnection()) {
             connection.setAutoCommit(AUTO_COMMIT);
-            Statement statement = connection.createStatement(RESULT_SET_TYPE, RESULT_SET_CONCURRENCY);
-            statement.setFetchSize(FETCH_SIZE);
-            statement.setQueryTimeout(TIME_OUT);
-            ResultSet resultSet = statement.executeQuery(repairSplit.getSql());
-            ResultSetMetaData metaData = resultSet.getMetaData();
-            int columnCount = metaData.getColumnCount();
-            while (resultSet.next()) {
-                Map<String, Object> columnMap = new HashMap<>(columnCount);
-                for (int i = 1; i <= columnCount; i++) {
-                    columnMap.put(metaData.getColumnName(i), resultSet.getString(i));
+            try (Statement statement = connection.createStatement(RESULT_SET_TYPE, RESULT_SET_CONCURRENCY)) {
+                statement.setFetchSize(FETCH_SIZE);
+                statement.setQueryTimeout(TIME_OUT);
+                try (ResultSet resultSet = statement.executeQuery(repairSplit.getSql())) {
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+                    while (resultSet.next()) {
+                        Map<String, Object> columnMap = new HashMap<>(columnCount);
+                        for (int i = 1; i <= columnCount; i++) {
+                            columnMap.put(metaData.getColumnName(i), resultSet.getString(i));
+                        }
+                        out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+                    }
                 }
-                out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
             }
         } catch (Exception e) {
             log.error("repair split execute error: {}", repairSplit, e);
