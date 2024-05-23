@@ -40,7 +40,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private static final String COMPLETE_REPORT_PREFIX = "[completed]";
     private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
     // query
-    private static final int QUERY_BATCH_SIZE = 100_000;
+    private static final int QUERY_BATCH_SIZE = 1_000_000;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
