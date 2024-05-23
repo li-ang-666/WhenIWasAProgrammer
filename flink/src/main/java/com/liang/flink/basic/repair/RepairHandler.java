@@ -52,7 +52,6 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             }
         }
     }
-
     @Override
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
         lock.lock();
