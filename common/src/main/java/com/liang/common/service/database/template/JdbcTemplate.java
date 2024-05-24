@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
@@ -131,6 +132,10 @@ public class JdbcTemplate extends AbstractCache<String, String> {
             logging.ifError("queryForColumnMaps", sql, e);
             return result;
         }
+    }
+
+    public Connection getConnection() throws Exception {
+        return pool.getConnection();
     }
 
     @FunctionalInterface

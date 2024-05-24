@@ -8,7 +8,10 @@ import com.liang.common.util.StackUtils;
 import com.liang.flink.basic.kafka.KafkaMonitor;
 import com.liang.flink.basic.kafka.KafkaReporter;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
-import com.liang.flink.basic.repair.*;
+import com.liang.flink.basic.repair.RepairHandler;
+import com.liang.flink.basic.repair.RepairPartitioner;
+import com.liang.flink.basic.repair.RepairSource;
+import com.liang.flink.basic.repair.TaskGenerator;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -54,13 +57,6 @@ public class StreamFactory {
     }
 
     private static DataStream<SingleCanalBinlog> createRepairStream(StreamExecutionEnvironment streamEnvironment) {
-        // 在JobManager启动汇报线程
-        String jobClassName = StackUtils.getMainFrame().getClassName();
-        String[] split = jobClassName.split("\\.");
-        String simpleName = split[split.length - 1];
-        String repairKey = String.format("%s_%s_%s", simpleName, "Repair", DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
-        log.info("repairKey: {}", repairKey);
-        DaemonExecutor.launch("RepairReporter", new RepairReporter(repairKey));
         // 根据抽象任务, 生成完整任务
         TaskGenerator.formatRepairTasks();
         // 组装RepairSource
@@ -71,7 +67,7 @@ public class StreamFactory {
                 .uid("RepairSource")
                 .setParallelism(config.getRepairTasks().size())
                 .partitionCustom(new RepairPartitioner(), repairSplit -> repairSplit)
-                .flatMap(new RepairHandler(config, repairKey))
+                .flatMap(new RepairHandler(config))
                 .name("RepairHandler")
                 .uid("RepairHandler")
                 .setParallelism(config.getRepairTasks().parallelStream().mapToInt(repairTask -> repairTask.getChannels().size()).sum());
