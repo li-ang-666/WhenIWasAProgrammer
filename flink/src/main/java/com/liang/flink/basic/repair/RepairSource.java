@@ -1,25 +1,15 @@
 package com.liang.flink.basic.repair;
 
-import cn.hutool.core.util.SerializeUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
-import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.state.FunctionInitializationContext;
-import org.apache.flink.runtime.state.FunctionSnapshotContext;
-import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.LockSupport;
 
 import static com.liang.common.dto.config.RepairTask.ScanMode.Direct;
 import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
@@ -30,51 +20,23 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RepairSource extends RichParallelSourceFunction<RepairSplit> implements CheckpointedFunction {
-    // state
-    private static final String TASK_STATE_NAME = "TASK_STATE";
-    private static final ListStateDescriptor<RepairTask> TASK_STATE_DESCRIPTOR = new ListStateDescriptor<>(TASK_STATE_NAME, RepairTask.class);
-    // check and tell redis
-    private static final String RUNNING_REPORT_PREFIX = "[checkpoint]";
-    private static final String COMPLETE_REPORT_PREFIX = "[completed]";
-    private static final int CHECK_COMPLETE_INTERVAL_MILLISECONDS = 1000 * 3;
-    // query
+public class RepairSource extends RichParallelSourceFunction<RepairSplit> {
     private static final int QUERY_BATCH_SIZE = 1_000_000;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
-    // flink web ui cancel
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;
-    private final String repairKey;
     private RepairTask task;
-    private ListState<RepairTask> taskState;
     private String baseSplitSql;
-    private RedisTemplate redisTemplate;
-
-    @Override
-    public void initializeState(FunctionInitializationContext context) throws Exception {
-        // 初始化task与state
-        ConfigUtils.setConfig(config);
-        task = config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask());
-        // 从ckp恢复task
-        taskState = context.getOperatorStateStore().getUnionListState(TASK_STATE_DESCRIPTOR);
-        for (RepairTask stateTask : taskState.get()) {
-            if (stateTask.getTaskId().equals(task.getTaskId()) && stateTask.getTableName().equals(task.getTableName())) {
-                // 仅恢复pivot
-                task.setPivot(stateTask.getPivot());
-                log.info("restored from state, task-{}: {}", task.getTaskId(), JsonUtils.toString(task));
-                return;
-            }
-        }
-    }
 
     @Override
     public void open(Configuration parameters) {
+        ConfigUtils.setConfig(config);
+        task = config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask());
         baseSplitSql = new SQL()
                 .SELECT(task.getColumns())
                 .FROM(task.getTableName())
                 .WHERE(task.getWhere())
                 .toString();
-        redisTemplate = new RedisTemplate("metadata");
     }
 
     @Override
@@ -89,20 +51,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                 }
             }
         }
-        reportComplete();
-        while (!canceled.get()) {
-            checkFinish();
-        }
-    }
-
-    @Override
-    public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        RepairTask copyTask = SerializeUtil.clone(task);
-        taskState.clear();
-        taskState.add(copyTask);
-        if (hasNextSplit()) {
-            reportCheckpoint(copyTask);
-        }
+        cancel();
     }
 
     private boolean hasNextSplit() {
@@ -123,35 +72,6 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
 
     private long nextPivot() {
         return Math.min(task.getPivot() + QUERY_BATCH_SIZE, task.getUpperBound());
-    }
-
-    private void reportCheckpoint(RepairTask copyTask) {
-        Long pivot = copyTask.getPivot();
-        Long upperBound = copyTask.getUpperBound();
-        String info = String.format("%s table: %s, pivot: %,d, upperBound: %,d, lag: %,d",
-                RUNNING_REPORT_PREFIX, copyTask.getTableName(), pivot, upperBound, upperBound - pivot);
-        redisTemplate.hSet(repairKey, String.format("%03d", copyTask.getTaskId()), info);
-    }
-
-    private void reportComplete() {
-        String info = String.format("%s table: %s, final pivot: %,d",
-                COMPLETE_REPORT_PREFIX, task.getTableName(), task.getPivot());
-        redisTemplate.hSet(repairKey, String.format("%03d", task.getTaskId()), info);
-    }
-
-    private void checkFinish() {
-        LockSupport.parkUntil(System.currentTimeMillis() + CHECK_COMPLETE_INTERVAL_MILLISECONDS);
-        Map<String, String> repairMap = redisTemplate.hScan(repairKey);
-        long numCompleted = repairMap.values().stream().filter(e -> e.startsWith(COMPLETE_REPORT_PREFIX)).count();
-        if (numCompleted == config.getRepairTasks().size()) {
-            log.info("detected all repair task has been completed, RepairTask-{} will be cancel after the next checkpoint", task.getTaskId());
-            cancel();
-        }
-    }
-
-    @Override
-    public void close() {
-        cancel();
     }
 
     @Override

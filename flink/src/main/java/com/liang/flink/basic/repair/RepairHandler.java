@@ -5,7 +5,9 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.holder.DruidHolder;
+import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,9 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     private static final int TIME_OUT = (int) TimeUnit.HOURS.toSeconds(24);
     private final ReentrantLock lock = new ReentrantLock(true);
     private final Config config;
+    private final String repairKey;
+    private RedisTemplate redisTemplate;
+    private volatile RepairSplit lastRepairSplit;
     private DruidDataSource druidDataSource;
 
     @Override
@@ -44,6 +49,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     @Override
     public void open(Configuration parameters) {
         ConfigUtils.setConfig(config);
+        redisTemplate = new RedisTemplate("metadata");
         int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
         for (RepairTask repairTask : config.getRepairTasks()) {
             if (repairTask.getChannels().contains(indexOfThisSubtask)) {
@@ -56,6 +62,12 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     @Override
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
         lock.lock();
+        doQuery(repairSplit, out);
+        lastRepairSplit = repairSplit;
+        lock.unlock();
+    }
+
+    private void doQuery(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
         try (Connection connection = druidDataSource.getConnection()) {
             connection.setAutoCommit(AUTO_COMMIT);
             try (Statement statement = connection.createStatement(RESULT_SET_TYPE, RESULT_SET_CONCURRENCY)) {
@@ -76,12 +88,16 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
         } catch (Exception e) {
             log.error("repair split execute error: {}", repairSplit, e);
         }
-        lock.unlock();
     }
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) {
         lock.lock();
+        report();
         lock.unlock();
+    }
+
+    public void report() {
+        redisTemplate.hSet(repairKey, lastRepairSplit.getChannel().toString(), JsonUtils.toString(lastRepairSplit));
     }
 }

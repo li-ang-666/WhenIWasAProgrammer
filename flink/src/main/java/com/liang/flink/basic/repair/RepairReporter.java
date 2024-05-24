@@ -1,7 +1,6 @@
 package com.liang.flink.basic.repair;
 
 import com.liang.common.service.database.template.RedisTemplate;
-import com.liang.common.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,16 +17,23 @@ public class RepairReporter implements Runnable {
 
     @Override
     public void run() {
-        String lastContent = "{}";
+        String lastMapString = "{}";
         while (true) {
             LockSupport.parkUntil(System.currentTimeMillis() + READ_REDIS_INTERVAL_MILLISECONDS);
             // 有序
-            Map<String, String> reportMap = new TreeMap<>(redisTemplate.hScan(repairKey));
-            String reportContent = JsonUtils.toString(reportMap);
-            if (reportContent.equals(lastContent))
+            Map<Integer, String> reportMap = new TreeMap<>();
+            for (Map.Entry<String, String> entry : redisTemplate.hScan(repairKey).entrySet()) {
+                reportMap.put(Integer.parseInt(entry.getKey()), entry.getValue());
+            }
+            String mapString = reportMap.toString();
+            if (mapString.equals(lastMapString)) {
                 continue;
-            lastContent = reportContent;
-            log.info("repair report: {}", reportContent);
+            }
+            reportMap.forEach((channel, repairSplitJson) -> {
+                log.info("repair report: ");
+                log.info("channel: {}, repairSplit: {}", channel, repairSplitJson);
+            });
+            lastMapString = mapString;
         }
     }
 }

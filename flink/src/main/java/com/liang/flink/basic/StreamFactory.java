@@ -66,12 +66,12 @@ public class StreamFactory {
         // 组装RepairSource
         Config config = ConfigUtils.getConfig();
         return streamEnvironment
-                .addSource(new RepairSource(config, repairKey))
+                .addSource(new RepairSource(config))
                 .name("RepairSource")
                 .uid("RepairSource")
                 .setParallelism(config.getRepairTasks().size())
                 .partitionCustom(new RepairPartitioner(), repairSplit -> repairSplit)
-                .flatMap(new RepairHandler(config))
+                .flatMap(new RepairHandler(config, repairKey))
                 .name("RepairHandler")
                 .uid("RepairHandler")
                 .setParallelism(config.getRepairTasks().parallelStream().mapToInt(repairTask -> repairTask.getChannels().size()).sum());
