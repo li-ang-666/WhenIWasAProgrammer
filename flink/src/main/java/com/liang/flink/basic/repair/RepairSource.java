@@ -4,7 +4,6 @@ import cn.hutool.core.util.SerializeUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
-import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
@@ -48,10 +47,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private final String repairKey;
     private RepairTask task;
     private ListState<RepairTask> taskState;
-    private String baseDetectSql;
-    private String baseRedirectSql;
     private String baseSplitSql;
-    private JdbcTemplate jdbcTemplate;
     private RedisTemplate redisTemplate;
 
     @Override
@@ -73,20 +69,11 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
 
     @Override
     public void open(Configuration parameters) {
-        baseDetectSql = new SQL()
-                .SELECT("if(COUNT(1) = 0, TRUE, FALSE)")
-                .FROM(task.getTableName())
-                .toString();
-        baseRedirectSql = new SQL()
-                .SELECT("MIN(id)")
-                .FROM(task.getTableName())
-                .toString();
         baseSplitSql = new SQL()
                 .SELECT(task.getColumns())
                 .FROM(task.getTableName())
                 .WHERE(task.getWhere())
                 .toString();
-        jdbcTemplate = new JdbcTemplate(task.getSourceName());
         redisTemplate = new RedisTemplate("metadata");
     }
 
@@ -96,15 +83,8 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
             for (Integer channel : task.getChannels()) {
                 if (hasNextSplit()) {
                     synchronized (ctx.getCheckpointLock()) {
-                        if (task.getScanMode() == TumblingWindow && detectBlank()) {
-                            redirectPivot();
-                            log.info("pivot redirected to {}", task.getPivot());
-                        }
-                        // pivot重定向后, 重新计算一次hasNextSplit()
-                        if (hasNextSplit()) {
-                            ctx.collect(nextSplit(channel));
-                            commit();
-                        }
+                        ctx.collect(nextSplit(channel));
+                        commit();
                     }
                 }
             }
@@ -133,18 +113,6 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
     private RepairSplit nextSplit(int channel) {
         String sql = baseSplitSql + (task.getScanMode() == TumblingWindow ? String.format(" AND %s <= id AND id < %s", task.getPivot(), nextPivot()) : "");
         return new RepairSplit(task.getTaskId(), task.getSourceName(), task.getTableName(), channel, sql);
-    }
-
-    private boolean detectBlank() {
-        String sql = baseDetectSql + String.format(" WHERE %s <= id AND id < %s", task.getPivot(), nextPivot());
-        return jdbcTemplate.queryForObject(sql, rs -> rs.getBoolean(1));
-    }
-
-    // 写pivot
-    private void redirectPivot() {
-        String sql = baseRedirectSql + String.format(" WHERE id >= %s", task.getPivot());
-        Long nextPivot = jdbcTemplate.queryForObject(sql, rs -> rs.getLong(1));
-        task.setPivot(nextPivot == null ? task.getUpperBound() : Math.min(nextPivot, task.getUpperBound()));
     }
 
     // 写pivot
