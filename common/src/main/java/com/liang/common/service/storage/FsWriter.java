@@ -15,6 +15,7 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 @Slf4j
@@ -33,6 +34,7 @@ public class FsWriter {
 
     @SneakyThrows
     public synchronized void write(Map<String, Object> columnMap) {
+        columnMap = new TreeMap<>(columnMap);
         if (schema == null) {
             SchemaBuilder.FieldAssembler<Schema> schemaBuilder = SchemaBuilder.record("ColumnMap").fields();
             columnMap.keySet().forEach(schemaBuilder::optionalString);
