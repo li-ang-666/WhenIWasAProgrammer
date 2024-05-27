@@ -2,9 +2,9 @@ package com.liang.flink.job;
 
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.service.storage.FsWriter;
 import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -19,7 +19,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.Map;
-import java.util.TreeMap;
 
 @Slf4j
 @LocalConfigFile("demo.yml")
@@ -41,6 +40,7 @@ public class DemoJob {
         private final Config config;
         private JdbcTemplate jdbcTemplate;
         private ObsWriter obsWriter;
+        private FsWriter fsWriter;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -53,13 +53,15 @@ public class DemoJob {
             jdbcTemplate.enableCache();
             obsWriter = new ObsWriter("obs://hadoop-obs/flink/test/", ObsWriter.FileFormat.TXT);
             obsWriter.enableCache();
+            fsWriter = new FsWriter("obs://hadoop-obs/flink/pqt/");
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            String row = JsonUtils.toString(new TreeMap<>(columnMap));
-            obsWriter.update(row);
+            //String row = JsonUtils.toString(new TreeMap<>(columnMap));
+            //obsWriter.update(row);
+            fsWriter.write(columnMap);
         }
 
         @Override
@@ -80,6 +82,7 @@ public class DemoJob {
         private void flush() {
             jdbcTemplate.flush();
             obsWriter.flush();
+            fsWriter.flush();
         }
     }
 }
