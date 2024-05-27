@@ -20,8 +20,7 @@ public class TestJob {
                 "  'scan.partition.column' = 'id',\n" +
                 "  'scan.partition.lower-bound' = '1',\n" +
                 "  'scan.partition.upper-bound' = '102400',\n" +
-                "  'scan.partition.num' = '10',\n" +
-                "  'scan.fetch-size' = '1024'\n" +
+                "  'scan.partition.num' = '10'\n" +
                 ")");
         tEnv.executeSql("select * from ods").print();
     }
