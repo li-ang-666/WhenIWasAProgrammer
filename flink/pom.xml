@@ -11,6 +11,18 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
+        <!--parquet-->
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-avro</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-hadoop</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!--bitmap-->
         <dependency>
             <groupId>org.roaringbitmap</groupId>
@@ -27,6 +39,18 @@
         <dependency>
             <groupId>com.huaweicloud</groupId>
             <artifactId>esdk-obs-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-huaweicloud</artifactId>
+            <version>3.1.1-hw-45</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>provided</scope>
         </dependency>
 
         <!--hutool-->
