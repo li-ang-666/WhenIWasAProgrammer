@@ -29,16 +29,16 @@ LOCATION 'obs://hadoop-obs/flink/pqt'
 tblproperties('parquet.compression'='GZIP');
  */
 @Slf4j
-public class FsWriter {
+public class FsParquetWriter {
     private static final CompressionCodecName COMPRESSION_CODEC_NAME = CompressionCodecName.GZIP;
     private static final int ROW_GROUP_SIZE = 128 * 1024 * 1024;
     private static final String SUFFIX = ".parquet.gz";
-    private final UUID uuid = UUID.randomUUID();
+    private final String uuid = UUID.randomUUID().toString().replaceAll("-", "_");
     private final String folder;
     private Schema schema;
     private ParquetWriter<GenericRecord> parquetWriter;
 
-    public FsWriter(String folder) {
+    public FsParquetWriter(String folder) {
         this.folder = folder.replaceAll("/+$", "") + "/";
     }
 
