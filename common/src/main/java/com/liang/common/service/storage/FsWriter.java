@@ -18,6 +18,16 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 
+/*
+drop table test.lt2;
+create external table test.lt2
+(
+    id string
+)
+STORED AS parquet
+LOCATION 'obs://hadoop-obs/flink/pqt'
+tblproperties('parquet.compression'='GZIP');
+ */
 @Slf4j
 public class FsWriter {
     private static final CompressionCodecName COMPRESSION_CODEC_NAME = CompressionCodecName.GZIP;

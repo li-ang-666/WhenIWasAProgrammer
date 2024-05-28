@@ -17,6 +17,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
+/*
+drop table test.lt;
+create external table test.lt
+(
+    id string
+)
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE
+LOCATION 'obs://hadoop-obs/flink/test';
+ */
 @Slf4j
 public class ObsWriter extends AbstractCache<String, String> {
     private final static int DEFAULT_CACHE_MILLISECONDS = 5000;
