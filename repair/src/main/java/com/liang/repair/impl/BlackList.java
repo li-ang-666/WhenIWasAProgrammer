@@ -152,6 +152,8 @@ public class BlackList extends ConfigHolder {
         deletePartner("10PEMMF09AM2AF5E5");
         new JdbcTemplate("116.prism").update("delete from equity_ratio where company_graph_id = 9196033");
         deletePartner("F0FB89309DYFL1NE5");
+        deletePartner("M0KHSMM0ABEC6BPF9");
+        deletePartner("D08PA9M0A2KKU2ED9");
     }
 
     /**
