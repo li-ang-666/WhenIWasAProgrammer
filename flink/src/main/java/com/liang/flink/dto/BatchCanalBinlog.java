@@ -34,26 +34,14 @@ public class BatchCanalBinlog implements Serializable {
     }
 
     private void parseJsonMessage(byte[] kafkaRecordValue) {
-        Map<String, Object> binlogMap = JsonUtils.parseJsonObj(
-                new String(kafkaRecordValue, StandardCharsets.UTF_8));
-        String type = String.valueOf(binlogMap.get("type"));
-        CanalEntry.EventType eventType;
-        switch (type) {
-            case "INSERT":
-                eventType = CanalEntry.EventType.INSERT;
-                break;
-            case "UPDATE":
-                eventType = CanalEntry.EventType.UPDATE;
-                break;
-            case "DELETE":
-                eventType = CanalEntry.EventType.DELETE;
-                break;
-            default:
-                // 排除非DML
-                String isDdl = String.valueOf(binlogMap.get("isDdl"));
-                String sql = String.valueOf(binlogMap.get("sql"));
-                log.warn("type: {}, isDdl: {}, sql: {}", type, isDdl, sql);
-                return;
+        Map<String, Object> binlogMap = JsonUtils.parseJsonObj(new String(kafkaRecordValue, StandardCharsets.UTF_8));
+        CanalEntry.EventType eventType = CanalEntry.EventType.valueOf(String.valueOf(binlogMap.get("type")));
+        boolean isDdl = (Boolean) binlogMap.get("isDdl");
+        String sql = String.valueOf(binlogMap.get("sql"));
+        // 排除非DML
+        if ((eventType != CanalEntry.EventType.INSERT && eventType != CanalEntry.EventType.UPDATE && eventType != CanalEntry.EventType.DELETE) || isDdl) {
+            log.warn("type: {}, isDdl: {}, sql: {}", eventType, isDdl, sql);
+            return;
         }
         // 生成SingleCanalBinlog
         String db = String.valueOf(binlogMap.get("database"));
@@ -63,16 +51,18 @@ public class BatchCanalBinlog implements Serializable {
         List<Map<String, Object>> old = (List<Map<String, Object>>) binlogMap.get("old");
         for (int i = 0; i < data.size(); i++) {
             Map<String, Object> columnMap = data.get(i);
+            SingleCanalBinlog singleCanalBinlog;
             if (eventType == CanalEntry.EventType.INSERT) {
-                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), columnMap));
+                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), columnMap);
             } else if (eventType == CanalEntry.EventType.UPDATE) {
                 Map<String, Object> oldColumnMapPart = old.get(i);
                 Map<String, Object> oldColumnMapAll = new LinkedHashMap<>(columnMap);
                 oldColumnMapAll.putAll(oldColumnMapPart);
-                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, oldColumnMapAll, columnMap));
+                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, oldColumnMapAll, columnMap);
             } else {
-                singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap, new HashMap<>()));
+                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap, new HashMap<>());
             }
+            singleCanalBinlogs.add(singleCanalBinlog);
         }
     }
 
@@ -139,13 +129,15 @@ public class BatchCanalBinlog implements Serializable {
             for (CanalEntry.RowData rowData : rowDatasList) {
                 Map<String, Object> beforeColumnMap = columnListToColumnMap(rowData.getBeforeColumnsList());
                 Map<String, Object> afterColumnMap = columnListToColumnMap(rowData.getAfterColumnsList());
+                SingleCanalBinlog singleCanalBinlog;
                 if (eventType == CanalEntry.EventType.INSERT) {
-                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), afterColumnMap));
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), afterColumnMap);
                 } else if (eventType == CanalEntry.EventType.UPDATE) {
-                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, afterColumnMap));
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, afterColumnMap);
                 } else {
-                    singleCanalBinlogs.add(new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, new HashMap<>()));
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, new HashMap<>());
                 }
+                singleCanalBinlogs.add(singleCanalBinlog);
             }
         }
     }
