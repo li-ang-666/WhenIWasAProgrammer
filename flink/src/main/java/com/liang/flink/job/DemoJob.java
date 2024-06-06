@@ -5,6 +5,7 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.storage.FsParquetWriter;
 import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -56,7 +57,7 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-
+            System.out.println(JsonUtils.toString(singleCanalBinlog));
         }
 
         @Override

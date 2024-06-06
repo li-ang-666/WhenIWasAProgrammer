@@ -2,6 +2,7 @@ package com.liang.flink.dto;
 
 import com.alibaba.otter.canal.client.CanalMessageDeserializer;
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.liang.common.util.JsonUtils;
 import lombok.Data;
@@ -15,7 +16,6 @@ import java.util.*;
 @Data
 @Slf4j
 @NoArgsConstructor
-@SuppressWarnings("unchecked")
 public class BatchCanalBinlog implements Serializable {
     private final List<SingleCanalBinlog> singleCanalBinlogs = new ArrayList<>();
 
@@ -36,33 +36,33 @@ public class BatchCanalBinlog implements Serializable {
 
     private void parseJsonMessage(byte[] kafkaRecordValue) {
         String jsonMessage = new String(kafkaRecordValue, StandardCharsets.UTF_8);
-        Map<String, Object> binlogMap = JsonUtils.parseJsonObj(jsonMessage);
-        CanalEntry.EventType eventType = CanalEntry.EventType.valueOf(String.valueOf(binlogMap.get("type")));
-        boolean isDdl = (Boolean) binlogMap.get("isDdl");
-        String sql = String.valueOf(binlogMap.get("sql"));
+        FlatMessage flatMessage = JsonUtils.parseJsonObj(jsonMessage, FlatMessage.class);
+        CanalEntry.EventType eventType = CanalEntry.EventType.valueOf(flatMessage.getType());
+        boolean isDdl = flatMessage.getIsDdl();
+        String sql = String.valueOf(flatMessage.getSql());
         // 排除非DML
         if ((eventType != CanalEntry.EventType.INSERT && eventType != CanalEntry.EventType.UPDATE && eventType != CanalEntry.EventType.DELETE) || isDdl) {
             log.warn("type: {}, isDdl: {}, sql: {}", eventType, isDdl, sql);
             return;
         }
         // 生成SingleCanalBinlog
-        String db = String.valueOf(binlogMap.get("database"));
-        String tb = String.valueOf(binlogMap.get("table"));
-        long executeTime = Long.parseLong(String.valueOf(binlogMap.get("es")));
-        List<Map<String, Object>> data = (List<Map<String, Object>>) binlogMap.get("data");
-        List<Map<String, Object>> old = (List<Map<String, Object>>) binlogMap.get("old");
+        String db = flatMessage.getDatabase();
+        String tb = flatMessage.getTable();
+        long executeTime = flatMessage.getEs();
+        List<Map<String, String>> data = flatMessage.getData();
+        List<Map<String, String>> old = flatMessage.getOld();
         for (int i = 0; i < data.size(); i++) {
-            Map<String, Object> columnMap = data.get(i);
+            Map<String, String> columnMap = data.get(i);
             SingleCanalBinlog singleCanalBinlog;
             if (eventType == CanalEntry.EventType.INSERT) {
-                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), columnMap);
+                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), new LinkedHashMap<>(columnMap));
             } else if (eventType == CanalEntry.EventType.UPDATE) {
-                Map<String, Object> oldColumnMapPart = old.get(i);
-                Map<String, Object> oldColumnMapAll = new LinkedHashMap<>(columnMap);
+                Map<String, String> oldColumnMapPart = old.get(i);
+                Map<String, String> oldColumnMapAll = new LinkedHashMap<>(columnMap);
                 oldColumnMapAll.putAll(oldColumnMapPart);
-                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, oldColumnMapAll, columnMap);
+                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(oldColumnMapAll), new LinkedHashMap<>(columnMap));
             } else {
-                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, columnMap, new HashMap<>());
+                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(columnMap), new HashMap<>());
             }
             singleCanalBinlogs.add(singleCanalBinlog);
         }
@@ -129,23 +129,23 @@ public class BatchCanalBinlog implements Serializable {
             long executeTime = header.getExecuteTime();
             List<CanalEntry.RowData> rowDatasList = rowChange.getRowDatasList();
             for (CanalEntry.RowData rowData : rowDatasList) {
-                Map<String, Object> beforeColumnMap = columnListToColumnMap(rowData.getBeforeColumnsList());
-                Map<String, Object> afterColumnMap = columnListToColumnMap(rowData.getAfterColumnsList());
+                Map<String, String> beforeColumnMap = columnListToColumnMap(rowData.getBeforeColumnsList());
+                Map<String, String> afterColumnMap = columnListToColumnMap(rowData.getAfterColumnsList());
                 SingleCanalBinlog singleCanalBinlog;
                 if (eventType == CanalEntry.EventType.INSERT) {
-                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), afterColumnMap);
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), new LinkedHashMap<>(afterColumnMap));
                 } else if (eventType == CanalEntry.EventType.UPDATE) {
-                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, afterColumnMap);
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new LinkedHashMap<>(afterColumnMap));
                 } else {
-                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, beforeColumnMap, new HashMap<>());
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new HashMap<>());
                 }
                 singleCanalBinlogs.add(singleCanalBinlog);
             }
         }
     }
 
-    private Map<String, Object> columnListToColumnMap(List<CanalEntry.Column> columnList) {
-        LinkedHashMap<String, Object> columnMap = new LinkedHashMap<>(columnList.size());
+    private Map<String, String> columnListToColumnMap(List<CanalEntry.Column> columnList) {
+        LinkedHashMap<String, String> columnMap = new LinkedHashMap<>(columnList.size());
         for (CanalEntry.Column column : columnList) {
             String columnName = column.getName();
             String columnValue = column.getIsNull() ? null : column.getValue();
