@@ -20,9 +20,10 @@ public class BatchCanalBinlog implements Serializable {
     private final List<SingleCanalBinlog> singleCanalBinlogs = new ArrayList<>();
 
     public BatchCanalBinlog(byte[] kafkaRecordValue) {
-        if (kafkaRecordValue == null || kafkaRecordValue.length < 2) return;
-        if (kafkaRecordValue[0] == (byte) '{'/* ascii = 123 */
-                && kafkaRecordValue[1] == (byte) '\"'/* ascii = 34 */) {
+        if (kafkaRecordValue == null || kafkaRecordValue.length < 2) {
+            return;
+        }
+        if (kafkaRecordValue[0] == (byte) '{' && kafkaRecordValue[1] == (byte) '\"') {
             parseJsonMessage(kafkaRecordValue);
         } else {
             parseProtobufMessage(kafkaRecordValue);
