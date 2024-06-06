@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class Distributor implements KeySelector<SingleCanalBinlog, String> {
     private final Config config;
-    private final Map<String, Mapper> table2Mapper = new HashMap<>();
+    private final Map<String, SingleCanalBinlogMapper> table2Mapper = new HashMap<>();
     private boolean opened = false;
 
     public Distributor() {
@@ -22,8 +22,8 @@ public class Distributor implements KeySelector<SingleCanalBinlog, String> {
         this.config = config;
     }
 
-    public Distributor with(String tableName, Mapper mapper) {
-        table2Mapper.put(tableName, mapper);
+    public Distributor with(String tableName, SingleCanalBinlogMapper singleCanalBinlogMapper) {
+        table2Mapper.put(tableName, singleCanalBinlogMapper);
         return this;
     }
 
@@ -33,16 +33,16 @@ public class Distributor implements KeySelector<SingleCanalBinlog, String> {
             ConfigUtils.setConfig(config);
             opened = true;
         }
-        Mapper mapper = table2Mapper.get(singleCanalBinlog.getTable());
-        if (mapper == null) {
+        SingleCanalBinlogMapper singleCanalBinlogMapper = table2Mapper.get(singleCanalBinlog.getTable());
+        if (singleCanalBinlogMapper == null) {
             return "";
         } else {
-            return mapper.map(singleCanalBinlog);
+            return singleCanalBinlogMapper.map(singleCanalBinlog);
         }
     }
 
     @FunctionalInterface
-    public interface Mapper extends Serializable {
+    public interface SingleCanalBinlogMapper extends Serializable {
         String map(SingleCanalBinlog singleCanalBinlog);
     }
 }
