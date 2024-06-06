@@ -34,12 +34,6 @@ public class SingleCanalBinlog implements Serializable {
         }
     }
 
-    public String yyyyMMddHHmmss() {
-        return LocalDateTime
-                .ofEpochSecond(executeMilliseconds / 1000, 0, ZoneOffset.of("+8"))
-                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-    }
-
     public String getExecuteDateTime() {
         return LocalDateTime
                 .ofEpochSecond(executeMilliseconds / 1000, 0, ZoneOffset.of("+8"))
