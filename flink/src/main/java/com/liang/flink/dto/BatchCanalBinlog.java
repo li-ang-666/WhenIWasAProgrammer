@@ -35,7 +35,8 @@ public class BatchCanalBinlog implements Serializable {
     }
 
     private void parseJsonMessage(byte[] kafkaRecordValue) {
-        Map<String, Object> binlogMap = JsonUtils.parseJsonObj(new String(kafkaRecordValue, StandardCharsets.UTF_8));
+        String jsonMessage = new String(kafkaRecordValue, StandardCharsets.UTF_8);
+        Map<String, Object> binlogMap = JsonUtils.parseJsonObj(jsonMessage);
         CanalEntry.EventType eventType = CanalEntry.EventType.valueOf(String.valueOf(binlogMap.get("type")));
         boolean isDdl = (Boolean) binlogMap.get("isDdl");
         String sql = String.valueOf(binlogMap.get("sql"));
