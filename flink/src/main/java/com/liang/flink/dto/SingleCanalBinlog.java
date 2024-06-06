@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 /**
@@ -29,5 +32,24 @@ public class SingleCanalBinlog implements Serializable {
         } else {
             return getAfterColumnMap();
         }
+    }
+
+    public String yyyyMMddHHmmss() {
+        return LocalDateTime
+                .ofEpochSecond(executeMilliseconds / 1000, 0, ZoneOffset.of("+8"))
+                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+    }
+
+    public String getExecuteDateTime() {
+        return LocalDateTime
+                .ofEpochSecond(executeMilliseconds / 1000, 0, ZoneOffset.of("+8"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    }
+
+    public String getExecuteDateTimeWithMilli() {
+        return LocalDateTime
+                .ofEpochSecond(executeMilliseconds / 1000, 0, ZoneOffset.of("+8"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                + String.format(".%03d", executeMilliseconds % 1000);
     }
 }
