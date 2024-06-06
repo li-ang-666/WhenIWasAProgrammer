@@ -11,7 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Slf4j
@@ -55,14 +58,14 @@ public class BatchCanalBinlog implements Serializable {
             Map<String, String> columnMap = data.get(i);
             SingleCanalBinlog singleCanalBinlog;
             if (eventType == CanalEntry.EventType.INSERT) {
-                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), new LinkedHashMap<>(columnMap));
+                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(), new LinkedHashMap<>(columnMap));
             } else if (eventType == CanalEntry.EventType.UPDATE) {
                 Map<String, String> oldColumnMapPart = old.get(i);
                 Map<String, String> oldColumnMapAll = new LinkedHashMap<>(columnMap);
                 oldColumnMapAll.putAll(oldColumnMapPart);
                 singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(oldColumnMapAll), new LinkedHashMap<>(columnMap));
             } else {
-                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(columnMap), new HashMap<>());
+                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(columnMap), new LinkedHashMap<>());
             }
             singleCanalBinlogs.add(singleCanalBinlog);
         }
@@ -133,11 +136,11 @@ public class BatchCanalBinlog implements Serializable {
                 Map<String, String> afterColumnMap = columnListToColumnMap(rowData.getAfterColumnsList());
                 SingleCanalBinlog singleCanalBinlog;
                 if (eventType == CanalEntry.EventType.INSERT) {
-                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new HashMap<>(), new LinkedHashMap<>(afterColumnMap));
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(), new LinkedHashMap<>(afterColumnMap));
                 } else if (eventType == CanalEntry.EventType.UPDATE) {
                     singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new LinkedHashMap<>(afterColumnMap));
                 } else {
-                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new HashMap<>());
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new LinkedHashMap<>());
                 }
                 singleCanalBinlogs.add(singleCanalBinlog);
             }
