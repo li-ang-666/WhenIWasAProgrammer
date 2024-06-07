@@ -59,7 +59,8 @@ public class PatentJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            sink = new JdbcTemplate("451.intellectual_property_info");
+            //sink = new JdbcTemplate("451.intellectual_property_info");
+            sink = new JdbcTemplate("427.test");
             sink.enableCache();
         }
 

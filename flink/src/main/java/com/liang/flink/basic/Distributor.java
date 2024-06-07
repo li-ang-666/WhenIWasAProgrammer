@@ -29,7 +29,7 @@ public class Distributor implements KeySelector<SingleCanalBinlog, String> {
 
     @Override
     public String getKey(SingleCanalBinlog singleCanalBinlog) {
-        if (!opened) {
+        if (!opened && config != null) {
             ConfigUtils.setConfig(config);
             opened = true;
         }

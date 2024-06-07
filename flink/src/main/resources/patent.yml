@@ -1,13 +1,13 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 1
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - sourceName: "116.prism"
-    tableName: "equity_ratio"
+  - sourceName: "451.intellectual_property_info"
+    tableName: "company_patent_basic_info_index"
     columns: "*"
     where: "1=1"
     scanMode: TumblingWindow
