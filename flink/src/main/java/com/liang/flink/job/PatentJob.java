@@ -50,6 +50,7 @@ public class PatentJob {
     @RequiredArgsConstructor
     private static final class PatentSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
+        private JdbcTemplate query;
         private JdbcTemplate sink;
 
         @Override
@@ -59,7 +60,7 @@ public class PatentJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            //sink = new JdbcTemplate("451.intellectual_property_info");
+            query = new JdbcTemplate("451.intellectual_property_info");
             sink = new JdbcTemplate("427.test");
             sink.enableCache();
         }
@@ -100,27 +101,41 @@ public class PatentJob {
         private void parseIndex(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             CanalEntry.EventType eventType = singleCanalBinlog.getEventType();
-            String id = String.valueOf(columnMap.get("id"));
+            String infoIndexId = String.valueOf(columnMap.get("id"));
             String deleteSql = new SQL().DELETE_FROM("company_patent_basic_info_index_split")
-                    .WHERE("company_patent_basic_info_index_id = " + SqlUtils.formatValue(id))
+                    .WHERE("company_patent_basic_info_index_id = " + SqlUtils.formatValue(infoIndexId))
                     .toString();
             sink.update(deleteSql);
             if (eventType != CanalEntry.EventType.DELETE) {
+                String infoId = String.valueOf(columnMap.get("company_patent_info_id"));
+                String patentStatus = queryPatentStatus(infoId);
+                // info表 和 index表 必须同时都有
+                if (patentStatus == null) {
+                    return;
+                }
+                String patentType = String.valueOf(columnMap.get("patent_type"));
+                String patentPublishYear = StrUtil.nullToDefault((String) columnMap.get("patent_publish_year"), "0");
+                String patentApplicationYear = StrUtil.nullToDefault((String) columnMap.get("patent_application_year"), "0");
+                String patentStatusDetail = StrUtil.blankToDefault((String) columnMap.get("patent_latest_legal_review_status"), "其他");
+                String patentTitle = String.valueOf(columnMap.get("patent_title"));
+                String patentApplicationNumber = String.valueOf(columnMap.get("patent_application_number"));
+                String patentAnnounceNumber = String.valueOf(columnMap.get("patent_announce_number"));
                 for (String companyId : String.valueOf(columnMap.get("company_ids")).split(";")) {
                     if (!TycUtils.isUnsignedId(companyId)) {
                         continue;
                     }
                     Map<String, Object> resultMap = new HashMap<>();
-                    resultMap.put("company_patent_basic_info_index_id", String.valueOf(columnMap.get("id")));
-                    resultMap.put("company_patent_basic_info_id", String.valueOf(columnMap.get("company_patent_info_id")));
-                    resultMap.put("company_id", String.valueOf(companyId));
-                    resultMap.put("patent_type", String.valueOf(columnMap.get("patent_type")));
-                    resultMap.put("patent_publish_year", StrUtil.nullToDefault((String) columnMap.get("patent_publish_year"), "0"));
-                    resultMap.put("patent_application_year", StrUtil.nullToDefault((String) columnMap.get("patent_application_year"), "0"));
-                    resultMap.put("patent_status", StrUtil.blankToDefault((String) columnMap.get("patent_latest_legal_review_status"), "其他"));
-                    resultMap.put("patent_title", String.valueOf(columnMap.get("patent_title")));
-                    resultMap.put("patent_application_number", String.valueOf(columnMap.get("patent_application_number")));
-                    resultMap.put("patent_announce_number", String.valueOf(columnMap.get("patent_announce_number")));
+                    resultMap.put("company_patent_basic_info_index_id", infoIndexId);
+                    resultMap.put("company_patent_basic_info_id", infoId);
+                    resultMap.put("company_id", companyId);
+                    resultMap.put("patent_type", patentType);
+                    resultMap.put("patent_publish_year", patentPublishYear);
+                    resultMap.put("patent_application_year", patentApplicationYear);
+                    resultMap.put("patent_status", patentStatus);
+                    resultMap.put("patent_status_detail", patentStatusDetail);
+                    resultMap.put("patent_title", patentTitle);
+                    resultMap.put("patent_application_number", patentApplicationNumber);
+                    resultMap.put("patent_announce_number", patentAnnounceNumber);
                     Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
                     String insertSql = new SQL().INSERT_INTO("company_patent_basic_info_index_split")
                             .INTO_COLUMNS(insert.f0)
@@ -132,6 +147,14 @@ public class PatentJob {
         }
 
         private void parseIndexSplit(SingleCanalBinlog singleCanalBinlog) {
+        }
+
+        private String queryPatentStatus(String infoId) {
+            String sql = new SQL().SELECT("patent_status")
+                    .FROM("company_patent_basic_info")
+                    .WHERE("id = " + SqlUtils.formatValue(infoId))
+                    .toString();
+            return query.queryForObject(sql, rs -> rs.getString(1));
         }
     }
 }
