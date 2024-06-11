@@ -25,7 +25,10 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 
 @LocalConfigFile("patent.yml")
 public class PatentJob {
@@ -147,6 +150,34 @@ public class PatentJob {
         }
 
         private void parseIndexSplit(SingleCanalBinlog singleCanalBinlog) {
+            Set<String> appYears = new HashSet<>();
+            Set<String> pubYears = new HashSet<>();
+            Set<String> types = new HashSet<>();
+            Set<String> statusDetails = new HashSet<>();
+            Consumer<Map<String, Object>> dimExtractor = map -> {
+                if (!map.isEmpty()) {
+                    appYears.add(String.valueOf(map.get("patent_application_year")));
+                    pubYears.add(String.valueOf(map.get("patent_publish_year")));
+                    types.add(String.valueOf(map.get("patent_type")));
+                    statusDetails.add(String.valueOf(map.get("patent_status_detail")));
+                }
+            };
+            dimExtractor.accept(singleCanalBinlog.getBeforeColumnMap());
+            dimExtractor.accept(singleCanalBinlog.getAfterColumnMap());
+            String companyId = String.valueOf(singleCanalBinlog.getColumnMap().get("company_id"));
+
+            for (String appYear : appYears) {
+
+            }
+            for (String pubYear : pubYears) {
+
+            }
+            for (String type : types) {
+
+            }
+            for (String statusDetail : statusDetails) {
+
+            }
         }
 
         private String queryPatentStatus(String infoId) {
