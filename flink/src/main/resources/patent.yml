@@ -6,11 +6,16 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - sourceName: "451.intellectual_property_info"
-    tableName: "company_patent_basic_info_index"
+  #  - sourceName: "451.intellectual_property_info"
+  #    tableName: "company_patent_basic_info_index"
+  #    columns: "*"
+  #    where: "1=1"
+  #    scanMode: TumblingWindow
+  - sourceName: "435.company_base"
+    tableName: "company_index"
     columns: "*"
-    where: "1=1"
-    scanMode: TumblingWindow
+    where: "company_id = 22822"
+    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:

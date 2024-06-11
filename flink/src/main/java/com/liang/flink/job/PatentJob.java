@@ -6,6 +6,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.Distributor;
@@ -25,10 +26,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
 
 @LocalConfigFile("patent.yml")
 public class PatentJob {
@@ -39,6 +38,7 @@ public class PatentJob {
         Distributor distributor = new Distributor();
         distributor
                 .with("company_patent_basic_info_index", singleCanalBinlog -> String.valueOf(singleCanalBinlog.getColumnMap().get("id")))
+                .with("company_index", singleCanalBinlog -> String.valueOf(singleCanalBinlog.getColumnMap().get("company_id")))
                 .with("company_patent_basic_info_index_split", singleCanalBinlog -> String.valueOf(singleCanalBinlog.getColumnMap().get("company_id")));
         dataStream
                 .keyBy(distributor)
@@ -53,7 +53,8 @@ public class PatentJob {
     @RequiredArgsConstructor
     private static final class PatentSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
-        private JdbcTemplate query;
+        private JdbcTemplate queryTest;
+        private JdbcTemplate queryProd;
         private JdbcTemplate sink;
 
         @Override
@@ -63,7 +64,8 @@ public class PatentJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            query = new JdbcTemplate("451.intellectual_property_info");
+            queryTest = new JdbcTemplate("427.test");
+            queryProd = new JdbcTemplate("451.intellectual_property_info");
             sink = new JdbcTemplate("427.test");
             sink.enableCache();
         }
@@ -74,6 +76,7 @@ public class PatentJob {
                 case "company_patent_basic_info_index":
                     parseIndex(singleCanalBinlog);
                     break;
+                case "company_index":
                 case "company_patent_basic_info_index_split":
                     parseIndexSplit(singleCanalBinlog);
                     break;
@@ -150,34 +153,21 @@ public class PatentJob {
         }
 
         private void parseIndexSplit(SingleCanalBinlog singleCanalBinlog) {
-            Set<String> appYears = new HashSet<>();
-            Set<String> pubYears = new HashSet<>();
-            Set<String> types = new HashSet<>();
-            Set<String> statusDetails = new HashSet<>();
-            Consumer<Map<String, Object>> dimExtractor = map -> {
-                if (!map.isEmpty()) {
-                    appYears.add(String.valueOf(map.get("patent_application_year")));
-                    pubYears.add(String.valueOf(map.get("patent_publish_year")));
-                    types.add(String.valueOf(map.get("patent_type")));
-                    statusDetails.add(String.valueOf(map.get("patent_status_detail")));
-                }
-            };
-            dimExtractor.accept(singleCanalBinlog.getBeforeColumnMap());
-            dimExtractor.accept(singleCanalBinlog.getAfterColumnMap());
-            String companyId = String.valueOf(singleCanalBinlog.getColumnMap().get("company_id"));
-
-            for (String appYear : appYears) {
-
-            }
-            for (String pubYear : pubYears) {
-
-            }
-            for (String type : types) {
-
-            }
-            for (String statusDetail : statusDetails) {
-
-            }
+            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String companyId = String.valueOf(columnMap.get("company_id"));
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("id", companyId);
+            resultMap.put("company_id", companyId);
+            resultMap.put("app_year_statistic", queryAppYearStatisticJson(companyId));
+            resultMap.put("pub_year_statistic", queryPubYearStatisticJson(companyId));
+            resultMap.put("type_statistic", queryTypeStatisticJson(companyId));
+            resultMap.put("status_statistic", queryStatusStatisticJson(companyId));
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
+            String insertSql = new SQL().REPLACE_INTO("company_patent_basic_info_index_split_statistic")
+                    .INTO_COLUMNS(insert.f0)
+                    .INTO_VALUES(insert.f1)
+                    .toString();
+            sink.update(insertSql);
         }
 
         private String queryPatentStatus(String infoId) {
@@ -185,7 +175,47 @@ public class PatentJob {
                     .FROM("company_patent_basic_info")
                     .WHERE("id = " + SqlUtils.formatValue(infoId))
                     .toString();
-            return query.queryForObject(sql, rs -> rs.getString(1));
+            return queryProd.queryForObject(sql, rs -> rs.getString(1));
+        }
+
+        private String queryAppYearStatisticJson(String companyId) {
+            String sql = new SQL().SELECT("patent_application_year", "patent_type", "count(1) cnt")
+                    .FROM("company_patent_basic_info_index_split")
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                    .GROUP_BY("patent_application_year", "patent_type")
+                    .toString();
+            List<Map<String, Object>> columnMaps = queryTest.queryForColumnMaps(sql);
+            return JsonUtils.toString(columnMaps);
+        }
+
+        private String queryPubYearStatisticJson(String companyId) {
+            String sql = new SQL().SELECT("patent_publish_year", "patent_type", "count(1) cnt")
+                    .FROM("company_patent_basic_info_index_split")
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                    .GROUP_BY("patent_publish_year", "patent_type")
+                    .toString();
+            List<Map<String, Object>> columnMaps = queryTest.queryForColumnMaps(sql);
+            return JsonUtils.toString(columnMaps);
+        }
+
+        private String queryTypeStatisticJson(String companyId) {
+            String sql = new SQL().SELECT("patent_type", "count(1) cnt")
+                    .FROM("company_patent_basic_info_index_split")
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                    .GROUP_BY("patent_type")
+                    .toString();
+            List<Map<String, Object>> columnMaps = queryTest.queryForColumnMaps(sql);
+            return JsonUtils.toString(columnMaps);
+        }
+
+        private String queryStatusStatisticJson(String companyId) {
+            String sql = new SQL().SELECT("patent_status_detail", "count(1) cnt")
+                    .FROM("company_patent_basic_info_index_split")
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                    .GROUP_BY("patent_status_detail")
+                    .toString();
+            List<Map<String, Object>> columnMaps = queryTest.queryForColumnMaps(sql);
+            return JsonUtils.toString(columnMaps);
         }
     }
 }
