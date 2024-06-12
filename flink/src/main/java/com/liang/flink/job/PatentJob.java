@@ -29,7 +29,6 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @LocalConfigFile("patent.yml")
 public class PatentJob {
@@ -157,10 +156,10 @@ public class PatentJob {
         private void parseIndexSplit(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyId = String.valueOf(columnMap.get("company_id"));
-            Map<String, AtomicInteger> appYearStatisticMap = new TreeMap<>();
-            Map<String, AtomicInteger> pubYearStatisticMap = new TreeMap<>();
-            Map<String, AtomicInteger> typeStatisticMap = new TreeMap<>();
-            Map<String, AtomicInteger> statusStatisticMap = new TreeMap<>();
+            Map<String, Integer> appYearStatisticMap = new TreeMap<>();
+            Map<String, Integer> pubYearStatisticMap = new TreeMap<>();
+            Map<String, Integer> typeStatisticMap = new TreeMap<>();
+            Map<String, Integer> statusStatisticMap = new TreeMap<>();
             String sql = new SQL()
                     .SELECT("patent_application_year", "patent_publish_year", "patent_type", "patent_status_detail")
                     .FROM("company_patent_basic_info_index_split")
@@ -171,10 +170,10 @@ public class PatentJob {
                 String pubYear = rs.getString(2);
                 String type = rs.getString(3);
                 String status = rs.getString(4);
-                appYearStatisticMap.compute(appYear + "_" + type, (k, v) -> ObjUtil.defaultIfNull(v, new AtomicInteger(0))).getAndIncrement();
-                pubYearStatisticMap.compute(pubYear + "_" + type, (k, v) -> ObjUtil.defaultIfNull(v, new AtomicInteger(0))).getAndIncrement();
-                typeStatisticMap.compute(type, (k, v) -> ObjUtil.defaultIfNull(v, new AtomicInteger(0))).getAndIncrement();
-                statusStatisticMap.compute(status, (k, v) -> ObjUtil.defaultIfNull(v, new AtomicInteger(0))).getAndIncrement();
+                appYearStatisticMap.compute(appYear + "_" + type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
+                pubYearStatisticMap.compute(pubYear + "_" + type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
+                typeStatisticMap.compute(type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
+                statusStatisticMap.compute(status, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
             });
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("id", companyId);
