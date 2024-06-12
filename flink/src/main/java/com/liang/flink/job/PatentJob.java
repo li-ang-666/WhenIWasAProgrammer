@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
@@ -26,8 +27,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @LocalConfigFile("patent.yml")
 public class PatentJob {
@@ -155,13 +157,32 @@ public class PatentJob {
         private void parseIndexSplit(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyId = String.valueOf(columnMap.get("company_id"));
+            Map<String, AtomicInteger> appYearStatisticMap = new TreeMap<>();
+            Map<String, AtomicInteger> pubYearStatisticMap = new TreeMap<>();
+            Map<String, AtomicInteger> typeStatisticMap = new TreeMap<>();
+            Map<String, AtomicInteger> statusStatisticMap = new TreeMap<>();
+            String sql = new SQL()
+                    .SELECT("patent_application_year", "patent_publish_year", "patent_type", "patent_status_detail")
+                    .FROM("company_patent_basic_info_index_split")
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                    .toString();
+            queryTest.streamQuery(sql, rs -> {
+                String appYear = rs.getString(1);
+                String pubYear = rs.getString(2);
+                String type = rs.getString(3);
+                String status = rs.getString(4);
+                appYearStatisticMap.compute(appYear + "_" + type, (k, v) -> ObjUtil.defaultIfNull(v, new AtomicInteger(0))).getAndIncrement();
+                pubYearStatisticMap.compute(pubYear + "_" + type, (k, v) -> ObjUtil.defaultIfNull(v, new AtomicInteger(0))).getAndIncrement();
+                typeStatisticMap.compute(type, (k, v) -> ObjUtil.defaultIfNull(v, new AtomicInteger(0))).getAndIncrement();
+                statusStatisticMap.compute(status, (k, v) -> ObjUtil.defaultIfNull(v, new AtomicInteger(0))).getAndIncrement();
+            });
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("id", companyId);
             resultMap.put("company_id", companyId);
-            resultMap.put("app_year_statistic", queryAppYearStatisticJson(companyId));
-            resultMap.put("pub_year_statistic", queryPubYearStatisticJson(companyId));
-            resultMap.put("type_statistic", queryTypeStatisticJson(companyId));
-            resultMap.put("status_statistic", queryStatusStatisticJson(companyId));
+            resultMap.put("app_year_statistic", JsonUtils.toString(appYearStatisticMap));
+            resultMap.put("pub_year_statistic", JsonUtils.toString(pubYearStatisticMap));
+            resultMap.put("type_statistic", JsonUtils.toString(typeStatisticMap));
+            resultMap.put("status_statistic", JsonUtils.toString(statusStatisticMap));
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String insertSql = new SQL().REPLACE_INTO("company_patent_basic_info_index_split_statistic")
                     .INTO_COLUMNS(insert.f0)
@@ -176,46 +197,6 @@ public class PatentJob {
                     .WHERE("id = " + SqlUtils.formatValue(infoId))
                     .toString();
             return queryProd.queryForObject(sql, rs -> rs.getString(1));
-        }
-
-        private String queryAppYearStatisticJson(String companyId) {
-            String sql = new SQL().SELECT("patent_application_year", "patent_type", "count(1) cnt")
-                    .FROM("company_patent_basic_info_index_split")
-                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                    .GROUP_BY("patent_application_year", "patent_type")
-                    .toString();
-            List<Map<String, Object>> columnMaps = queryTest.queryForColumnMaps(sql);
-            return JsonUtils.toString(columnMaps);
-        }
-
-        private String queryPubYearStatisticJson(String companyId) {
-            String sql = new SQL().SELECT("patent_publish_year", "patent_type", "count(1) cnt")
-                    .FROM("company_patent_basic_info_index_split")
-                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                    .GROUP_BY("patent_publish_year", "patent_type")
-                    .toString();
-            List<Map<String, Object>> columnMaps = queryTest.queryForColumnMaps(sql);
-            return JsonUtils.toString(columnMaps);
-        }
-
-        private String queryTypeStatisticJson(String companyId) {
-            String sql = new SQL().SELECT("patent_type", "count(1) cnt")
-                    .FROM("company_patent_basic_info_index_split")
-                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                    .GROUP_BY("patent_type")
-                    .toString();
-            List<Map<String, Object>> columnMaps = queryTest.queryForColumnMaps(sql);
-            return JsonUtils.toString(columnMaps);
-        }
-
-        private String queryStatusStatisticJson(String companyId) {
-            String sql = new SQL().SELECT("patent_status_detail", "count(1) cnt")
-                    .FROM("company_patent_basic_info_index_split")
-                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                    .GROUP_BY("patent_status_detail")
-                    .toString();
-            List<Map<String, Object>> columnMaps = queryTest.queryForColumnMaps(sql);
-            return JsonUtils.toString(columnMaps);
         }
     }
 }

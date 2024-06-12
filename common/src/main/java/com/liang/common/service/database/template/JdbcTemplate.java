@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
@@ -134,6 +135,25 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         }
     }
 
+    public void streamQuery(String sql, ResultSetConsumer consumer) {
+        logging.beforeExecute();
+        try (DruidPooledConnection connection = pool.getConnection()) {
+            connection.setAutoCommit(false);
+            try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+                statement.setFetchSize(Integer.MIN_VALUE);
+                statement.setQueryTimeout((int) TimeUnit.SECONDS.toSeconds(24));
+                try (ResultSet resultSet = statement.executeQuery(sql)) {
+                    while (resultSet.next()) {
+                        consumer.consume(resultSet);
+                    }
+                }
+            }
+            logging.afterExecute("streamQuery", sql);
+        } catch (Exception e) {
+            logging.ifError("streamQuery", sql, e);
+        }
+    }
+
     public Connection getConnection() throws Exception {
         return pool.getConnection();
     }
@@ -141,6 +161,11 @@ public class JdbcTemplate extends AbstractCache<String, String> {
     @FunctionalInterface
     public interface ResultSetMapper<T> extends Serializable {
         T map(ResultSet rs) throws Exception;
+    }
+
+    @FunctionalInterface
+    public interface ResultSetConsumer extends Serializable {
+        void consume(ResultSet rs) throws Exception;
     }
 }
 

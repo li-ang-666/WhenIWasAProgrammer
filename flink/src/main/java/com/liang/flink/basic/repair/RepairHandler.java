@@ -15,10 +15,8 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.util.Collector;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -60,27 +58,15 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     }
 
     private void doQuery(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
-        try (Connection connection = jdbcTemplate.getConnection()) {
-            connection.setAutoCommit(AUTO_COMMIT);
-            try (Statement statement = connection.createStatement(RESULT_SET_TYPE, RESULT_SET_CONCURRENCY)) {
-                statement.setFetchSize(FETCH_SIZE);
-                statement.setQueryTimeout(TIME_OUT);
-                try (ResultSet resultSet = statement.executeQuery(repairSplit.getSql())) {
-                    ResultSetMetaData metaData = resultSet.getMetaData();
-                    int columnCount = metaData.getColumnCount();
-                    while (resultSet.next()) {
-                        Map<String, Object> columnMap = new HashMap<>(columnCount);
-                        for (int i = 1; i <= columnCount; i++) {
-                            columnMap.put(metaData.getColumnName(i), resultSet.getString(i));
-                        }
-                        out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
-                    }
-                }
+        jdbcTemplate.streamQuery(repairSplit.getSql(), rs -> {
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            Map<String, Object> columnMap = new HashMap<>(columnCount);
+            for (int i = 1; i <= columnCount; i++) {
+                columnMap.put(metaData.getColumnName(i), rs.getString(i));
             }
-            log.info("repair split execute success: {}", repairSplit);
-        } catch (Exception e) {
-            log.error("repair split execute error: {}", repairSplit, e);
-        }
+            out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+        });
     }
 
     @Override
