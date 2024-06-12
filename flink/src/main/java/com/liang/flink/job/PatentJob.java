@@ -74,11 +74,11 @@ public class PatentJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             switch (singleCanalBinlog.getTable()) {
                 case "company_patent_basic_info_index":
-                    //parseIndex(singleCanalBinlog);
+                    parseIndex(singleCanalBinlog);
                     break;
                 case "company_index":
                 case "company_patent_basic_info_index_split":
-                    //parseIndexSplit(singleCanalBinlog);
+                    parseIndexSplit(singleCanalBinlog);
                     break;
                 default:
                     break;
