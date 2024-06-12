@@ -117,7 +117,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
             ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();
             while (resultSet.next()) {
-                HashMap<String, Object> columnMap = new HashMap<>();
+                HashMap<String, Object> columnMap = new LinkedHashMap<>();
                 for (int i = 1; i <= columnCount; i++) {
                     String columnName = metaData.getColumnName(i);
                     Object columnValue = BITMAP_COLUMN_NAME.equals(columnName) ?
