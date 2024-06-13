@@ -85,25 +85,6 @@ public class PatentJob {
             }
         }
 
-        @Override
-        public void snapshotState(FunctionSnapshotContext context) {
-            flush();
-        }
-
-        @Override
-        public void finish() {
-            flush();
-        }
-
-        @Override
-        public void close() {
-            flush();
-        }
-
-        private void flush() {
-            sink.flush();
-        }
-
         private void parseIndex(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             CanalEntry.EventType eventType = singleCanalBinlog.getEventType();
@@ -220,6 +201,25 @@ public class PatentJob {
                         put("num", entry.getValue());
                     }})
                     .collect(Collectors.toList());
+        }
+
+        @Override
+        public void snapshotState(FunctionSnapshotContext context) {
+            flush();
+        }
+
+        @Override
+        public void finish() {
+            flush();
+        }
+
+        @Override
+        public void close() {
+            flush();
+        }
+
+        private void flush() {
+            sink.flush();
         }
     }
 }
