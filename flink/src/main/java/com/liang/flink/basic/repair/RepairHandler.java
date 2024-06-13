@@ -15,21 +15,14 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.util.Collector;
 
-import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @RequiredArgsConstructor
 public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> implements CheckpointedFunction {
-    private static final boolean AUTO_COMMIT = false;
-    private static final int RESULT_SET_TYPE = ResultSet.TYPE_FORWARD_ONLY;
-    private static final int RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY;
-    private static final int FETCH_SIZE = Integer.MIN_VALUE;
-    private static final int TIME_OUT = (int) TimeUnit.HOURS.toSeconds(24);
     private final ReentrantLock lock = new ReentrantLock(true);
     private final Config config;
     private JdbcTemplate jdbcTemplate;
