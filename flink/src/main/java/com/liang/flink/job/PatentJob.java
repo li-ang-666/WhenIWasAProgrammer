@@ -26,9 +26,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @LocalConfigFile("patent.yml")
 public class PatentJob {
@@ -156,32 +155,38 @@ public class PatentJob {
         private void parseIndexSplit(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String companyId = String.valueOf(columnMap.get("company_id"));
-            Map<String, Integer> appYearStatisticMap = new TreeMap<>();
-            Map<String, Integer> pubYearStatisticMap = new TreeMap<>();
-            Map<String, Integer> typeStatisticMap = new TreeMap<>();
-            Map<String, Integer> statusStatisticMap = new TreeMap<>();
             String sql = new SQL()
                     .SELECT("patent_application_year", "patent_publish_year", "patent_type", "patent_status_detail")
                     .FROM("company_patent_basic_info_index_split")
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                     .toString();
+            Map<String, Map<String, Integer>> appYearStatisticMap = new TreeMap<>();
+            Map<String, Map<String, Integer>> pubYearStatisticMap = new TreeMap<>();
+            Map<String, Integer> typeStatisticMap = new TreeMap<>();
+            Map<String, Integer> statusStatisticMap = new TreeMap<>();
             queryTest.streamQuery(sql, rs -> {
                 String appYear = rs.getString(1);
                 String pubYear = rs.getString(2);
                 String type = rs.getString(3);
                 String status = rs.getString(4);
-                appYearStatisticMap.compute(appYear + "_" + type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
-                pubYearStatisticMap.compute(pubYear + "_" + type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
-                typeStatisticMap.compute(type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
-                statusStatisticMap.compute(status, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
+                appYearStatisticMap
+                        .compute(appYear, (k, v) -> ObjUtil.defaultIfNull(v, new TreeMap<>()))
+                        .compute(type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
+                pubYearStatisticMap
+                        .compute(pubYear, (k, v) -> ObjUtil.defaultIfNull(v, new TreeMap<>()))
+                        .compute(type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
+                typeStatisticMap
+                        .compute(type, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
+                statusStatisticMap
+                        .compute(status, (k, v) -> ObjUtil.defaultIfNull(v, 0) + 1);
             });
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("id", companyId);
             resultMap.put("company_id", companyId);
-            resultMap.put("app_year_statistic", JsonUtils.toString(appYearStatisticMap));
-            resultMap.put("pub_year_statistic", JsonUtils.toString(pubYearStatisticMap));
-            resultMap.put("type_statistic", JsonUtils.toString(typeStatisticMap));
-            resultMap.put("status_statistic", JsonUtils.toString(statusStatisticMap));
+            resultMap.put("app_year_statistic", JsonUtils.toString(complexMap2List(appYearStatisticMap)));
+            resultMap.put("pub_year_statistic", JsonUtils.toString(complexMap2List(pubYearStatisticMap)));
+            resultMap.put("type_statistic", JsonUtils.toString(simpleMap2List(typeStatisticMap)));
+            resultMap.put("status_statistic", JsonUtils.toString(simpleMap2List(statusStatisticMap)));
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String insertSql = new SQL().REPLACE_INTO("company_patent_basic_info_index_split_statistic")
                     .INTO_COLUMNS(insert.f0)
@@ -196,6 +201,25 @@ public class PatentJob {
                     .WHERE("id = " + SqlUtils.formatValue(infoId))
                     .toString();
             return queryProd.queryForObject(sql, rs -> rs.getString(1));
+        }
+
+        private List<Map<String, Object>> complexMap2List(Map<String, Map<String, Integer>> map) {
+            return map.entrySet().stream()
+                    .map(entry -> new LinkedHashMap<String, Object>() {{
+                        put("label", entry.getKey());
+                        put("num", entry.getValue().values().parallelStream().mapToInt(e -> e).sum());
+                        put("stack", simpleMap2List(entry.getValue()));
+                    }})
+                    .collect(Collectors.toList());
+        }
+
+        private List<Map<String, Object>> simpleMap2List(Map<String, Integer> map) {
+            return map.entrySet().stream()
+                    .map(entry -> new LinkedHashMap<String, Object>() {{
+                        put("label", entry.getKey());
+                        put("num", entry.getValue());
+                    }})
+                    .collect(Collectors.toList());
         }
     }
 }
