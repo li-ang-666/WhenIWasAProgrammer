@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
@@ -107,7 +108,7 @@ public class PatentJob {
                 String patentTitle = String.valueOf(columnMap.get("patent_title"));
                 String patentApplicationNumber = String.valueOf(columnMap.get("patent_application_number"));
                 String patentAnnounceNumber = String.valueOf(columnMap.get("patent_announce_number"));
-                for (String companyId : String.valueOf(columnMap.get("company_ids")).split(";")) {
+                for (String companyId : CollUtil.newHashSet(String.valueOf(columnMap.get("company_ids")).split(";"))) {
                     if (!TycUtils.isUnsignedId(companyId)) {
                         continue;
                     }
