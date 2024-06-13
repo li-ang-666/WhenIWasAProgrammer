@@ -7,7 +7,10 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.project.data.concat.impl.*;
+import com.liang.flink.service.LocalConfigFile;
 import com.liang.flink.service.data.update.DataUpdateContext;
+import com.liang.flink.service.data.update.DataUpdateImpl;
 import com.liang.flink.service.data.update.DataUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
@@ -20,10 +23,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 @Slf4j
+@LocalConfigFile("data-concat.yml")
 public class DataConcatJob {
     public static void main(String[] args) throws Exception {
-        if (args.length == 0)
-            args = new String[]{"data-concat.yml"};
         StreamExecutionEnvironment streamEnvironment = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(streamEnvironment);
@@ -36,6 +38,14 @@ public class DataConcatJob {
     }
 
     @Slf4j
+    @DataUpdateImpl({
+            RestrictConsumptionSplitIndex.class,
+            JudicialAssistanceIndex.class,
+            RestrictedOutboundIndex.class,
+            EquityPledgeReinvest.class,
+            EquityPledgeDetail.class,
+            CompanyBranch.class
+    })
     private static class DataConcatRichSinkFunction extends RichSinkFunction<SingleCanalBinlog> {
         private final Config config;
         private DataUpdateService<HbaseOneRow> service;
@@ -46,23 +56,16 @@ public class DataConcatJob {
         }
 
         @Override
-        public void open(Configuration parameters) throws Exception {
+        public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            DataUpdateContext<HbaseOneRow> dataUpdateContext = new DataUpdateContext<HbaseOneRow>
-                    ("data.concat")
-                    .addImpl("RestrictConsumptionSplitIndex")
-                    .addImpl("JudicialAssistanceIndex")
-                    .addImpl("RestrictedOutboundIndex")
-                    .addImpl("EquityPledgeReinvest")
-                    .addImpl("EquityPledgeDetail")
-                    .addImpl("CompanyBranch");
+            DataUpdateContext<HbaseOneRow> dataUpdateContext = new DataUpdateContext<>(DataConcatRichSinkFunction.class);
             service = new DataUpdateService<>(dataUpdateContext);
             hbase = new HbaseTemplate("hbaseSink");
             hbase.enableCache();
         }
 
         @Override
-        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) throws Exception {
+        public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             List<HbaseOneRow> result = service.invoke(singleCanalBinlog);
             if (result == null || result.isEmpty()) {
                 return;
