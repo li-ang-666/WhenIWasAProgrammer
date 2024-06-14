@@ -158,6 +158,7 @@ public class BlackList extends ConfigHolder {
         deletePartner("504DLMR02F2C5PRR7");
         deletePartner("201JD9M09ERCC2JEY");
         deletePartner("000GAM300MB79VUC8");
+        deletePartner("60A4N9A0M7G7B1QKB");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'D0B77MY02NP8TBT8R' and company_name not like '%陕西%'");
     }
 
