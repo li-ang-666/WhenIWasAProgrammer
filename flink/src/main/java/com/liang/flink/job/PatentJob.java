@@ -66,7 +66,8 @@ public class PatentJob {
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             queryTest = new JdbcTemplate("427.test");
-            queryProd = new JdbcTemplate("451.intellectual_property_info");
+            //queryProd = new JdbcTemplate("451.intellectual_property_info");
+            queryProd = new JdbcTemplate("427.test");
             sink = new JdbcTemplate("427.test");
             sink.enableCache();
         }
