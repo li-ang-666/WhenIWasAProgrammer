@@ -16,6 +16,6 @@ public class BossRepair extends ConfigHolder {
                 .timeout(TIMEOUT)
                 .execute()
                 .body();
-        System.out.println(body);
+        log.info(body);
     }
 }
