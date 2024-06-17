@@ -21,7 +21,7 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "5e5e3.proto.intellectual_property_info.company_patent_basic_info_index"
+      - "9349c.proto.intellectual_property_info.company_patent_basic_info_index"
       - "9349c.proto.test.company_patent_basic_info_index_split"
     groupId: "patent-job"
     startFrom: "2"
