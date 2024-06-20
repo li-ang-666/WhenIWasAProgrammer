@@ -160,6 +160,7 @@ public class BlackList extends ConfigHolder {
         deletePartner("000GAM300MB79VUC8");
         deletePartner("60A4N9A0M7G7B1QKB");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'D0B77MY02NP8TBT8R' and company_name not like '%陕西%'");
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'E044992098GAB1QKP' and company_name = '佳木斯运隆建筑装饰工程有限公司'");
     }
 
     /**
