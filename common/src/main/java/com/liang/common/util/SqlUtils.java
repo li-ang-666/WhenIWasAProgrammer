@@ -4,10 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @UtilityClass
@@ -148,5 +145,21 @@ public class SqlUtils {
             }
         }
         return stringBuilder.append("'").toString();
+    }
+
+    public String onDuplicateKeyUpdate(String... columns) {
+        return onDuplicateKeyUpdate(Arrays.asList(columns));
+    }
+
+    public String onDuplicateKeyUpdate(Collection<String> columns) {
+        List<String> syntaxList = new ArrayList<>();
+        for (String column : columns) {
+            if (column.equals("update_time")) {
+                syntaxList.add("update_time = NOW()");
+            } else {
+                syntaxList.add(String.format("%s = VALUES(%s)", column, column));
+            }
+        }
+        return " ON DUPLICATE KEY UPDATE " + String.join(",", syntaxList);
     }
 }

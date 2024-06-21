@@ -66,7 +66,6 @@ public class EquityBfsDao {
                     .SELECT("equity_ratio")
                     .FROM("graph_data.company_equity_relation_details")
                     .WHERE("company_id_invested in " + SqlUtils.formatValue(split))
-                    .WHERE("reference_pt_year = 2024")
                     .toString();
             graphData430.queryForList(sql, rs -> {
                 String investedCompanyId = rs.getString(1);
