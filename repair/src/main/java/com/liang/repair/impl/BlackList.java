@@ -162,6 +162,7 @@ public class BlackList extends ConfigHolder {
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'D0B77MY02NP8TBT8R' and company_name not like '%陕西%'");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'E044992098GAB1QKP' and company_name = '佳木斯运隆建筑装饰工程有限公司'");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'C0AE0MQ008NPTFU23' and company_name not like '%郑州新铁%'");
+        new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'J0E6VML0978V9F8PH' and partner_human_name = '张耀疆'");
     }
 
     /**
