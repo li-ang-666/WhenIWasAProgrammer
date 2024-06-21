@@ -3,10 +3,11 @@ package com.liang.repair.impl;
 import com.liang.common.dto.HbaseOneRow;
 import com.liang.common.dto.HbaseSchema;
 import com.liang.common.service.database.template.HbaseTemplate;
-import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.repair.service.ConfigHolder;
 
+// has_controller
+// num_control_ability
 public class ReadHbase extends ConfigHolder {
     private final static HbaseTemplate HBASE_TEMPLATE;
 
@@ -15,22 +16,9 @@ public class ReadHbase extends ConfigHolder {
     }
 
     public static void main(String[] args) {
-        HbaseOneRow hbaseOneRow = new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT_ALI, "6900544756");
-        HbaseOneRow queryResult = HBASE_TEMPLATE.getRow(hbaseOneRow);
+        HbaseOneRow queryResult = HBASE_TEMPLATE.getRow(new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT_ALI, "6900544756"));
         log.info("{}", JsonUtils.toString(queryResult));
         queryResult.put("bid_count", 2);
-        //queryResult.put("num_benefit_ability", null);
-        //queryResult.put("has_beneficiary", null);
-        //queryResult.put("has_controller", null);
         HBASE_TEMPLATE.update(queryResult);
-    }
-
-    private static HbaseOneRow query(HbaseOneRow hbaseOneRow) {
-        HbaseOneRow resultRow = HBASE_TEMPLATE.getRow(hbaseOneRow);
-        int hbaseSinkConfigLength = String.valueOf(ConfigUtils.getConfig().getHbaseConfigs().get("hbaseSink")).split(",").length;
-        if (hbaseSinkConfigLength == 1) log.warn("\n\n醒目: 目前是测试Hbase\n");
-        else log.warn("\n\n醒目: 目前是生产Hbase\n");
-        log.info("row: {}", JsonUtils.toString(resultRow));
-        return resultRow;
     }
 }
