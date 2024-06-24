@@ -6,16 +6,16 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  #  - sourceName: "435.company_base"
-  #    tableName: "shareholder_investment_relation_info_tmp"
-  #    columns: "*"
-  #    where: "company_id = 2318455639"
-  #    scanMode: Direct
-  - sourceName: "157.prism_boss"
-    tableName: "company_human_relation"
+  - sourceName: "435.company_base"
+    tableName: "shareholder_investment_relation_info_tmp"
     columns: "*"
-    where: "company_graph_id = 2318455639"
+    where: "company_id = 2318455639"
     scanMode: Direct
+#  - sourceName: "157.prism_boss"
+#    tableName: "company_human_relation"
+#    columns: "*"
+#    where: "company_graph_id = 2318455639"
+#    scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
