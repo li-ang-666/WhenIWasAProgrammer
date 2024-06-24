@@ -24,9 +24,7 @@ import org.apache.flink.util.Collector;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @LocalConfigFile("equity-direct.yml")
 public class EquityDirectJob {
@@ -98,24 +96,37 @@ public class EquityDirectJob {
                     out.collect((String) singleCanalBinlog.getColumnMap().get("id"));
                     break;
                 case "company_human_relation":
-                    updateByColumnMap(singleCanalBinlog.getBeforeColumnMap());
-                    updateByColumnMap(singleCanalBinlog.getAfterColumnMap());
+                    Set<Tuple2<String, String>> tuple2s = new HashSet<>();
+                    Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
+                    tuple2s.add(Tuple2.of((String) beforeColumnMap.get("company_graph_id"), (String) beforeColumnMap.get("human_graph_id")));
+                    Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
+                    tuple2s.add(Tuple2.of((String) afterColumnMap.get("company_graph_id"), (String) afterColumnMap.get("human_graph_id")));
+                    for (Tuple2<String, String> tuple2 : tuple2s) {
+                        for (String id : queryIds(tuple2)) {
+                            out.collect(id);
+                        }
+                    }
                     break;
                 default:
                     break;
             }
         }
 
-        private void updateByColumnMap(Map<String, Object> columnMap) {
-            String companyGraphId = (String) columnMap.get("company_graph_id");
-            String humanGraphId = (String) columnMap.get("human_graph_id");
-            String sql = new SQL().UPDATE(QUERY_TABLE)
-                    .SET("update_time = date_add(update_time, interval 1 second)")
+        private List<String> queryIds(Tuple2<String, String> companyIdAndHumanNameId) {
+            ArrayList<String> ids = new ArrayList<>();
+            String companyGraphId = companyIdAndHumanNameId.f0;
+            String humanGraphId = companyIdAndHumanNameId.f1;
+            if (StrUtil.equalsAny("0", companyGraphId, humanGraphId)) {
+                return ids;
+            }
+            String sql = new SQL().SELECT("id")
+                    .FROM(QUERY_TABLE)
                     .WHERE("company_id = " + SqlUtils.formatValue(companyGraphId))
-                    .OR()
+                    .AND()
                     .WHERE("shareholder_name_id = ", SqlUtils.formatValue(humanGraphId))
                     .toString();
-            trigger.update(sql);
+            ids.addAll(trigger.queryForList(sql, rs -> rs.getString(1)));
+            return ids;
         }
     }
 
