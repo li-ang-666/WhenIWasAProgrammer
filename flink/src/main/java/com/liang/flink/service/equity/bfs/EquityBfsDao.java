@@ -1,6 +1,7 @@
 package com.liang.flink.service.equity.bfs;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.SqlUtils;
@@ -67,13 +68,12 @@ public class EquityBfsDao {
                     .FROM("graph_data.company_equity_relation_details")
                     .WHERE("company_id_invested in " + SqlUtils.formatValue(split))
                     .WHERE("reference_pt_year = 2024")
-                    .WHERE("equity_ratio >= 0")
                     .toString();
             graphData430.queryForList(sql, rs -> {
                 String investedCompanyId = rs.getString(1);
                 String id = rs.getString(2);
                 String name = rs.getString(3);
-                BigDecimal ratio = new BigDecimal(rs.getString(4));
+                BigDecimal ratio = new BigDecimal(StrUtil.nullToDefault(rs.getString(4), "0"));
                 res.compute(investedCompanyId, (k, v) -> {
                     List<CompanyEquityRelationDetailsDto> shareholders = (v != null) ? v : new ArrayList<>();
                     shareholders.add(new CompanyEquityRelationDetailsDto(id, name, ratio));
