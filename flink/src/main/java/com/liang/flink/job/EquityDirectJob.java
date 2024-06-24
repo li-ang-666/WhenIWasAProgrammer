@@ -98,8 +98,8 @@ public class EquityDirectJob {
                 case "company_human_relation":
                     // 去重
                     Set<Tuple2<String, String>> tuple2s = new HashSet<>();
-                    mix(singleCanalBinlog.getBeforeColumnMap(), tuple2s);
-                    mix(singleCanalBinlog.getAfterColumnMap(), tuple2s);
+                    deduplicate(singleCanalBinlog.getBeforeColumnMap(), tuple2s);
+                    deduplicate(singleCanalBinlog.getAfterColumnMap(), tuple2s);
                     // 查询
                     for (Tuple2<String, String> tuple2 : tuple2s) {
                         for (String id : queryIds(tuple2)) {
@@ -112,7 +112,7 @@ public class EquityDirectJob {
             }
         }
 
-        private void mix(Map<String, Object> columnMap, Set<Tuple2<String, String>> tuple2s) {
+        private void deduplicate(Map<String, Object> columnMap, Set<Tuple2<String, String>> tuple2s) {
             if (!columnMap.isEmpty()) {
                 tuple2s.add(Tuple2.of((String) columnMap.get("company_graph_id"), (String) columnMap.get("human_graph_id")));
             }
@@ -124,8 +124,7 @@ public class EquityDirectJob {
             String sql = new SQL().SELECT("id")
                     .FROM(QUERY_TABLE)
                     .WHERE("company_id = " + SqlUtils.formatValue(companyGraphId))
-                    .AND()
-                    .WHERE("shareholder_name_id = ", SqlUtils.formatValue(humanGraphId))
+                    .WHERE("shareholder_name_id = " + SqlUtils.formatValue(humanGraphId))
                     .toString();
             return query.queryForList(sql, rs -> rs.getString(1));
         }

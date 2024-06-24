@@ -6,17 +6,21 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - taskId: "111"
-    sourceName: "435.company_base"
-    tableName: "shareholder_investment_relation_info_tmp"
+  #  - sourceName: "435.company_base"
+  #    tableName: "shareholder_investment_relation_info_tmp"
+  #    columns: "*"
+  #    where: "company_id = 2318455639"
+  #    scanMode: Direct
+  - sourceName: "157.prism_boss"
+    tableName: "company_human_relation"
     columns: "*"
-    where: "id <= 500"
+    where: "company_graph_id = 2318455639"
     scanMode: Direct
 
 kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "50598.proto.prism_shareholder_path.ratio_path_company_new_all"
-    groupId: "equity-tag-job"
+      - ""
+    groupId: "equity-direct-job"
     startFrom: "2"
