@@ -92,10 +92,12 @@ public class EquityDirectJob {
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
             String table = singleCanalBinlog.getTable();
             switch (table) {
-                case QUERY_TABLE:
-                    out.collect((String) singleCanalBinlog.getColumnMap().get("id"));
+                case QUERY_TABLE: {
+                    String id = (String) singleCanalBinlog.getColumnMap().get("id");
+                    out.collect(id);
                     break;
-                case "company_human_relation":
+                }
+                case "company_human_relation": {
                     // 去重
                     Set<Tuple2<String, String>> tuple2s = new HashSet<>();
                     deduplicate(singleCanalBinlog.getBeforeColumnMap(), tuple2s);
@@ -107,8 +109,10 @@ public class EquityDirectJob {
                         }
                     }
                     break;
-                default:
+                }
+                default: {
                     break;
+                }
             }
         }
 
