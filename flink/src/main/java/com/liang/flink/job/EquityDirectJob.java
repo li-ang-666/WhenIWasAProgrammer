@@ -79,13 +79,13 @@ public class EquityDirectJob {
     @RequiredArgsConstructor
     private static final class EquityDirectFlatMapper extends RichFlatMapFunction<SingleCanalBinlog, String> {
         private final Config config;
-        private JdbcTemplate trigger;
+        private JdbcTemplate query;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            trigger = new JdbcTemplate(QUERY_RDS);
-            trigger.enableCache(2000, 128);
+            query = new JdbcTemplate(QUERY_RDS);
+            query.enableCache(2000, 128);
         }
 
         @Override
@@ -96,11 +96,11 @@ public class EquityDirectJob {
                     out.collect((String) singleCanalBinlog.getColumnMap().get("id"));
                     break;
                 case "company_human_relation":
+                    // 去重
                     Set<Tuple2<String, String>> tuple2s = new HashSet<>();
-                    Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
-                    tuple2s.add(Tuple2.of((String) beforeColumnMap.get("company_graph_id"), (String) beforeColumnMap.get("human_graph_id")));
-                    Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
-                    tuple2s.add(Tuple2.of((String) afterColumnMap.get("company_graph_id"), (String) afterColumnMap.get("human_graph_id")));
+                    mix(singleCanalBinlog.getBeforeColumnMap(), tuple2s);
+                    mix(singleCanalBinlog.getAfterColumnMap(), tuple2s);
+                    // 查询
                     for (Tuple2<String, String> tuple2 : tuple2s) {
                         for (String id : queryIds(tuple2)) {
                             out.collect(id);
@@ -112,21 +112,22 @@ public class EquityDirectJob {
             }
         }
 
+        private void mix(Map<String, Object> columnMap, Set<Tuple2<String, String>> tuple2s) {
+            if (!columnMap.isEmpty()) {
+                tuple2s.add(Tuple2.of((String) columnMap.get("company_graph_id"), (String) columnMap.get("human_graph_id")));
+            }
+        }
+
         private List<String> queryIds(Tuple2<String, String> companyIdAndHumanNameId) {
-            ArrayList<String> ids = new ArrayList<>();
             String companyGraphId = companyIdAndHumanNameId.f0;
             String humanGraphId = companyIdAndHumanNameId.f1;
-            if (StrUtil.equalsAny("0", companyGraphId, humanGraphId)) {
-                return ids;
-            }
             String sql = new SQL().SELECT("id")
                     .FROM(QUERY_TABLE)
                     .WHERE("company_id = " + SqlUtils.formatValue(companyGraphId))
                     .AND()
                     .WHERE("shareholder_name_id = ", SqlUtils.formatValue(humanGraphId))
                     .toString();
-            ids.addAll(trigger.queryForList(sql, rs -> rs.getString(1)));
-            return ids;
+            return query.queryForList(sql, rs -> rs.getString(1));
         }
     }
 
