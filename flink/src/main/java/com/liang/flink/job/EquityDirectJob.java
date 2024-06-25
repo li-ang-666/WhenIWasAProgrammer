@@ -175,9 +175,11 @@ public class EquityDirectJob {
                 String shareholderType = (String) columnMap.get("shareholder_type");
                 String shareholderTypeShow = (String) columnMap.get("shareholder_type_show");
                 String subscribedCapital = new BigDecimal(StrUtil.nullToDefault((String) columnMap.get("subscribed_capital"), "0"))
+                        .abs()
                         .setScale(12, RoundingMode.DOWN)
                         .toPlainString();
                 String investmentRatio = new BigDecimal(StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "0"))
+                        .abs()
                         .setScale(12, RoundingMode.DOWN)
                         .toPlainString();
                 String dataSource = (String) columnMap.get("data_source");
