@@ -213,8 +213,9 @@ public class EquityDirectJob {
             String subscribedCapital;
             String investmentRatio;
             String pid;
+            companyId = (String) columnMap.get("company_id");
+            shareholderTypeShow = (String) columnMap.get("shareholder_type_show");
             if (isHk) {
-                companyId = (String) columnMap.get("company_id");
                 companyName = queryCompanyName(companyId);
                 shareholderNameId = (String) columnMap.get("main_shareholder_gid");
                 shareholderName = (String) columnMap.get("main_shareholder_name");
@@ -229,41 +230,17 @@ public class EquityDirectJob {
                         shareholderType = "3";
                         break;
                 }
-                shareholderTypeShow = (String) columnMap.get("shareholder_type_show");
-                subscribedCapital = new BigDecimal(StrUtil.nullToDefault((String) columnMap.get("hk_shares_cnt_total_holding"), "0"))
-                        .abs()
-                        .setScale(12, RoundingMode.DOWN)
-                        .toPlainString();
-                investmentRatio = new BigDecimal(StrUtil.nullToDefault((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"), "0"))
-                        .abs()
-                        .setScale(12, RoundingMode.DOWN)
-                        .toPlainString();
-                if ("1".equals(shareholderType)) {
-                    pid = queryPid(shareholderNameId, companyId);
-                } else {
-                    pid = shareholderNameId;
-                }
+                subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"));
+                investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"));
             } else {
-                companyId = (String) columnMap.get("company_id");
                 companyName = (String) columnMap.get("company_name");
                 shareholderNameId = (String) columnMap.get("shareholder_name_id");
                 shareholderName = (String) columnMap.get("shareholder_name");
                 shareholderType = (String) columnMap.get("shareholder_type");
-                shareholderTypeShow = (String) columnMap.get("shareholder_type_show");
-                subscribedCapital = new BigDecimal(StrUtil.nullToDefault((String) columnMap.get("subscribed_capital"), "0"))
-                        .abs()
-                        .setScale(12, RoundingMode.DOWN)
-                        .toPlainString();
-                investmentRatio = new BigDecimal(StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "0"))
-                        .abs()
-                        .setScale(12, RoundingMode.DOWN)
-                        .toPlainString();
-                if ("1".equals(shareholderType)) {
-                    pid = queryPid(shareholderNameId, companyId);
-                } else {
-                    pid = shareholderNameId;
-                }
+                subscribedCapital = formatNumber((String) columnMap.get("subscribed_capital"));
+                investmentRatio = formatNumber((String) columnMap.get("investment_ratio"));
             }
+            pid = "1".equals(shareholderType) ? queryPid(shareholderNameId, companyId) : shareholderNameId;
             // old
             resultMap.put("company_id_invested", companyId);
             resultMap.put("tyc_unique_entity_id_invested", companyId);
@@ -305,6 +282,13 @@ public class EquityDirectJob {
                     .toString();
             String queryRes = rdsRelation.queryForObject(queryPidSql, rs -> rs.getString(1));
             return StrUtil.blankToDefault(queryRes, shareholderNameId);
+        }
+
+        private String formatNumber(String number) {
+            return new BigDecimal(StrUtil.nullToDefault(number, "0"))
+                    .abs()
+                    .setScale(12, RoundingMode.DOWN)
+                    .toPlainString();
         }
 
         private void insertColumnMap(Map<String, Object> columnMap) {
