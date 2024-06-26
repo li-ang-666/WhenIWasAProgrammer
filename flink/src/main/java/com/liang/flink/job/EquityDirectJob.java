@@ -230,15 +230,15 @@ public class EquityDirectJob {
                         shareholderType = "3";
                         break;
                 }
-                subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"));
-                investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"));
+                subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"), false);
+                investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"), true);
             } else {
                 companyName = (String) columnMap.get("company_name");
                 shareholderNameId = (String) columnMap.get("shareholder_name_id");
                 shareholderName = (String) columnMap.get("shareholder_name");
                 shareholderType = (String) columnMap.get("shareholder_type");
-                subscribedCapital = formatNumber((String) columnMap.get("subscribed_capital"));
-                investmentRatio = formatNumber((String) columnMap.get("investment_ratio"));
+                subscribedCapital = formatNumber((String) columnMap.get("subscribed_capital"), false);
+                investmentRatio = formatNumber((String) columnMap.get("investment_ratio"), false);
             }
             pid = "1".equals(shareholderType) ? queryPid(shareholderNameId, companyId) : shareholderNameId;
             // old
@@ -284,9 +284,10 @@ public class EquityDirectJob {
             return StrUtil.blankToDefault(queryRes, shareholderNameId);
         }
 
-        private String formatNumber(String number) {
+        private String formatNumber(String number, boolean divide100) {
             return new BigDecimal(StrUtil.nullToDefault(number, "0"))
                     .abs()
+                    .divide(divide100 ? new BigDecimal(100) : new BigDecimal(1), 12, RoundingMode.DOWN)
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         }
