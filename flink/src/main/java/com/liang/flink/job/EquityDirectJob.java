@@ -275,7 +275,7 @@ public class EquityDirectJob {
 
         private String queryPid(String shareholderNameId, String companyId) {
             String queryPidSql = new SQL().SELECT("human_pid")
-                    .FROM("company_human_relation")
+                    .FROM(QUERY_TABLE_RELATION)
                     .WHERE("human_graph_id = " + SqlUtils.formatValue(shareholderNameId))
                     .WHERE("company_graph_id = " + SqlUtils.formatValue(companyId))
                     .WHERE("deleted = 0")
