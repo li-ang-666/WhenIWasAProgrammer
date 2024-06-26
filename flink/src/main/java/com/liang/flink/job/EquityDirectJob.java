@@ -250,7 +250,7 @@ public class EquityDirectJob {
             resultMap.put("tyc_unique_entity_id_investor", pid);
             resultMap.put("tyc_unique_entity_name_investor", shareholderName);
             resultMap.put("equity_amount", subscribedCapital);
-            resultMap.put("equity_amount_currency", isHk ? "股" : "人民币");
+            resultMap.put("equity_amount_currency", isHk ? "股" : "万股");
             resultMap.put("equity_ratio", investmentRatio);
             resultMap.put("equity_relation_validation_year", 2024);
             resultMap.put("reference_pt_year", 2024);
