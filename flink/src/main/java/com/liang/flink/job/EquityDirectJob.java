@@ -172,7 +172,7 @@ public class EquityDirectJob {
                     .FROM(QUERY_TABLE_JUDGE)
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                     .WHERE("search_button_show in (2, 3)")
-                    .WHERE("latest_public_data_source = 3")
+                    .WHERE("latest_public_data_source = 4")
                     .toString();
             return rdsJudge.queryForObject(sql, rs -> rs.getString(1)) != null;
         }
@@ -190,7 +190,7 @@ public class EquityDirectJob {
                         .FROM(QUERY_TABLE_HK)
                         .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                         .WHERE("is_deleted = 0")
-                        .WHERE("main_shareholder_announcement_date = " + innerSql)
+                        .WHERE("main_shareholder_announcement_date = (" + innerSql + ")")
                         .toString();
             } else {
                 sql = new SQL().SELECT("*")
