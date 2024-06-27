@@ -252,7 +252,7 @@ public class EquityDirectJob {
                 }
                 // 不是股票
                 else {
-                    List<Object> infos = JsonUtils.parseJsonArr((String) columnMap.get("subscribed_capital_info"));
+                    List<Object> infos = JsonUtils.parseJsonArr(StrUtil.blankToDefault((String) columnMap.get("subscribed_capital_info"), "[]"));
                     Map<String, Object> info = infos.isEmpty() ? new HashMap<>() : (Map<String, Object>) infos.get(0);
                     String amount = (String) info.getOrDefault("amomon", "");
                     shareType += amount.replaceAll("[\\d.]", "");
