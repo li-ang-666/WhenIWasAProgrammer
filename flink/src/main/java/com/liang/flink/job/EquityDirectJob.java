@@ -6,6 +6,7 @@ import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 @LocalConfigFile("equity-direct.yml")
 public class EquityDirectJob {
     private static final String QUERY_RDS_BASE = "435.company_base";
@@ -213,7 +215,7 @@ public class EquityDirectJob {
             String subscribedCapital;
             String investmentRatio;
             String pid;
-            String shareType;
+            String shareType = "";
             companyId = (String) columnMap.get("company_id");
             shareholderTypeShow = (String) columnMap.get("shareholder_type_show");
             if (isHk) {
@@ -233,7 +235,7 @@ public class EquityDirectJob {
                 }
                 subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"), false);
                 investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"), true);
-                shareType = "股";
+                shareType += "股";
             } else {
                 companyName = (String) columnMap.get("company_name");
                 shareholderNameId = (String) columnMap.get("shareholder_name_id");
@@ -241,7 +243,20 @@ public class EquityDirectJob {
                 shareholderType = (String) columnMap.get("shareholder_type");
                 subscribedCapital = formatNumber((String) columnMap.get("subscribed_capital"), false);
                 investmentRatio = formatNumber((String) columnMap.get("investment_ratio"), false);
-                shareType = ((String) columnMap.get("share_type")).contains("股") ? "万股" : "人民币";
+                // 是股票
+                if (((String) columnMap.get("share_type")).contains("股")) {
+                    if (((String) columnMap.get("subscribed_capital_info")).contains("万")) {
+                        shareType += "万";
+                    }
+                    shareType += "股";
+                }
+                // 不是股票
+                else {
+                    List<Object> infos = JsonUtils.parseJsonArr((String) columnMap.get("subscribed_capital_info"));
+                    Map<String, Object> info = infos.isEmpty() ? new HashMap<>() : (Map<String, Object>) infos.get(0);
+                    String amount = (String) info.getOrDefault("amomon", "");
+                    shareType += amount.replaceAll("[\\d.]", "");
+                }
             }
             pid = "1".equals(shareholderType) ? queryPid(shareholderNameId, companyId) : shareholderNameId;
             // old
