@@ -213,6 +213,7 @@ public class EquityDirectJob {
             String subscribedCapital;
             String investmentRatio;
             String pid;
+            String shareType;
             companyId = (String) columnMap.get("company_id");
             shareholderTypeShow = (String) columnMap.get("shareholder_type_show");
             if (isHk) {
@@ -232,6 +233,7 @@ public class EquityDirectJob {
                 }
                 subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"), false);
                 investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"), true);
+                shareType = "股";
             } else {
                 companyName = (String) columnMap.get("company_name");
                 shareholderNameId = (String) columnMap.get("shareholder_name_id");
@@ -239,6 +241,7 @@ public class EquityDirectJob {
                 shareholderType = (String) columnMap.get("shareholder_type");
                 subscribedCapital = formatNumber((String) columnMap.get("subscribed_capital"), false);
                 investmentRatio = formatNumber((String) columnMap.get("investment_ratio"), false);
+                shareType = ((String) columnMap.get("share_type")).contains("股") ? "万股" : "人民币";
             }
             pid = "1".equals(shareholderType) ? queryPid(shareholderNameId, companyId) : shareholderNameId;
             // old
@@ -250,7 +253,7 @@ public class EquityDirectJob {
             resultMap.put("tyc_unique_entity_id_investor", pid);
             resultMap.put("tyc_unique_entity_name_investor", shareholderName);
             resultMap.put("equity_amount", subscribedCapital);
-            resultMap.put("equity_amount_currency", isHk ? "股" : "万股");
+            resultMap.put("equity_amount_currency", shareType);
             resultMap.put("equity_ratio", investmentRatio);
             resultMap.put("equity_relation_validation_year", 2024);
             resultMap.put("reference_pt_year", 2024);
