@@ -238,7 +238,7 @@ public class EquityDirectJob {
                 subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"), false);
                 investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"), true);
                 unit += "股";
-                dataSource = "0";
+                dataSource = "-100";
                 switch ((String) columnMap.get("share_type")) {
                     case "1":
                         shareType = "普通股";
