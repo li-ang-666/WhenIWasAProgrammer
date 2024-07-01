@@ -255,7 +255,7 @@ public class EquityDirectJob {
                     List<Object> infos = JsonUtils.parseJsonArr(StrUtil.blankToDefault((String) columnMap.get("subscribed_capital_info"), "[]"));
                     Map<String, Object> info = infos.isEmpty() ? new HashMap<>() : (Map<String, Object>) infos.get(0);
                     String amount = (String) info.getOrDefault("amomon", "");
-                    shareType += amount.replaceAll("[\\d.]", "");
+                    shareType += amount.replaceAll("\\d|\\.|(人民币)", "");
                 }
             }
             pid = "1".equals(shareholderType) ? queryPid(shareholderNameId, companyId) : shareholderNameId;
