@@ -215,7 +215,9 @@ public class EquityDirectJob {
             String subscribedCapital;
             String investmentRatio;
             String pid;
-            String shareType = "";
+            String unit = "";
+            String dataSource;
+            String shareType;
             companyId = (String) columnMap.get("company_id");
             shareholderTypeShow = (String) columnMap.get("shareholder_type_show");
             if (isHk) {
@@ -235,7 +237,25 @@ public class EquityDirectJob {
                 }
                 subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"), false);
                 investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"), true);
-                shareType += "股";
+                unit += "股";
+                dataSource = "0";
+                switch ((String) columnMap.get("share_type")) {
+                    case "1":
+                        shareType = "普通股";
+                        break;
+                    case "2":
+                        shareType = "H股";
+                        break;
+                    case "3":
+                        shareType = "普通股A";
+                        break;
+                    case "4":
+                        shareType = "普通股B";
+                        break;
+                    default:
+                        shareType = "其他";
+                        break;
+                }
             } else {
                 companyName = (String) columnMap.get("company_name");
                 shareholderNameId = (String) columnMap.get("shareholder_name_id");
@@ -244,19 +264,21 @@ public class EquityDirectJob {
                 subscribedCapital = formatNumber((String) columnMap.get("subscribed_capital"), false);
                 investmentRatio = formatNumber((String) columnMap.get("investment_ratio"), false);
                 // 是股票
-                if (((String) columnMap.get("share_type")).contains("股")) {
+                if (("100".equals(columnMap.get("data_source")))) {
                     if (((String) columnMap.get("subscribed_capital_info")).contains("万")) {
-                        shareType += "万";
+                        unit += "万";
                     }
-                    shareType += "股";
+                    unit += "股";
                 }
                 // 不是股票
                 else {
                     List<Object> infos = JsonUtils.parseJsonArr(StrUtil.blankToDefault((String) columnMap.get("subscribed_capital_info"), "[]"));
                     Map<String, Object> info = infos.isEmpty() ? new HashMap<>() : (Map<String, Object>) infos.get(0);
                     String amount = (String) info.getOrDefault("amomon", "");
-                    shareType += amount.replaceAll("\\d|\\.|(人民币)", "");
+                    unit += amount.replaceAll("\\d|\\.|(人民币)|\\s|[A-z]|-|\\?", "");
                 }
+                dataSource = (String) columnMap.get("data_source");
+                shareType = (String) columnMap.get("share_type");
             }
             pid = "1".equals(shareholderType) ? queryPid(shareholderNameId, companyId) : shareholderNameId;
             // old
@@ -267,9 +289,6 @@ public class EquityDirectJob {
             resultMap.put("company_id_investor", shareholderNameId);
             resultMap.put("tyc_unique_entity_id_investor", pid);
             resultMap.put("tyc_unique_entity_name_investor", shareholderName);
-            resultMap.put("equity_amount", subscribedCapital);
-            resultMap.put("equity_amount_currency", shareType);
-            resultMap.put("equity_ratio", investmentRatio);
             resultMap.put("equity_relation_validation_year", 2024);
             resultMap.put("reference_pt_year", 2024);
             // new
@@ -280,6 +299,11 @@ public class EquityDirectJob {
             resultMap.put("shareholder_name_id", shareholderNameId);
             resultMap.put("shareholder_id", pid);
             resultMap.put("shareholder_name", shareholderName);
+            resultMap.put("equity_ratio", investmentRatio);
+            resultMap.put("equity_amount", subscribedCapital);
+            resultMap.put("equity_amount_currency", unit);
+            resultMap.put("data_source", dataSource);
+            resultMap.put("share_type", shareType);
             return resultMap;
         }
 
