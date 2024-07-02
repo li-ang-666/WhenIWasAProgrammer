@@ -154,7 +154,10 @@ public class EquityDirectJob {
 
         private void consumeCompanyId(long companyId) {
             delete(companyId);
-            boolean isHk = judgeIsHk(companyId);
+            Boolean isHk = judgeIsHk(companyId);
+            if (isHk == null) {
+                return;
+            }
             List<Map<String, Object>> columnMaps = queryColumnMaps(companyId, isHk);
             for (Map<String, Object> columnMap : columnMaps) {
                 Map<String, Object> resultMap = parseColumnMap(columnMap, isHk);
@@ -169,14 +172,16 @@ public class EquityDirectJob {
             sink.update(sql);
         }
 
-        private boolean judgeIsHk(Object companyId) {
-            String sql = new SQL().SELECT("1")
+        private Boolean judgeIsHk(Object companyId) {
+            String sql = new SQL().SELECT("search_button_show", "latest_public_data_source")
                     .FROM(QUERY_TABLE_JUDGE)
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                    .WHERE("search_button_show in (2, 3)")
-                    .WHERE("latest_public_data_source = 4")
                     .toString();
-            return rdsJudge.queryForObject(sql, rs -> rs.getString(1)) != null;
+            return rdsJudge.queryForObject(sql, rs -> {
+                String searchButtonShow = rs.getString(1);
+                String latestPublicDataSource = rs.getString(2);
+                return StrUtil.equalsAny(searchButtonShow, "2", "3") && StrUtil.equals(latestPublicDataSource, "4");
+            });
         }
 
         private List<Map<String, Object>> queryColumnMaps(Object companyId, boolean isHk) {
