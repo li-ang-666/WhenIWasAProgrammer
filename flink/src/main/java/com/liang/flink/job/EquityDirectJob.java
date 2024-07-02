@@ -275,7 +275,7 @@ public class EquityDirectJob {
                     List<Object> infos = JsonUtils.parseJsonArr(StrUtil.blankToDefault((String) columnMap.get("subscribed_capital_info"), "[]"));
                     Map<String, Object> info = infos.isEmpty() ? new HashMap<>() : (Map<String, Object>) infos.get(0);
                     String amount = (String) info.getOrDefault("amomon", "");
-                    unit += amount.replaceAll("\\d|\\.|(人民币)|\\s|[A-z]|-|\\?", "");
+                    unit += amount.replaceAll("\\d|\\.|(人民币)|\\s|[a-zA-Z]|-|\\?", "");
                 }
                 dataSource = (String) columnMap.get("data_source");
                 shareType = (String) columnMap.get("share_type");
