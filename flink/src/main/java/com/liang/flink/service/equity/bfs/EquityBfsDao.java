@@ -44,6 +44,14 @@ public class EquityBfsDao {
                 .WHERE("deleted = 0")
                 .toString();
         return prism116.queryForObject(sql, rs -> rs.getString(1)) != null;
+        /*
+        String sql = new SQL().SELECT("1")
+                .FROM("company_equity_relation_details")
+                .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                .WHERE("data_source in (100, -100)")
+                .toString();
+        return graphData430.queryForObject(sql, rs -> rs.getString(1)) != null;
+         */
     }
 
     public String queryEntityProperty(String companyId) {
@@ -65,7 +73,7 @@ public class EquityBfsDao {
                     .SELECT("tyc_unique_entity_id_investor")
                     .SELECT("tyc_unique_entity_name_investor")
                     .SELECT("equity_ratio")
-                    .FROM("graph_data.company_equity_relation_details")
+                    .FROM("company_equity_relation_details")
                     .WHERE("company_id_invested in " + SqlUtils.formatValue(split))
                     .WHERE("reference_pt_year = 2024")
                     .toString();

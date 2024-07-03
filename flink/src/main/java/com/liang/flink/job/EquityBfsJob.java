@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.FlinkConfig;
@@ -94,14 +95,16 @@ public class EquityBfsJob {
             if (table.contains("company_index")) {
                 // 只要insert、delete
                 if (singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
-                    entityIds.add(String.valueOf(columnMap.get("company_id")));
+                    entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id"), ""));
+                    entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_id"), ""));
                 }
             }
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
             else if (table.contains("company_equity_relation_details")) {
                 // 不要历史年份的数据
                 if (String.valueOf(columnMap.get("reference_pt_year")).equals("2024")) {
-                    entityIds.add(String.valueOf(columnMap.get("company_id_invested")));
+                    entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id_invested"), ""));
+                    entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_id_invested"), ""));
                 }
             }
             for (String entityId : entityIds) {
