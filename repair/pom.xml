@@ -102,6 +102,14 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
+        <!--kafka-->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.2.3</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!--junit-->
         <dependency>
             <groupId>junit</groupId>

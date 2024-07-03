@@ -81,10 +81,10 @@ public class EquityDirectJob {
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
             String table = singleCanalBinlog.getTable();
             if (table.equals(QUERY_TABLE_RELATION)) {
-                out.collect((String) singleCanalBinlog.getBeforeColumnMap().get("company_graph_id"));
-                out.collect((String) singleCanalBinlog.getAfterColumnMap().get("company_graph_id"));
+                out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_graph_id"), ""));
+                out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_graph_id"), ""));
             } else {
-                out.collect((String) singleCanalBinlog.getColumnMap().get("company_id"));
+                out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getColumnMap().get("company_id"), ""));
             }
         }
     }
