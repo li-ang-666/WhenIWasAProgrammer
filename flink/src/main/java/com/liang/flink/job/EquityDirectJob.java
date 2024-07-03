@@ -47,7 +47,7 @@ public class EquityDirectJob {
     private static final String QUERY_RDS_RELATION = "157.prism_boss";
     private static final String QUERY_TABLE_RELATION = "company_human_relation";
 
-    private static final String SINK_RDS = "427.test";
+    private static final String SINK_RDS = "430.graph_data";
     private static final String SINK_TABLE = "company_equity_relation_details_tmp";
 
     public static void main(String[] args) throws Exception {
