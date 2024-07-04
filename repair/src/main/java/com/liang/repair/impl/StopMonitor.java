@@ -16,7 +16,7 @@ public class StopMonitor {
     private final static List<Tuple3<String, String, String>> LIST = new ArrayList<>();
 
     static {
-        LIST.add(Tuple3.of("liang", "Moka20190520", "EquityDirectJob"));
+        LIST.add(Tuple3.of("liang", "Moka20190520", "RatioPathCompanyJob"));
     }
 
     public static void main(String[] args) {
