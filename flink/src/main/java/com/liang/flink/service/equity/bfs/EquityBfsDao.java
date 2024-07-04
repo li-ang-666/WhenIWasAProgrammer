@@ -38,20 +38,11 @@ public class EquityBfsDao {
 
     public boolean isListed(Object companyId) {
         String sql = new SQL().SELECT("1")
-                .FROM("equity_ratio")
-                .WHERE("company_graph_id = " + SqlUtils.formatValue(companyId))
-                .WHERE("source = 100")
-                .WHERE("deleted = 0")
-                .toString();
-        return prism116.queryForObject(sql, rs -> rs.getString(1)) != null;
-        /*
-        String sql = new SQL().SELECT("1")
                 .FROM("company_equity_relation_details")
                 .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                 .WHERE("data_source in (100, -100)")
                 .toString();
         return graphData430.queryForObject(sql, rs -> rs.getString(1)) != null;
-         */
     }
 
     public String queryEntityProperty(String companyId) {
