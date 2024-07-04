@@ -81,20 +81,12 @@ public class BfsRepairJob {
                 return;
             }
             log.info("{}", companyId);
-            //String deleteSql = new SQL().DELETE_FROM("company_equity_relation_details")
-            //        .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
-            //        .toString();
-            //graphData430.update(deleteSql);
-            //String updateSql = new SQL().UPDATE("equity_ratio")
-            //        .SET("update_time = now()")
-            //        .WHERE("company_graph_id = " + SqlUtils.formatValue(companyId))
-            //        .toString();
-            //prism116.update(updateSql);
-            String sql = new SQL().UPDATE("ratio_path_company_new_" + Long.parseLong(companyId) % 100)
+            String sql = new SQL().UPDATE("company_equity_relation_details")
                     .SET("update_time = now()")
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                    .LIMIT(1)
                     .toString();
-            prismShareholderPath491.update(sql);
+            graphData430.update(sql);
         }
     }
 }
