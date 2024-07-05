@@ -1,0 +1,21 @@
+# sourceType: Kafka or Repair
+flinkConfig:
+  sourceType: Kafka
+  sourceParallel: 1
+  otherParallel: 1
+
+# scanMode: Direct or TumblingWindow
+repairTasks:
+  - sourceName: "116.prism"
+    tableName: "equity_ratio"
+    columns: "*"
+    where: "1=1"
+    scanMode: TumblingWindow
+
+kafkaConfigs:
+  kafkaSource:
+    bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
+    topics:
+      - "ee59d.json.company_base.company_index"
+    groupId: "demo-job"
+    startFrom: "2"
