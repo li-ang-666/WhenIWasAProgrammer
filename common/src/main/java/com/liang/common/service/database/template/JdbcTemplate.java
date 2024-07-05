@@ -141,7 +141,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
             connection.setAutoCommit(false);
             try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
                 statement.setFetchSize(Integer.MIN_VALUE);
-                statement.setQueryTimeout((int) TimeUnit.SECONDS.toSeconds(24));
+                statement.setQueryTimeout((int) TimeUnit.HOURS.toSeconds(24));
                 try (ResultSet resultSet = statement.executeQuery(sql)) {
                     while (resultSet.next()) {
                         consumer.consume(resultSet);
