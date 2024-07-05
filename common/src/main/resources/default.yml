@@ -30,6 +30,7 @@ dbConfigs:
   448.operating_info: { host: "028115521abd4850be5aa69f7c0ac035in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "operating_info" }
   451.intellectual_property_info: { host: "5e5e34d7f49c4e6db170c16e40a7037fin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "intellectual_property_info" }
   457.prism_shareholder_path: { host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism_shareholder_path" }
+  457.bdp_equity: { host: "e1d4c0a1d8d1456ba4b461ab8b9f293din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "bdp_equity" }
   463.bdp_equity: { host: "48e2e76353e546a7b86c81dd226af952in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "bdp_equity" }
   464.prism: { host: "5673658675c84a3ba5ae7577850f1ed2in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "prism" }
   465.company_base: { host: "c8ce5ba3cd8b49ca8f57c945ef51d45cin01.internal.cn-north-4.mysql.rds.myhuaweicloud.com", database: "company_base" }
