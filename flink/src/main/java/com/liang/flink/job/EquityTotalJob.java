@@ -49,7 +49,7 @@ public class EquityTotalJob {
     private static final String QUERY_RDS = "491.prism_shareholder_path";
     private static final String QUERY_TABLE = "ratio_path_company_new";
 
-    private static final String SINK_RDS = "457.bdp_equity";
+    private static final String SINK_RDS = "463.bdp_equity";
     private static final String SINK_TABLE = "shareholder_investment_ratio_total";
 
     public static void main(String[] args) throws Exception {
