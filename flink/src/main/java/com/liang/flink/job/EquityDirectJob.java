@@ -240,8 +240,8 @@ public class EquityDirectJob {
                         shareholderType = "3";
                         break;
                 }
-                subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"), false);
-                investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"), true);
+                subscribedCapital = formatNumber((String) columnMap.get("hk_shares_cnt_total_holding"), false, true);
+                investmentRatio = formatNumber((String) columnMap.get("hk_shares_ratio_per_total_issue_shares_cnt"), true, false);
                 unit += "股";
                 dataSource = "-100";
                 switch ((String) columnMap.get("share_type")) {
@@ -266,8 +266,8 @@ public class EquityDirectJob {
                 shareholderNameId = (String) columnMap.get("shareholder_name_id");
                 shareholderName = (String) columnMap.get("shareholder_name");
                 shareholderType = (String) columnMap.get("shareholder_type");
-                subscribedCapital = formatNumber((String) columnMap.get("subscribed_capital"), false);
-                investmentRatio = formatNumber((String) columnMap.get("investment_ratio"), false);
+                subscribedCapital = formatNumber((String) columnMap.get("subscribed_capital"), false, true);
+                investmentRatio = formatNumber((String) columnMap.get("investment_ratio"), false, false);
                 // 是股票
                 if (("100".equals(columnMap.get("data_source")))) {
                     if (((String) columnMap.get("subscribed_capital_info")).contains("万")) {
@@ -331,10 +331,11 @@ public class EquityDirectJob {
             return StrUtil.blankToDefault(queryRes, shareholderNameId);
         }
 
-        private String formatNumber(String number, boolean divide100) {
+        private String formatNumber(String number, boolean divide100, boolean multiply1000000) {
             return new BigDecimal(StrUtil.nullToDefault(number, "0"))
                     .abs()
                     .divide(divide100 ? new BigDecimal(100) : new BigDecimal(1), 12, RoundingMode.DOWN)
+                    .multiply(multiply1000000 ? new BigDecimal(1000000) : new BigDecimal(1))
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         }
