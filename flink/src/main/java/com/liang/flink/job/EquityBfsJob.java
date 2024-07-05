@@ -100,7 +100,7 @@ public class EquityBfsJob {
                 }
             }
             // 股东 1ae09.proto.graph_data.company_equity_relation_details
-            else if (table.contains("company_equity_relation_details")) {
+            else if (table.contains("company_equity_relation_details") && singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
                 // 不要历史年份的数据
                 if (String.valueOf(columnMap.get("reference_pt_year")).equals("2024")) {
                     entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id_invested"), ""));
