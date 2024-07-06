@@ -165,7 +165,7 @@ public class EquityDirectJob {
 
         private void flush() {
             synchronized (bitmap) {
-                log.info("bitmap: {}\nbitmap size: {}", Arrays.toString(bitmap.toArray()), bitmap.getLongSizeInBytes());
+                log.info("bitmap: {}, bitmap size: {}", Arrays.toString(bitmap.toArray()), bitmap.getLongSizeInBytes());
                 bitmap.forEach(this::consumeCompanyId);
                 bitmap.clear();
             }
