@@ -91,11 +91,9 @@ public class EquityBfsJob {
             // ee59d.proto.company_base.company_index
             // 1ae09.proto.graph_data.company_equity_relation_details
             String table = singleCanalBinlog.getTable();
-            Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             Set<String> entityIds = new LinkedHashSet<>();
             if (StrUtil.equalsAny(table, "company_index", "company_equity_relation_details") && singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
-                entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id"), ""));
-                entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_id"), ""));
+                entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getColumnMap().get("company_id"), ""));
             }
             for (String entityId : entityIds) {
                 if (!TycUtils.isTycUniqueEntityId(entityId)) {
