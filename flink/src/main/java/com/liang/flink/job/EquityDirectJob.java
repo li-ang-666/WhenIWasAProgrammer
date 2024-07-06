@@ -21,6 +21,8 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
+import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
@@ -31,6 +33,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unchecked")
 @LocalConfigFile("equity-direct.yml")
@@ -52,6 +55,13 @@ public class EquityDirectJob {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
+        if (!(env instanceof LocalStreamEnvironment)) {
+            CheckpointConfig checkpointConfig = env.getCheckpointConfig();
+            // 运行周期
+            checkpointConfig.setCheckpointInterval(TimeUnit.MINUTES.toMillis(10));
+            // 两次checkpoint之间最少间隔时间
+            checkpointConfig.setMinPauseBetweenCheckpoints(TimeUnit.MINUTES.toMillis(10));
+        }
         Config config = ConfigUtils.getConfig();
         DataStream<SingleCanalBinlog> stream = StreamFactory.create(env);
         stream
