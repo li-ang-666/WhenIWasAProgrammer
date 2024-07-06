@@ -89,12 +89,17 @@ public class EquityDirectJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
+            // ee59d.proto.company_base.shareholder_investment_relation_info
+            // 22d1c.proto.listed_base.main_shareholder_hk
+            // a3540.proto.company_base.show_shareholder_tab
+            // 9bc47.proto.prism_boss.company_human_relation
             String table = singleCanalBinlog.getTable();
             if (table.equals(QUERY_TABLE_RELATION)) {
                 out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_graph_id"), ""));
                 out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_graph_id"), ""));
             } else {
-                out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getColumnMap().get("company_id"), ""));
+                out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id"), ""));
+                out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_id"), ""));
             }
         }
     }

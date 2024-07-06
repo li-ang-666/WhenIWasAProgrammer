@@ -88,24 +88,14 @@ public class EquityBfsJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
+            // ee59d.proto.company_base.company_index
+            // 1ae09.proto.graph_data.company_equity_relation_details
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             Set<String> entityIds = new LinkedHashSet<>();
-            // 公司维表 ee59d.proto.company_base.company_index
-            if (table.contains("company_index")) {
-                // 只要insert、delete
-                if (singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
-                    entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id"), ""));
-                    entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_id"), ""));
-                }
-            }
-            // 股东 1ae09.proto.graph_data.company_equity_relation_details
-            else if (table.contains("company_equity_relation_details") && singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
-                // 不要历史年份的数据
-                if (String.valueOf(columnMap.get("reference_pt_year")).equals("2024")) {
-                    entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id_invested"), ""));
-                    entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_id_invested"), ""));
-                }
+            if (StrUtil.equalsAny(table, "company_index", "company_equity_relation_details") && singleCanalBinlog.getEventType() != CanalEntry.EventType.UPDATE) {
+                entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id"), ""));
+                entityIds.add(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_id"), ""));
             }
             for (String entityId : entityIds) {
                 if (!TycUtils.isTycUniqueEntityId(entityId)) {
