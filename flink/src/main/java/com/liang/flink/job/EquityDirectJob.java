@@ -31,6 +31,7 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,7 +165,7 @@ public class EquityDirectJob {
 
         private void flush() {
             synchronized (bitmap) {
-                log.info("bitmap: {}, size: {}", bitmap, bitmap.getLongSizeInBytes());
+                log.info("bitmap: {}, size: {}", Arrays.toString(bitmap.toArray()), bitmap.getLongSizeInBytes());
                 bitmap.forEach(this::consumeCompanyId);
                 bitmap.clear();
             }
