@@ -152,7 +152,7 @@ public class EquityTotalJob {
                         columnMap.entrySet().removeIf(entry -> !VALID_COLUMNS.contains(entry.getKey()));
                         // 裁剪 paths
                         List<Object> paths = JsonUtils.parseJsonArr(String.valueOf(columnMap.get("equity_holding_path")));
-                        List<Object> subPaths = CollUtil.split(paths, 10).get(0);
+                        List<Object> subPaths = CollUtil.split(paths, 11).get(0);
                         columnMap.put("equity_holding_path", JsonUtils.toString(subPaths));
                         // 写入
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
