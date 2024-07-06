@@ -14,6 +14,7 @@ import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @SuppressWarnings("unchecked")
 @LocalConfigFile("equity-direct.yml")
 public class EquityDirectJob {
@@ -162,6 +164,7 @@ public class EquityDirectJob {
 
         private void flush() {
             synchronized (bitmap) {
+                log.info("bitmap: {}, size: {}", bitmap, bitmap.getLongSizeInBytes());
                 bitmap.forEach(this::consumeCompanyId);
                 bitmap.clear();
             }
