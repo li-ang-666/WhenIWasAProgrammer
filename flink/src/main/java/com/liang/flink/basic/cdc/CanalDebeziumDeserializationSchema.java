@@ -42,7 +42,6 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
             Object value = struct.get(key);
             String name = key.name();
             String schemaName = key.schema().name();
-            System.out.println(key);
             // null
             if (value == null) {
                 map.put(name, null);
