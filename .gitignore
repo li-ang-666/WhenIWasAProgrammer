@@ -7,7 +7,8 @@ target/
 *.DS_Store
 #忽略所有 spark-warehouse 目录
 spark-warehouse/
-
+#忽略所有 奇怪 目录
+dependency-reduced-pom.xml
 
 ## git rm -r --cached .
 ## git add .

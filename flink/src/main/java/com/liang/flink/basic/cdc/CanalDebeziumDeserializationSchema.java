@@ -43,20 +43,31 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
             String name = key.name();
             String schemaName = key.schema().name();
             System.out.println(key);
+            // null
             if (value == null) {
                 map.put(name, null);
-            } else if (value instanceof Struct) {
+            }
+            // struct
+            else if (value instanceof Struct) {
                 map.put(name, structToMap((Struct) value));
-            } else if (Date.SCHEMA_NAME.equals(schemaName) && value instanceof Integer) {
+            }
+            // date
+            else if (Date.SCHEMA_NAME.equals(schemaName) && value instanceof Integer) {
                 LocalDate date = LocalDate.ofEpochDay(((Integer) value));
                 map.put(name, date.format(yyyyMMdd));
-            } else if (Timestamp.SCHEMA_NAME.equals(schemaName) && value instanceof Long) {
+            }
+            //datetime
+            else if (Timestamp.SCHEMA_NAME.equals(schemaName) && value instanceof Long) {
                 LocalDateTime datetime = LocalDateTime.ofEpochSecond(((Long) value) / 1000, 0, UTC);
                 map.put(name, datetime.format(yyyyMMddHHmmSS));
-            } else if (ZonedTimestamp.SCHEMA_NAME.equals(schemaName) && value instanceof String) {
+            }
+            // timestamp
+            else if (ZonedTimestamp.SCHEMA_NAME.equals(schemaName) && value instanceof String) {
                 String timestamp = LocalDateTime.ofInstant(Instant.parse((String) value), CST).format(yyyyMMddHHmmSS);
                 map.put(name, timestamp);
-            } else {
+            }
+            // string
+            else {
                 map.put(name, value.toString());
             }
         }
