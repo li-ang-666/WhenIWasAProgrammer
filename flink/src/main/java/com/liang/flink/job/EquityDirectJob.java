@@ -95,7 +95,7 @@ public class EquityDirectJob {
             // ee59d.proto.company_base.shareholder_investment_relation_info
             // 22d1c.proto.listed_base.main_shareholder_hk
             // a3540.proto.company_base.show_shareholder_tab
-            // 9bc47.proto.prism_boss.company_human_relation
+            // 9bc47.proto.prism_boss.company_human_relation9
             String table = singleCanalBinlog.getTable();
             if (table.equals(QUERY_TABLE_RELATION)) {
                 out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_graph_id"), ""));
@@ -165,7 +165,7 @@ public class EquityDirectJob {
 
         private void flush() {
             synchronized (bitmap) {
-                log.info("bitmap: {}, bitmap size: {}", Arrays.toString(bitmap.toArray()), bitmap.getLongSizeInBytes());
+                log.info("bitmap: {}, bitmap size: {}", Arrays.toString(bitmap.toArray()), bitmap.getLongCardinality());
                 bitmap.forEach(this::consumeCompanyId);
                 bitmap.clear();
             }

@@ -26,4 +26,3 @@ CREATE TABLE dwd (
   'properties.bootstrap.servers' = '10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092',
   'format' = 'json'
 );
-insert into dwd select * from ods;

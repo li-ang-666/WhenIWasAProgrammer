@@ -21,5 +21,6 @@ public class TestJob {
                 tEnv.executeSql(sql);
             }
         }
+        tEnv.executeSql("select * from ods").print();
     }
 }
