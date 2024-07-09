@@ -11,7 +11,6 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
-
         <!--parquet-->
         <dependency>
             <groupId>org.apache.parquet</groupId>
