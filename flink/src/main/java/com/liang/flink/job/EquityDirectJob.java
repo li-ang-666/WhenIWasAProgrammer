@@ -1,6 +1,7 @@
 package com.liang.flink.job;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.SQL;
@@ -31,10 +32,7 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -101,6 +99,12 @@ public class EquityDirectJob {
                 out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_graph_id"), ""));
                 out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_graph_id"), ""));
             } else {
+                if (singleCanalBinlog.getEventType() == CanalEntry.EventType.UPDATE) {
+                    Set<String> changeKeys = singleCanalBinlog.getChangeKeys();
+                    if (changeKeys.size() == 1 && changeKeys.contains("update_time")) {
+                        return;
+                    }
+                }
                 out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_id"), ""));
                 out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getAfterColumnMap().get("company_id"), ""));
             }
