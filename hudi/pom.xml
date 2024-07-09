@@ -346,16 +346,6 @@
             <version>1.17.1</version>
         </dependency>
 
-        <!--scala-->
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-compiler</artifactId>
-        </dependency>
-
         <!--yaml-->
         <dependency>
             <groupId>org.yaml</groupId>
