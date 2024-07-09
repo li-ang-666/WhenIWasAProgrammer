@@ -36,7 +36,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!--obs-->
+        <!--huawei-->
         <dependency>
             <groupId>com.huaweicloud</groupId>
             <artifactId>esdk-obs-java-bundle</artifactId>
