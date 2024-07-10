@@ -3,7 +3,6 @@ package com.liang.flink.basic.cdc;
 import cn.hutool.core.util.ObjUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
-import com.liang.common.util.JsonUtils;
 import io.debezium.time.Date;
 import io.debezium.time.Timestamp;
 import io.debezium.time.ZonedTimestamp;
@@ -36,7 +35,6 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
         Struct recordValue = (Struct) sourceRecord.value();
         Map<String, Object> debeziumMap = structToMap(recordValue);
         FlatMessage flatMessage = debeziumMapToFlatMessage(debeziumMap);
-        System.out.println(JsonUtils.toString(debeziumMap));
         collector.collect(flatMessage);
     }
 
