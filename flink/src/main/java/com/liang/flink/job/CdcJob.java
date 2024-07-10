@@ -17,9 +17,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 @Slf4j
 public class CdcJob {
     // cdc
-    private static final String CDC_HOSTNAME = "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com";
-    private static final String CDC_DATABASE = "test";
-    private static final String CDC_TABLE = "test";
+    private static final String CDC_HOSTNAME = "505982938db54e86bfc4bd36d49f840din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com";
+    private static final String CDC_DATABASE = "prism_shareholder_path";
+    private static final String CDC_TABLE = ".*";
     private static final int CDC_PORT = 3306;
     private static final String CDC_USERNAME = "canal_d";
     private static final String CDC_PASSWORD = "Canal@Dduan";
@@ -29,6 +29,8 @@ public class CdcJob {
     // kafka
     private static final String KAFKA_BOOTSTRAP_SERVER = "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092";
     private static final String KAFKA_TOPIC = "abc";
+    // flink
+    private static final int PARALLEL = 8;
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -56,17 +58,17 @@ public class CdcJob {
         env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "CdcSource")
                 .name("CdcSource")
                 .uid("CdcSource")
-                .setParallelism(1)
-                .rebalance()
+                .setParallelism(PARALLEL)
+                .keyBy(e -> e.getData().get(0).get("company_id"))
                 .map(JsonUtils::toString)
                 .name("FlatMessageMapper")
                 .uid("FlatMessageMapper")
-                .setParallelism(1)
+                .setParallelism(PARALLEL)
                 .returns(String.class)
                 .sinkTo(kafkaSink)
                 .name("KafkaSink")
                 .uid("KafkaSink")
-                .setParallelism(1);
+                .setParallelism(PARALLEL);
         env.execute("CdcJob");
     }
 }
