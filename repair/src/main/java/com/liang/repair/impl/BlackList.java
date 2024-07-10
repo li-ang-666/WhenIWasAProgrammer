@@ -100,6 +100,7 @@ public class BlackList extends ConfigHolder {
         new JdbcTemplate("457.prism_shareholder_path").update("delete from investment_relation where company_id_invested in (1017,1065,1101,1172,1258,1301,1307,1347,1418,1617)");
         // 删除老板所有数据
         deleteBossAll("20TVMMN02E33YF576");
+        deleteBossAll("L0QNUML00TNSDBLF9");
         deleteBossAll("70LJQMK02T8UEVGDB");
         deleteBossAll("T0GC9M80M84KQSVBV");
         deleteBossAll("10LSG9902Q1L1V561");
@@ -118,8 +119,11 @@ public class BlackList extends ConfigHolder {
         deleteBossAll("00NBU9H00F11A1JZR");
         deleteBossAll("20T969Z00B3MR23DL");
         deleteBossAll("908GUM200SZZNVCGT");
+        deleteBossAll("J01HR9P09NDU79N8L");
         // 删除合作伙伴
         deletePartner("40TN89C001CR0MVL6");
+        deletePartner("K0YQPML010TFKFYZC");
+        deletePartner("M0NECMY0TPFRLF769");
         deletePartner("B0J5BMG09A081DDA7");
         deletePartner("603UAMV09HHJRFBVP");
         deletePartner("P0PQH9G09S9KN2J0R");
@@ -170,6 +174,8 @@ public class BlackList extends ConfigHolder {
         deletePartner("J09U52N02TNUY9KT7");
         deletePartner("J09B5MN02T3UPV21D");
         deletePartner("L09B7MY0213UPV21P");
+        deletePartner("K0YEPML010FFLF76M");
+        deletePartner("K0YQPML010TFKFYZC");
         new JdbcTemplate("491.prism_shareholder_path").update("delete from ratio_path_company_new_54 where company_id = '761462154'");
         new JdbcTemplate("463.bdp_equity").update("delete from entity_controller_details_new where company_id_controlled = '761462154'");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'D0B77MY02NP8TBT8R' and company_name not like '%陕西%'");

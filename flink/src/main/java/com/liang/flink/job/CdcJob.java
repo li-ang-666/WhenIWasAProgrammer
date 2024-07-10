@@ -34,7 +34,7 @@ public class CdcJob {
     private static final String CDC_PASSWORD = "Canal@Dduan";
     private static final String CDC_SERVER_ID = "6000-6100";
     private static final String CDC_TIMEZONE = "Asia/Shanghai";
-    private static final StartupOptions CDC_STARTUP_OPTIONS = StartupOptions.earliest();
+    private static final StartupOptions CDC_STARTUP_OPTIONS = StartupOptions.latest();
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -64,8 +64,11 @@ public class CdcJob {
     private static final class KafkaSink extends RichSinkFunction<FlatMessage> implements CheckpointedFunction {
         private static final String KAFKA_BOOTSTRAP_SERVER = "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092";
         private static final String KAFKA_TOPIC = "abc";
+
         private final Lock lock = new ReentrantLock(true);
+
         private KafkaProducer<byte[], byte[]> producer;
+        private int partitionNum;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -82,22 +85,27 @@ public class CdcJob {
             // retry
             properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, String.valueOf(60 * 1000));
             properties.put(ProducerConfig.RETRIES_CONFIG, String.valueOf(3));
-            properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, String.valueOf(2 * 1000));
+            properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, String.valueOf(3 * 1000));
             // in order
             properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, String.valueOf(1));
             // performance cache time
             properties.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(3 * 1000));
             // performance cache memory
             properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, String.valueOf(64 * 1024 * 1024));
-            properties.put(ProducerConfig.BATCH_SIZE_CONFIG, String.valueOf(8 * 1024 * 1024));
+            properties.put(ProducerConfig.BATCH_SIZE_CONFIG, String.valueOf(16 * 1024 * 1024));
             properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, String.valueOf(32 * 1024 * 1024));
             producer = new KafkaProducer<>(properties);
+            partitionNum = producer.partitionsFor(KAFKA_TOPIC).size();
+            log.info("partitionNum:{}", partitionNum);
         }
 
         @Override
         public void invoke(FlatMessage flatMessage, Context context) {
             long companyId = Long.parseLong(flatMessage.getData().get(0).get("company_id"));
-            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(KAFKA_TOPIC, (int) (companyId % 5), null, JsonUtils.toString(flatMessage).getBytes(StandardCharsets.UTF_8));
+            int partition = (int) (companyId % partitionNum);
+            byte[] key = null;
+            byte[] value = JsonUtils.toString(flatMessage).getBytes(StandardCharsets.UTF_8);
+            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(KAFKA_TOPIC, partition, key, value);
             lock.lock();
             producer.send(record);
             lock.unlock();
