@@ -78,16 +78,16 @@ public class CdcJob {
             properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, BytesSerializer.class.getName());
             properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, BytesSerializer.class.getName());
             // ack
-            properties.put(ProducerConfig.ACKS_CONFIG, 1);
+            properties.put(ProducerConfig.ACKS_CONFIG, String.valueOf(1));
             // retry
-            properties.put(ProducerConfig.RETRIES_CONFIG, 3);
-            properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 2 * 1000);
+            properties.put(ProducerConfig.RETRIES_CONFIG, String.valueOf(3));
+            properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, String.valueOf(2 * 1000));
             // performance
-            properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 100 * 1024 * 1024);
-            properties.put(ProducerConfig.LINGER_MS_CONFIG, 5 * 1000);
-            properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 128 * 1024 * 1024);
-            properties.put(ProducerConfig.BATCH_SIZE_CONFIG, 8 * 1024 * 1024);
-            properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
+            properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, String.valueOf(100 * 1024 * 1024));
+            properties.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(5 * 1000));
+            properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, String.valueOf(128 * 1024 * 1024));
+            properties.put(ProducerConfig.BATCH_SIZE_CONFIG, String.valueOf(8 * 1024 * 1024));
+            properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, String.valueOf(1));
             producer = new KafkaProducer<>(properties);
         }
 
