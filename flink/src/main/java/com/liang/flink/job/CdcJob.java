@@ -84,9 +84,9 @@ public class CdcJob {
             properties.put(ProducerConfig.RETRIES_CONFIG, String.valueOf(3));
             properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, String.valueOf(2 * 1000));
             // performance
-            properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, String.valueOf(100 * 1024 * 1024));
-            properties.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(5 * 1000));
-            properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, String.valueOf(128 * 1024 * 1024));
+            properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, String.valueOf(32 * 1024 * 1024));
+            properties.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(3 * 1000));
+            properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, String.valueOf(64 * 1024 * 1024));
             properties.put(ProducerConfig.BATCH_SIZE_CONFIG, String.valueOf(8 * 1024 * 1024));
             properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, String.valueOf(1));
             producer = new KafkaProducer<>(properties);
