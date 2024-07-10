@@ -102,9 +102,8 @@ public class CdcJob {
         public void invoke(FlatMessage flatMessage, Context context) {
             long companyId = Long.parseLong(flatMessage.getData().get(0).get("company_id"));
             int partition = (int) (companyId % partitionNum);
-            byte[] key = null;
             byte[] value = JsonUtils.toString(flatMessage).getBytes(StandardCharsets.UTF_8);
-            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(KAFKA_TOPIC, partition, key, value);
+            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(KAFKA_TOPIC, partition, null, value);
             lock.lock();
             producer.send(record);
             lock.unlock();
