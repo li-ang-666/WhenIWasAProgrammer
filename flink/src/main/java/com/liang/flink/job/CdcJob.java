@@ -108,7 +108,6 @@ public class CdcJob {
             flush();
         }
 
-
         @Override
         public void finish() {
             flush();
