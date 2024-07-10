@@ -84,15 +84,15 @@ public class CdcJob {
             // retry
             properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, String.valueOf(60 * 1000));
             properties.put(ProducerConfig.RETRIES_CONFIG, String.valueOf(3));
-            properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, String.valueOf(3 * 1000));
+            properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, String.valueOf(2 * 1000));
             // in order
             properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, String.valueOf(1));
             // performance cache time
-            properties.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(3 * 1000));
+            properties.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(2 * 1000));
             // performance cache memory
+            properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, String.valueOf(64 * 1024 * 1024));
             properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, String.valueOf(64 * 1024 * 1024));
-            properties.put(ProducerConfig.BATCH_SIZE_CONFIG, String.valueOf(16 * 1024 * 1024));
-            properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, String.valueOf(32 * 1024 * 1024));
+            properties.put(ProducerConfig.BATCH_SIZE_CONFIG, String.valueOf(2 * 1024 * 1024));
             producer = new KafkaProducer<>(properties);
             partitionNum = producer.partitionsFor(KAFKA_TOPIC).size();
             log.info("partitionNum:{}", partitionNum);
