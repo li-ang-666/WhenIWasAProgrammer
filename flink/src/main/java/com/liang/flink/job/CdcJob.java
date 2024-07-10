@@ -115,6 +115,7 @@ public class CdcJob {
         @Override
         public void close() {
             flush();
+            producer.close();
         }
 
         private void flush() {
