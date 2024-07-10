@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class CanalDebeziumDeserializationSchema implements DebeziumDeserializationSchema<FlatMessage> {
-    private static final ZoneOffset UTC = ZoneOffset.UTC;
+    private static final ZoneOffset UTC = ZoneOffset.ofHours(0);
     private static final ZoneOffset CST = ZoneOffset.ofHours(+8);
     private static final DateTimeFormatter yyyyMMddHHmmSS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
