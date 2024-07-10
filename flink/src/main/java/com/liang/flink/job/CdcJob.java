@@ -17,7 +17,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.BytesSerializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
@@ -75,11 +75,12 @@ public class CdcJob {
         public void open(Configuration parameters) {
             Properties properties = new Properties();
             properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_BOOTSTRAP_SERVER);
-            properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, BytesSerializer.class.getName());
-            properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, BytesSerializer.class.getName());
+            properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+            properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
             // ack
             properties.put(ProducerConfig.ACKS_CONFIG, String.valueOf(1));
             // retry
+            properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, String.valueOf(60 * 1000));
             properties.put(ProducerConfig.RETRIES_CONFIG, String.valueOf(3));
             properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, String.valueOf(2 * 1000));
             // performance
@@ -107,7 +108,7 @@ public class CdcJob {
 
 
         @Override
-        public void finish() throws Exception {
+        public void finish() {
             flush();
         }
 
