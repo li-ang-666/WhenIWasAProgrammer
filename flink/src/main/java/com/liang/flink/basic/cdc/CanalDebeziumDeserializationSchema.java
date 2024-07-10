@@ -3,6 +3,7 @@ package com.liang.flink.basic.cdc;
 import cn.hutool.core.util.ObjUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
+import com.liang.common.util.JsonUtils;
 import io.debezium.time.Date;
 import io.debezium.time.Timestamp;
 import io.debezium.time.ZonedTimestamp;
@@ -18,7 +19,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
@@ -33,6 +36,7 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
         Struct recordValue = (Struct) sourceRecord.value();
         Map<String, Object> debeziumMap = structToMap(recordValue);
         FlatMessage flatMessage = debeziumMapToFlatMessage(debeziumMap);
+        System.out.println(JsonUtils.toString(debeziumMap));
         collector.collect(flatMessage);
     }
 
@@ -83,10 +87,8 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
         Map<String, String> after = (Map<String, String>) debeziumMap.getOrDefault("after", new LinkedHashMap<String, String>());
         Map<String, Object> source = (Map<String, Object>) debeziumMap.get("source");
         FlatMessage flatMessage = new FlatMessage();
-        flatMessage.setId(0);
         flatMessage.setDatabase((String) source.get("db"));
         flatMessage.setTable((String) source.get("table"));
-        flatMessage.setPkNames(new ArrayList<>());
         flatMessage.setIsDdl(false);
         switch ((String) debeziumMap.get("op")) {
             case "c":
@@ -108,10 +110,6 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
         }
         flatMessage.setEs(Long.parseLong((String) source.get("ts_ms")));
         flatMessage.setTs(Long.parseLong((String) debeziumMap.get("ts_ms")));
-        flatMessage.setSql("");
-        flatMessage.setSqlType(new HashMap<>());
-        flatMessage.setMysqlType(new HashMap<>());
-        flatMessage.setGtid((String) source.get("gtid"));
         return flatMessage;
     }
 }
