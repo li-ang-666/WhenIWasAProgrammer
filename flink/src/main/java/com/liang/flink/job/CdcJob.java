@@ -50,7 +50,6 @@ public class CdcJob {
                 .startupOptions(CDC_STARTUP_OPTIONS)
                 .deserializer(new CanalDebeziumDeserializationSchema())
                 .build();
-
         env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "CdcSource")
                 .name("CdcSource")
                 .uid("CdcSource")
