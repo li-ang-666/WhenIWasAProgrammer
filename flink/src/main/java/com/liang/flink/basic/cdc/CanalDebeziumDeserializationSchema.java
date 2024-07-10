@@ -30,12 +30,59 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
 
     @Override
     public void deserialize(SourceRecord sourceRecord, Collector<FlatMessage> collector) {
-        FlatMessage flatMessage = new FlatMessage();
         Struct recordValue = (Struct) sourceRecord.value();
         Map<String, Object> debeziumMap = structToMap(recordValue);
+        FlatMessage flatMessage = debeziumMapToFlatMessage(debeziumMap);
+        collector.collect(flatMessage);
+    }
+
+    @Override
+    public TypeInformation<FlatMessage> getProducedType() {
+        return TypeInformation.of(FlatMessage.class);
+    }
+
+    private Map<String, Object> structToMap(Struct struct) {
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        for (Field key : struct.schema().fields()) {
+            Object value = struct.get(key);
+            String name = key.name();
+            String schemaName = key.schema().name();
+            // null
+            if (value == null) {
+                map.put(name, null);
+            }
+            // struct
+            else if (value instanceof Struct) {
+                map.put(name, structToMap((Struct) value));
+            }
+            // date
+            else if (value instanceof Integer && Date.SCHEMA_NAME.equals(schemaName)) {
+                LocalDate date = LocalDate.ofEpochDay(((Integer) value));
+                map.put(name, date.format(yyyyMMdd));
+            }
+            //datetime
+            else if (value instanceof Long && Timestamp.SCHEMA_NAME.equals(schemaName)) {
+                LocalDateTime datetime = LocalDateTime.ofEpochSecond(((Long) value) / 1000, 0, UTC);
+                map.put(name, datetime.format(yyyyMMddHHmmSS));
+            }
+            // timestamp
+            else if (value instanceof String && ZonedTimestamp.SCHEMA_NAME.equals(schemaName)) {
+                String timestamp = LocalDateTime.ofInstant(Instant.parse((String) value), CST).format(yyyyMMddHHmmSS);
+                map.put(name, timestamp);
+            }
+            // string
+            else {
+                map.put(name, value.toString());
+            }
+        }
+        return map;
+    }
+
+    private FlatMessage debeziumMapToFlatMessage(Map<String, Object> debeziumMap) {
         Map<String, String> before = (Map<String, String>) debeziumMap.getOrDefault("before", new LinkedHashMap<String, String>());
         Map<String, String> after = (Map<String, String>) debeziumMap.getOrDefault("after", new LinkedHashMap<String, String>());
         Map<String, Object> source = (Map<String, Object>) debeziumMap.get("source");
+        FlatMessage flatMessage = new FlatMessage();
         flatMessage.setId(0);
         flatMessage.setDatabase((String) source.get("db"));
         flatMessage.setTable((String) source.get("table"));
@@ -67,48 +114,6 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
         flatMessage.setSqlType(new HashMap<>());
         flatMessage.setMysqlType(new HashMap<>());
         flatMessage.setGtid((String) source.get("gtid"));
-        collector.collect(flatMessage);
-    }
-
-    @Override
-    public TypeInformation<FlatMessage> getProducedType() {
-        return TypeInformation.of(FlatMessage.class);
-    }
-
-    private Map<String, Object> structToMap(Struct struct) {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        for (Field key : struct.schema().fields()) {
-            Object value = struct.get(key);
-            String name = key.name();
-            String schemaName = key.schema().name();
-            // null
-            if (value == null) {
-                map.put(name, null);
-            }
-            // struct
-            else if (value instanceof Struct) {
-                map.put(name, structToMap((Struct) value));
-            }
-            // date
-            else if (Date.SCHEMA_NAME.equals(schemaName) && value instanceof Integer) {
-                LocalDate date = LocalDate.ofEpochDay(((Integer) value));
-                map.put(name, date.format(yyyyMMdd));
-            }
-            //datetime
-            else if (Timestamp.SCHEMA_NAME.equals(schemaName) && value instanceof Long) {
-                LocalDateTime datetime = LocalDateTime.ofEpochSecond(((Long) value) / 1000, 0, UTC);
-                map.put(name, datetime.format(yyyyMMddHHmmSS));
-            }
-            // timestamp
-            else if (ZonedTimestamp.SCHEMA_NAME.equals(schemaName) && value instanceof String) {
-                String timestamp = LocalDateTime.ofInstant(Instant.parse((String) value), CST).format(yyyyMMddHHmmSS);
-                map.put(name, timestamp);
-            }
-            // string
-            else {
-                map.put(name, value.toString());
-            }
-        }
-        return map;
+        return flatMessage;
     }
 }
