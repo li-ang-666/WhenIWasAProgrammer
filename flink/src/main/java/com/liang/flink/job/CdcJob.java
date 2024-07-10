@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.cdc.CanalDebeziumDeserializationSchema;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,7 @@ public class CdcJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         env.setParallelism(1);
-        MySqlSource<String> mySqlSource = MySqlSource.<String>builder()
+        MySqlSource<FlatMessage> mySqlSource = MySqlSource.<FlatMessage>builder()
                 .hostname("9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com")
                 .port(3306)
                 .username("canal_d")
