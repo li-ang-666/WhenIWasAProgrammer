@@ -92,7 +92,6 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
             case "c":
                 flatMessage.setType(CanalEntry.EventType.INSERT.name());
                 flatMessage.setData(Collections.singletonList(after));
-                flatMessage.setOld(new ArrayList<>());
                 break;
             case "u":
                 flatMessage.setType(CanalEntry.EventType.UPDATE.name());
@@ -105,7 +104,6 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
             case "d":
                 flatMessage.setType(CanalEntry.EventType.DELETE.name());
                 flatMessage.setData(Collections.singletonList(before));
-                flatMessage.setOld(new ArrayList<>());
                 break;
         }
         flatMessage.setEs(Long.parseLong((String) source.get("ts_ms")));

@@ -26,7 +26,7 @@ public class KafkaConsumerJob {
         KafkaSource<KafkaRecord<String>> kafkaSource = KafkaSourceFactory.create(String::new);
         env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "KafkaSource")
                 .setParallelism(1)
-                .map(KafkaRecord::getKey)
+                .map(KafkaRecord::getValue)
                 .returns(String.class)
                 .setParallelism(1)
                 .addSink(new KafkaConsumerSink(config))
@@ -48,8 +48,9 @@ public class KafkaConsumerJob {
         }
 
         @Override
-        public void invoke(String singleCanalBinlog, Context context) {
-            System.out.println();
+        public void invoke(String value, Context context) {
+            if (value.contains("UPDATE"))
+                System.out.println(value);
         }
 
         @Override
