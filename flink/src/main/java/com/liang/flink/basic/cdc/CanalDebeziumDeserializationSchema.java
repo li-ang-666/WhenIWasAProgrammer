@@ -6,6 +6,7 @@ import com.alibaba.otter.canal.protocol.FlatMessage;
 import io.debezium.time.Date;
 import io.debezium.time.Timestamp;
 import io.debezium.time.ZonedTimestamp;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.cdc.debezium.DebeziumDeserializationSchema;
 import org.apache.flink.util.Collector;
@@ -23,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @SuppressWarnings("unchecked")
 public class CanalDebeziumDeserializationSchema implements DebeziumDeserializationSchema<FlatMessage> {
     private static final ZoneOffset UTC = ZoneOffset.ofHours(0);
@@ -35,7 +37,9 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
         Struct recordValue = (Struct) sourceRecord.value();
         Map<String, Object> debeziumMap = structToMap(recordValue);
         FlatMessage flatMessage = debeziumMapToFlatMessage(debeziumMap);
-        collector.collect(flatMessage);
+        if (flatMessage != null) {
+            collector.collect(flatMessage);
+        }
     }
 
     @Override
@@ -105,6 +109,9 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
                 flatMessage.setType(CanalEntry.EventType.DELETE.name());
                 flatMessage.setData(Collections.singletonList(before));
                 break;
+            default:
+                log.error("cdc to canal error, debezium map: {}", debeziumMap);
+                return null;
         }
         flatMessage.setEs(Long.parseLong((String) source.get("ts_ms")));
         flatMessage.setTs(Long.parseLong((String) debeziumMap.get("ts_ms")));
