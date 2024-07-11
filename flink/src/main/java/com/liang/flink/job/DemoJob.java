@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.storage.FsParquetWriter;
@@ -57,7 +58,8 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            System.out.println(JsonUtils.toString(singleCanalBinlog));
+            if (singleCanalBinlog.getEventType() == CanalEntry.EventType.INSERT)
+                System.out.println(JsonUtils.toString(singleCanalBinlog));
         }
 
         @Override

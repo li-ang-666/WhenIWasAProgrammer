@@ -57,7 +57,7 @@ public class Rds491CdcJob {
                 .addSink(new KafkaSink())
                 .name("KafkaSink")
                 .uid("KafkaSink");
-        env.execute("CdcJob");
+        env.execute("Rds491CdcJob");
     }
 
     private static final class KafkaSink extends RichSinkFunction<FlatMessage> implements CheckpointedFunction {

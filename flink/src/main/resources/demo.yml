@@ -16,6 +16,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "ee59d.proto.company_base.company_index"
+      - "50598.cdc.prism_shareholder_path.ratio_path_company_new_all"
     groupId: "demo-job"
-    startFrom: "2"
+    startFrom: "1"
