@@ -25,11 +25,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-public class CdcJob {
+public class Rds491CdcJob {
     private static final String CDC_HOSTNAME = "505982938db54e86bfc4bd36d49f840din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com";
     private static final String CDC_DATABASE = "prism_shareholder_path";
     private static final String CDC_TABLE = ".*";
-    private static final int CDC_PORT = 3306;
+    private static final Integer CDC_PORT = 3306;
     private static final String CDC_USERNAME = "canal_d";
     private static final String CDC_PASSWORD = "Canal@Dduan";
     private static final String CDC_SERVER_ID = "6000-6100";
@@ -62,7 +62,7 @@ public class CdcJob {
 
     private static final class KafkaSink extends RichSinkFunction<FlatMessage> implements CheckpointedFunction {
         private static final String KAFKA_BOOTSTRAP_SERVER = "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092";
-        private static final String KAFKA_TOPIC = "abc";
+        private static final String KAFKA_TOPIC = "50598.cdc.prism_shareholder_path.ratio_path_company_new_all";
 
         private final Lock lock = new ReentrantLock(true);
 
