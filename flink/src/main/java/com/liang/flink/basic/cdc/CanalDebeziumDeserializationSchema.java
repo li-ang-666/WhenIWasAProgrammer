@@ -81,8 +81,8 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
     }
 
     private FlatMessage debeziumMapToFlatMessage(Map<String, Object> debeziumMap) {
-        Map<String, String> before = (Map<String, String>) debeziumMap.getOrDefault("before", new LinkedHashMap<String, String>());
-        Map<String, String> after = (Map<String, String>) debeziumMap.getOrDefault("after", new LinkedHashMap<String, String>());
+        Map<String, String> before = (Map<String, String>) debeziumMap.get("before");
+        Map<String, String> after = (Map<String, String>) debeziumMap.get("after");
         Map<String, Object> source = (Map<String, Object>) debeziumMap.get("source");
         FlatMessage flatMessage = new FlatMessage();
         flatMessage.setDatabase((String) source.get("db"));
