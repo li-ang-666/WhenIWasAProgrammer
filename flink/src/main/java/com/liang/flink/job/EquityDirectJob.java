@@ -52,7 +52,7 @@ public class EquityDirectJob {
     private static final String QUERY_TABLE_RELATION = "company_human_relation";
 
     private static final String SINK_RDS = "430.graph_data";
-    private static final String SINK_TABLE = "company_equity_relation_details";
+    private static final String SINK_TABLE = "company_equity_relation_details_tmp";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -93,7 +93,7 @@ public class EquityDirectJob {
             // ee59d.proto.company_base.shareholder_investment_relation_info
             // 22d1c.proto.listed_base.main_shareholder_hk
             // a3540.proto.company_base.show_shareholder_tab
-            // 9bc47.proto.prism_boss.company_human_relation9
+            // 9bc47.proto.prism_boss.company_human_relation
             String table = singleCanalBinlog.getTable();
             if (table.equals(QUERY_TABLE_RELATION)) {
                 out.collect(StrUtil.blankToDefault((String) singleCanalBinlog.getBeforeColumnMap().get("company_graph_id"), ""));
@@ -358,7 +358,7 @@ public class EquityDirectJob {
             return new BigDecimal(StrUtil.nullToDefault(number, "0"))
                     .abs()
                     .divide(divide100 ? new BigDecimal(100) : new BigDecimal(1), 12, RoundingMode.DOWN)
-                    .multiply(multiply1000000 ? new BigDecimal(1000000) : new BigDecimal(1))
+                    //.multiply(multiply1000000 ? new BigDecimal(1000000) : new BigDecimal(1))
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         }
