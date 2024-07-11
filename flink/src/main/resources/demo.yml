@@ -1,8 +1,8 @@
 # sourceType: Kafka or Repair
 flinkConfig:
   sourceType: Kafka
-  sourceParallel: 1
-  otherParallel: 1
+  sourceParallel: 5
+  otherParallel: 10
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -17,5 +17,6 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "50598.cdc.prism_shareholder_path.ratio_path_company_new_all"
-    groupId: "demo-job"
-    startFrom: "2024-07-11 10:35:00"
+    groupId: "equity-control-job"
+    startFrom: "2024-07-11 12:00:00"
+

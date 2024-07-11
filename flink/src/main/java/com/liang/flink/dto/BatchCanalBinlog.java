@@ -23,13 +23,17 @@ public class BatchCanalBinlog implements Serializable {
     private final List<SingleCanalBinlog> singleCanalBinlogs = new ArrayList<>();
 
     public BatchCanalBinlog(byte[] kafkaRecordValue) {
-        if (kafkaRecordValue == null || kafkaRecordValue.length < 2) {
-            return;
-        }
-        if (kafkaRecordValue[0] == (byte) '{' && kafkaRecordValue[1] == (byte) '\"') {
-            parseJsonMessage(kafkaRecordValue);
-        } else {
-            parseProtobufMessage(kafkaRecordValue);
+        try {
+            if (kafkaRecordValue == null || kafkaRecordValue.length < 2) {
+                return;
+            }
+            if (kafkaRecordValue[0] == (byte) '{' && kafkaRecordValue[1] == (byte) '\"') {
+                parseJsonMessage(kafkaRecordValue);
+            } else {
+                parseProtobufMessage(kafkaRecordValue);
+            }
+        } catch (Exception e) {
+            log.error("parse canal binlog error, kafka message: {}", new String(kafkaRecordValue, StandardCharsets.UTF_8), e);
         }
     }
 
