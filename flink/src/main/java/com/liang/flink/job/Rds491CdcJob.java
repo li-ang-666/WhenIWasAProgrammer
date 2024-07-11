@@ -53,6 +53,7 @@ public class Rds491CdcJob {
         env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "CdcSource")
                 .name("CdcSource")
                 .uid("CdcSource")
+                .setParallelism(1)
                 .keyBy(e -> e.getData().get(0).get("company_id"))
                 .addSink(new KafkaSink())
                 .name("KafkaSink")
