@@ -58,7 +58,7 @@ public class DemoJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
-            if (singleCanalBinlog.getEventType() == CanalEntry.EventType.INSERT)
+            if (singleCanalBinlog.getEventType() == CanalEntry.EventType.UPDATE)
                 System.out.println(JsonUtils.toString(singleCanalBinlog));
         }
 
