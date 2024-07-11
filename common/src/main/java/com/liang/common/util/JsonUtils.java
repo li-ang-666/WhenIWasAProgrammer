@@ -2,6 +2,7 @@ package com.liang.common.util;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
@@ -34,6 +35,14 @@ public class JsonUtils {
             //识别不认识的控制字符
             .configure(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER.mappedFeature(), true)
             .configure(JsonReadFeature.ALLOW_JAVA_COMMENTS.mappedFeature(), true);
+
+    static {
+        StreamReadConstraints streamReadConstraints = StreamReadConstraints
+                .builder()
+                .maxStringLength(Integer.MAX_VALUE - 1)
+                .build();
+        OBJECT_MAPPER.getFactory().setStreamReadConstraints(streamReadConstraints);
+    }
 
     /*----------------------------------解析{XX=XX, XX=XX, XX=XX}----------------------------------*/
     public static Map<String, Object> parseJsonObj(String json) {
