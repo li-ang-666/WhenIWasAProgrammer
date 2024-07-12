@@ -52,7 +52,7 @@ public class EquityDirectJob {
     private static final String QUERY_TABLE_RELATION = "company_human_relation";
 
     private static final String SINK_RDS = "430.graph_data";
-    private static final String SINK_TABLE = "company_equity_relation_details_tmp";
+    private static final String SINK_TABLE = "company_equity_relation_details";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -190,7 +190,7 @@ public class EquityDirectJob {
 
         private void delete(Object companyId) {
             String sql = new SQL().DELETE_FROM(SINK_TABLE)
-                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
+                    .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
                     .toString();
             sink.update(sql);
         }
@@ -358,7 +358,7 @@ public class EquityDirectJob {
             return new BigDecimal(StrUtil.nullToDefault(number, "0"))
                     .abs()
                     .divide(divide100 ? new BigDecimal(100) : new BigDecimal(1), 12, RoundingMode.DOWN)
-                    //.multiply(multiply1000000 ? new BigDecimal(1000000) : new BigDecimal(1))
+                    .multiply(multiply1000000 ? new BigDecimal(1000000) : new BigDecimal(1))
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         }
