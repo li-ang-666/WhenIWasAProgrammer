@@ -35,6 +35,7 @@ public class CdcTestJob {
                 .serverTimeZone(CDC_TIMEZONE)
                 .startupOptions(CDC_STARTUP_OPTIONS)
                 .deserializer(new CanalDebeziumDeserializationSchema())
+                .includeSchemaChanges(true)
                 .build();
         env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "CdcSource")
                 .map(JsonUtils::toString)

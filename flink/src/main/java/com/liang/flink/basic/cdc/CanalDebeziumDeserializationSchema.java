@@ -3,6 +3,7 @@ package com.liang.flink.basic.cdc;
 import cn.hutool.core.util.ObjUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
+import com.liang.common.util.JsonUtils;
 import io.debezium.time.Date;
 import io.debezium.time.Timestamp;
 import io.debezium.time.ZonedTimestamp;
@@ -36,9 +37,11 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
     public void deserialize(SourceRecord sourceRecord, Collector<FlatMessage> collector) {
         Struct recordValue = (Struct) sourceRecord.value();
         Map<String, Object> debeziumMap = structToMap(recordValue);
-        FlatMessage flatMessage = debeziumMapToFlatMessage(debeziumMap);
-        if (flatMessage != null) {
+        try {
+            FlatMessage flatMessage = debeziumMapToFlatMessage(debeziumMap);
             collector.collect(flatMessage);
+        } catch (Exception e) {
+            log.error("cdc to canal error, debezium map: {}", JsonUtils.toString(debeziumMap));
         }
     }
 
@@ -91,6 +94,7 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
         FlatMessage flatMessage = new FlatMessage();
         flatMessage.setDatabase((String) source.get("db"));
         flatMessage.setTable((String) source.get("table"));
+        flatMessage.setPkNames(Collections.singletonList("id"));
         flatMessage.setIsDdl(false);
         switch ((String) debeziumMap.get("op")) {
             case "c":
@@ -110,8 +114,7 @@ public class CanalDebeziumDeserializationSchema implements DebeziumDeserializati
                 flatMessage.setData(Collections.singletonList(before));
                 break;
             default:
-                log.error("cdc to canal error, debezium map: {}", debeziumMap);
-                return null;
+                throw new RuntimeException();
         }
         flatMessage.setEs(Long.parseLong((String) source.get("ts_ms")));
         flatMessage.setTs(Long.parseLong((String) debeziumMap.get("ts_ms")));
