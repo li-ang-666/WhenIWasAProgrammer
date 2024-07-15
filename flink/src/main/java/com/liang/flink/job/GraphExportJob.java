@@ -6,8 +6,8 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.project.graph.export.GraphExportDao;
 import com.liang.flink.service.LocalConfigFile;
-import com.liang.flink.service.equity.bfs.EquityBfsDao;
 import lombok.RequiredArgsConstructor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -58,7 +58,7 @@ public class GraphExportJob {
         private final Config config;
         private ObsWriter edgeObsWriter;
         private ObsWriter nodeObsWriter;
-        private EquityBfsDao dao;
+        private GraphExportDao dao;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -71,7 +71,7 @@ public class GraphExportJob {
             edgeObsWriter.enableCache();
             nodeObsWriter = new ObsWriter("obs://hadoop-obs/flink/graph/node", ObsWriter.FileFormat.TXT);
             nodeObsWriter.enableCache();
-            dao = new EquityBfsDao();
+            dao = new GraphExportDao();
         }
 
         @Override
@@ -128,7 +128,7 @@ public class GraphExportJob {
                     "0",
                     String.valueOf(columnMap.get("tyc_unique_entity_name_invested")).replaceAll("[\n,\r'\"]", ""),
                     "",
-                    //String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""))),
+                    String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""))),
                     "1704038400000"
             );
             String type = String.valueOf(columnMap.get("investor_identity_type"));
@@ -143,7 +143,7 @@ public class GraphExportJob {
                         "0",
                         String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,\r'\"]", ""),
                         "",
-                        //String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""))),
+                        String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""))),
                         "1704038400000"
                 );
             }
