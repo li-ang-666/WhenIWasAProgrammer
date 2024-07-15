@@ -27,7 +27,7 @@ CREATE TABLE dwd (%s
   'index.type' = 'BUCKET',
   'hoodie.bucket.index.num.buckets' = '32',
   -- write
-  'write.tasks' = '2',
+  'write.tasks' = '1',
   'write.task.max.size' = '2048',
   -- compaction
   'compaction.async.enabled' = 'false',
