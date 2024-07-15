@@ -9,7 +9,7 @@ CREATE TABLE ods (%s
   'password' = 'Canal@Dduan',
   'database-name' = '%s',
   'table-name' = '%s',
-  'server-id' = '5400',
+  'server-id' = '5400-5401',
   'scan.startup.mode' = 'earliest-offset',
   'server-time-zone' = 'Asia/Shanghai',
   'jdbc.properties.useSSL' = 'false',
