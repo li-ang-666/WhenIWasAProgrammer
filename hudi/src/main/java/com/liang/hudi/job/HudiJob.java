@@ -24,6 +24,7 @@ public class HudiJob {
         String tbName = args[2];
         configuration.setString("pipeline.name", String.format("%s.%s", dbSource, tbName));
         if (writeOperationType == BULK_INSERT) {
+            configuration.setString("execution.runtime-mode", "BATCH");
             configuration.setInteger("execution.checkpointing.interval", 1000 * 60);
             configuration.setInteger("execution.checkpointing.min-pause", 1000 * 60);
         }

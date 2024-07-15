@@ -25,18 +25,6 @@ public class TableFactory {
         System.out.println(fromTemplate(WriteOperationType.UPSERT, "435.company_base", "company_index"));
     }
 
-    public static String fromFile(String fileName) {
-        try {
-            InputStream stream = TableFactory.class.getClassLoader()
-                    .getResourceAsStream(fileName);
-            assert stream != null;
-            return IOUtils.toString(stream, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            log.error("create table from file error");
-            throw new RuntimeException(e);
-        }
-    }
-
     @SneakyThrows
     public static String fromTemplate(WriteOperationType writeOperationType, String source, String tableName) {
         // config
