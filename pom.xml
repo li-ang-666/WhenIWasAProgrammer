@@ -19,6 +19,18 @@
     </modules>
     <dependencyManagement>
         <dependencies>
+            <!--hudi-->
+            <dependency>
+                <groupId>org.apache.calcite</groupId>
+                <artifactId>calcite-core</artifactId>
+                <version>1.32.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hudi</groupId>
+                <artifactId>hudi-flink1.18-bundle</artifactId>
+                <version>0.15.0</version>
+            </dependency>
+
             <!--parquet-->
             <dependency>
                 <groupId>org.apache.parquet</groupId>
@@ -207,6 +219,11 @@
             </dependency>
 
             <!--flink-->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-connector-jdbc</artifactId>
+                <version>3.2.0-1.18</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.flink</groupId>
                 <artifactId>flink-connector-mysql-cdc</artifactId>
