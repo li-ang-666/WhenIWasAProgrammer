@@ -7,6 +7,8 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.EnvironmentSettings;
+import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import java.util.concurrent.TimeUnit;
@@ -19,9 +21,12 @@ public class TableEnvironmentFactory {
     private final static long CHECKPOINT_INTERVAL = 1000 * 60 * 10;
     private final static long CHECKPOINT_TIMEOUT = 1000 * 60 * 30;
 
-    public static StreamTableEnvironment create() {
+    public static TableEnvironment create(boolean isBatchMode) {
         StreamExecutionEnvironment env = initEnv();
         configEnv(env);
+        if (isBatchMode) {
+            return TableEnvironment.create(EnvironmentSettings.fromConfiguration(env.getConfiguration()));
+        }
         return StreamTableEnvironment.create(env);
     }
 

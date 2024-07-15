@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class TestJob {
     public static void main(String[] args) {
-        StreamTableEnvironment tEnv = TableEnvironmentFactory.create();
+        StreamTableEnvironment tEnv = (StreamTableEnvironment) TableEnvironmentFactory.create(false);
         tEnv.getConfig().set("pipeline.operator-chaining", "false");
         tEnv.getConfig().set("parallelism.default", "1");
         String sqls = ResourceUtil.readStr("sql/test.sql", StandardCharsets.UTF_8);
