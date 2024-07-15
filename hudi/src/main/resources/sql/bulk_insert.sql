@@ -11,7 +11,7 @@ CREATE TABLE ods (%s
   'scan.partition.lower-bound' = '%s',
   'scan.partition.upper-bound' = '%s',
   'scan.partition.num' = '%s',
-  'scan.fetch-size' = '1024'
+  'scan.fetch-size' = '-2147483648'
 );
 CREATE TABLE dwd (%s
   op_ts TIMESTAMP(3),
@@ -25,24 +25,10 @@ CREATE TABLE dwd (%s
   'hoodie.bucket.index.num.buckets' = '32',
   -- write
   'write.tasks' = '32',
-  'write.task.max.size' = '1024',
-  'write.merge.max_memory' = '0',
-  'write.precombine' = 'true',
-  'write.precombine.field' = 'op_ts',
+  'write.task.max.size' = '2048',
   'write.operation' = 'bulk_insert',
   'write.bulk_insert.shuffle_input' = 'false',
   'write.bulk_insert.sort_input' = 'false',
-  -- compaction
-  'compaction.async.enabled' = 'false',
-  'compaction.schedule.enabled' = 'true',
-  'compaction.trigger.strategy' = 'num_or_time',
-  'compaction.delta_commits' = '3',
-  'compaction.delta_seconds' = '3600',
-  -- clean & archive
-  'clean.async.enabled' = 'true',
-  'clean.retain_commits' = '10',
-  'archive.min_commits' = '20',
-  'archive.max_commits' = '30',
   -- hive
   'hive_sync.enabled' = 'true',
   'hive_sync.mode' = 'hms',
