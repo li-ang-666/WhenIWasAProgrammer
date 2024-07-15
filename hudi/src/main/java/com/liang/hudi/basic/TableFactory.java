@@ -1,6 +1,5 @@
 package com.liang.hudi.basic;
 
-import cn.hutool.core.util.IdUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -64,7 +63,7 @@ public class TableFactory {
                     .getResourceAsStream("sql/cdc.sql");
             assert stream != null;
             String template = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, 5400 + IdUtil.getSnowflakeNextId() % 1000, createTable, tableName, tableName, sql);
+            return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, createTable, tableName, tableName, sql);
         } else {
             throw new RuntimeException("writeOperationType need to be BULK_INSERT or UPSERT");
         }
