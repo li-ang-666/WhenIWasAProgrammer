@@ -46,7 +46,7 @@ public class TableFactory {
         // calculate
         String min = jdbcTemplate.queryForObject("select min(id) from " + tableName, rs -> rs.getString(1));
         String max = jdbcTemplate.queryForObject("select max(id) from " + tableName, rs -> rs.getString(1));
-        int partitions = (int) ((Long.parseLong(max) - Long.parseLong(min)) / 10240);
+        long partitions = ((Long.parseLong(max) - Long.parseLong(min)) / 10240L);
         // mapping
         AtomicInteger maxColumnLength = new AtomicInteger(Integer.MIN_VALUE);
         List<Tuple2<String, String>> list = jdbcTemplate.queryForList("desc " + tableName, rs -> {
