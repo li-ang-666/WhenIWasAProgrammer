@@ -46,7 +46,6 @@ public class TableFactory {
         // calculate
         String min = jdbcTemplate.queryForObject("select min(id) from " + tableName, rs -> rs.getString(1));
         String max = jdbcTemplate.queryForObject("select max(id) from " + tableName, rs -> rs.getString(1));
-        long partitions = ((Long.parseLong(max) - Long.parseLong(min)) / 10240L);
         // mapping
         AtomicInteger maxColumnLength = new AtomicInteger(Integer.MIN_VALUE);
         List<Tuple2<String, String>> list = jdbcTemplate.queryForList("desc " + tableName, rs -> {
@@ -71,7 +70,7 @@ public class TableFactory {
                     .getResourceAsStream("sql/bulk_insert.sql");
             assert stream != null;
             String template = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, min, max, partitions, createTable, tableName, tableName, sql);
+            return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, min, max, createTable, tableName, tableName, sql);
         } else if (writeOperationType == WriteOperationType.UPSERT) {
             InputStream stream = TableFactory.class.getClassLoader()
                     .getResourceAsStream("sql/cdc.sql");

@@ -10,7 +10,7 @@ CREATE TABLE ods (%s
   'scan.partition.column' = 'id',
   'scan.partition.lower-bound' = '%s',
   'scan.partition.upper-bound' = '%s',
-  'scan.partition.num' = '%s',
+  'scan.partition.num' = '1',
   'scan.fetch-size' = '-2147483648'
 );
 CREATE TABLE dwd (%s
