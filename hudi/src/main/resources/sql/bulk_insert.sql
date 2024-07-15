@@ -10,7 +10,7 @@ CREATE TABLE ods (%s
   'scan.partition.column' = 'id',
   'scan.partition.lower-bound' = '%s',
   'scan.partition.upper-bound' = '%s',
-  'scan.partition.num' = '1',
+  'scan.partition.num' = '32',
   'scan.fetch-size' = '-2147483648'
 );
 CREATE TABLE dwd (%s
@@ -25,7 +25,7 @@ CREATE TABLE dwd (%s
   'hoodie.bucket.index.num.buckets' = '32',
   -- write
   'write.tasks' = '32',
-  'write.task.max.size' = '2048',
+  'write.task.max.size' = '1024',
   'write.operation' = 'bulk_insert',
   'write.bulk_insert.shuffle_input' = 'false',
   'write.bulk_insert.sort_input' = 'false',
