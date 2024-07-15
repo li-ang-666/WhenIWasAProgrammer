@@ -53,6 +53,10 @@ public class GraphExportJob {
         env.execute("GraphExportJob");
     }
 
+    private static String format(Object obj) {
+        return ((String) obj).replaceAll("[\\s\n,\r'\"]", "");
+    }
+
     @RequiredArgsConstructor
     private final static class GraphExportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
@@ -106,13 +110,13 @@ public class GraphExportJob {
 
         private String getEdge(Map<String, Object> columnMap) {
             List<String> edge = Arrays.asList(
-                    String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n,\r'\"]", ""),
-                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
+                    format(columnMap.get("tyc_unique_entity_id_investor")),
+                    format(columnMap.get("company_id_invested")),
                     "equity_relation",
-                    String.valueOf(columnMap.get("equity_ratio")).replaceAll("[\n,\r'\"]", ""),
-                    String.valueOf(columnMap.get("equity_amount")).replaceAll("[\n,\r'\"]", ""),
-                    String.valueOf(columnMap.get("equity_amount_currency")).replaceAll("[\n,\r'\"]", ""),
-                    String.valueOf(columnMap.get("reference_pt_year")).replaceAll("[\n,\r'\"]", ""),
+                    format(columnMap.get("equity_ratio")),
+                    format(columnMap.get("equity_amount")),
+                    format(columnMap.get("equity_amount_currency")),
+                    format(columnMap.get("reference_pt_year")),
                     "1704038400000"
             );
             return String.join(",", edge);
@@ -121,14 +125,14 @@ public class GraphExportJob {
         private Tuple2<String, String> getNode(Map<String, Object> columnMap) {
             // 被投资公司
             List<String> company = Arrays.asList(
-                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
+                    format(columnMap.get("company_id_invested")),
                     "node",
                     "2",
-                    String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
+                    format(columnMap.get("company_id_invested")),
                     "0",
-                    String.valueOf(columnMap.get("tyc_unique_entity_name_invested")).replaceAll("[\n,\r'\"]", ""),
+                    format(columnMap.get("tyc_unique_entity_name_invested")),
                     "",
-                    String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""))),
+                    String.valueOf(!dao.isClosed((String) columnMap.get("company_id_invested"))),
                     "1704038400000"
             );
             String type = String.valueOf(columnMap.get("investor_identity_type"));
@@ -136,26 +140,26 @@ public class GraphExportJob {
             // 股东-公司
             if ("2".equals(type)) {
                 shareholder = Arrays.asList(
-                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""),
+                        format(columnMap.get("company_id_investor")),
                         "node",
                         "2",
-                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""),
+                        format(columnMap.get("company_id_investor")),
                         "0",
-                        String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,\r'\"]", ""),
+                        format(columnMap.get("tyc_unique_entity_name_investor")),
                         "",
-                        String.valueOf(!dao.isClosed(String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""))),
+                        String.valueOf(!dao.isClosed((String) columnMap.get("company_id_investor"))),
                         "1704038400000"
                 );
             }
             // 股东-人
             else if ("1".equals(type)) {
                 shareholder = Arrays.asList(
-                        String.valueOf(columnMap.get("tyc_unique_entity_id_investor")).replaceAll("[\n,\r'\"]", ""),
+                        format(columnMap.get("tyc_unique_entity_id_investor")),
                         "node",
                         "1",
-                        String.valueOf(columnMap.get("company_id_invested")).replaceAll("[\n,\r'\"]", ""),
-                        String.valueOf(columnMap.get("company_id_investor")).replaceAll("[\n,\r'\"]", ""),
-                        String.valueOf(columnMap.get("tyc_unique_entity_name_investor")).replaceAll("[\n,\r'\"]", ""),
+                        format(columnMap.get("company_id_invested")),
+                        format(columnMap.get("company_id_investor")),
+                        format(columnMap.get("tyc_unique_entity_name_investor")),
                         "",
                         "true",
                         "1704038400000"

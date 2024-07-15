@@ -172,7 +172,7 @@ public class EquityBfsJob {
                 } else {
                     log.info("bitmap size: {}", bitmap.getLongCardinality());
                 }
-                bitmap.forEach(this::consume);
+                bitmap.iterator().forEachRemaining(this::consume);
                 bitmap.clear();
             }
         }
