@@ -358,7 +358,7 @@ public class EquityDirectJob {
             return new BigDecimal(StrUtil.nullToDefault(number, "0"))
                     .abs()
                     .divide(divide100 ? new BigDecimal(100) : new BigDecimal(1), 12, RoundingMode.DOWN)
-                    .multiply(multiply1000000 ? new BigDecimal(1000000) : new BigDecimal(1))
+                    //.multiply(multiply1000000 ? new BigDecimal(1000000) : new BigDecimal(1))
                     .setScale(12, RoundingMode.DOWN)
                     .toPlainString();
         }
