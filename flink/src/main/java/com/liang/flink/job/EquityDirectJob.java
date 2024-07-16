@@ -170,7 +170,7 @@ public class EquityDirectJob {
         private void flush() {
             synchronized (bitmap) {
                 log.info("bitmap: {}, bitmap size: {}", Arrays.toString(bitmap.toArray()), bitmap.getLongCardinality());
-                bitmap.forEach(this::consumeCompanyId);
+                bitmap.iterator().forEachRemaining(this::consumeCompanyId);
                 bitmap.clear();
             }
         }
