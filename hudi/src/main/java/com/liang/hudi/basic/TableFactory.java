@@ -1,5 +1,6 @@
 package com.liang.hudi.basic;
 
+import cn.hutool.core.collection.ListUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -20,6 +21,19 @@ import java.util.stream.Collectors;
 @UtilityClass
 @Slf4j
 public class TableFactory {
+    private static final List<String> TABLES = ListUtil.of(
+            "company_bond_plates",
+            "company_clean_info",
+            "company_equity_relation_details",
+            "company_human_relation",
+            "company_index",
+            "company_legal_person",
+            "entity_controller_details_new",
+            "personnel",
+            "senior_executive",
+            "senior_executive_hk"
+    );
+
     public static void main(String[] args) {
         System.out.println(fromTemplate(WriteOperationType.UPSERT, "435.company_base", "company_index"));
     }
@@ -30,10 +44,10 @@ public class TableFactory {
         Config config = ConfigUtils.createConfig(null);
         ConfigUtils.setConfig(config);
         JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
-        // calculate
+        // calculate min & max bounding
         String min = jdbcTemplate.queryForObject("select min(id) from " + tableName, rs -> rs.getString(1));
         String max = jdbcTemplate.queryForObject("select max(id) from " + tableName, rs -> rs.getString(1));
-        // mapping
+        // mapping column and type
         AtomicInteger maxColumnLength = new AtomicInteger(Integer.MIN_VALUE);
         List<Tuple2<String, String>> list = jdbcTemplate.queryForList("desc " + tableName, rs -> {
             String columnName = rs.getString(1);
@@ -43,7 +57,7 @@ public class TableFactory {
         });
         String createTable = list.stream().map(e -> "  " + e.f0 + StringUtils.repeat(" ", maxColumnLength.get() + 1 - e.f0.length()) + e.f1 + ",")
                 .collect(Collectors.joining("\n", "\n", ""));
-        // sql
+        // insert sql
         list.add(Tuple2.of("op_ts", "TIMESTAMP(3)"));
         String sql = list.stream().map(e -> {
             if (e.f1.equals("TIMESTAMP(3)"))
@@ -52,18 +66,25 @@ public class TableFactory {
                 return e.f0;
         }).collect(Collectors.joining(", ", "INSERT INTO dwd SELECT\n", "\nFROM ods"));
         // 拼接
+        // bulk_insert
         if (writeOperationType == WriteOperationType.BULK_INSERT) {
             InputStream stream = TableFactory.class.getClassLoader()
                     .getResourceAsStream("sql/bulk_insert.sql");
             assert stream != null;
             String template = IOUtils.toString(stream, StandardCharsets.UTF_8);
             return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, min, max, createTable, tableName, tableName, sql);
-        } else if (writeOperationType == WriteOperationType.UPSERT) {
+        }
+        // upsert
+        else if (writeOperationType == WriteOperationType.UPSERT) {
             InputStream stream = TableFactory.class.getClassLoader()
                     .getResourceAsStream("sql/cdc.sql");
             assert stream != null;
             String template = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, createTable, tableName, tableName, sql);
+            if (!TABLES.contains(tableName)) {
+                throw new RuntimeException("表名需要添加到com.liang.hudi.basic.TableFactory中");
+            }
+            int serverId = 5400 + TABLES.indexOf(tableName);
+            return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, serverId, createTable, tableName, tableName, sql);
         } else {
             throw new RuntimeException("writeOperationType need to be BULK_INSERT or UPSERT");
         }

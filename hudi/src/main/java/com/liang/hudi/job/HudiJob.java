@@ -4,6 +4,7 @@ import com.liang.hudi.basic.TableEnvironmentFactory;
 import com.liang.hudi.basic.TableFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.api.bridge.java.StreamStatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.hudi.common.model.WriteOperationType;
@@ -22,7 +23,9 @@ public class HudiJob {
         } else {
             tEnv = TableEnvironmentFactory.create(false);
         }
-        tEnv.getConfig().getConfiguration().setString("pipeline.name", String.format("%s.%s", dbSource, tbName));
+        Configuration configuration = tEnv.getConfig().getConfiguration();
+        configuration.setBoolean("pipeline.operator-chaining.enabled", false);
+        configuration.setString("pipeline.name", String.format("%s.%s", dbSource, tbName));
         StreamStatementSet statementSet = tEnv.createStatementSet();
         for (String sql : TableFactory.fromTemplate(opt, dbSource, tbName).split(";")) {
             if (StringUtils.isBlank(sql)) continue;
