@@ -25,7 +25,7 @@ public class StopMonitor {
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_company_clean_info"));
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_company_legal_person"));
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_company_bond_plates"));
-        LIST.add(Tuple3.of("liang", "Moka20190520", "EquityDirectJob"));
+        LIST.add(Tuple3.of("omm", "Moka20190520", "entity_controller_details_new"));
     }
 
     public static void main(String[] args) {
