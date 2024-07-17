@@ -25,6 +25,10 @@ public class TaskGenerator {
 
     @SneakyThrows
     public static void formatRepairTasks() {
+        // 本地串联执行flink任务,只进行一次格式化
+        if (ConfigUtils.getConfig().getRepairTasks() == RESULT_REPAIR_TASKS) {
+            return;
+        }
         // 遍历每个task
         for (RepairTask sourceRepairTask : ConfigUtils.getConfig().getRepairTasks()) {
             String sourceName = sourceRepairTask.getSourceName();
