@@ -32,7 +32,7 @@ public class Rds491CdcJob {
     private static final Integer CDC_PORT = 3306;
     private static final String CDC_USERNAME = "canal_d";
     private static final String CDC_PASSWORD = "Canal@Dduan";
-    private static final String CDC_SERVER_ID = "6000-6100";
+    private static final String CDC_SERVER_ID = "491";
     private static final String CDC_TIMEZONE = "Asia/Shanghai";
     private static final StartupOptions CDC_STARTUP_OPTIONS = StartupOptions.latest();
 
