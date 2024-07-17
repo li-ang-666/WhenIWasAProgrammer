@@ -5,7 +5,6 @@ export HADOOP_CLASSPATH=`hadoop classpath`
 /home/hive/flink/flink-1.17.1/bin/flink run-application -t yarn-application \
   -D jobmanager.memory.process.size=2g \
   -D taskmanager.memory.process.size=10g \
-  -D taskmanager.memory.network.fraction=0.5 \
   -D taskmanager.memory.network.max=256m \
   -D taskmanager.numberOfTaskSlots=8 \
   -D parallelism.default=1 \
