@@ -28,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Rds491CdcJob {
     private static final String CDC_HOSTNAME = "505982938db54e86bfc4bd36d49f840din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com";
     private static final String CDC_DATABASE = "prism_shareholder_path";
-    private static final String CDC_TABLE = ".*";
+    private static final String CDC_TABLE = "ratio_path_company_new_\\d+";
     private static final Integer CDC_PORT = 3306;
     private static final String CDC_USERNAME = "canal_d";
     private static final String CDC_PASSWORD = "Canal@Dduan";
