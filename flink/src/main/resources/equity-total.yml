@@ -10,7 +10,7 @@ repairTasks:
     sourceName: "435.company_base"
     tableName: "company_index"
     columns: "*"
-    where: "company_id in (472674922)"
+    where: "company_id in (1373628734)"
     scanMode: Direct
 
 kafkaConfigs:
