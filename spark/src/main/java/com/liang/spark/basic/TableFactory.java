@@ -17,7 +17,7 @@ public class TableFactory {
         return spark.read()
                 .option("header", "true")
                 .option("inferSchema", "true")
-                .csv("/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/" + fileName);
+                .csv("file:/Users/liang/Desktop/WhenIWasAProgrammer/spark/src/main/resources/" + fileName);
     }
 
     public static Dataset<Row> jdbc(SparkSession spark, String sourceName, String tableName) {
