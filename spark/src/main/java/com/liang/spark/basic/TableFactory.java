@@ -30,13 +30,13 @@ public class TableFactory {
         String url = dataSource.getUrl();
         String user = dataSource.getUsername();
         String password = dataSource.getPassword();
-        return spark.read().option("fetchsize", "2048").jdbc(
+        return spark.read().option("fetchsize", String.valueOf(Integer.MIN_VALUE)).jdbc(
                 url,
                 tableName,
                 "id",
                 minId,
                 maxId,
-                (int) ((maxId - minId) / 102400),
+                1,
                 new Properties() {{
                     put("user", user);
                     put("password", password);
