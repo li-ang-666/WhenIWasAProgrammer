@@ -10,6 +10,7 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.project.bid.BidUtils;
+import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -22,6 +23,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.HashMap;
 import java.util.Map;
 
+@LocalConfigFile("bid-ai-v1.yml")
 public class BidAiV1Job {
     private static final String SINK_RDS = "427.test";
     private static final String SINK_TABLE = "bid_ai_v1";
