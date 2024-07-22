@@ -16,7 +16,7 @@ public class StopMonitor {
     private final static List<Tuple3<String, String, String>> LIST = new ArrayList<>();
 
     static {
-        LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_shareholder_investment_relation_info"));
+        LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_company_equity_relation_details"));
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_company_index"));
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_personnel"));
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_senior_executive"));
@@ -25,7 +25,7 @@ public class StopMonitor {
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_company_clean_info"));
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_company_legal_person"));
         LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_company_bond_plates"));
-        LIST.add(Tuple3.of("omm", "Moka20190520", "entity_controller_details_new"));
+        LIST.add(Tuple3.of("omm", "Moka20190520", "hudi_upsert_entity_controller_details_new"));
     }
 
     public static void main(String[] args) {
