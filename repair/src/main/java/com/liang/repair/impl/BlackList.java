@@ -100,6 +100,8 @@ public class BlackList extends ConfigHolder {
         new JdbcTemplate("457.prism_shareholder_path").update("delete from investment_relation where company_id_invested in (1017,1065,1101,1172,1258,1301,1307,1347,1418,1617)");
         // 删除老板所有数据
         deleteBossAll("20TVMMN02E33YF576");
+        deleteBossAll("F00359M025JMD12KM");
+        deleteBossAll("5004GM300HNM8Y4JY");
         deleteBossAll("R01QY9G090C7122ZZ");
         deleteBossAll("500QD9G00AC1122ZU");
         deleteBossAll("L0QNUML00TNSDBLF9");
