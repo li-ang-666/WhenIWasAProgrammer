@@ -6,7 +6,6 @@ import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
@@ -75,19 +74,14 @@ public class BidAiV2Job {
             String title = StrUtil.blankToDefault((String) columnMap.get("title"), "");
             String content = StrUtil.blankToDefault((String) columnMap.get("content"), "");
             String type = StrUtil.blankToDefault((String) columnMap.get("type"), "");
-            String postResult = service.post(uuid, title, content, type);
-            Map<String, Object> postMap = JsonUtils.parseJsonObj(postResult);
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("id", id);
             resultMap.put("uuid", uuid);
             resultMap.put("title", title);
             resultMap.put("content", content);
             resultMap.put("type", type);
-            resultMap.put("bidding_unit", "");
-            resultMap.put("tendering_proxy_agent", "");
-            resultMap.put("bid_submission_deadline", "");
-            resultMap.put("tender_document_acquisition_deadline", "");
-            resultMap.put("project_number", "");
+            Map<String, Object> postResultMap = service.post(uuid, title, content, type);
+            resultMap.putAll(postResultMap);
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String sql = new SQL().REPLACE_INTO(SINK_TABLE)
                     .INTO_COLUMNS(insert.f0)
