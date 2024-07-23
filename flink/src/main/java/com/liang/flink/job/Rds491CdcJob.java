@@ -28,8 +28,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public class Rds491CdcJob {
-
-
     private static final String CDC_HOSTNAME = "505982938db54e86bfc4bd36d49f840din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com";
     private static final String CDC_DATABASE = "prism_shareholder_path";
     private static final String CDC_TABLE = "ratio_path_company_new_\\d+";
