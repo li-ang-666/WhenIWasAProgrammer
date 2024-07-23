@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
@@ -70,11 +71,10 @@ public class BidAiV2Job {
                 sink.update(sql);
                 return;
             }
-            String uuid = (String) columnMap.get("uuid");
-            String title = (String) columnMap.get("title");
-            String content = (String) columnMap.get("content");
-            String type = (String) columnMap.get("type");
-            String deleted = (String) columnMap.get("deleted");
+            String uuid = StrUtil.blankToDefault((String) columnMap.get("uuid"), "");
+            String title = StrUtil.blankToDefault((String) columnMap.get("title"), "");
+            String content = StrUtil.blankToDefault((String) columnMap.get("content"), "");
+            String type = StrUtil.blankToDefault((String) columnMap.get("type"), "");
             String postResult = service.post(uuid, title, content, type);
             Map<String, Object> postMap = JsonUtils.parseJsonObj(postResult);
             Map<String, Object> resultMap = new HashMap<>();
@@ -83,7 +83,6 @@ public class BidAiV2Job {
             resultMap.put("title", title);
             resultMap.put("content", content);
             resultMap.put("type", type);
-            resultMap.put("deleted", deleted);
             resultMap.put("bidding_unit", "");
             resultMap.put("tendering_proxy_agent", "");
             resultMap.put("bid_submission_deadline", "");
