@@ -1,6 +1,9 @@
 package com.liang.flink.project.bid;
 
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
 import com.google.common.collect.Lists;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -10,11 +13,30 @@ import com.liang.common.util.TycUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @SuppressWarnings("unchecked")
-public class BidUtils {
-    public static Map<String, Object> parseBidInfo(String bidInfo) {
+public class BidService {
+    private static final int TIMEOUT = (int) TimeUnit.HOURS.toMillis(24);
+    private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
+
+    public String post(String uuid, String title, String content, String type) {
+        HttpRequest httpRequest = HttpUtil.createPost("")
+                .timeout(TIMEOUT)
+                .form("text", content)
+                .form("bid_uuid", uuid)
+                .form("doc_type", type)
+                .form("title", title);
+        try (HttpResponse httpResponse = httpRequest.execute()) {
+            return httpResponse.body();
+        } catch (Exception e) {
+            log.error("post AI error, uuid: {}, title: {}, content: {}, type: {}", uuid, title, content, type, e);
+            return "{}";
+        }
+    }
+
+    public Map<String, Object> parseBidInfo(String bidInfo) {
         Map<String, Object> columnMap = new LinkedHashMap<>();
         // prepare
         List<String> contractNos = Lists.newArrayList();
@@ -101,13 +123,13 @@ public class BidUtils {
         return columnMap;
     }
 
-    private static String queryCompanyIdByCompanyName(String companyName) {
+    private String queryCompanyIdByCompanyName(String companyName) {
         String sql = new SQL()
                 .SELECT("company_id")
                 .FROM("company_index")
                 .WHERE("company_name = " + SqlUtils.formatValue(companyName))
                 .toString();
-        String res = new JdbcTemplate("435.company_base").queryForObject(sql, rs -> rs.getString(1));
+        String res = companyBase435.queryForObject(sql, rs -> rs.getString(1));
         return ObjUtil.defaultIfNull(res, "");
     }
 }

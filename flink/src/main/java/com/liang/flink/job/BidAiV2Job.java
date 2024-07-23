@@ -1,13 +1,17 @@
 package com.liang.flink.job;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.project.bid.BidService;
+import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
@@ -20,6 +24,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import java.util.HashMap;
 import java.util.Map;
 
+@LocalConfigFile("bid-ai-v2.yml")
 public class BidAiV2Job {
     private static final String SINK_RDS = "427.test";
     private static final String SINK_TABLE = "bid_ai_v2";
@@ -28,7 +33,7 @@ public class BidAiV2Job {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
-                .keyBy(e -> (String) e.getColumnMap().get(""))
+                .keyBy(e -> (String) e.getColumnMap().get("id"))
                 .addSink(new BidAiV2Sink(config))
                 .name("BidAiV2Sink")
                 .uid("BidAiV2Sink")
@@ -40,6 +45,7 @@ public class BidAiV2Job {
     private static final class BidAiV2Sink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
         private JdbcTemplate sink;
+        private BidService service;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -50,12 +56,39 @@ public class BidAiV2Job {
             ConfigUtils.setConfig(config);
             sink = new JdbcTemplate(SINK_RDS);
             sink.enableCache();
+            service = new BidService();
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            HashMap<String, Object> resultMap = new HashMap<>();
+            String id = (String) columnMap.get("id");
+            if (singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE) {
+                String sql = new SQL().DELETE_FROM(SINK_TABLE)
+                        .WHERE("id = " + SqlUtils.formatValue(id))
+                        .toString();
+                sink.update(sql);
+                return;
+            }
+            String uuid = (String) columnMap.get("uuid");
+            String title = (String) columnMap.get("title");
+            String content = (String) columnMap.get("content");
+            String type = (String) columnMap.get("type");
+            String deleted = (String) columnMap.get("deleted");
+            String postResult = service.post(uuid, title, content, type);
+            Map<String, Object> postMap = JsonUtils.parseJsonObj(postResult);
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("id", id);
+            resultMap.put("uuid", uuid);
+            resultMap.put("title", title);
+            resultMap.put("content", content);
+            resultMap.put("type", type);
+            resultMap.put("deleted", deleted);
+            resultMap.put("bidding_unit", "");
+            resultMap.put("tendering_proxy_agent", "");
+            resultMap.put("bid_submission_deadline", "");
+            resultMap.put("tender_document_acquisition_deadline", "");
+            resultMap.put("project_number", "");
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String sql = new SQL().REPLACE_INTO(SINK_TABLE)
                     .INTO_COLUMNS(insert.f0)
