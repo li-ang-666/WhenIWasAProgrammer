@@ -62,8 +62,8 @@ public class BidService {
             List<Map<String, Object>> biddingUnit = (List<Map<String, Object>>) (resultMap.getOrDefault("bidding_unit", new ArrayList<>()));
             for (Map<String, Object> map : biddingUnit) {
                 biddingUnitResult.add(new LinkedHashMap<String, Object>() {{
-                    put("gid", ObjUtil.defaultIfNull((String) map.get("company_gid"), ""));
-                    put("name", ObjUtil.defaultIfNull((String) map.get("company_name"), ""));
+                    put("gid", ObjUtil.defaultIfNull(map.get("company_gid"), ""));
+                    put("name", ObjUtil.defaultIfNull(map.get("company_name"), ""));
                 }});
             }
             // 代理单位
@@ -71,7 +71,7 @@ public class BidService {
             for (Map<String, Object> map : tenderingProxyAgent) {
                 tenderingProxyAgentResult.add(new LinkedHashMap<String, Object>() {{
                     put("gid", ObjUtil.defaultIfNull(map.get("company_gid"), ""));
-                    put("name", ObjUtil.defaultIfNull((String) map.get("company_name"), ""));
+                    put("name", ObjUtil.defaultIfNull(map.get("company_name"), ""));
                 }});
             }
             // 招标截止时间
