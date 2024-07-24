@@ -23,6 +23,8 @@ public class BidService {
     private static final int TIMEOUT = (int) TimeUnit.HOURS.toMillis(24);
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate dataBid104 = new JdbcTemplate("104.data_bid");
+    private final JdbcTemplate dataEs150 = new JdbcTemplate("150.data_es");
+    private final JdbcTemplate bid = new JdbcTemplate("427.test");
 
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
@@ -79,8 +81,8 @@ public class BidService {
             projectNumberResult.addAll(projectNumber);
             // 返回
             Map<String, Object> returnMap = new HashMap<>();
-            returnMap.put("bidding_unit", biddingUnitResult.isEmpty() ? "" : "[" + JsonUtils.toString(biddingUnitResult) + "]");
-            returnMap.put("tendering_proxy_agent", tenderingProxyAgentResult.isEmpty() ? "" : "[" + JsonUtils.toString(tenderingProxyAgentResult) + "]");
+            returnMap.put("bidding_unit", biddingUnitResult.isEmpty() ? "" : JsonUtils.toString(biddingUnitResult));
+            returnMap.put("tendering_proxy_agent", tenderingProxyAgentResult.isEmpty() ? "" : JsonUtils.toString(tenderingProxyAgentResult));
             returnMap.put("bid_submission_deadline", bidSubmissionDeadlineResult.isEmpty() ? "" : bidSubmissionDeadlineResult.get(0));
             returnMap.put("tender_document_acquisition_deadline", tenderDocumentAcquisitionDeadlineResult.isEmpty() ? "" : tenderDocumentAcquisitionDeadlineResult.get(0));
             returnMap.put("project_number", projectNumberResult.isEmpty() ? "" : projectNumberResult.get(0));
@@ -175,12 +177,12 @@ public class BidService {
             }
         }
         columnMap.put("contract_no", contractNos.isEmpty() ? "" : contractNos.get(0));
-        columnMap.put("candidates", candidates.isEmpty() ? "" : "[" + JsonUtils.toString(candidates) + "]");
-        columnMap.put("winners", winners.isEmpty() ? "" : "[" + JsonUtils.toString(winners) + "]");
-        columnMap.put("winner_raw_amounts", winnerRawAmounts.isEmpty() ? "" : "[" + JsonUtils.toString(winnerRawAmounts) + "]");
-        columnMap.put("winner_amounts", winnerAmounts.isEmpty() ? "" : "[" + JsonUtils.toString(winnerAmounts) + "]");
-        columnMap.put("budget_raw_amounts", budgetRawAmounts.isEmpty() ? "" : "[" + JsonUtils.toString(budgetRawAmounts) + "]");
-        columnMap.put("budget_amounts", budgetAmounts.isEmpty() ? "" : "[" + JsonUtils.toString(budgetAmounts) + "]");
+        columnMap.put("candidates", candidates.isEmpty() ? "" : JsonUtils.toString(candidates));
+        columnMap.put("winners", winners.isEmpty() ? "" : JsonUtils.toString(winners));
+        columnMap.put("winner_raw_amounts", winnerRawAmounts.isEmpty() ? "" : JsonUtils.toString(winnerRawAmounts));
+        columnMap.put("winner_amounts", winnerAmounts.isEmpty() ? "" : JsonUtils.toString(winnerAmounts));
+        columnMap.put("budget_raw_amounts", budgetRawAmounts.isEmpty() ? "" : JsonUtils.toString(budgetRawAmounts));
+        columnMap.put("budget_amounts", budgetAmounts.isEmpty() ? "" : JsonUtils.toString(budgetAmounts));
         return columnMap;
     }
 
@@ -209,6 +211,33 @@ public class BidService {
                 .WHERE("uuid = " + SqlUtils.formatValue(uuid))
                 .toString();
         List<Map<String, Object>> columnMaps = dataBid104.queryForColumnMaps(sql);
+        return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
+    }
+
+    public Map<String, Object> queryBidIndexAll(String mainId) {
+        String sql = new SQL().SELECT("*")
+                .FROM("bid_index")
+                .WHERE("main_id = " + SqlUtils.formatValue(mainId))
+                .toString();
+        List<Map<String, Object>> columnMaps = dataEs150.queryForColumnMaps(sql);
+        return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
+    }
+
+    public Map<String, Object> queryBidAiV1All(String uuid) {
+        String sql = new SQL().SELECT("*")
+                .FROM("bid_ai_v1")
+                .WHERE("uuid = " + SqlUtils.formatValue(uuid))
+                .toString();
+        List<Map<String, Object>> columnMaps = bid.queryForColumnMaps(sql);
+        return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
+    }
+
+    public Map<String, Object> queryBidAiV2All(String uuid) {
+        String sql = new SQL().SELECT("*")
+                .FROM("bid_ai_v2")
+                .WHERE("uuid = " + SqlUtils.formatValue(uuid))
+                .toString();
+        List<Map<String, Object>> columnMaps = bid.queryForColumnMaps(sql);
         return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
     }
 }
