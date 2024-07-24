@@ -51,7 +51,6 @@ public class BidService {
                 throw new RuntimeException();
             }
             String result = httpResponse.body();
-            log.debug("http result: {}", result);
             Map<String, Object> resultMap = JsonUtils.parseJsonObj(result);
             // 招标单位
             List<Map<String, Object>> biddingUnit = (List<Map<String, Object>>) (resultMap.getOrDefault("bidding_unit", new ArrayList<>()));
