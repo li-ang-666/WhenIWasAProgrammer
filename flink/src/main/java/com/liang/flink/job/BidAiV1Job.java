@@ -77,7 +77,6 @@ public class BidAiV1Job {
             String city = StrUtil.blankToDefault((String) columnMap.get("city"), "");
             String firstClassInfoType = StrUtil.blankToDefault((String) columnMap.get("first_class_info_type"), "");
             String secondaryInfoType = StrUtil.blankToDefault((String) columnMap.get("secondary_info_type"), "");
-            String bidType = StrUtil.blankToDefault((String) columnMap.get("bid_type"), "");
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("id", id);
             resultMap.put("uuid", uuid);
@@ -86,7 +85,6 @@ public class BidAiV1Job {
             resultMap.put("city", city);
             resultMap.put("v1", firstClassInfoType);
             resultMap.put("v2", secondaryInfoType);
-            resultMap.put("bid_type", bidType);
             resultMap.put("bid_info", bidInfo);
             resultMap.putAll(service.parseBidInfo(bidInfo));
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);

@@ -9,7 +9,7 @@ repairTasks:
   - sourceName: "104.data_bid"
     tableName: "company_bid"
     columns: "*"
-    where: "id <= 10000"
+    where: "uuid in ('a75da3260a3844d88f681af6f51bc578','99357340e3f046739aa5c7526112b643','fb5d2a6191854bfcbbbea00c0b5bcd2a')"
     scanMode: Direct
 
 kafkaConfigs:

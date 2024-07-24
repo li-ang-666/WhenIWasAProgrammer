@@ -78,7 +78,6 @@ public class BidAiV2Job {
             resultMap.put("id", id);
             resultMap.put("uuid", uuid);
             resultMap.put("title", title);
-            resultMap.put("content", content);
             resultMap.put("type", type);
             Map<String, Object> postResultMap = service.post(uuid, title, content, type);
             resultMap.putAll(postResultMap);

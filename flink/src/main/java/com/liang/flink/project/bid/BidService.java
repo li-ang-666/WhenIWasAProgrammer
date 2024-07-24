@@ -20,16 +20,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @SuppressWarnings("unchecked")
 public class BidService {
+    private static final String URL = "http://10.100.6.45:9999/bid_rank";
     private static final int TIMEOUT = (int) TimeUnit.HOURS.toMillis(24);
+
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
     private final JdbcTemplate dataBid104 = new JdbcTemplate("104.data_bid");
-    private final JdbcTemplate dataEs150 = new JdbcTemplate("150.data_es");
     private final JdbcTemplate bid = new JdbcTemplate("427.test");
 
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        String uuid = "cfa21355d86341f1915c7d005e7b91a5";
+        String uuid = "a75da3260a3844d88f681af6f51bc578";
         BidService service = new BidService();
         Map<String, Object> columnMap = service.queryCompanyBidAll(uuid);
         Map<String, Object> postResultMap = service.post(uuid, (String) columnMap.get("title"), (String) columnMap.get("content"), (String) columnMap.get("type"));
@@ -37,37 +38,40 @@ public class BidService {
     }
 
     public Map<String, Object> post(String uuid, String title, String content, String type) {
-        HttpRequest httpRequest = HttpUtil.createPost("http://10.100.6.45:9999/bid_rank")
+        HttpRequest httpRequest = HttpUtil.createPost(URL)
                 .timeout(TIMEOUT)
                 .form("text", content)
                 .form("bid_uuid", uuid)
                 .form("doc_type", type)
                 .form("title", title);
+        List<String> postResult = new ArrayList<>();
+        List<Map<String, Object>> biddingUnitResult = new ArrayList<>();
+        List<Map<String, Object>> tenderingProxyAgentResult = new ArrayList<>();
+        List<String> bidSubmissionDeadlineResult = new ArrayList<>();
+        List<String> tenderDocumentAcquisitionDeadlineResult = new ArrayList<>();
+        List<String> projectNumberResult = new ArrayList<>();
         try (HttpResponse httpResponse = httpRequest.execute()) {
-            List<Map<String, Object>> biddingUnitResult = new ArrayList<>();
-            List<Map<String, Object>> tenderingProxyAgentResult = new ArrayList<>();
-            List<String> bidSubmissionDeadlineResult = new ArrayList<>();
-            List<String> tenderDocumentAcquisitionDeadlineResult = new ArrayList<>();
-            List<String> projectNumberResult = new ArrayList<>();
             if (httpResponse.getStatus() != 200) {
-                throw new RuntimeException();
+                throw new RuntimeException("http status is " + httpResponse.getStatus());
             }
+            // 接口返回结果
             String result = httpResponse.body();
+            postResult.add(result);
             Map<String, Object> resultMap = JsonUtils.parseJsonObj(result);
             // 招标单位
             List<Map<String, Object>> biddingUnit = (List<Map<String, Object>>) (resultMap.getOrDefault("bidding_unit", new ArrayList<>()));
             for (Map<String, Object> map : biddingUnit) {
-                biddingUnitResult.add(new HashMap<String, Object>() {{
-                    put("name", map.getOrDefault("company_name", ""));
-                    put("gid", map.getOrDefault("company_gid", ""));
+                biddingUnitResult.add(new LinkedHashMap<String, Object>() {{
+                    put("gid", ObjUtil.defaultIfNull((String) map.get("company_gid"), ""));
+                    put("name", ObjUtil.defaultIfNull((String) map.get("company_name"), ""));
                 }});
             }
             // 代理单位
             List<Map<String, Object>> tenderingProxyAgent = (List<Map<String, Object>>) (resultMap.getOrDefault("tendering_proxy_agent", new ArrayList<>()));
             for (Map<String, Object> map : tenderingProxyAgent) {
-                tenderingProxyAgentResult.add(new HashMap<String, Object>() {{
-                    put("name", map.getOrDefault("company_name", ""));
-                    put("gid", map.getOrDefault("company_gid", ""));
+                tenderingProxyAgentResult.add(new LinkedHashMap<String, Object>() {{
+                    put("gid", ObjUtil.defaultIfNull(map.get("company_gid"), ""));
+                    put("name", ObjUtil.defaultIfNull((String) map.get("company_name"), ""));
                 }});
             }
             // 招标截止时间
@@ -79,29 +83,20 @@ public class BidService {
             // 项目编号
             List<String> projectNumber = (List<String>) (resultMap.getOrDefault("project_number", new ArrayList<>()));
             projectNumberResult.addAll(projectNumber);
-            // 返回
-            Map<String, Object> returnMap = new HashMap<>();
-            returnMap.put("bidding_unit", biddingUnitResult.isEmpty() ? "" : JsonUtils.toString(biddingUnitResult));
-            returnMap.put("tendering_proxy_agent", tenderingProxyAgentResult.isEmpty() ? "" : JsonUtils.toString(tenderingProxyAgentResult));
-            returnMap.put("bid_submission_deadline", bidSubmissionDeadlineResult.isEmpty() ? "" : bidSubmissionDeadlineResult.get(0));
-            returnMap.put("tender_document_acquisition_deadline", tenderDocumentAcquisitionDeadlineResult.isEmpty() ? "" : tenderDocumentAcquisitionDeadlineResult.get(0));
-            returnMap.put("project_number", projectNumberResult.isEmpty() ? "" : projectNumberResult.get(0));
-            return returnMap;
         } catch (Exception e) {
-            log.error("post AI error, uuid: {}", uuid);
-            return new HashMap<String, Object>() {{
-                put("bidding_unit", "");
-                put("tendering_proxy_agent", "");
-                put("bid_submission_deadline", "");
-                put("tender_document_acquisition_deadline", "");
-                put("project_number", "");
-            }};
+            log.error("post AI error, uuid: {}", uuid, e);
         }
+        Map<String, Object> returnMap = new HashMap<>();
+        returnMap.put("post_result", postResult.isEmpty() ? "" : postResult.get(0));
+        returnMap.put("bidding_unit", JsonUtils.toString(biddingUnitResult));
+        returnMap.put("tendering_proxy_agent", JsonUtils.toString(tenderingProxyAgentResult));
+        returnMap.put("bid_submission_deadline", bidSubmissionDeadlineResult.isEmpty() ? "" : bidSubmissionDeadlineResult.get(0));
+        returnMap.put("tender_document_acquisition_deadline", tenderDocumentAcquisitionDeadlineResult.isEmpty() ? "" : tenderDocumentAcquisitionDeadlineResult.get(0));
+        returnMap.put("project_number", projectNumberResult.isEmpty() ? "" : projectNumberResult.get(0));
+        return returnMap;
     }
 
     public Map<String, Object> parseBidInfo(String bidInfo) {
-        Map<String, Object> columnMap = new LinkedHashMap<>();
-        // prepare
         List<Map<String, Object>> purchaser = Lists.newArrayList();
         List<Map<String, Object>> winner = Lists.newArrayList();
         List<Map<String, Object>> winnerAmount = Lists.newArrayList();
@@ -112,10 +107,10 @@ public class BidService {
             // action
             List<Map<String, Object>> actionMaps = (List<Map<String, Object>>) (parsedMap.getOrDefault("action", new ArrayList<>()));
             for (Map<String, Object> actionMap : actionMaps) {
-                // purchaser
-                List<Map<String, Object>> clientMaps = (List<Map<String, Object>>) (actionMap.getOrDefault("client", new ArrayList<>()));
-                for (Map<String, Object> clientMap : clientMaps) {
-                    String name = String.valueOf(clientMap.getOrDefault("name", ""));
+                // purchaser from client
+                List<Map<String, Object>> purchaserMaps = (List<Map<String, Object>>) (actionMap.getOrDefault("client", new ArrayList<>()));
+                for (Map<String, Object> purchaserMap : purchaserMaps) {
+                    String name = String.valueOf(purchaserMap.getOrDefault("name", ""));
                     // 只要名字正确, 就保留
                     if (TycUtils.isValidName(name)) {
                         purchaser.add(new LinkedHashMap<String, Object>() {{
@@ -124,8 +119,8 @@ public class BidService {
                         }});
                     }
                 }
-                // winner
-                Map<String, Object> winnerMap = (Map<String, Object>) (actionMap.getOrDefault("winner", new LinkedHashMap<>()));
+                // winner from supplier
+                Map<String, Object> winnerMap = (Map<String, Object>) (actionMap.getOrDefault("supplier", new HashMap<>()));
                 List<Map<String, Object>> winnerEntities = (List<Map<String, Object>>) (winnerMap.getOrDefault("entity", new ArrayList<>()));
                 for (Map<String, Object> winnerEntity : winnerEntities) {
                     String name = String.valueOf(winnerEntity.getOrDefault("name", ""));
@@ -145,9 +140,10 @@ public class BidService {
                 }
             }
         }
-        columnMap.put("purchaser", purchaser.isEmpty() ? "" : JsonUtils.toString(purchaser));
-        columnMap.put("winner", winner.isEmpty() ? "" : JsonUtils.toString(winner));
-        columnMap.put("winner_amount", winnerAmount.isEmpty() ? "" : JsonUtils.toString(winnerAmount));
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("purchaser", JsonUtils.toString(purchaser));
+        columnMap.put("winner", JsonUtils.toString(winner));
+        columnMap.put("winner_amount", JsonUtils.toString(winnerAmount));
         return columnMap;
     }
 
@@ -161,30 +157,12 @@ public class BidService {
         return ObjUtil.defaultIfNull(res, "");
     }
 
-    public String queryUuid(String mainId) {
-        String sql = new SQL().SELECT("uuid")
-                .FROM("company_bid")
-                .WHERE("id = " + SqlUtils.formatValue(mainId))
-                .toString();
-        String res = dataBid104.queryForObject(sql, rs -> rs.getString(1));
-        return ObjUtil.defaultIfNull(res, "");
-    }
-
     public Map<String, Object> queryCompanyBidAll(String uuid) {
         String sql = new SQL().SELECT("*")
                 .FROM("company_bid")
                 .WHERE("uuid = " + SqlUtils.formatValue(uuid))
                 .toString();
         List<Map<String, Object>> columnMaps = dataBid104.queryForColumnMaps(sql);
-        return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
-    }
-
-    public Map<String, Object> queryBidIndexAll(String mainId) {
-        String sql = new SQL().SELECT("*")
-                .FROM("bid_index")
-                .WHERE("main_id = " + SqlUtils.formatValue(mainId))
-                .toString();
-        List<Map<String, Object>> columnMaps = dataEs150.queryForColumnMaps(sql);
         return columnMaps.isEmpty() ? new HashMap<>() : columnMaps.get(0);
     }
 
