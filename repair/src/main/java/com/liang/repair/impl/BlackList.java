@@ -192,6 +192,7 @@ public class BlackList extends ConfigHolder {
         deletePartner("K0YQPML010TFKFYZC");
         new JdbcTemplate("491.prism_shareholder_path").update("delete from ratio_path_company_new_54 where company_id = '761462154'");
         new JdbcTemplate("463.bdp_equity").update("delete from entity_controller_details_new where company_id_controlled = '761462154'");
+        new JdbcTemplate("463.bdp_equity").update("delete from entity_controller_details_new where company_id_controlled = '3363932809'");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'D0B77MY02NP8TBT8R' and company_name not like '%陕西%'");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'E044992098GAB1QKP' and company_name = '佳木斯运隆建筑装饰工程有限公司'");
         new JdbcTemplate("467.company_base").update("delete from cooperation_partner where boss_human_pid = 'C0AE0MQ008NPTFU23' and company_name not like '%郑州新铁%'");
