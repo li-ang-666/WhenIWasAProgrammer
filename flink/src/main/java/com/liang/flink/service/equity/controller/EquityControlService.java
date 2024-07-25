@@ -29,7 +29,7 @@ public class EquityControlService {
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig("");
         ConfigUtils.setConfig(config);
-        for (Map<String, Object> columnMap : new EquityControlService().processControl("3368355168")) {
+        for (Map<String, Object> columnMap : new EquityControlService().processControl("790640813")) {
             System.out.println(StrUtil.repeat("=", 100));
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
@@ -120,7 +120,7 @@ public class EquityControlService {
                 }
             }
             // 经过以上判断, 未发现实控人, 选用董事长 or 执行事务合伙人 为 实控人
-            if (columnMaps.isEmpty()) {
+            if (columnMaps.isEmpty() && !usccPrefixTwo.startsWith("93")) {
                 boolean isPartnership = controllerDao.isPartnership(companyId);
                 List<Map<String, Object>> vips = isPartnership ? controllerDao.queryAllPartners(companyId) : controllerDao.queryAllPersonnels(companyId);
                 for (Map<String, Object> vip : vips) {
