@@ -46,10 +46,10 @@ public class EquityBfsService {
         for (Map<String, Object> columnMap : columnMaps) {
             log.info(StrUtil.repeat("=", 100));
             for (Map.Entry<String, Object> entry : columnMap.entrySet()) {
-                log.info(entry.getKey() + " -> " + entry.getValue());
+                log.info("{} -> {}", entry.getKey(), entry.getValue());
             }
         }
-        log.info("size: " + columnMaps.size());
+        log.info("size: {}", columnMaps.size());
     }
 
     public List<Map<String, Object>> bfs(Object companyGid) {

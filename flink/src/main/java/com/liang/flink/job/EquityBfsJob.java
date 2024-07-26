@@ -169,8 +169,6 @@ public class EquityBfsJob {
             synchronized (bitmap) {
                 if (context != null) {
                     log.info("checkpoint id: {}, bitmap size: {}", context.getCheckpointId(), bitmap.getLongCardinality());
-                } else {
-                    log.info("bitmap size: {}", bitmap.getLongCardinality());
                 }
                 bitmap.iterator().forEachRemaining(this::consume);
                 bitmap.clear();
