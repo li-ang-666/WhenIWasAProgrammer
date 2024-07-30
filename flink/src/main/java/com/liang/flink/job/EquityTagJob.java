@@ -55,7 +55,7 @@ public class EquityTagJob {
     private static final String QUERY_TABLE = "ratio_path_company_new";
 
     private static final String SINK_RDS = "463.bdp_equity";
-    private static final String SINK_TABLE = "shareholder_identity_type_details_new";
+    private static final String SINK_TABLE = "shareholder_identity_type_details_new_tmp";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
