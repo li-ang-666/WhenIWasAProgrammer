@@ -9,7 +9,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import java.util.Properties;
 
 public class KafkaSender extends ConfigHolder {
-    private static final String TOPIC = "9349c.proto.company_base.show_shareholder_tab";
+    private static final String TOPIC = "9349c.proto.semantic_analysis.company_bid_info_v2";
     private static final String MESSAGE_KEY = "{}";
     private static final String MESSAGE_VALUE = "{}";
 
