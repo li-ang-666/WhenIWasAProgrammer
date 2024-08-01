@@ -55,7 +55,7 @@ public class BidService {
                 throw new RuntimeException("http status is " + httpResponse.getStatus());
             }
             // 接口返回结果
-            String result = httpResponse.body();
+            String result = httpResponse.body().replaceAll("\\s", "");
             postResult.add(result);
             Map<String, Object> resultMap = JsonUtils.parseJsonObj(result);
             // 招标单位
