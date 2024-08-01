@@ -82,6 +82,10 @@ public class EquityControlJob {
             else if (table.contains("ratio_path_company_new")) {
                 return String.valueOf(columnMap.get("company_id"));
             }
+            // 上市公告实控人
+            else if (table.contains("stock_actual_controller")) {
+                return String.valueOf(columnMap.get("graph_id"));
+            }
             // 返回随机负数
             return "-" + new Random().nextInt(1024);
         }
