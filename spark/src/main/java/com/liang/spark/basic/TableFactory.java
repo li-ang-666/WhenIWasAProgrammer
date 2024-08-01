@@ -36,7 +36,7 @@ public class TableFactory {
                 "id",
                 minId,
                 maxId,
-                1,
+                (int) ((maxId - minId) / 100_000_000L + 1L),
                 new Properties() {{
                     put("user", user);
                     put("password", password);
