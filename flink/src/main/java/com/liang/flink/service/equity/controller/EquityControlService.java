@@ -115,7 +115,7 @@ public class EquityControlService {
                     else if (shareholderType.equals("2")) {
                         // 后期补充,农专所有人都认为是董事长
                         if (usccPrefixTwo.startsWith("93")) {
-                            columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, "并列最大股东/自然人/农专"));
+                            columnMaps.add(getNormalColumnMap(ratioPathCompanyMap, true, "并列最大股东/自然人/农专成员"));
                             continue;
                         }
                         String position = controllerDao.queryChairMan(companyId, shareholderId);
