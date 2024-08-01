@@ -125,6 +125,7 @@ public class EquityControlService {
                 }
             }
             // 经过以上判断, 未发现实控人, 选用董事长 or 执行事务合伙人 为 实控人
+            // 后期补充, 农专不走这一步
             if (columnMaps.isEmpty() && !usccPrefixTwo.startsWith("93")) {
                 boolean isPartnership = controllerDao.isPartnership(companyId);
                 List<Map<String, Object>> vips = isPartnership ? controllerDao.queryAllPartners(companyId) : controllerDao.queryAllPersonnels(companyId);
