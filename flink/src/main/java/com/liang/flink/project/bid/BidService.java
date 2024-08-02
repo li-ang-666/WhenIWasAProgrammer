@@ -24,7 +24,7 @@ public class BidService {
     private static final int TIMEOUT = (int) TimeUnit.HOURS.toMillis(24);
 
     private final JdbcTemplate companyBase435 = new JdbcTemplate("435.company_base");
-    private final JdbcTemplate dataBid104 = new JdbcTemplate("104.data_bid");
+    private final JdbcTemplate dataBid104 = new JdbcTemplate("427.test");
     private final JdbcTemplate bid = new JdbcTemplate("427.test");
 
     public static void main(String[] args) {
@@ -159,7 +159,7 @@ public class BidService {
 
     public Map<String, Object> queryCompanyBidAll(String uuid) {
         String sql = new SQL().SELECT("*")
-                .FROM("company_bid")
+                .FROM("data_bid.company_bid")
                 .WHERE("uuid = " + SqlUtils.formatValue(uuid))
                 .toString();
         List<Map<String, Object>> columnMaps = dataBid104.queryForColumnMaps(sql);
