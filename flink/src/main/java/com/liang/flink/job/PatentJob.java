@@ -54,8 +54,7 @@ public class PatentJob {
     @RequiredArgsConstructor
     private static final class PatentSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
-        private JdbcTemplate queryTest;
-        private JdbcTemplate queryProd;
+        private JdbcTemplate query;
         private JdbcTemplate sink;
 
         @Override
@@ -65,9 +64,7 @@ public class PatentJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            queryTest = new JdbcTemplate("427.test");
-            //queryProd = new JdbcTemplate("451.intellectual_property_info");
-            queryProd = new JdbcTemplate("427.test");
+            query = new JdbcTemplate("427.test");
             sink = new JdbcTemplate("427.test");
             sink.enableCache();
         }
@@ -97,7 +94,11 @@ public class PatentJob {
             sink.update(deleteSql);
             if (eventType != CanalEntry.EventType.DELETE) {
                 String infoId = String.valueOf(columnMap.get("company_patent_info_id"));
-                String patentStatus = queryPatentStatus(infoId);
+                String sql = new SQL().SELECT("patent_status")
+                        .FROM("intellectual_property_info.company_patent_basic_info")
+                        .WHERE("id = " + SqlUtils.formatValue(infoId))
+                        .toString();
+                String patentStatus = query.queryForObject(sql, rs -> rs.getString(1));
                 // info表 和 index表 必须同时都有
                 if (patentStatus == null) {
                     return;
@@ -147,7 +148,7 @@ public class PatentJob {
             Map<String, Map<String, Integer>> pubYearStatisticMap = new TreeMap<>();
             Map<String, Integer> typeStatisticMap = new TreeMap<>();
             Map<String, Integer> statusStatisticMap = new TreeMap<>();
-            queryTest.streamQuery(sql, rs -> {
+            query.streamQuery(sql, rs -> {
                 String appYear = rs.getString(1);
                 String pubYear = rs.getString(2);
                 String type = rs.getString(3);
@@ -176,14 +177,6 @@ public class PatentJob {
                     .INTO_VALUES(insert.f1)
                     .toString();
             sink.update(insertSql);
-        }
-
-        private String queryPatentStatus(String infoId) {
-            String sql = new SQL().SELECT("patent_status")
-                    .FROM("company_patent_basic_info")
-                    .WHERE("id = " + SqlUtils.formatValue(infoId))
-                    .toString();
-            return queryProd.queryForObject(sql, rs -> rs.getString(1));
         }
 
         private List<Map<String, Object>> complexMap2List(Map<String, Map<String, Integer>> map) {
