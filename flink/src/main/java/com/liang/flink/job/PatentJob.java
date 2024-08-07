@@ -72,7 +72,7 @@ public class PatentJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             if (table.equals("company_patent_basic_info")) {
                 String id = (String) columnMap.get("id");
-                String sql = new SQL().UPDATE("company_patent_basic_info_index")
+                String sql = new SQL().UPDATE("intellectual_property_info.company_patent_basic_info_index")
                         .SET("update_time = now()")
                         .WHERE("company_patent_info_id = " + SqlUtils.formatValue(id))
                         .toString();
