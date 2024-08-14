@@ -212,6 +212,8 @@ public class BlackList extends ConfigHolder {
         deletePartner("20RHFMH0AAES0V5RD");
         deletePartner("300HYM100FZ05VGHR");
         deletePartner("A0AK696093T9DM6LN");
+        deletePartner("90071MZ0216M1BGBA");
+        deletePartner("M0ME3MJ027JZ3DDT6");
         deleteBossAll("E0L2UM402ZUBU7Y9K");
         new JdbcTemplate("457.bdp_equity").update("delete from shareholder_investment_ratio_total_new where company_id = 6135078045");
         new JdbcTemplate("491.prism_shareholder_path").update("delete from ratio_path_company_new_54 where company_id = '761462154'");
