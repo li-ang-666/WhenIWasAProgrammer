@@ -27,9 +27,12 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("unchecked")
 @LocalConfigFile("equity-total.yml")
 public class EquityTotalJob {
     private static final Set<String> VALID_COLUMNS = new HashSet<>(Arrays.asList(
@@ -43,13 +46,15 @@ public class EquityTotalJob {
             "shareholder_name_id",
             "shareholder_master_company_id",
             // 投资
+            "investment_ratio_direct",
             "investment_ratio_total",
             "equity_holding_path"
     ));
     private static final String QUERY_RDS = "491.prism_shareholder_path";
     private static final String QUERY_TABLE = "ratio_path_company_new";
 
-    private static final String SINK_RDS = "457.bdp_equity";
+    //private static final String SINK_RDS = "457.bdp_equity";
+    private static final String SINK_RDS = "427.test";
     private static final String SINK_TABLE = "shareholder_investment_ratio_total_new";
 
     public static void main(String[] args) throws Exception {
@@ -153,7 +158,16 @@ public class EquityTotalJob {
                         // 裁剪 paths
                         List<Object> paths = JsonUtils.parseJsonArr(String.valueOf(columnMap.get("equity_holding_path")));
                         List<Object> subPaths = CollUtil.split(paths, 11).get(0);
+                        for (Object subPath : subPaths) {
+                            List<Map<String, Object>> eachPath = (List<Map<String, Object>>) subPath;
+                            eachPath.get(0).put("is_direct", eachPath.size() == 4);
+                        }
                         columnMap.put("equity_holding_path", JsonUtils.toString(subPaths));
+                        // 直接股比、间接股比、总股比
+                        BigDecimal investmentRatioTotal = new BigDecimal((String) columnMap.get("investment_ratio_total"));
+                        BigDecimal investmentRatioDirect = new BigDecimal((String) columnMap.get("investment_ratio_direct"));
+                        BigDecimal investmentRatioIndirect = investmentRatioTotal.subtract(investmentRatioDirect);
+                        columnMap.put("investment_ratio_indirect", investmentRatioIndirect.setScale(6, RoundingMode.DOWN).toPlainString());
                         // 写入
                         Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMap);
                         String insertSql = new SQL().INSERT_INTO(SINK_TABLE)
