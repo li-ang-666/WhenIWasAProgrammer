@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CooperationPartnerRepair extends ConfigHolder {
     public static void main(String[] args) {
-        String url = "s://www.tianyancha.com/human/1857190487-c3272276018".replaceAll("(.*?)(\\d+.*)", "$2");
+        String url = "ps://www.tianyancha.com/human/1995202691-c3272276018".replaceAll("(.*?)(\\d+.*)", "$2");
         String humanGraphId = url.split("-c")[0];
         String companyGraphId = url.split("-c")[1];
         String queryHumanPidSql = String.format("select human_pid from company_human_relation where human_graph_id = %s and company_graph_id = %s",
