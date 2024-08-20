@@ -45,6 +45,9 @@ public class EquityTotalJob {
             "shareholder_name",
             "shareholder_name_id",
             "shareholder_master_company_id",
+            // 层级
+            "shareholder_first_appear_level",
+            "shareholder_last_appear_level",
             // 投资
             "investment_ratio_direct",
             "investment_ratio_total",
@@ -160,9 +163,14 @@ public class EquityTotalJob {
                         List<Object> subPaths = CollUtil.split(paths, 11).get(0);
                         for (Object subPath : subPaths) {
                             List<Map<String, Object>> eachPath = (List<Map<String, Object>>) subPath;
-                            eachPath.get(0).put("is_direct", eachPath.size() == 4);
+                            Map<String, Object> header = eachPath.get(0);
+                            int size = eachPath.size();
+                            header.put("is_direct", size == 4);
+                            header.put("level", size / 2 - 1);
+                            header.put("is_cycle", header.get("total_percent").equals("0.0000%"));
                         }
                         columnMap.put("equity_holding_path", JsonUtils.toString(subPaths));
+                        columnMap.put("equity_holding_path_count", subPaths.size());
                         // 直接股比、间接股比、总股比
                         BigDecimal investmentRatioTotal = new BigDecimal((String) columnMap.get("investment_ratio_total"));
                         BigDecimal investmentRatioDirect = new BigDecimal((String) columnMap.get("investment_ratio_direct"));
