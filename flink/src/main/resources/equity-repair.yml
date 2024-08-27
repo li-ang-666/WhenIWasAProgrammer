@@ -10,5 +10,5 @@ repairTasks:
     sourceName: "435.company_base"
     tableName: "company_index"
     columns: "*"
-    where: "company_id in (6904439861)"
+    where: "company_id in (3315126629,6341942480,6782245185)"
     scanMode: Direct
