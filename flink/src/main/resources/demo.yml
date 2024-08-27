@@ -6,8 +6,8 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - sourceName: "116.prism"
-    tableName: "equity_ratio"
+  - sourceName: "069.semantic_analysis"
+    tableName: "company_bid_info_v2"
     columns: "*"
     where: "1=1"
     scanMode: TumblingWindow
