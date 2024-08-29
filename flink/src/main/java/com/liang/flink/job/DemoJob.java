@@ -62,7 +62,7 @@ public class DemoJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String createTime = (String) columnMap.get("create_time");
-            if (createTime.compareTo("2024-08-01 00:00:00") >= 0) {
+            if (createTime.compareTo("2024-08-10 00:00:00") >= 0) {
                 String id = (String) columnMap.get("id");
                 String sql = new SQL().UPDATE("company_bid_info_v2")
                         .SET("update_time = now()")
