@@ -184,6 +184,7 @@ public class BlackList extends ConfigHolder {
         deletePartner("R093VMQ0T8UPJV81Z");
         deletePartner("F0FB89309DYFL1NE5");
         deletePartner("10PEMMF09AM2AF5E5");
+        deletePartner("P052EM401UE0NB7YE");
         new JdbcTemplate("116.prism").update("delete from equity_ratio where company_graph_id = 9196033");
         deletePartner("F0FB89309DYFL1NE5");
         deletePartner("M0KHSMM0ABEC6BPF9");
@@ -228,6 +229,8 @@ public class BlackList extends ConfigHolder {
         deletePartner("809N6M902KELSVUTJ");
         deletePartner("T00LQMN00RUU0BAR1");
         deleteBossAll("E0L2UM402ZUBU7Y9K");
+        deleteBossAll("50S3LM2097MCUFVAK");
+        deleteBossAll("10TNMM602K1GSN032");
         deleteBossAll("P0SH6MA09BZDFVFR3");
         deleteBossAll("40HE2M900H7P4FK23");
         deleteBossAll("M0CZD9H00QC921GV1");

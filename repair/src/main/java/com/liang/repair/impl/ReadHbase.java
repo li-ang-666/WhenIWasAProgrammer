@@ -16,9 +16,9 @@ public class ReadHbase extends ConfigHolder {
     }
 
     public static void main(String[] args) {
-        HbaseOneRow queryResult = HBASE_TEMPLATE.getRow(new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT_ALI, "6900544756"));
+        HbaseOneRow queryResult = HBASE_TEMPLATE.getRow(new HbaseOneRow(HbaseSchema.COMPANY_ALL_COUNT, "22822"));
         log.info("{}", JsonUtils.toString(queryResult));
-        queryResult.put("bid_count", 2);
+        //queryResult.put("bid_count", 2);
         HBASE_TEMPLATE.update(queryResult);
     }
 }
