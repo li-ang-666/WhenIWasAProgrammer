@@ -6,11 +6,11 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-#  - sourceName: "435.company_base"
-#    tableName: "company_index"
-#    columns: "*"
-#    where: "company_id in (6916278215)"
-#    scanMode: Direct
+  #  - sourceName: "435.company_base"
+  #    tableName: "company_index"
+  #    columns: "*"
+  #    where: "company_id in (6916278215)"
+  #    scanMode: Direct
   - sourceName: "430.graph_data"
     tableName: "company_equity_relation_details"
     columns: "*"
