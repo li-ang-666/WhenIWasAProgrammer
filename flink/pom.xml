@@ -11,6 +11,13 @@
 
     <artifactId>flink</artifactId>
     <dependencies>
+        <!--html 2 md-->
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-all</artifactId>
+            <version>0.62.2</version>
+        </dependency>
+
         <!--静虎 和 国旺 的 shareholder-->
         <dependency>
             <groupId>com.alibaba</groupId>
