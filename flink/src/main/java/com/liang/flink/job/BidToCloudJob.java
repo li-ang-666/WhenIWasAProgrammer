@@ -22,13 +22,27 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @LocalConfigFile("bid-to-cloud.yml")
 public class BidToCloudJob {
-    private static final String SINK_RDS = "427.test";
+    private static final List<String> SINK_RDS = Arrays.asList(
+            "volcanic_cloud_0",
+            "volcanic_cloud_1",
+            "volcanic_cloud_2",
+            "volcanic_cloud_3",
+            "volcanic_cloud_4",
+            "volcanic_cloud_5",
+            "volcanic_cloud_6",
+            "volcanic_cloud_7",
+            "volcanic_cloud_8",
+            "volcanic_cloud_9",
+            "volcanic_cloud_10"
+    );
     private static final String SINK_TABlE = "company_bid";
 
     public static void main(String[] args) throws Exception {
@@ -55,7 +69,10 @@ public class BidToCloudJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            sink = new JdbcTemplate(SINK_RDS);
+            int taskNo = getRuntimeContext().getNumberOfParallelSubtasks();
+            String rds = SINK_RDS.get(taskNo);
+            log.info("{} -> {}", taskNo, rds);
+            sink = new JdbcTemplate(rds);
             sink.enableCache();
         }
 
@@ -65,7 +82,8 @@ public class BidToCloudJob {
             HashMap<String, Object> resultMap = new HashMap<>();
             resultMap.put("id", columnMap.get("id"));
             resultMap.put("uuid", columnMap.get("uuid"));
-            resultMap.put("content", htmlToMd((String) columnMap.get("content")));
+            resultMap.put("title", columnMap.get("title"));
+            resultMap.put("content", htmlToMd((String) columnMap.get("uuid"), (String) columnMap.get("content")));
             resultMap.put("deleted", columnMap.get("deleted"));
             resultMap.put("type", columnMap.get("type"));
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
@@ -76,10 +94,15 @@ public class BidToCloudJob {
             sink.update(sql);
         }
 
-        private String htmlToMd(String html) {
-            MutableDataSet options = new MutableDataSet();
-            FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder(options).build();
-            return converter.convert(html);
+        private String htmlToMd(String uuid, String html) {
+            try {
+                MutableDataSet options = new MutableDataSet();
+                FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder(options).build();
+                return converter.convert(html);
+            } catch (Exception e) {
+                log.error("html to md error, uuid: {}", uuid, e);
+                return html;
+            }
         }
 
         @Override
