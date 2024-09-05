@@ -69,9 +69,9 @@ public class BidToCloudJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            int taskNo = getRuntimeContext().getNumberOfParallelSubtasks();
-            String rds = SINK_RDS.get(taskNo);
-            log.info("{} -> {}", taskNo, rds);
+            int taskIdx = getRuntimeContext().getIndexOfThisSubtask();
+            String rds = SINK_RDS.get(taskIdx);
+            log.info("{} -> {}", taskIdx, rds);
             sink = new JdbcTemplate(rds);
             sink.enableCache();
         }
