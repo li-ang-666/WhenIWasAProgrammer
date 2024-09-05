@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 
 @Slf4j
 @LocalConfigFile("bid-to-cloud.yml")
@@ -46,6 +47,7 @@ public class BidToCloudJob {
             "volcanic_cloud_10"
     );
     private static final String SINK_TABlE = "company_bid";
+    private static final String SINK_TABlE_FAIL = "company_bid_fail";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -66,6 +68,13 @@ public class BidToCloudJob {
 
     @RequiredArgsConstructor
     private static final class BidToCloudMapper extends RichFlatMapFunction<SingleCanalBinlog, Map<String, Object>> {
+        private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+            super.open(parameters);
+        }
+
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Map<String, Object>> out) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
@@ -73,9 +82,20 @@ public class BidToCloudJob {
             resultMap.put("id", columnMap.get("id"));
             resultMap.put("uuid", columnMap.get("uuid"));
             resultMap.put("title", columnMap.get("title"));
-            resultMap.put("content", htmlToMd((String) columnMap.get("uuid"), (String) columnMap.get("content")));
             resultMap.put("deleted", columnMap.get("deleted"));
             resultMap.put("type", columnMap.get("type"));
+            // html 转 md
+            Callable<String> task = () -> htmlToMd((String) columnMap.get("uuid"), (String) columnMap.get("content"));
+            Future<String> future = executor.submit(task);
+            try {
+                String md = future.get(3, TimeUnit.SECONDS);
+                resultMap.put("content", md);
+                resultMap.put("fail", false);
+            } catch (Exception e) {
+                log.error("html to md timeout, uuid: {}", columnMap.get("uuid"), e);
+                resultMap.put("content", columnMap.get("content"));
+                resultMap.put("fail", true);
+            }
             out.collect(resultMap);
         }
 
@@ -113,7 +133,8 @@ public class BidToCloudJob {
         @Override
         public void invoke(Map<String, Object> resultMap, Context context) {
             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
-            String sql = new SQL().REPLACE_INTO(SINK_TABlE)
+            String table = ((boolean) resultMap.remove("fail")) ? SINK_TABlE_FAIL : SINK_TABlE;
+            String sql = new SQL().REPLACE_INTO(table)
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1)
                     .toString();
