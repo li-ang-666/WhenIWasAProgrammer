@@ -68,13 +68,6 @@ public class BidToCloudJob {
 
     @RequiredArgsConstructor
     private static final class BidToCloudMapper extends RichFlatMapFunction<SingleCanalBinlog, Map<String, Object>> {
-        private final ExecutorService executor = Executors.newSingleThreadExecutor();
-
-        @Override
-        public void open(Configuration parameters) throws Exception {
-            super.open(parameters);
-        }
-
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Map<String, Object>> out) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
@@ -86,6 +79,7 @@ public class BidToCloudJob {
             resultMap.put("type", columnMap.get("type"));
             // html 转 md
             Callable<String> task = () -> htmlToMd((String) columnMap.get("uuid"), (String) columnMap.get("content"));
+            ExecutorService executor = Executors.newSingleThreadExecutor();
             Future<String> future = executor.submit(task);
             try {
                 String md = future.get(3, TimeUnit.SECONDS);
@@ -96,6 +90,7 @@ public class BidToCloudJob {
                 resultMap.put("content", columnMap.get("content"));
                 resultMap.put("fail", true);
             }
+            executor.shutdown();
             out.collect(resultMap);
         }
 
