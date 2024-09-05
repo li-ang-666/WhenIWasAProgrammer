@@ -127,8 +127,8 @@ public class BidToCloudJob {
 
         @Override
         public void invoke(Map<String, Object> resultMap, Context context) {
-            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String table = ((boolean) resultMap.remove("fail")) ? SINK_TABlE_FAIL : SINK_TABlE;
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
             String sql = new SQL().REPLACE_INTO(table)
                     .INTO_COLUMNS(insert.f0)
                     .INTO_VALUES(insert.f1)
