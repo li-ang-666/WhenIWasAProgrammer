@@ -78,15 +78,15 @@ public class BidToCloudJob {
             resultMap.put("deleted", columnMap.get("deleted"));
             resultMap.put("type", columnMap.get("type"));
             // html 转 md
-            Callable<String> task = () -> htmlToMd((String) columnMap.get("uuid"), (String) columnMap.get("content"));
+            Callable<String> task = () -> htmlToMd((String) columnMap.get("content"));
             ExecutorService executor = Executors.newSingleThreadExecutor();
             Future<String> future = executor.submit(task);
             try {
-                String md = future.get(3, TimeUnit.SECONDS);
+                String md = future.get(2, TimeUnit.SECONDS);
                 resultMap.put("content", md);
                 resultMap.put("fail", false);
             } catch (Exception e) {
-                log.error("html to md timeout, uuid: {}", columnMap.get("uuid"), e);
+                log.warn("html to md fail, uuid: {}, e: {}", columnMap.get("uuid"), e.getMessage());
                 resultMap.put("content", columnMap.get("content"));
                 resultMap.put("fail", true);
             }
@@ -94,15 +94,10 @@ public class BidToCloudJob {
             out.collect(resultMap);
         }
 
-        private String htmlToMd(String uuid, String html) {
-            try {
-                MutableDataSet options = new MutableDataSet();
-                FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder(options).build();
-                return converter.convert(html);
-            } catch (Exception e) {
-                log.error("html to md error, uuid: {}", uuid, e);
-                return html;
-            }
+        private String htmlToMd(String html) {
+            MutableDataSet options = new MutableDataSet();
+            FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder(options).build();
+            return converter.convert(html);
         }
     }
 

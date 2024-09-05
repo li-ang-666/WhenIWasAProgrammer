@@ -7,16 +7,17 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class RepairTest extends ConfigHolder {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Callable<String> task = () -> {
             // 模拟任务执行时间
-            Thread.sleep(2000); // 任务执行超过1秒
-            return "Task completed!";
+            Thread.sleep(1);
+            // 任务执行超过1秒
+            throw new RuntimeException();
+            //return "Task completed!";
         };
-
         Future<String> future = executor.submit(task);
-
+        Thread.sleep(2000);
         try {
             // 设置1秒的超时时间
             String result = future.get(1, TimeUnit.SECONDS);
