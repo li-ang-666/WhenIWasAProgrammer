@@ -10,26 +10,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.state.FunctionInitializationContext;
-import org.apache.flink.runtime.state.FunctionSnapshotContext;
-import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.util.Collector;
 
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @RequiredArgsConstructor
-public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> implements CheckpointedFunction {
-    private final ReentrantLock lock = new ReentrantLock(true);
+public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> {
     private final Config config;
     private JdbcTemplate jdbcTemplate;
-
-    @Override
-    public void initializeState(FunctionInitializationContext context) {
-    }
 
     @Override
     public void open(Configuration parameters) {
@@ -45,9 +36,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
 
     @Override
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
-        lock.lock();
         doQuery(repairSplit, out);
-        lock.unlock();
     }
 
     private void doQuery(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
@@ -60,11 +49,5 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             }
             out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
         });
-    }
-
-    @Override
-    public void snapshotState(FunctionSnapshotContext context) {
-        lock.lock();
-        lock.unlock();
     }
 }

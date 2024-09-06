@@ -13,12 +13,12 @@ import java.util.Map;
 
 @Slf4j
 public class CdcTestJob {
-    private static final String CDC_HOSTNAME = "9349c027b3b4414aa5f9019cd218e7a3in01.internal.cn-north-4.mysql.rds.myhuaweicloud.com";
-    private static final String CDC_DATABASE = "test";
-    private static final String CDC_TABLE = "test";
+    private static final String CDC_HOSTNAME = "101.126.25.158";
+    private static final String CDC_DATABASE = "data_bid";
+    private static final String CDC_TABLE = "company_bid";
     private static final int CDC_PORT = 3306;
-    private static final String CDC_USERNAME = "canal_d";
-    private static final String CDC_PASSWORD = "Canal@Dduan";
+    private static final String CDC_USERNAME = "tyc_data";
+    private static final String CDC_PASSWORD = "G7n$2k!f9Qx#Lm1Z";
     private static final String CDC_SERVER_ID = "6000-6100";
     private static final String CDC_TIMEZONE = "Asia/Shanghai";
     private static final StartupOptions CDC_STARTUP_OPTIONS = StartupOptions.latest();

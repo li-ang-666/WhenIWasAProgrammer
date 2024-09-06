@@ -82,11 +82,10 @@ public class BidToCloudJob {
             ExecutorService executor = Executors.newSingleThreadExecutor();
             Future<String> future = executor.submit(task);
             try {
-                String md = future.get(2, TimeUnit.SECONDS);
+                String md = future.get(500, TimeUnit.MILLISECONDS);
                 resultMap.put("content", md);
                 resultMap.put("fail", false);
             } catch (Exception e) {
-                log.warn("html to md fail, uuid: {}, e: {}", columnMap.get("uuid"), e.getMessage());
                 resultMap.put("content", columnMap.get("content"));
                 resultMap.put("fail", true);
             }
