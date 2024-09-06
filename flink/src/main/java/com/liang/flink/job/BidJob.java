@@ -99,18 +99,22 @@ public class BidJob {
             if (!"[]".equals(parsedWinner.f0)) {
                 resultMap.put("bid_winner", "[" + parsedWinner.f0 + "]");
             }
+            // 中标金额
             if (!"[]".equals(parsedWinner.f1)) {
                 resultMap.put("winning_bid_amt_json", "[" + parsedWinner.f1 + "]");
                 resultMap.put("winning_bid_amt_json_clean", "[" + parsedWinner.f1 + "]");
             }
             // 写入
+            if (resultMap.isEmpty()) {
+                return;
+            }
             String update = SqlUtils.columnMap2Update(resultMap);
             String sql = new SQL().UPDATE(SINK_TABlE)
                     .SET(update)
                     .WHERE("main_id = " + SqlUtils.formatValue(id))
                     .toString();
             //sink.update(sql);
-            System.out.println(sql);
+            log.info("{}", sql);
         }
 
 

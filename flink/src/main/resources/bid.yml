@@ -15,7 +15,7 @@ dbConfigs:
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 10
+  otherParallel: 32
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
@@ -23,5 +23,5 @@ repairTasks:
     sourceName: "volcanic_cloud_0"
     tableName: "bid_tender_details"
     columns: "*"
-    where: "id <= 2000"
+    where: "id = 347"
     scanMode: Direct
