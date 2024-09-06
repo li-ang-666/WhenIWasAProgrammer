@@ -117,7 +117,6 @@ public class BidJob {
             log.info("{}", sql);
         }
 
-
         private String parsePurchaser(String json) {
             List<Object> list = JsonUtils.parseJsonArr(json);
             List<HashMap<String, Object>> maps = list.stream()
@@ -133,7 +132,6 @@ public class BidJob {
                     .collect(Collectors.toList());
             return JsonUtils.toString(maps);
         }
-
 
         private Tuple2<String, String> parseWinner(String json) {
             List<Object> list = JsonUtils.parseJsonArr(json);
