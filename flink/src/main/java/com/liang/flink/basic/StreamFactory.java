@@ -8,8 +8,6 @@ import com.liang.common.util.StackUtils;
 import com.liang.flink.basic.kafka.KafkaMonitor;
 import com.liang.flink.basic.kafka.KafkaReporter;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
-import com.liang.flink.basic.repair.RepairHandler;
-import com.liang.flink.basic.repair.RepairPartitioner;
 import com.liang.flink.basic.repair.RepairSource;
 import com.liang.flink.basic.repair.TaskGenerator;
 import com.liang.flink.dto.BatchCanalBinlog;
@@ -65,11 +63,6 @@ public class StreamFactory {
                 .addSource(new RepairSource(config))
                 .name("RepairSource")
                 .uid("RepairSource")
-                .setParallelism(config.getRepairTasks().size())
-                .partitionCustom(new RepairPartitioner(), repairSplit -> repairSplit)
-                .flatMap(new RepairHandler(config))
-                .name("RepairHandler")
-                .uid("RepairHandler")
-                .setParallelism(config.getRepairTasks().parallelStream().mapToInt(repairTask -> repairTask.getChannels().size()).sum());
+                .setParallelism(config.getRepairTasks().size());
     }
 }
