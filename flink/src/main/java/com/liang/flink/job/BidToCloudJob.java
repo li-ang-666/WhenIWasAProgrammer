@@ -28,7 +28,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @LocalConfigFile("bid-to-cloud.yml")
@@ -68,6 +70,8 @@ public class BidToCloudJob {
 
     @RequiredArgsConstructor
     private static final class BidToCloudMapper extends RichFlatMapFunction<SingleCanalBinlog, Map<String, Object>> {
+        private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Map<String, Object>> out) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
@@ -78,18 +82,16 @@ public class BidToCloudJob {
             resultMap.put("deleted", columnMap.get("deleted"));
             resultMap.put("type", columnMap.get("type"));
             // html 转 md
-            Callable<String> task = () -> htmlToMd((String) columnMap.get("content"));
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            Future<String> future = executor.submit(task);
             try {
-                String md = future.get(500, TimeUnit.MILLISECONDS);
+                String md = executor
+                        .submit(() -> htmlToMd((String) columnMap.get("content")))
+                        .get(500, TimeUnit.MILLISECONDS);
                 resultMap.put("content", md);
                 resultMap.put("fail", false);
             } catch (Exception e) {
                 resultMap.put("content", columnMap.get("content"));
                 resultMap.put("fail", true);
             }
-            executor.shutdown();
             out.collect(resultMap);
         }
 

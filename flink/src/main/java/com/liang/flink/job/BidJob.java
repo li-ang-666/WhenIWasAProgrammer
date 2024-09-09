@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 @Slf4j
 @LocalConfigFile("bid.yml")
 public class BidJob {
-    private static final String SINK_RDS = "427.test";
+    private static final String SINK_RDS = "448.operating_info";
     private static final String SINK_TABlE = "company_bid_parsed_info";
 
     public static void main(String[] args) throws Exception {

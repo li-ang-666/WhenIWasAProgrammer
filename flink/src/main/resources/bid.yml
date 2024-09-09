@@ -23,5 +23,5 @@ repairTasks:
     sourceName: "volcanic_cloud_0"
     tableName: "bid_tender_details"
     columns: "*"
-    where: "id = 347"
+    where: "id in (181516812, 181516863)"
     scanMode: Direct
