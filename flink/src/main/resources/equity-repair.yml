@@ -6,9 +6,7 @@ flinkConfig:
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - taskId: "111"
-    sourceName: "435.company_base"
+  - sourceName: "435.company_base"
     tableName: "company_index"
     columns: "*"
-    where: "company_id in (3485155414)"
-    scanMode: Direct
+    where: "company_id in (7100990875)"
