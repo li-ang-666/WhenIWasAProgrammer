@@ -1,34 +1,15 @@
 package com.liang.repair.test;
 
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.repair.service.ConfigHolder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.*;
 
 @Slf4j
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Callable<String> task = () -> {
-            // 模拟任务执行时间
-            Thread.sleep(1);
-            // 任务执行超过1秒
-            throw new RuntimeException();
-            //return "Task completed!";
-        };
-        Future<String> future = executor.submit(task);
-        Thread.sleep(2000);
-        try {
-            // 设置1秒的超时时间
-            String result = future.get(1, TimeUnit.SECONDS);
-            System.out.println(result);
-        } catch (TimeoutException e) {
-            System.err.println("任务执行超时！");
-            future.cancel(true); // 超时后取消任务
-        } catch (InterruptedException | ExecutionException e) {
-            System.err.println("任务执行失败: " + e.getMessage());
-        } finally {
-            executor.shutdown();
-        }
+        JdbcTemplate jdbcTemplate = new JdbcTemplate("435.company_base");
+        jdbcTemplate.streamQuery("select * from company_index where create_time >= '2024-09-09 00:00:00'", rs -> {
+            System.out.println(rs.getString("id"));
+        });
     }
 }
