@@ -1,5 +1,6 @@
 package com.liang.flink.basic.repair;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
@@ -19,10 +20,11 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
+import java.sql.ResultSetMetaData;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -32,7 +34,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final ListStateDescriptor<RepairState> STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
-    private final Lock lock = new ReentrantLock(true);
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final RepairState repairState = new RepairState();
     private final Config config;
@@ -77,13 +78,17 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             }
             long id = Long.parseLong(rs.getString("id"));
             synchronized (ctx.getCheckpointLock()) {
-                lock.lock();
                 Roaring64Bitmap bitmap = repairState.getBitmap();
                 if (!bitmap.contains(id)) {
-                    ctx.collect(null);
+                    ResultSetMetaData metaData = rs.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+                    Map<String, Object> columnMap = new HashMap<>(columnCount);
+                    for (int i = 1; i <= columnCount; i++) {
+                        columnMap.put(metaData.getColumnName(i), rs.getString(i));
+                    }
+                    ctx.collect(new SingleCanalBinlog(repairTask.getSourceName(), repairTask.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
                     bitmap.add(id);
                 }
-                lock.unlock();
             }
         });
         cancel();
@@ -92,12 +97,10 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     @SneakyThrows
     public void snapshotState(FunctionSnapshotContext context) {
-        lock.lock();
         listState.clear();
         listState.addAll(Collections.singletonList(repairState));
         log.info("RepairTask {} ckp-{} successfully, bitmap size: {}",
                 JsonUtils.toString(repairState.getRepairTask()), context.getCheckpointId(), repairState.getBitmap().getLongCardinality());
-        lock.unlock();
     }
 
     @Override
