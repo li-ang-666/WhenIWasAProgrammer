@@ -39,6 +39,7 @@ public class TaskGenerator {
                 // 克隆task, 指定正式表名
                 RepairTask resultRepairTask = SerializeUtil.clone(sourceRepairTask);
                 resultRepairTask.setTableName(tableName);
+                RESULT_REPAIR_TASKS.add(resultRepairTask);
             }
         }
         log.info(StrUtil.repeat("=", 50));

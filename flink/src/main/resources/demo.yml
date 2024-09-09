@@ -1,13 +1,13 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 5
   otherParallel: 10
 
 # scanMode: Direct or TumblingWindow
 repairTasks:
-  - sourceName: "069.semantic_analysis"
-    tableName: "company_bid_info_v2"
+  - sourceName: "104.data_bid"
+    tableName: "company_bid"
     columns: "*"
     where: "1=1"
     scanMode: TumblingWindow
@@ -17,6 +17,6 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "50598.cdc.prism_shareholder_path.ratio_path_company_new_all"
-    groupId: "equity-control-job"
+    groupId: "demo-job"
     startFrom: "2024-07-11 12:00:00"
 

@@ -95,6 +95,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         lock.lock();
         listState.clear();
         listState.addAll(Collections.singletonList(repairState));
+        log.info("RepairTask {} ckp-{} successfully, bitmap size: {}",
+                JsonUtils.toString(repairState.getRepairTask()), context.getCheckpointId(), repairState.getBitmap().getLongCardinality());
         lock.unlock();
     }
 
