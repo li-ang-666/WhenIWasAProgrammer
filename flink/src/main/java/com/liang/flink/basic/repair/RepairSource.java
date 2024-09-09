@@ -76,7 +76,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             if (canceled.get()) {
                 return;
             }
-            long id = Long.parseLong(rs.getString("id"));
+            long id = rs.getLong("id");
             synchronized (ctx.getCheckpointLock()) {
                 Roaring64Bitmap bitmap = repairState.getBitmap();
                 if (!bitmap.contains(id)) {
