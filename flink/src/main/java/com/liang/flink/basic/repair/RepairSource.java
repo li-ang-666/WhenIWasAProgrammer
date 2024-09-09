@@ -21,7 +21,7 @@ import static com.liang.common.dto.config.RepairTask.ScanMode.TumblingWindow;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<RepairSplit> {
-    private static final int QUERY_BATCH_SIZE = 100_000;
+    private static final int QUERY_BATCH_SIZE = 100_000_000;
     private static final int DIRECT_SCAN_COMPLETE_FLAG = -1;
     private final AtomicBoolean canceled = new AtomicBoolean(false);
     private final Config config;

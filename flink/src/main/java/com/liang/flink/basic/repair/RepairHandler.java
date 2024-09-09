@@ -7,27 +7,50 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.FunctionInitializationContext;
+import org.apache.flink.runtime.state.FunctionSnapshotContext;
+import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.util.Collector;
+import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
-public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> {
+public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalBinlog> implements CheckpointedFunction {
+    private static final ListStateDescriptor<Roaring64Bitmap> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>("RepairHandlerBitmap", Roaring64Bitmap.class);
+
+    private final int subtaskId = getRuntimeContext().getIndexOfThisSubtask();
+    private final Roaring64Bitmap bitmap = new Roaring64Bitmap();
     private final Config config;
     private JdbcTemplate jdbcTemplate;
+
+
+    @Override
+    @SneakyThrows
+    public void initializeState(FunctionInitializationContext context) {
+        ListState<Roaring64Bitmap> unionListState = context.getOperatorStateStore().getUnionListState(LIST_STATE_DESCRIPTOR);
+        Iterator<Roaring64Bitmap> iterator = unionListState.get().iterator();
+        while (iterator.hasNext()) {
+            Roaring64Bitmap bitmap = iterator.next();
+        }
+
+    }
 
     @Override
     public void open(Configuration parameters) {
         ConfigUtils.setConfig(config);
-        int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
         for (RepairTask repairTask : config.getRepairTasks()) {
-            if (repairTask.getChannels().contains(indexOfThisSubtask)) {
+            if (repairTask.getChannels().contains(subtaskId)) {
                 jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
                 return;
             }
@@ -50,4 +73,10 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             out.collect(new SingleCanalBinlog(repairSplit.getSourceName(), repairSplit.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
         });
     }
+
+    @Override
+    public void snapshotState(FunctionSnapshotContext context) throws Exception {
+
+    }
+
 }
