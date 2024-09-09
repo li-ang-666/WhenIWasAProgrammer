@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
         JdbcTemplate jdbcTemplate = new JdbcTemplate("435.company_base");
-        jdbcTemplate.streamQuery("select * from company_index where create_time >= '2024-09-09 00:00:00'", rs -> {
+        jdbcTemplate.streamQuery("select * from company_index where create_time >= '2024-09-09 00:00:00' and 1000000 < id and id < 2000000", rs -> {
             System.out.println(rs.getString("id"));
         });
     }
