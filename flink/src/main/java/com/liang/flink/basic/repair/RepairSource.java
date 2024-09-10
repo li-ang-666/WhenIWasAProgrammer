@@ -49,9 +49,9 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         repairStateHolder = context.getOperatorStateStore().getUnionListState(STATE_DESCRIPTOR);
         for (RepairState repairStateOld : repairStateHolder.get()) {
             RepairTask repairTaskOld = repairStateOld.getRepairTask();
-            long maxParsedId = repairStateOld.getMaxParsedId();
+            long maxParsedIdOld = repairStateOld.getMaxParsedId();
             if (repairTask.equals(repairTaskOld)) {
-                repairState.setMaxParsedId(maxParsedId);
+                repairState.setMaxParsedId(maxParsedIdOld);
                 log.info("RepairTask {} restored successfully, last id: {}",
                         JsonUtils.toString(repairTask),
                         repairState.getMaxParsedId()
