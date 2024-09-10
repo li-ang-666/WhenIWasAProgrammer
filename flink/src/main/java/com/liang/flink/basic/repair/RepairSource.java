@@ -18,7 +18,6 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.sql.ResultSetMetaData;
 import java.util.Collections;
@@ -34,10 +33,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final ListStateDescriptor<RepairState> STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
-    private final AtomicBoolean canceled = new AtomicBoolean(false);
+    private final AtomicBoolean running = new AtomicBoolean(true);
     private final RepairState repairState = new RepairState();
     private final Config config;
-    private ListState<RepairState> listState;
+    private ListState<RepairState> repairStateHolder;
 
     @Override
     @SneakyThrows
@@ -45,16 +44,19 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         // 根据index分配task
         ConfigUtils.setConfig(config);
         repairState.setRepairTask(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
+        RepairTask repairTask = repairState.getRepairTask();
         // 根据task恢复bitmap
-        listState = context.getOperatorStateStore().getUnionListState(STATE_DESCRIPTOR);
-        Iterable<RepairState> iterable = listState.get();
-        while (iterable.iterator().hasNext()) {
-            RepairState repairStateOld = iterable.iterator().next();
-            if (repairState.getRepairTask().equals(repairStateOld.getRepairTask())) {
-                repairState.setBitmap(repairStateOld.getBitmap());
-                log.info("RepairTask {} restored successfully, bitmap size: {}",
-                        JsonUtils.toString(repairState.getRepairTask()), repairState.getBitmap().getLongCardinality());
-                return;
+        repairStateHolder = context.getOperatorStateStore().getUnionListState(STATE_DESCRIPTOR);
+        for (RepairState repairStateOld : repairStateHolder.get()) {
+            RepairTask repairTaskOld = repairStateOld.getRepairTask();
+            long maxParsedId = repairStateOld.getMaxParsedId();
+            if (repairTask.equals(repairTaskOld)) {
+                repairState.setMaxParsedId(maxParsedId);
+                log.info("RepairTask {} restored successfully, last id: {}",
+                        JsonUtils.toString(repairTask),
+                        repairState.getMaxParsedId()
+                );
+                break;
             }
         }
     }
@@ -65,30 +67,27 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
-        RepairTask repairTask = repairState.getRepairTask();
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-        String sql = new SQL()
-                .SELECT(repairTask.getColumns())
-                .FROM(repairTask.getTableName())
-                .WHERE(repairTask.getWhere())
-                .toString();
-        jdbcTemplate.streamQuery(sql, rs -> {
-            if (canceled.get()) {
-                return;
-            }
-            long id = rs.getLong("id");
+        RepairTask repairTask;
+        JdbcTemplate jdbcTemplate;
+        String sql;
+        synchronized (ctx.getCheckpointLock()) {
+            repairTask = repairState.getRepairTask();
+            jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+            sql = new SQL()
+                    .SELECT(repairTask.getColumns())
+                    .FROM(repairTask.getTableName())
+                    .WHERE(repairTask.getWhere())
+                    .WHERE("id >= " + repairState.getMaxParsedId())
+                    .toString();
+        }
+        jdbcTemplate.streamQueryInterruptible(sql, running, rs -> {
             synchronized (ctx.getCheckpointLock()) {
-                Roaring64Bitmap bitmap = repairState.getBitmap();
-                if (!bitmap.contains(id)) {
-                    ResultSetMetaData metaData = rs.getMetaData();
-                    int columnCount = metaData.getColumnCount();
-                    Map<String, Object> columnMap = new HashMap<>(columnCount);
-                    for (int i = 1; i <= columnCount; i++) {
-                        columnMap.put(metaData.getColumnName(i), rs.getString(i));
-                    }
-                    ctx.collect(new SingleCanalBinlog(repairTask.getSourceName(), repairTask.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
-                    bitmap.add(id);
-                }
+                ResultSetMetaData metaData = rs.getMetaData();
+                int columnCount = metaData.getColumnCount();
+                Map<String, Object> columnMap = new HashMap<>(columnCount);
+                for (int i = 1; i <= columnCount; i++) columnMap.put(metaData.getColumnName(i), rs.getString(i));
+                ctx.collect(new SingleCanalBinlog(repairTask.getSourceName(), repairTask.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+                repairState.setMaxParsedId(rs.getLong("id"));
             }
         });
         cancel();
@@ -97,14 +96,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     @SneakyThrows
     public void snapshotState(FunctionSnapshotContext context) {
-        listState.clear();
-        listState.addAll(Collections.singletonList(repairState));
-        log.info("RepairTask {} ckp-{} successfully, bitmap size: {}",
-                JsonUtils.toString(repairState.getRepairTask()), context.getCheckpointId(), repairState.getBitmap().getLongCardinality());
+        repairStateHolder.clear();
+        repairStateHolder.addAll(Collections.singletonList(repairState));
+        log.info("RepairTask {} ckp-{} successfully, max id: {}",
+                JsonUtils.toString(repairState.getRepairTask()), context.getCheckpointId(),
+                repairState.getMaxParsedId()
+        );
     }
 
     @Override
     public void cancel() {
-        canceled.set(true);
+        running.set(false);
     }
 }
