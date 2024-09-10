@@ -78,6 +78,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     .FROM(repairTask.getTableName())
                     .WHERE(repairTask.getWhere())
                     .WHERE("id >= " + repairState.getMaxParsedId())
+                    .ORDER_BY("id asc")
                     .toString();
         }
         jdbcTemplate.streamQueryInterruptible(sql, running, rs -> {
