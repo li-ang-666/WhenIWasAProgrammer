@@ -16,10 +16,10 @@ public class RepairTest extends ConfigHolder {
                 TimeUnit.SECONDS.sleep(5);
             } catch (Exception ignore) {
             }
-            //running.set(false);
+            running.set(false);
         }).start();
         JdbcTemplate jdbcTemplate = new JdbcTemplate("435.company_base");
-        String sql = "select 1 from company_index where create_time >= '2025' order by id";
+        String sql = "select 1 from company_index where create_time >= '2024-09-10 00:00:00' order by id";
         jdbcTemplate.streamQueryInterruptible(sql, running, rs -> {
         });
         System.out.println(111);
