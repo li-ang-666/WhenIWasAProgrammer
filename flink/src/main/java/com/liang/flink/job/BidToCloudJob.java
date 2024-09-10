@@ -55,7 +55,7 @@ public class BidToCloudJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
-                .rebalance()
+                .keyBy(e -> e.getColumnMap().get("uuid"))
                 .flatMap(new BidToCloudMapper(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("BidToCloudMapper")
