@@ -23,7 +23,6 @@ import java.sql.ResultSetMetaData;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -33,7 +32,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final ListStateDescriptor<RepairState> STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
-    private final AtomicBoolean running = new AtomicBoolean(true);
     private final RepairState repairState = new RepairState();
     private final Config config;
     private ListState<RepairState> repairStateHolder;
@@ -82,7 +80,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     .toString();
             log.info("repair sql: {}", sql);
         }
-        jdbcTemplate.streamQueryInterruptible(sql, running, rs -> {
+        jdbcTemplate.streamQuery(sql, rs -> {
             synchronized (ctx.getCheckpointLock()) {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
@@ -108,6 +106,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void cancel() {
-        running.set(false);
+        System.exit(0);
     }
 }

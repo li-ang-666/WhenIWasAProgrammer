@@ -16,7 +16,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
@@ -137,10 +136,6 @@ public class JdbcTemplate extends AbstractCache<String, String> {
     }
 
     public void streamQuery(String sql, ResultSetConsumer consumer) {
-        streamQueryInterruptible(sql, new AtomicBoolean(true), consumer);
-    }
-
-    public void streamQueryInterruptible(String sql, AtomicBoolean running, ResultSetConsumer consumer) {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
@@ -148,7 +143,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
                 statement.setFetchSize(Integer.MIN_VALUE);
                 statement.setQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
                 try (ResultSet resultSet = statement.executeQuery(sql)) {
-                    while (resultSet.next() && running.get()) {
+                    while (resultSet.next()) {
                         consumer.consume(resultSet);
                     }
                 }
