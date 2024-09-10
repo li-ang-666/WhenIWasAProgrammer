@@ -4,15 +4,24 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.repair.service.ConfigHolder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @Slf4j
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate("435.company_base");
-        String sql = "select * from company_index where company_id < 10000000 order by id";
-        jdbcTemplate.streamQuery(sql, rs -> {
-            if (System.currentTimeMillis() % 1000 == 0) {
-                System.out.println(rs.getString("id"));
+        AtomicBoolean running = new AtomicBoolean(true);
+        new Thread(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (Exception ignore) {
             }
+            //running.set(false);
+        }).start();
+        JdbcTemplate jdbcTemplate = new JdbcTemplate("435.company_base");
+        String sql = "select 1 from company_index where create_time >= '2025' order by id";
+        jdbcTemplate.streamQueryInterruptible(sql, running, rs -> {
         });
+        System.out.println(111);
     }
 }

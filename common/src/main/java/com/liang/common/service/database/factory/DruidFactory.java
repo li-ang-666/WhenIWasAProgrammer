@@ -6,8 +6,7 @@ import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
-import java.util.Arrays;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class DruidFactory implements IFactory<DruidDataSource> {
@@ -54,13 +53,13 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setInitialSize(1);
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(16);
-        druidDataSource.setMaxWait(1000 * 60 * 5);
+        druidDataSource.setMaxWait((int) TimeUnit.MINUTES.toMillis(5));
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
         druidDataSource.setTestWhileIdle(true);
         // 管理minIdle
-        druidDataSource.setTimeBetweenEvictionRunsMillis(1000 * 30);
-        druidDataSource.setMinEvictableIdleTimeMillis(1000 * 60);
+        druidDataSource.setTimeBetweenEvictionRunsMillis(TimeUnit.SECONDS.toMillis(30));
+        druidDataSource.setMinEvictableIdleTimeMillis(TimeUnit.SECONDS.toMillis(60));
         // minIdle以内的连接保持活跃
         druidDataSource.setKeepAlive(true);
         druidDataSource.setValidationQuery("select 1");
@@ -71,13 +70,10 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setAsyncInit(true);
         // 隔离级别
         druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-        // 设置sql超时, 避免断电未提交的事务导致其它sql lock wait timeout
-        List<String> initSqls = Arrays.asList(
-                "set wait_timeout = 1800", "set interactive_timeout = 1800");
-        druidDataSource.setConnectionInitSqls(initSqls);
-        druidDataSource.setConnectTimeout(1000 * 1800);
-        druidDataSource.setSocketTimeout(1000 * 1800);
-        druidDataSource.setQueryTimeout(1800);
-        druidDataSource.setTransactionQueryTimeout(1800);
+        // 超时
+        druidDataSource.setConnectTimeout((int) TimeUnit.MINUTES.toMillis(5));
+        druidDataSource.setSocketTimeout((int) TimeUnit.DAYS.toMillis(7));
+        druidDataSource.setQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
+        druidDataSource.setTransactionQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
     }
 }
