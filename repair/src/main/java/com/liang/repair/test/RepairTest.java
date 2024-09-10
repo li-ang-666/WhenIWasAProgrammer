@@ -19,7 +19,7 @@ public class RepairTest extends ConfigHolder {
             running.set(false);
         }).start();
         JdbcTemplate jdbcTemplate = new JdbcTemplate("435.company_base");
-        String sql = "select 1 from company_index where create_time >= '2024-09-10 00:00:00' order by id";
+        String sql = "select 1 from company_index where 1=1 order by id";
         jdbcTemplate.streamQueryInterruptible(sql, running, rs -> {
         });
         System.out.println(111);

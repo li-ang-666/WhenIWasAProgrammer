@@ -45,7 +45,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         ConfigUtils.setConfig(config);
         repairState.setRepairTask(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
         RepairTask repairTask = repairState.getRepairTask();
-        // 根据task恢复bitmap
+        // 根据task恢复state
         repairStateHolder = context.getOperatorStateStore().getUnionListState(STATE_DESCRIPTOR);
         for (RepairState repairStateOld : repairStateHolder.get()) {
             RepairTask repairTaskOld = repairStateOld.getRepairTask();

@@ -151,9 +151,6 @@ public class JdbcTemplate extends AbstractCache<String, String> {
             while (resultSet.next() && running.get()) {
                 consumer.consume(resultSet);
             }
-            if (!running.get()) {
-                System.exit(0);
-            }
             logging.afterExecute("streamQuery", sql);
         } catch (Exception e) {
             logging.ifError("streamQuery", sql, e);
