@@ -71,7 +71,7 @@ public class BidToCloudJob {
     @RequiredArgsConstructor
     private static final class BidToCloudMapper extends RichFlatMapFunction<SingleCanalBinlog, Map<String, Object>> {
         private final Config config;
-        private final ExecutorService executor = Executors.newSingleThreadExecutor();
+        private ExecutorService executor;
         private JdbcTemplate query;
 
         @Override
@@ -81,6 +81,7 @@ public class BidToCloudJob {
             String rds = SINK_RDS.get(taskIdx % SINK_RDS.size());
             log.info("mapper_{} -> {}", taskIdx, rds);
             query = new JdbcTemplate(rds);
+            executor = Executors.newSingleThreadExecutor();
         }
 
         @Override
