@@ -80,6 +80,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     .WHERE("id >= " + repairState.getMaxParsedId())
                     .ORDER_BY("id ASC")
                     .toString();
+            log.info("repair sql: {}", sql);
         }
         jdbcTemplate.streamQueryInterruptible(sql, running, rs -> {
             synchronized (ctx.getCheckpointLock()) {
