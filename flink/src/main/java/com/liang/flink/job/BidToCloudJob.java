@@ -56,7 +56,7 @@ public class BidToCloudJob {
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
                 .rebalance()
-                .flatMap(new BidToCloudMapper())
+                .flatMap(new BidToCloudMapper(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("BidToCloudMapper")
                 .uid("BidToCloudMapper")
@@ -70,11 +70,29 @@ public class BidToCloudJob {
 
     @RequiredArgsConstructor
     private static final class BidToCloudMapper extends RichFlatMapFunction<SingleCanalBinlog, Map<String, Object>> {
+        private final Config config;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
+        private JdbcTemplate query;
+
+        @Override
+        public void open(Configuration parameters) {
+            ConfigUtils.setConfig(config);
+            int taskIdx = getRuntimeContext().getIndexOfThisSubtask();
+            String rds = SINK_RDS.get(taskIdx % SINK_RDS.size());
+            log.info("{} -> {}", taskIdx, rds);
+            query = new JdbcTemplate(rds);
+        }
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Map<String, Object>> out) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            // 判断是否已经处理过
+            String sql1 = new SQL().SELECT("1").FROM(SINK_TABlE).WHERE("id = " + columnMap.get("id")).toString();
+            String sql2 = new SQL().SELECT("1").FROM(SINK_TABlE_FAIL).WHERE("id = " + columnMap.get("id")).toString();
+            String sql3 = sql1 + "\n union all \n" + sql2;
+            if (query.queryForObject(sql3, rs -> rs.getString(1)) != null) {
+                return;
+            }
             HashMap<String, Object> resultMap = new HashMap<>();
             resultMap.put("id", columnMap.get("id"));
             resultMap.put("uuid", columnMap.get("uuid"));
