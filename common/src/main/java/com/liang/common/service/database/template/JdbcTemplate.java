@@ -144,12 +144,14 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
-            Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            statement.setFetchSize(Integer.MIN_VALUE);
-            statement.setQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
-            ResultSet resultSet = statement.executeQuery(sql);
-            while (resultSet.next() && running.get()) {
-                consumer.consume(resultSet);
+            try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+                statement.setFetchSize(Integer.MIN_VALUE);
+                statement.setQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
+                try (ResultSet resultSet = statement.executeQuery(sql)) {
+                    while (resultSet.next() && running.get()) {
+                        consumer.consume(resultSet);
+                    }
+                }
             }
             logging.afterExecute("streamQuery", sql);
         } catch (Exception e) {
