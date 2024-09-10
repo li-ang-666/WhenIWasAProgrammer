@@ -79,7 +79,7 @@ public class BidToCloudJob {
             ConfigUtils.setConfig(config);
             int taskIdx = getRuntimeContext().getIndexOfThisSubtask();
             String rds = SINK_RDS.get(taskIdx % SINK_RDS.size());
-            log.info("{} -> {}", taskIdx, rds);
+            log.info("mapper_{} -> {}", taskIdx, rds);
             query = new JdbcTemplate(rds);
         }
 
@@ -134,7 +134,7 @@ public class BidToCloudJob {
             ConfigUtils.setConfig(config);
             int taskIdx = getRuntimeContext().getIndexOfThisSubtask();
             String rds = SINK_RDS.get(taskIdx);
-            log.info("{} -> {}", taskIdx, rds);
+            log.info("sink_{} -> {}", taskIdx, rds);
             sink = new JdbcTemplate(rds);
             sink.enableCache();
         }
