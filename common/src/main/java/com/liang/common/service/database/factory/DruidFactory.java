@@ -53,7 +53,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
     private void configDruid(DruidDataSource druidDataSource) {
         druidDataSource.setInitialSize(1);
         druidDataSource.setMinIdle(1);
-        druidDataSource.setMaxActive(10);
+        druidDataSource.setMaxActive(16);
         druidDataSource.setMaxWait(1000 * 60 * 5);
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
