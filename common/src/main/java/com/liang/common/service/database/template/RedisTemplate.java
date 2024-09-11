@@ -126,7 +126,7 @@ public class RedisTemplate {
         logging.beforeExecute();
         try (Jedis jedis = pool.getResource()) {
             Long reply = jedis.setnx(key, "lock");
-            jedis.expire(key, 60);
+            jedis.pexpireAt(key, System.currentTimeMillis() + 500);
             logging.afterExecute("tryLock", key);
             return reply == 1;
         } catch (Exception e) {
@@ -137,5 +137,28 @@ public class RedisTemplate {
 
     public void unlock(String key) {
         del(key);
+    }
+
+    // addLast()
+    public void rPush(String key, String value) {
+        logging.beforeExecute();
+        try (Jedis jedis = pool.getResource()) {
+            jedis.rpush(key, value);
+            logging.afterExecute("rPush", key + " -> " + value);
+        } catch (Exception e) {
+            logging.ifError("rPush", key + " -> " + value, e);
+        }
+    }
+
+    // getFirst()
+    public String lPop(String key) {
+        logging.beforeExecute();
+        try (Jedis jedis = pool.getResource()) {
+            logging.afterExecute("lPop", key);
+            return jedis.lpop(key);
+        } catch (Exception e) {
+            logging.ifError("lPop", key, e);
+            return null;
+        }
     }
 }
