@@ -11,6 +11,7 @@ env.java.opts.taskmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+P
 # Checkpoint参数
 state.backend.type: hashmap
 state.checkpoint-storage: filesystem
+state.checkpoints.num-retained: 2
 
 # 框架 + 2
 taskmanager.memory.framework.heap.size: 128m
