@@ -54,7 +54,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             long maxParsedIdOld = repairStateOld.getMaxParsedId();
             if (repairTask.equals(repairTaskOld)) {
                 repairState.setMaxParsedId(maxParsedIdOld);
-                String logs = String.format("RepairTask %s restored successfully, last id: %d",
+                String logs = String.format("RepairTask %s restored successfully, last id: %,d",
                         JsonUtils.toString(repairTask),
                         repairState.getMaxParsedId()
                 );
@@ -102,7 +102,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void snapshotState(FunctionSnapshotContext context) {
         repairStateHolder.clear();
         repairStateHolder.addAll(Collections.singletonList(repairState));
-        String logs = String.format("RepairTask %s ckp-%d successfully, max id: %d",
+        String logs = String.format("RepairTask %s ckp-%d successfully, max id: %,d",
                 JsonUtils.toString(repairState.getRepairTask()),
                 context.getCheckpointId(),
                 repairState.getMaxParsedId()
