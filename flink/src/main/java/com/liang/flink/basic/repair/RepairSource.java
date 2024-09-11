@@ -103,7 +103,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         repairStateHolder.clear();
         repairStateHolder.addAll(Collections.singletonList(repairState));
         String logs = String.format("RepairTask %s ckp-%d successfully, max id: %d",
-                JsonUtils.toString(repairState.getRepairTask()), context.getCheckpointId(),
+                JsonUtils.toString(repairState.getRepairTask()),
+                context.getCheckpointId(),
                 repairState.getMaxParsedId()
         );
         reportAndLog(logs);
