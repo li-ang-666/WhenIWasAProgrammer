@@ -115,6 +115,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     private void reportAndLog(String logs) {
+        logs = String.format("[RepairSource-%d] %s", getRuntimeContext().getIndexOfThisSubtask(), logs);
         redisTemplate.rPush(repairKey, logs);
         log.info("{}", logs);
     }
