@@ -5,8 +5,8 @@ classloader.resolve-order: parent-first
 
 # JVM参数
 env.java.opts.client: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps
-env.java.opts.jobmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+TraceClassLoading -Dsun.reflect.inflationThreshold=2147483647 -XX:SoftRefLRUPolicyMSPerMB=86400000
-env.java.opts.taskmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+TraceClassLoading
+env.java.opts.jobmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps #-XX:+TraceClassLoading -Dsun.reflect.inflationThreshold=2147483647 -XX:SoftRefLRUPolicyMSPerMB=86400000
+env.java.opts.taskmanager: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -XX:+PrintGCDetails -XX:+PrintGCDateStamps #-XX:+TraceClassLoading
 
 # Checkpoint参数
 state.backend.type: hashmap
@@ -43,3 +43,7 @@ jobmanager.memory.jvm-metaspace.size: 256m
 jobmanager.memory.jvm-overhead.fraction: 0.1
 jobmanager.memory.jvm-overhead.max: 256m
 jobmanager.memory.jvm-overhead.min: 128m
+
+# timeout
+client.heartbeat.interval: 2100000000
+client.heartbeat.timeout: 2100000000
