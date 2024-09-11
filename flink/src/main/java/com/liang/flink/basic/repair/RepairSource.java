@@ -42,7 +42,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     @Override
     @SneakyThrows
     public void initializeState(FunctionInitializationContext context) {
-        redisTemplate = new RedisTemplate("metaData");
+        redisTemplate = new RedisTemplate("metadata");
         // 根据index分配task
         ConfigUtils.setConfig(config);
         repairState.setRepairTask(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
@@ -95,7 +95,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 repairState.setMaxParsedId(rs.getLong("id"));
             }
         });
-        cancel();
     }
 
     @Override
@@ -112,7 +111,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void cancel() {
-        System.exit(0);
+        System.exit(100);
     }
 
     private void reportAndLog(String logs) {
