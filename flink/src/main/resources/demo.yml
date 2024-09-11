@@ -1,16 +1,15 @@
 # sourceType: Kafka or Repair
 flinkConfig:
   sourceType: Repair
-  sourceParallel: 5
-  otherParallel: 10
+  sourceParallel: 1
+  otherParallel: 2
 
-# scanMode: Direct or TumblingWindow
+
 repairTasks:
-  - sourceName: "104.data_bid"
-    tableName: "company_bid"
-    columns: "*"
+  - sourceName: "435.company_base"
+    tableName: "company_index"
+    columns: "id"
     where: "1=1"
-    scanMode: TumblingWindow
 
 kafkaConfigs:
   kafkaSource:

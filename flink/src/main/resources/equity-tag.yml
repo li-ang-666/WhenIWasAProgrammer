@@ -4,14 +4,14 @@ flinkConfig:
   sourceParallel: 1
   otherParallel: 1
 
-# scanMode: Direct or TumblingWindow
+
 repairTasks:
   - taskId: "111"
     sourceName: "435.company_base"
     tableName: "company_index"
     columns: "*"
     where: "company_id = 14427175"
-    scanMode: Direct
+
 
 kafkaConfigs:
   kafkaSource:

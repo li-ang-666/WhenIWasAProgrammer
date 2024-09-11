@@ -5,6 +5,7 @@ import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -34,11 +35,14 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private static final ListStateDescriptor<RepairState> STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
     private final RepairState repairState = new RepairState();
     private final Config config;
+    private final String repairKey;
+    private RedisTemplate redisTemplate;
     private ListState<RepairState> repairStateHolder;
 
     @Override
     @SneakyThrows
     public void initializeState(FunctionInitializationContext context) {
+        redisTemplate = new RedisTemplate("metaData");
         // 根据index分配task
         ConfigUtils.setConfig(config);
         repairState.setRepairTask(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
@@ -50,10 +54,11 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
             long maxParsedIdOld = repairStateOld.getMaxParsedId();
             if (repairTask.equals(repairTaskOld)) {
                 repairState.setMaxParsedId(maxParsedIdOld);
-                log.info("RepairTask {} restored successfully, last id: {}",
+                String logs = String.format("RepairTask %s restored successfully, last id: %d",
                         JsonUtils.toString(repairTask),
                         repairState.getMaxParsedId()
                 );
+                reportAndLog(logs);
                 break;
             }
         }
@@ -78,7 +83,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     .WHERE("id >= " + repairState.getMaxParsedId())
                     .ORDER_BY("id ASC")
                     .toString();
-            log.info("repair sql: {}", sql);
+            reportAndLog(String.format("repair sql: %s", sql));
         }
         jdbcTemplate.streamQuery(sql, rs -> {
             synchronized (ctx.getCheckpointLock()) {
@@ -98,14 +103,20 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void snapshotState(FunctionSnapshotContext context) {
         repairStateHolder.clear();
         repairStateHolder.addAll(Collections.singletonList(repairState));
-        log.info("RepairTask {} ckp-{} successfully, max id: {}",
+        String logs = String.format("RepairTask %s ckp-%d successfully, max id: %d",
                 JsonUtils.toString(repairState.getRepairTask()), context.getCheckpointId(),
                 repairState.getMaxParsedId()
         );
+        reportAndLog(logs);
     }
 
     @Override
     public void cancel() {
         System.exit(0);
+    }
+
+    private void reportAndLog(String logs) {
+        redisTemplate.rPush(repairKey, logs);
+        log.info("{}", logs);
     }
 }

@@ -4,14 +4,14 @@ flinkConfig:
   sourceParallel: 5
   otherParallel: 20
 
-# scanMode: Direct or TumblingWindow
+
 #repairTasks:
 #  - taskId: "111"
 #    sourceName: "116.prism"
 #    tableName: "company_clean_info"
 #    columns: "*"
 #    where: "id = 2440543288"
-#    scanMode: Direct
+
 
 kafkaConfigs:
   kafkaSource:

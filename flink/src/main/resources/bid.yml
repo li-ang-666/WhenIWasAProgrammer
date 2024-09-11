@@ -17,11 +17,11 @@ flinkConfig:
   sourceParallel: 1
   otherParallel: 32
 
-# scanMode: Direct or TumblingWindow
+
 repairTasks:
   - taskId: "111"
     sourceName: "volcanic_cloud_0"
     tableName: "bid_tender_details"
     columns: "*"
     where: "id in (181516812, 181516863)"
-    scanMode: Direct
+

@@ -4,26 +4,26 @@ flinkConfig:
   sourceParallel: 1
   otherParallel: 1
 
-# scanMode: Direct or TumblingWindow
+
 repairTasks:
   - taskId: "111"
     sourceName: "463.bdp_equity"
     tableName: "entity_controller_details"
     columns: "*"
     where: "company_id_controlled = '22822'"
-    scanMode: Direct
+
 #  - taskId: "222"
 #    sourceName: "463.bdp_equity"
 #    tableName: "entity_beneficiary_details"
 #    columns: "*"
 #    where: "tyc_unique_entity_id = '22822'"
-#    scanMode: Direct
+
 #  - taskId: "333"
 #    sourceName: "465.company_base"
 #    tableName: "tyc_entity_general_property_reference"
 #    columns: "*"
 #    where: "tyc_unique_entity_id = '22822'"
-#    scanMode: Direct
+
 
 kafkaConfigs:
   kafkaSource:

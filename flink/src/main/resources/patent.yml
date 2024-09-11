@@ -4,18 +4,18 @@ flinkConfig:
   sourceParallel: 1
   otherParallel: 1
 
-# scanMode: Direct or TumblingWindow
+
 repairTasks:
   #  - sourceName: "451.intellectual_property_info"
   #    tableName: "company_patent_basic_info_index"
   #    columns: "*"
   #    where: "1=1"
-  #    scanMode: TumblingWindow
+
   - sourceName: "435.company_base"
     tableName: "company_index"
     columns: "*"
     where: "company_id in(22822, 3131283508, 3092030706)"
-    scanMode: Direct
+
 
 kafkaConfigs:
   kafkaSource:

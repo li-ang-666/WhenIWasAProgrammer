@@ -4,14 +4,14 @@ flinkConfig:
   sourceParallel: 1
   otherParallel: 1
 
-# scanMode: Direct or TumblingWindow
+
 repairTasks:
   - taskId: "111"
     sourceName: "companyBase"
     tableName: "company_index"
     columns: "*"
     where: "company_id in (2597410928)"
-    scanMode: Direct
+
 
 dbConfigs:
   #################### 生产 ####################

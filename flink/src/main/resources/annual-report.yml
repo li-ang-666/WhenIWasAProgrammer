@@ -25,7 +25,7 @@ flinkConfig:
   sourceParallel: 1
   otherParallel: 1
 
-# scanMode: Direct or TumblingWindow
+
 # where: "annual_report_id in (select id from annual_report where company_id in (select company_id from company_graph where graph_id = '2318455639' and deleted = 0))"
 repairTasks:
   #  - taskId: "111"
@@ -33,31 +33,31 @@ repairTasks:
   #    tableName: "report_equity_change_info"
   #    columns: "*"
   #    where: "annualreport_id in (72197)"
-  #    scanMode: Direct
+
   #  - taskId: "222"
   #    sourceName: "116.prism"
   #    tableName: "report_shareholder"
   #    columns: "*"
   #    where: "annual_report_id in (72197)"
-  #    scanMode: Direct
+
   #  - taskId: "333"
   #    sourceName: "116.prism"
   #    tableName: "report_outbound_investment"
   #    columns: "*"
   #    where: "annual_report_id in (72197)"
-  #    scanMode: Direct
+
   #  - taskId: "444"
   #    sourceName: "116.prism"
   #    tableName: "report_webinfo"
   #    columns: "*"
   #    where: "annualreport_id in (72197)"
-  #    scanMode: Direct
+
   - taskId: "555"
     sourceName: "465.company_base"
     tableName: "tyc_entity_general_property_reference"
     columns: "*"
     where: "id in (43689435)"
-    scanMode: Direct
+
 
 kafkaConfigs:
   kafkaSource:

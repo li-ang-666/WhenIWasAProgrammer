@@ -4,11 +4,10 @@ flinkConfig:
   sourceParallel: 1
   otherParallel: 1
 
-# scanMode: Direct or TumblingWindow
+
 repairTasks:
   - taskId: "111"
     sourceName: "prismShareholderPath"
     tableName: "ratio_path_company"
     columns: "company_id"
     where: "1=1"
-    scanMode: TumblingWindow
