@@ -46,5 +46,5 @@ jobmanager.memory.jvm-overhead.max: 256m
 jobmanager.memory.jvm-overhead.min: 128m
 
 # timeout
-client.heartbeat.interval: 2100000000
+heartbeat.interval: 2100000000
 client.heartbeat.timeout: 2100000000
