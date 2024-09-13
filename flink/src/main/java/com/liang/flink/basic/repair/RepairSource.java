@@ -89,7 +89,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 int columnCount = metaData.getColumnCount();
                 Map<String, Object> columnMap = new HashMap<>(columnCount);
                 for (int i = 1; i <= columnCount; i++) columnMap.put(metaData.getColumnName(i), rs.getString(i));
-                ctx.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+                ctx.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
                 repairState.setMaxParsedId(rs.getLong("id"));
             }
         });

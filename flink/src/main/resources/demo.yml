@@ -1,21 +1,21 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Repair
+  sourceType: Kafka
   sourceParallel: 1
-  otherParallel: 2
+  otherParallel: 1
 
 
 repairTasks:
   - sourceName: "435.company_base"
     tableName: "company_index"
     columns: "id"
-    where: "1=2"
+    where: "company_id = 22822"
 
 kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "50598.cdc.prism_shareholder_path.ratio_path_company_new_all"
+      - "ee59d.json.company_base.company_index"
     groupId: "demo-job"
-    startFrom: "2024-07-11 12:00:00"
+    startFrom: "2"
 
