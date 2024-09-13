@@ -14,7 +14,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -75,10 +74,6 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 .ORDER_BY("id ASC")
                 .toString();
         reportAndLog(String.format("repair sql: %s", repairSql));
-    }
-
-    @Override
-    public void open(Configuration parameters) {
     }
 
     @Override
