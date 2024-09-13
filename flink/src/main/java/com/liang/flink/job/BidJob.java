@@ -181,7 +181,6 @@ public class BidJob {
             resultMap.put("public_info_lv1", volcanicColumnMap.get("announcement_type_first"));
             resultMap.put("bid_province", StrUtil.blankToDefault(AreaCodeUtils.getCode((String) volcanicColumnMap.get("project_province")), ""));
             resultMap.put("bid_city", StrUtil.blankToDefault(AreaCodeUtils.getCode((String) volcanicColumnMap.get("project_city")), ""));
-            resultMap.put("is_dirty", "0");
             // 招标方 or 采购方
             String purchaser = (String) volcanicColumnMap.get("tender_info");
             String parsedPurchaser = parsePurchaser(purchaser);
@@ -203,6 +202,7 @@ public class BidJob {
         }
 
         private void write(Map<String, Object> resultMap) {
+            resultMap.put("is_dirty", "0");
             for (String column : COLUMNS) {
                 if (!resultMap.containsKey(column)) {
                     resultMap.put(column, "");
