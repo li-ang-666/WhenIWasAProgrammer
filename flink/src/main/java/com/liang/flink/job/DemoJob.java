@@ -29,7 +29,7 @@ public class DemoJob {
                 .name("DemoSink")
                 .uid("DemoSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
-        System.out.println(env.execute("DemoJob").getAllAccumulatorResults());
+        env.execute("DemoJob");
     }
 
     @RequiredArgsConstructor
@@ -49,6 +49,7 @@ public class DemoJob {
             jdbcTemplate.enableCache();
             obsWriter = new ObsWriter("obs://hadoop-obs/flink/test/", ObsWriter.FileFormat.TXT);
             obsWriter.enableCache();
+
         }
 
         @Override
