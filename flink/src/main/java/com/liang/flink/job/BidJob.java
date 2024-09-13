@@ -2,10 +2,12 @@ package com.liang.flink.job;
 
 
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
+import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.AreaCodeUtils;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
@@ -14,6 +16,7 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
+import com.obs.services.ObsClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -24,6 +27,9 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +41,35 @@ import java.util.stream.Stream;
 @Slf4j
 @LocalConfigFile("bid.yml")
 public class BidJob {
+    private static final List<String> COLUMNS = Arrays.asList(
+            "id",
+            "main_id",
+            "bid_uuid",
+            "bid_title",
+            "bid_content",
+            "bid_link",
+            "bid_province",
+            "bid_city",
+            "public_info_lv1",
+            "public_info_lv2",
+            "bid_type",
+            "bid_publish_time",
+            "bid_item_num",
+            "bid_contract_num",
+            "purchaser",
+            "proxy_unit",
+            "bid_winner_info_json",
+            "bid_winner",
+            "winning_bid_amt_json",
+            "winning_bid_amt_json_clean",
+            "budget_amt_json",
+            "budget_amt_json_clean",
+            "bid_announcement_type",
+            "create_time",
+            "update_time",
+            "is_dirty",
+            "is_deleted"
+    );
     private static final List<String> VOLCANIC_RDS = Arrays.asList(
             "volcanic_cloud_0",
             "volcanic_cloud_1",
@@ -71,6 +106,7 @@ public class BidJob {
         private JdbcTemplate volcanic;
         private JdbcTemplate dataBid104;
         private JdbcTemplate companyBase435;
+        private ObsClient obsClient;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -86,15 +122,15 @@ public class BidJob {
             volcanic = new JdbcTemplate(volcanicRds);
             dataBid104 = new JdbcTemplate("104.data_bid");
             companyBase435 = new JdbcTemplate("435.company_base");
+            obsClient = new ObsWriter("").getClient();
         }
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             Map<String, Object> resultMap = new HashMap<>();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
-            // id
             String id = (String) columnMap.get("id");
-            // delete
+            // 删除
             String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
                     .WHERE("id = " + SqlUtils.formatValue(id))
                     .OR()
@@ -112,17 +148,24 @@ public class BidJob {
             }
             Map<String, Object> companyBidColumnMap = companyBidColumnMaps.get(0);
             // 整理company_bid相关数据
-            resultMap.put("id", companyBidColumnMap.get("uuid"));
-            resultMap.put("uuid", companyBidColumnMap.get("uuid"));
-            resultMap.put("main_id", companyBidColumnMap.get("uuid"));
+            String bidId = (String) companyBidColumnMap.get("id");
+            String uuid = (String) companyBidColumnMap.get("uuid");
+            resultMap.put("id", bidId);
+            resultMap.put("bid_uuid", uuid);
+            resultMap.put("main_id", bidId);
             resultMap.put("bid_title", companyBidColumnMap.get("title"));
             resultMap.put("bid_link", companyBidColumnMap.get("link"));
             String odsPublishTime = (String) companyBidColumnMap.get("publish_time");
             resultMap.put("bid_publish_time", odsPublishTime != null && !odsPublishTime.startsWith("0000") ? odsPublishTime : null);
             resultMap.put("is_deleted", companyBidColumnMap.get("deleted"));
             resultMap.put("bid_announcement_type", StrUtil.blankToDefault((String) companyBidColumnMap.get("type"), ""));
-            resultMap.put("bid_content", companyBidColumnMap.get("xxxxxxxx"));
-            resultMap.put("proxy_unit", "");
+            String content = (String) companyBidColumnMap.get("content");
+            obsClient.putObject(
+                    "jindi-bigdata",
+                    "company_bid_parsed_info/content_obs_url/" + uuid + ".txt",
+                    new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+            );
+            resultMap.put("bid_content", "http://jindi-bigdata.obs.cn-north-4.myhuaweicloud.com/company_bid_parsed_info/content_obs_url/" + uuid + ".txt");
             // 查询大模型
             String queryVolcanicSql = new SQL().SELECT("*")
                     .FROM("bid_tender_details")
@@ -134,20 +177,10 @@ public class BidJob {
                 return;
             }
             Map<String, Object> volcanicColumnMap = volcanicColumnMaps.get(0);
-            // 招标类型
-            String level1 = (String) volcanicColumnMap.get("announcement_type_first");
-            if (isValid(level1)) {
-                resultMap.put("public_info_lv1", level1);
-            }
-            // 省份
-            String province = (String) volcanicColumnMap.get("project_province");
-            if (isValid(province)) {
-                resultMap.put("bid_province", AreaCodeUtils.getCode(province));
-            }
-            String city = (String) volcanicColumnMap.get("project_city");
-            if (isValid(city)) {
-                resultMap.put("bid_city", AreaCodeUtils.getCode(city));
-            }
+            // 整理大模型相关数据
+            resultMap.put("public_info_lv1", volcanicColumnMap.get("announcement_type_first"));
+            resultMap.put("bid_province", StrUtil.blankToDefault(AreaCodeUtils.getCode((String) volcanicColumnMap.get("project_province")), ""));
+            resultMap.put("is_dirty", "0");
             // 招标方 or 采购方
             String purchaser = (String) volcanicColumnMap.get("tender_info");
             String parsedPurchaser = parsePurchaser(purchaser);
@@ -161,20 +194,33 @@ public class BidJob {
                 resultMap.put("bid_winner", "[" + parsedWinner.f0 + "]");
             }
             // 中标金额
+            resultMap.put("winning_bid_amt_json", winner);
             if (!"[]".equals(parsedWinner.f1)) {
-                resultMap.put("winning_bid_amt_json", "[" + parsedWinner.f1 + "]");
                 resultMap.put("winning_bid_amt_json_clean", "[" + parsedWinner.f1 + "]");
             }
             write(resultMap);
         }
 
         private void write(Map<String, Object> resultMap) {
-
+            for (String column : COLUMNS) {
+                if (!resultMap.containsKey(column)) {
+                    resultMap.put(column, "");
+                }
+            }
+            resultMap.remove("create_time");
+            resultMap.remove("update_time");
+            String onDuplicateKeyUpdate = SqlUtils.onDuplicateKeyUpdate(COLUMNS);
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
+            String sql = new SQL().INSERT_INTO(SINK_TABlE)
+                    .INTO_COLUMNS(insert.f0)
+                    .INTO_VALUES(insert.f1)
+                    .toString() + onDuplicateKeyUpdate;
+            sink.update(sql);
         }
 
         private String parsePurchaser(String json) {
             List<Object> list = JsonUtils.parseJsonArr(json);
-            List<HashMap<String, Object>> maps = list.stream()
+            List<Map<String, Object>> maps = list.stream()
                     .map(map -> (String) (((Map<String, Object>) map).get("tender_organization")))
                     .filter(this::isValid)
                     .flatMap(names -> Stream.of(names.split("、")))
@@ -190,7 +236,7 @@ public class BidJob {
 
         private Tuple2<String, String> parseWinner(String json) {
             List<Object> list = JsonUtils.parseJsonArr(json);
-            List<HashMap<String, Object>> maps1 = list.stream()
+            List<Map<String, Object>> maps1 = list.stream()
                     .map(map -> (String) (((Map<String, Object>) map).get("winning_bid_organization")))
                     .filter(this::isValid)
                     .flatMap(names -> Stream.of(names.split(";")))
@@ -201,16 +247,19 @@ public class BidJob {
                             }}
                     )
                     .collect(Collectors.toList());
-            List<HashMap<String, Object>> maps2 = list.stream()
-                    .flatMap(map -> ((List<Map<String, Object>>) (((Map<String, Object>) map).get("winning_bid_amount_info"))).stream())
-                    .map(map -> (String) (map.get("winning_bid_amount")))
-                    .filter(money -> isValid(money) && money.matches("(\\d+\\.?\\d*)元"))
-                    .map(money -> money.replaceAll("(\\d+\\.?\\d*)元", "$1"))
-                    .map(money -> new HashMap<String, Object>() {{
-                                put("amount", money);
+            List<Map<String, Object>> maps2 = ReUtil.findAllGroup0("\\d+(\\.\\d+)*万?元", json)
+                    .stream()
+                    .map(money ->
+                            new HashMap<String, Object>() {{
+                                String moneyNumber = money.replaceAll("[万元]", "");
+                                BigDecimal moneyDecimal = new BigDecimal(moneyNumber);
+                                if (money.endsWith("万元")) {
+                                    put("amount", moneyDecimal.multiply(new BigDecimal(10_000)).toPlainString());
+                                } else {
+                                    put("amount", moneyDecimal.toPlainString());
+                                }
                             }}
-                    )
-                    .collect(Collectors.toList());
+                    ).collect(Collectors.toList());
             return Tuple2.of(JsonUtils.toString(maps1), JsonUtils.toString(maps2));
         }
 

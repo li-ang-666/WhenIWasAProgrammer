@@ -5,6 +5,7 @@ import com.liang.common.service.Logging;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ModifyObjectRequest;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
@@ -35,6 +36,7 @@ public class ObsWriter extends AbstractCache<String, String> {
     private final static String SECRET_KEY = "BJok3jQFTmFYUS68lFWegazYggw5anKsOFUb65bS";
     private final static String END_POINT = "obs.cn-north-4.myhuaweicloud.com";
 
+    @Getter
     private final ObsClient client = new ObsClient(ACCESS_KEY, SECRET_KEY, END_POINT);
     private final UUID uuid = UUID.randomUUID();
     private final Map<String, AtomicLong> fileToPosition = new HashMap<>();

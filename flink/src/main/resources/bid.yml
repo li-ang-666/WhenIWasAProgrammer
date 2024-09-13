@@ -15,13 +15,11 @@ dbConfigs:
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 32
-
+  otherParallel: 1
 
 repairTasks:
-  - taskId: "111"
-    sourceName: "volcanic_cloud_0"
+  - sourceName: "volcanic_cloud_0"
     tableName: "bid_tender_details"
     columns: "*"
-    where: "id in (181516812, 181516863)"
+    where: "id in (48561297)"
 

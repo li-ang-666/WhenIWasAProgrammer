@@ -27,20 +27,20 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-public class Rds491CdcJob {
-    private static final String CDC_HOSTNAME = "505982938db54e86bfc4bd36d49f840din01.internal.cn-north-4.mysql.rds.myhuaweicloud.com";
-    private static final String CDC_DATABASE = "prism_shareholder_path";
-    private static final String CDC_TABLE = "ratio_path_company_new_\\d+";
+public class VolcanicCdcJob {
+    private static final String CDC_HOSTNAME = "101.126.25.158";
+    private static final String CDC_DATABASE = "data_bid";
+    private static final String CDC_TABLE = "bid_tender_details";
     private static final Integer CDC_PORT = 3306;
-    private static final String CDC_USERNAME = "canal_d";
-    private static final String CDC_PASSWORD = "Canal@Dduan";
-    private static final String CDC_SERVER_ID = "491";
+    private static final String CDC_USERNAME = "tyc_data";
+    private static final String CDC_PASSWORD = "G7n$2k!f9Qx#Lm1Z";
+    private static final String CDC_SERVER_ID = "5511";
     private static final String CDC_TIMEZONE = "Asia/Shanghai";
     private static final StartupOptions CDC_STARTUP_OPTIONS = StartupOptions.latest();
 
     private static final String KAFKA_BOOTSTRAP_SERVER = "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092";
-    private static final String KAFKA_TOPIC = "50598.cdc.prism_shareholder_path.ratio_path_company_new_all";
-    private static final String LONG_DISTRIBUTE_KEY = "company_id";
+    private static final String KAFKA_TOPIC = "volcanic.cdc.data_bid.bid_tender_details";
+    private static final String LONG_DISTRIBUTE_KEY = "id";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -68,7 +68,7 @@ public class Rds491CdcJob {
                 .addSink(new KafkaSink())
                 .name("KafkaSink")
                 .uid("KafkaSink");
-        env.execute("Rds491CdcJob");
+        env.execute("VolcanicCdcJob");
     }
 
     private static final class KafkaSink extends RichSinkFunction<FlatMessage> implements CheckpointedFunction {
