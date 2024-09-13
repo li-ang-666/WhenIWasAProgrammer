@@ -36,15 +36,18 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private final RepairState repairState = new RepairState();
     private final Config config;
     private final String repairKey;
-    private RedisTemplate redisTemplate;
     private ListState<RepairState> repairStateHolder;
+    private RedisTemplate redisTemplate;
+    private JdbcTemplate jdbcTemplate;
+    private String repairSql;
 
     @Override
     @SneakyThrows
     public void initializeState(FunctionInitializationContext context) {
+        // 初始化redis
+        ConfigUtils.setConfig(config);
         redisTemplate = new RedisTemplate("metadata");
         // 根据index分配task
-        ConfigUtils.setConfig(config);
         repairState.setRepairTask(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
         RepairTask repairTask = repairState.getRepairTask();
         // 根据task恢复state
@@ -62,6 +65,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 break;
             }
         }
+        // 初始化 mysql
+        jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+        repairSql = new SQL()
+                .SELECT(repairTask.getColumns())
+                .FROM(repairTask.getTableName())
+                .WHERE(repairTask.getWhere())
+                .WHERE("id >= " + repairState.getMaxParsedId())
+                .ORDER_BY("id ASC")
+                .toString();
+        reportAndLog(String.format("repair sql: %s", repairSql));
     }
 
     @Override
@@ -70,28 +83,13 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
-        RepairTask repairTask;
-        JdbcTemplate jdbcTemplate;
-        String sql;
-        synchronized (ctx.getCheckpointLock()) {
-            repairTask = repairState.getRepairTask();
-            jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            sql = new SQL()
-                    .SELECT(repairTask.getColumns())
-                    .FROM(repairTask.getTableName())
-                    .WHERE(repairTask.getWhere())
-                    .WHERE("id >= " + repairState.getMaxParsedId())
-                    .ORDER_BY("id ASC")
-                    .toString();
-            reportAndLog(String.format("repair sql: %s", sql));
-        }
-        jdbcTemplate.streamQuery(sql, rs -> {
+        jdbcTemplate.streamQuery(repairSql, rs -> {
             synchronized (ctx.getCheckpointLock()) {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 Map<String, Object> columnMap = new HashMap<>(columnCount);
                 for (int i = 1; i <= columnCount; i++) columnMap.put(metaData.getColumnName(i), rs.getString(i));
-                ctx.collect(new SingleCanalBinlog(repairTask.getSourceName(), repairTask.getTableName(), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+                ctx.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), -1L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
                 repairState.setMaxParsedId(rs.getLong("id"));
             }
         });
