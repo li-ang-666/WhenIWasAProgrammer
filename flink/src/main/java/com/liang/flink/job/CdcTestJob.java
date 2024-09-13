@@ -41,7 +41,8 @@ public class CdcTestJob {
         env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "CdcSource")
                 .map(JsonUtils::toString)
                 .returns(String.class)
-                .print();
+                .print()
+                .setParallelism(1);
         env.execute("CdcTestJob");
     }
 }
