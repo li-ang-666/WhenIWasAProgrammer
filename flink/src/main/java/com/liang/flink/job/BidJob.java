@@ -149,11 +149,10 @@ public class BidJob {
             }
             Map<String, Object> companyBidColumnMap = companyBidColumnMaps.get(0);
             // 整理company_bid相关数据
-            String bidId = (String) companyBidColumnMap.get("id");
             String uuid = (String) companyBidColumnMap.get("uuid");
-            resultMap.put("id", bidId);
+            resultMap.put("id", id);
             resultMap.put("bid_uuid", uuid);
-            resultMap.put("main_id", bidId);
+            resultMap.put("main_id", id);
             resultMap.put("bid_title", companyBidColumnMap.get("title"));
             resultMap.put("bid_link", companyBidColumnMap.get("link"));
             String odsPublishTime = (String) companyBidColumnMap.get("publish_time");
