@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -247,7 +248,7 @@ public class BidJob {
                             }}
                     )
                     .collect(Collectors.toList());
-            List<Map<String, Object>> maps2 = ReUtil.findAllGroup0("\\d+(\\.\\d+)*万?元", json)
+            List<Map<String, Object>> maps2 = ReUtil.findAllGroup0(Pattern.compile("\\d+(\\.\\d+)*万?元"), json)
                     .stream()
                     .map(money ->
                             new HashMap<String, Object>() {{
