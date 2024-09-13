@@ -21,7 +21,7 @@ repairTasks:
   - sourceName: "volcanic_cloud_0"
     tableName: "bid_tender_details"
     columns: "*"
-    where: "id in (48561297)"
+    where: "id in (48561297,1841)"
 
 kafkaConfigs:
   kafkaSource:
