@@ -29,7 +29,7 @@ public class DemoJob {
                 .name("DemoSink")
                 .uid("DemoSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
-        env.execute("DemoJob");
+        System.out.println(env.execute("DemoJob").getAllAccumulatorResults());
     }
 
     @RequiredArgsConstructor
@@ -45,10 +45,10 @@ public class DemoJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            jdbcTemplate = new JdbcTemplate("069.semantic_analysis");
+            jdbcTemplate = new JdbcTemplate("427.test");
             jdbcTemplate.enableCache();
-            //obsWriter = new ObsWriter("obs://hadoop-obs/flink/test/", ObsWriter.FileFormat.TXT);
-            //obsWriter.enableCache();
+            obsWriter = new ObsWriter("obs://hadoop-obs/flink/test/", ObsWriter.FileFormat.TXT);
+            obsWriter.enableCache();
         }
 
         @Override
@@ -72,7 +72,7 @@ public class DemoJob {
 
         private void flush() {
             jdbcTemplate.flush();
-            //obsWriter.flush();
+            obsWriter.flush();
         }
     }
 }
