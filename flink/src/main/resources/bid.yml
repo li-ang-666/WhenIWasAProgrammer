@@ -28,6 +28,7 @@ kafkaConfigs:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
       - "65c23.proto.data_bid.company_bid"
+      - "7eca1.proto.semantic_analysis.company_bid_info_v2"
       - "volcanic.cdc.data_bid.bid_tender_details"
     groupId: "bid-job"
     startFrom: "2"

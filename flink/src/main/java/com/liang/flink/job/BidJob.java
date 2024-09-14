@@ -20,6 +20,7 @@ import com.liang.flink.service.LocalConfigFile;
 import com.obs.services.ObsClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
@@ -27,6 +28,7 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.util.Collector;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
@@ -93,12 +95,45 @@ public class BidJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
+                .rebalance()
+                .flatMap(new BidMapper(config))
+                .setParallelism(config.getFlinkConfig().getOtherParallel())
+                .name("BidMapper")
+                .uid("BidMapper")
                 .keyBy(e -> (String) e.getColumnMap().get("uuid"))
                 .addSink(new BidSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("BidSink")
                 .uid("BidSink");
         env.execute("BidJob");
+    }
+
+    @RequiredArgsConstructor
+    private static final class BidMapper extends RichFlatMapFunction<SingleCanalBinlog, SingleCanalBinlog> {
+        private final Config config;
+        private JdbcTemplate rds104;
+
+        @Override
+        public void open(Configuration parameters) {
+            ConfigUtils.setConfig(config);
+            rds104 = new JdbcTemplate("104.data_bid");
+        }
+
+        @Override
+        public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<SingleCanalBinlog> out) {
+            if (singleCanalBinlog.getTable().equals("company_bid_info_v2")) {
+                String sql = new SQL().SELECT("id")
+                        .FROM("company_bid")
+                        .WHERE("uuid = " + SqlUtils.formatValue(singleCanalBinlog.getColumnMap().get("bid_document_uuid")))
+                        .toString();
+                String id = rds104.queryForObject(sql, rs -> rs.getString(1));
+                if (id == null) {
+                    return;
+                }
+                singleCanalBinlog.getColumnMap().put("id", id);
+            }
+            out.collect(singleCanalBinlog);
+        }
     }
 
     @RequiredArgsConstructor
