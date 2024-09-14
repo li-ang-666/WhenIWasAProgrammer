@@ -104,7 +104,7 @@ public class BidToCloudJob {
             try {
                 String md = executor
                         .submit(() -> htmlToMd((String) columnMap.get("content")))
-                        .get(500, TimeUnit.MILLISECONDS);
+                        .get(5000, TimeUnit.MILLISECONDS);
                 resultMap.put("content", md);
                 resultMap.put("fail", false);
             } catch (Exception e) {
