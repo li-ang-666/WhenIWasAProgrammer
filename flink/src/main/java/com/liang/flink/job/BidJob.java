@@ -317,7 +317,7 @@ public class BidJob {
                             }}
                     )
                     .collect(Collectors.toList());
-            List<Map<String, Object>> maps2 = ReUtil.findAllGroup0(Pattern.compile("\\d+(\\.\\d+)*万?元"), json)
+            List<Map<String, Object>> maps2 = ReUtil.findAllGroup0(Pattern.compile("\\d+(\\.\\d+)?万?元"), json)
                     .stream()
                     .map(money ->
                             new HashMap<String, Object>() {{
