@@ -132,12 +132,12 @@ public class BidJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String id = (String) columnMap.get("id");
             // 删除
-            String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
-                    .WHERE("id = " + SqlUtils.formatValue(id))
-                    .OR()
-                    .WHERE("main_id = " + SqlUtils.formatValue(id))
-                    .toString();
-            sink.update(deleteSql);
+//            String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
+//                    .WHERE("id = " + SqlUtils.formatValue(id))
+//                    .OR()
+//                    .WHERE("main_id = " + SqlUtils.formatValue(id))
+//                    .toString();
+//            sink.update(deleteSql);
             // 查询company_bid
             String query104Sql = new SQL().SELECT("*")
                     .FROM("company_bid")
@@ -150,7 +150,7 @@ public class BidJob {
             Map<String, Object> companyBidColumnMap = companyBidColumnMaps.get(0);
             // 整理company_bid相关数据
             String uuid = (String) companyBidColumnMap.get("uuid");
-            resultMap.put("id", id);
+//            resultMap.put("id", id);
             resultMap.put("bid_uuid", uuid);
             resultMap.put("main_id", id);
             resultMap.put("bid_title", companyBidColumnMap.get("title"));
@@ -202,20 +202,31 @@ public class BidJob {
         }
 
         private void write(Map<String, Object> resultMap) {
+//            resultMap.put("is_dirty", "0");
+//            for (String column : COLUMNS) {
+//                if (!resultMap.containsKey(column)) {
+//                    resultMap.put(column, "");
+//                }
+//            }
+//            resultMap.remove("create_time");
+//            resultMap.remove("update_time");
+//            String onDuplicateKeyUpdate = SqlUtils.onDuplicateKeyUpdate(COLUMNS);
+//            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
+//            String sql = new SQL().INSERT_INTO(SINK_TABlE)
+//                    .INTO_COLUMNS(insert.f0)
+//                    .INTO_VALUES(insert.f1)
+//                    .toString() + onDuplicateKeyUpdate;
+//            sink.update(sql);
             resultMap.put("is_dirty", "0");
-            for (String column : COLUMNS) {
-                if (!resultMap.containsKey(column)) {
-                    resultMap.put(column, "");
-                }
-            }
-            resultMap.remove("create_time");
-            resultMap.remove("update_time");
-            String onDuplicateKeyUpdate = SqlUtils.onDuplicateKeyUpdate(COLUMNS);
-            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
-            String sql = new SQL().INSERT_INTO(SINK_TABlE)
-                    .INTO_COLUMNS(insert.f0)
-                    .INTO_VALUES(insert.f1)
-                    .toString() + onDuplicateKeyUpdate;
+            resultMap.entrySet().removeIf(entry -> {
+                Object value = entry.getValue();
+                return (value == null || "".equals(String.valueOf(value)));
+            });
+            String update = SqlUtils.columnMap2Update(resultMap);
+            String sql = new SQL().UPDATE(SINK_TABlE)
+                    .SET(update)
+                    .WHERE("main_id = " + resultMap.get("main_id"))
+                    .toString();
             sink.update(sql);
         }
 
