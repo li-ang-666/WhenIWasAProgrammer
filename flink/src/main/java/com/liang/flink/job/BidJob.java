@@ -322,7 +322,13 @@ public class BidJob {
                     .map(money ->
                             new HashMap<String, Object>() {{
                                 String moneyNumber = money.replaceAll("[万元]", "");
-                                BigDecimal moneyDecimal = new BigDecimal(moneyNumber);
+                                BigDecimal moneyDecimal;
+                                try {
+                                    moneyDecimal = new BigDecimal(moneyNumber);
+                                } catch (Exception e) {
+                                    log.warn("错误的金额: {}", money, e);
+                                    moneyDecimal = new BigDecimal(0);
+                                }
                                 if (money.endsWith("万元")) {
                                     put("amount", moneyDecimal.multiply(new BigDecimal(10_000)).toPlainString());
                                 } else {

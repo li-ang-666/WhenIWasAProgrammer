@@ -53,7 +53,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         druidDataSource.setInitialSize(1);
         druidDataSource.setMinIdle(1);
         druidDataSource.setMaxActive(16);
-        druidDataSource.setMaxWait((int) TimeUnit.MINUTES.toMillis(5));
+        druidDataSource.setMaxWait((int) TimeUnit.DAYS.toMillis(7));
         druidDataSource.setTestOnBorrow(false);
         druidDataSource.setTestOnReturn(false);
         druidDataSource.setTestWhileIdle(true);
@@ -71,7 +71,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         // 隔离级别
         druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         // 超时
-        druidDataSource.setConnectTimeout((int) TimeUnit.MINUTES.toMillis(5));
+        druidDataSource.setConnectTimeout((int) TimeUnit.DAYS.toMillis(7));
         druidDataSource.setSocketTimeout((int) TimeUnit.DAYS.toMillis(7));
         druidDataSource.setQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
         druidDataSource.setTransactionQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
