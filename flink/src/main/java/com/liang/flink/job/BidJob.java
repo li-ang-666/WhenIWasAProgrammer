@@ -15,6 +15,7 @@ import com.liang.common.util.SqlUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
+import com.liang.flink.project.bid.BidService;
 import com.liang.flink.service.LocalConfigFile;
 import com.obs.services.ObsClient;
 import lombok.RequiredArgsConstructor;
@@ -106,7 +107,9 @@ public class BidJob {
         private JdbcTemplate sink;
         private JdbcTemplate volcanic;
         private JdbcTemplate dataBid104;
+        private JdbcTemplate rds069;
         private JdbcTemplate companyBase435;
+        private BidService bidService;
         private ObsClient obsClient;
 
         @Override
@@ -122,7 +125,9 @@ public class BidJob {
             String volcanicRds = VOLCANIC_RDS.get(taskIdx % VOLCANIC_RDS.size());
             volcanic = new JdbcTemplate(volcanicRds);
             dataBid104 = new JdbcTemplate("104.data_bid");
+            rds069 = new JdbcTemplate("069.semantic_analysis");
             companyBase435 = new JdbcTemplate("435.company_base");
+            bidService = new BidService();
             obsClient = new ObsWriter("").getClient();
         }
 
@@ -132,12 +137,12 @@ public class BidJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String id = (String) columnMap.get("id");
             // 删除
-//            String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
-//                    .WHERE("id = " + SqlUtils.formatValue(id))
-//                    .OR()
-//                    .WHERE("main_id = " + SqlUtils.formatValue(id))
-//                    .toString();
-//            sink.update(deleteSql);
+            String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
+                    .WHERE("id = " + SqlUtils.formatValue(id))
+                    .OR()
+                    .WHERE("main_id = " + SqlUtils.formatValue(id))
+                    .toString();
+            sink.update(deleteSql);
             // 查询company_bid
             String query104Sql = new SQL().SELECT("*")
                     .FROM("company_bid")
@@ -150,7 +155,7 @@ public class BidJob {
             Map<String, Object> companyBidColumnMap = companyBidColumnMaps.get(0);
             // 整理company_bid相关数据
             String uuid = (String) companyBidColumnMap.get("uuid");
-//            resultMap.put("id", id);
+            resultMap.put("id", id);
             resultMap.put("bid_uuid", uuid);
             resultMap.put("main_id", id);
             resultMap.put("bid_title", companyBidColumnMap.get("title"));
@@ -166,67 +171,82 @@ public class BidJob {
                     new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
             );
             resultMap.put("bid_content", "http://jindi-bigdata.obs.cn-north-4.myhuaweicloud.com/company_bid_parsed_info/content_obs_url/" + uuid + ".txt");
+            // 查询算法表
+            String query069Sql = new SQL().SELECT("*")
+                    .FROM("company_bid_info_v2")
+                    .WHERE("bid_document_uuid = " + SqlUtils.formatValue(uuid))
+                    .toString();
+            List<Map<String, Object>> rds069ColumnMaps = rds069.queryForColumnMaps(query069Sql);
+            if (!rds069ColumnMaps.isEmpty()) {
+                Map<String, Object> rds069ColumnMap = rds069ColumnMaps.get(0);
+                // 整理算法表相关数据
+                resultMap.put("public_info_lv1", rds069ColumnMap.get("first_class_info_type"));
+                resultMap.put("public_info_lv2", rds069ColumnMap.get("secondary_info_type"));
+                resultMap.put("bid_province", rds069ColumnMap.get("province"));
+                resultMap.put("bid_city", rds069ColumnMap.get("city"));
+                resultMap.put("is_dirty", "0");
+                resultMap.putAll(bidService.parseBidInfo((String) rds069ColumnMap.get("bid_info")));
+            }
             // 查询大模型
             String queryVolcanicSql = new SQL().SELECT("*")
                     .FROM("bid_tender_details")
                     .WHERE("id = " + SqlUtils.formatValue(id))
                     .toString();
             List<Map<String, Object>> volcanicColumnMaps = volcanic.queryForColumnMaps(queryVolcanicSql);
-            if (volcanicColumnMaps.isEmpty()) {
-                write(resultMap);
-                return;
-            }
-            Map<String, Object> volcanicColumnMap = volcanicColumnMaps.get(0);
-            // 整理大模型相关数据
-            resultMap.put("public_info_lv1", volcanicColumnMap.get("announcement_type_first"));
-            resultMap.put("bid_province", StrUtil.blankToDefault(AreaCodeUtils.getCode((String) volcanicColumnMap.get("project_province")), ""));
-            resultMap.put("bid_city", StrUtil.blankToDefault(AreaCodeUtils.getCode((String) volcanicColumnMap.get("project_city")), ""));
-            // 招标方 or 采购方
-            String purchaser = (String) volcanicColumnMap.get("tender_info");
-            String parsedPurchaser = parsePurchaser(purchaser);
-            if (!"[]".equals(parsedPurchaser)) {
-                resultMap.put("purchaser", "[" + parsedPurchaser + "]");
-            }
-            // 中标方 or 供应方
-            String winner = (String) volcanicColumnMap.get("winning_bid_info");
-            Tuple2<String, String> parsedWinner = parseWinner(winner);
-            if (!"[]".equals(parsedWinner.f0)) {
-                resultMap.put("bid_winner", "[" + parsedWinner.f0 + "]");
-            }
-            // 中标金额
-            resultMap.put("winning_bid_amt_json", winner);
-            if (!"[]".equals(parsedWinner.f1)) {
-                resultMap.put("winning_bid_amt_json_clean", "[" + parsedWinner.f1 + "]");
+            if (!volcanicColumnMaps.isEmpty()) {
+                // 整理大模型相关数据
+                Map<String, Object> volcanicColumnMap = volcanicColumnMaps.get(0);
+                String lv1 = (String) volcanicColumnMap.get("announcement_type_first");
+                if (isValid(lv1)) {
+                    resultMap.put("public_info_lv1", lv1);
+                }
+                String lv2 = (String) volcanicColumnMap.get("announcement_type_second");
+                if (isValid(lv2)) {
+                    resultMap.put("public_info_lv2", lv2);
+                }
+                String province = AreaCodeUtils.getCode((String) volcanicColumnMap.get("project_province"));
+                if (isValid(province)) {
+                    resultMap.put("bid_province", province);
+                }
+                String city = AreaCodeUtils.getCode((String) volcanicColumnMap.get("project_city"));
+                if (isValid(city)) {
+                    resultMap.put("bid_city", city);
+                }
+                // 招标方 or 采购方
+                String purchaser = (String) volcanicColumnMap.get("tender_info");
+                String parsedPurchaser = parsePurchaser(purchaser);
+                if (!"[]".equals(parsedPurchaser)) {
+                    resultMap.put("purchaser", "[" + parsedPurchaser + "]");
+                }
+                // 中标方 or 供应方
+                String winner = (String) volcanicColumnMap.get("winning_bid_info");
+                Tuple2<String, String> parsedWinner = parseWinner(winner);
+                if (!"[]".equals(parsedWinner.f0)) {
+                    resultMap.put("bid_winner", "[" + parsedWinner.f0 + "]");
+                }
+                // 中标金额
+                if (!"[]".equals(parsedWinner.f1)) {
+                    resultMap.put("winning_bid_amt_json", winner);
+                    resultMap.put("winning_bid_amt_json_clean", "[" + parsedWinner.f1 + "]");
+                }
             }
             write(resultMap);
         }
 
         private void write(Map<String, Object> resultMap) {
-//            resultMap.put("is_dirty", "0");
-//            for (String column : COLUMNS) {
-//                if (!resultMap.containsKey(column)) {
-//                    resultMap.put(column, "");
-//                }
-//            }
-//            resultMap.remove("create_time");
-//            resultMap.remove("update_time");
-//            String onDuplicateKeyUpdate = SqlUtils.onDuplicateKeyUpdate(COLUMNS);
-//            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
-//            String sql = new SQL().INSERT_INTO(SINK_TABlE)
-//                    .INTO_COLUMNS(insert.f0)
-//                    .INTO_VALUES(insert.f1)
-//                    .toString() + onDuplicateKeyUpdate;
-//            sink.update(sql);
-            resultMap.put("is_dirty", "0");
-            resultMap.entrySet().removeIf(entry -> {
-                Object value = entry.getValue();
-                return (value == null || "".equals(String.valueOf(value)));
-            });
-            String update = SqlUtils.columnMap2Update(resultMap);
-            String sql = new SQL().UPDATE(SINK_TABlE)
-                    .SET(update)
-                    .WHERE("main_id = " + resultMap.get("main_id"))
-                    .toString();
+            for (String column : COLUMNS) {
+                if (!resultMap.containsKey(column)) {
+                    resultMap.put(column, "");
+                }
+            }
+            resultMap.remove("create_time");
+            resultMap.remove("update_time");
+            String onDuplicateKeyUpdate = SqlUtils.onDuplicateKeyUpdate(COLUMNS);
+            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(resultMap);
+            String sql = new SQL().INSERT_INTO(SINK_TABlE)
+                    .INTO_COLUMNS(insert.f0)
+                    .INTO_VALUES(insert.f1)
+                    .toString() + onDuplicateKeyUpdate;
             sink.update(sql);
         }
 
