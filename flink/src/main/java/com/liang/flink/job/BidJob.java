@@ -207,6 +207,7 @@ public class BidJob {
             );
             resultMap.put("bid_content", "http://jindi-bigdata.obs.cn-north-4.myhuaweicloud.com/company_bid_parsed_info/content_obs_url/" + uuid + ".txt");
             // 查询算法表
+            resultMap.put("is_dirty", "0");
             String query069Sql = new SQL().SELECT("*")
                     .FROM("company_bid_info_v2")
                     .WHERE("bid_document_uuid = " + SqlUtils.formatValue(uuid))
@@ -219,7 +220,6 @@ public class BidJob {
                 resultMap.put("public_info_lv2", rds069ColumnMap.get("secondary_info_type"));
                 resultMap.put("bid_province", rds069ColumnMap.get("province"));
                 resultMap.put("bid_city", rds069ColumnMap.get("city"));
-                resultMap.put("is_dirty", "0");
                 resultMap.putAll(bidService.parseBidInfo((String) rds069ColumnMap.get("bid_info")));
             }
             // 查询大模型
