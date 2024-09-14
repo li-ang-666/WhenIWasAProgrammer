@@ -1,6 +1,7 @@
 package com.liang.flink.project.bid;
 
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Lists;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -53,9 +54,11 @@ public class BidService {
                             put("name", name);
                         }});
                         // winner amount
-                        winnerAmount.add(new HashMap<String, Object>() {{
-                            put("amount", offerPrice);
-                        }});
+                        if (StrUtil.isNotBlank(offerPrice)) {
+                            winnerAmount.add(new HashMap<String, Object>() {{
+                                put("amount", offerPrice);
+                            }});
+                        }
                     }
                 }
             }

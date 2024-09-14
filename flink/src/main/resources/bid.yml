@@ -13,9 +13,9 @@ dbConfigs:
 
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
-  sourceParallel: 5
-  otherParallel: 10
+  sourceType: Repair
+  sourceParallel: 1
+  otherParallel: 1
 
 repairTasks:
   - sourceName: "volcanic_cloud_0"
