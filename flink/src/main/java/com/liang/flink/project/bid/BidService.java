@@ -63,7 +63,6 @@ public class BidService {
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("purchaser", "[" + JsonUtils.toString(purchaser) + "]");
         columnMap.put("bid_winner", "[" + JsonUtils.toString(winner) + "]");
-        columnMap.put("winning_bid_amt_json", "[" + JsonUtils.toString(winnerAmount) + "]");
         columnMap.put("winning_bid_amt_json_clean", "[" + JsonUtils.toString(winnerAmount) + "]");
         return columnMap;
     }

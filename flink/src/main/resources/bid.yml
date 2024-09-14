@@ -13,9 +13,9 @@ dbConfigs:
 
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Repair
-  sourceParallel: 1
-  otherParallel: 1
+  sourceType: Kafka
+  sourceParallel: 5
+  otherParallel: 10
 
 repairTasks:
   - sourceName: "volcanic_cloud_0"
@@ -31,4 +31,4 @@ kafkaConfigs:
       - "7eca1.proto.semantic_analysis.company_bid_info_v2"
       - "volcanic.cdc.data_bid.bid_tender_details"
     groupId: "bid-job"
-    startFrom: "2"
+    startFrom: "2024-09-14 22:00:00"

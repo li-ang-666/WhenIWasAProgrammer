@@ -249,20 +249,23 @@ public class BidJob {
                 }
                 // 招标方 or 采购方
                 String purchaser = (String) volcanicColumnMap.get("tender_info");
-                String parsedPurchaser = parsePurchaser(purchaser);
-                if (!"[]".equals(parsedPurchaser)) {
-                    resultMap.put("purchaser", "[" + parsedPurchaser + "]");
+                if (StrUtil.startWith(purchaser, '[') && StrUtil.endWith(purchaser, ']')) {
+                    String parsedPurchaser = parsePurchaser(purchaser);
+                    if (!"[]".equals(parsedPurchaser)) {
+                        resultMap.put("purchaser", "[" + parsedPurchaser + "]");
+                    }
                 }
                 // 中标方 or 供应方
                 String winner = (String) volcanicColumnMap.get("winning_bid_info");
-                Tuple2<String, String> parsedWinner = parseWinner(winner);
-                if (!"[]".equals(parsedWinner.f0)) {
-                    resultMap.put("bid_winner", "[" + parsedWinner.f0 + "]");
-                }
-                // 中标金额
-                if (!"[]".equals(parsedWinner.f1)) {
-                    resultMap.put("winning_bid_amt_json", winner);
-                    resultMap.put("winning_bid_amt_json_clean", "[" + parsedWinner.f1 + "]");
+                if (StrUtil.startWith(winner, '[') && StrUtil.endWith(winner, ']')) {
+                    Tuple2<String, String> parsedWinner = parseWinner(winner);
+                    if (!"[]".equals(parsedWinner.f0)) {
+                        resultMap.put("bid_winner", "[" + parsedWinner.f0 + "]");
+                    }
+                    // 中标金额
+                    if (!"[]".equals(parsedWinner.f1)) {
+                        resultMap.put("winning_bid_amt_json_clean", "[" + parsedWinner.f1 + "]");
+                    }
                 }
             }
             write(resultMap);
