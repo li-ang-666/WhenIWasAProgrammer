@@ -100,7 +100,7 @@ public class BidJob {
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("BidMapper")
                 .uid("BidMapper")
-                .keyBy(e -> (String) e.getColumnMap().get("uuid"))
+                .keyBy(e -> (String) e.getColumnMap().get("id"))
                 .addSink(new BidSink(config))
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .name("BidSink")
