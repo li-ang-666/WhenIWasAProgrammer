@@ -2,14 +2,14 @@
 flinkConfig:
   sourceType: Repair
   sourceParallel: 1
-  otherParallel: 10
+  otherParallel: 1
 
 
 repairTasks:
   - sourceName: "435.company_base"
     tableName: "company_index"
     columns: "id"
-    where: "company_id <= 10000"
+    where: "company_id <= 1aaaa"
 
 kafkaConfigs:
   kafkaSource:

@@ -185,7 +185,7 @@ public class PatentJob {
             Map<String, Map<String, Integer>> pubYearStatisticMap = new TreeMap<>();
             Map<String, Integer> typeStatisticMap = new TreeMap<>();
             Map<String, Integer> statusStatisticMap = new TreeMap<>();
-            query.streamQuery(sql, rs -> {
+            query.streamQuery(false, sql, rs -> {
                 String appYear = rs.getString(1);
                 String pubYear = rs.getString(2);
                 String type = rs.getString(3);

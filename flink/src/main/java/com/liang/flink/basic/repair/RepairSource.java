@@ -78,7 +78,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
-        jdbcTemplate.streamQuery(repairSql, rs -> {
+        jdbcTemplate.streamQuery(true, repairSql, rs -> {
             synchronized (ctx.getCheckpointLock()) {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
@@ -88,6 +88,10 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 repairState.setMaxParsedId(rs.getLong("id"));
             }
         });
+        // 使用UnionListState不支持部分算子finish后的ckp
+        if (config.getRepairTasks().size() > 1) {
+
+        }
     }
 
     @Override

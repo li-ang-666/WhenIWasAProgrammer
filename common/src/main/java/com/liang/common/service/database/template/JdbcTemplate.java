@@ -135,7 +135,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         }
     }
 
-    public void streamQuery(String sql, ResultSetConsumer consumer) {
+    public void streamQuery(boolean ifThrow, String sql, ResultSetConsumer consumer) {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
@@ -151,6 +151,10 @@ public class JdbcTemplate extends AbstractCache<String, String> {
             logging.afterExecute("streamQuery", sql);
         } catch (Exception e) {
             logging.ifError("streamQuery", sql, e);
+            if (ifThrow) {
+                log.error("streamQuery报错啦!!!!!");
+                throw new RuntimeException();
+            }
         }
     }
 
