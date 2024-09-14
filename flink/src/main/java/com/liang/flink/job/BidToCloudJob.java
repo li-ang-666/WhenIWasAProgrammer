@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @LocalConfigFile("bid-to-cloud.yml")
@@ -89,9 +88,7 @@ public class BidToCloudJob {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             // 判断是否已经处理过
             String sql1 = new SQL().SELECT("1").FROM(SINK_TABlE).WHERE("id = " + columnMap.get("id")).toString();
-            String sql2 = new SQL().SELECT("1").FROM(SINK_TABlE_FAIL).WHERE("id = " + columnMap.get("id")).toString();
-            String sql3 = sql1 + "\n union all \n" + sql2;
-            if (query.queryForObject(sql3, rs -> rs.getString(1)) != null) {
+            if (query.queryForObject(sql1, rs -> rs.getString(1)) != null) {
                 return;
             }
             HashMap<String, Object> resultMap = new HashMap<>();
@@ -102,11 +99,12 @@ public class BidToCloudJob {
             resultMap.put("type", columnMap.get("type"));
             // html 转 md
             try {
-                String md = executor
-                        .submit(() -> htmlToMd((String) columnMap.get("content")))
-                        .get(5000, TimeUnit.MILLISECONDS);
-                resultMap.put("content", md);
-                resultMap.put("fail", false);
+                throw new RuntimeException("故意的");
+//                String md = executor
+//                        .submit(() -> htmlToMd((String) columnMap.get("content")))
+//                        .get(5000, TimeUnit.MILLISECONDS);
+//                resultMap.put("content", md);
+//                resultMap.put("fail", false);
             } catch (Exception e) {
                 resultMap.put("content", columnMap.get("content"));
                 resultMap.put("fail", true);
