@@ -173,7 +173,6 @@ public class BidJob {
             } catch (Exception e) {
                 log.error("error while process bid, id: {}", singleCanalBinlog.getColumnMap().get("id"), e);
             }
-
         }
 
         private void ivk(SingleCanalBinlog singleCanalBinlog) {
