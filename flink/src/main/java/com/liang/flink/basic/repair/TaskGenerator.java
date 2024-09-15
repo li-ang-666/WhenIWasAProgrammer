@@ -6,7 +6,6 @@ import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
-import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +17,6 @@ import java.util.List;
 public class TaskGenerator {
     private static final List<RepairTask> RESULT_REPAIR_TASKS = new ArrayList<>();
 
-    @SneakyThrows
     public static void formatRepairTasks() {
         // 本地串联执行flink任务,只进行一次格式化
         if (ConfigUtils.getConfig().getRepairTasks() == RESULT_REPAIR_TASKS) {

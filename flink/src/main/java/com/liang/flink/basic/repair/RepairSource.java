@@ -10,7 +10,6 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
@@ -41,8 +40,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private String repairSql;
 
     @Override
-    @SneakyThrows
     public void initializeState(FunctionInitializationContext context) {
+        try {
+            initializeStateWithE(context);
+        } catch (Exception e) {
+            log.error("RepairSource initializeState error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void initializeStateWithE(FunctionInitializationContext context) throws Exception {
         // 初始化redis
         ConfigUtils.setConfig(config);
         redisTemplate = new RedisTemplate("metadata");
@@ -95,8 +102,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     @Override
-    @SneakyThrows
     public void snapshotState(FunctionSnapshotContext context) {
+        try {
+            snapshotStateWithE(context);
+        } catch (Exception e) {
+            log.error("RepairSource snapshotState error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void snapshotStateWithE(FunctionSnapshotContext context) throws Exception {
         repairStateHolder.clear();
         repairStateHolder.addAll(Collections.singletonList(repairState));
         String logs = String.format("RepairTask %s ckp-%d successfully, max id: %,d",

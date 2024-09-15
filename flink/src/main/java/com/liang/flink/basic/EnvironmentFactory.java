@@ -4,7 +4,6 @@ import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.StackUtils;
 import com.liang.flink.service.LocalConfigFile;
-import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
@@ -24,8 +23,16 @@ public class EnvironmentFactory {
     private final static long CHECKPOINT_INTERVAL = TimeUnit.MINUTES.toMillis(3);
     private final static long CHECKPOINT_TIMEOUT = TimeUnit.HOURS.toMillis(24);
 
-    @SneakyThrows(ClassNotFoundException.class)
     public static StreamExecutionEnvironment create(String[] args) {
+        try {
+            return createWithE(args);
+        } catch (Exception e) {
+            log.error("EnvironmentFactory create error", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static StreamExecutionEnvironment createWithE(String[] args) throws Exception {
         String file;
         if (args != null && args.length > 0) {
             file = args[0];
