@@ -168,6 +168,15 @@ public class BidJob {
 
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
+            try {
+                ivk(singleCanalBinlog);
+            } catch (Exception e) {
+                log.error("error while process bid, id: {}", singleCanalBinlog.getColumnMap().get("id"), e);
+            }
+
+        }
+
+        private void ivk(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> resultMap = new HashMap<>();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String id = (String) columnMap.get("id");
@@ -326,7 +335,7 @@ public class BidJob {
                                 try {
                                     moneyDecimal = new BigDecimal(moneyNumber);
                                 } catch (Exception e) {
-                                    log.warn("错误的金额: {}", money, e);
+                                    log.warn("错误的金额: {}", money);
                                     moneyDecimal = new BigDecimal(0);
                                 }
                                 if (money.endsWith("万元")) {
