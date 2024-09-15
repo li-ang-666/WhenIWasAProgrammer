@@ -1,11 +1,9 @@
 package com.liang.common.service.database.holder;
 
 import com.liang.common.service.database.factory.HbaseConnectionFactory;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hbase.client.Connection;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,13 +30,16 @@ public class HbaseConnectionHolder implements IHolder<Connection> {
     }
 
     @Override
-    @SneakyThrows(IOException.class)
     public void closeAll() {
         for (Map.Entry<String, Connection> entry : pools.entrySet()) {
             Connection connection = entry.getValue();
             if (!connection.isClosed()) {
                 log.warn("hbaseConnection close: {}", entry.getKey());
-                connection.close();
+                try {
+                    connection.close();
+                } catch (Exception e) {
+                    log.error("HbaseConnectionHolder closeAll error", e);
+                }
             }
         }
     }
