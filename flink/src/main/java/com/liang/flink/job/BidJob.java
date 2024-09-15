@@ -169,13 +169,13 @@ public class BidJob {
         @Override
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             try {
-                ivk(singleCanalBinlog);
+                invokeWithE(singleCanalBinlog);
             } catch (Exception e) {
                 log.error("error while process bid, id: {}", singleCanalBinlog.getColumnMap().get("id"), e);
             }
         }
 
-        private void ivk(SingleCanalBinlog singleCanalBinlog) {
+        private void invokeWithE(SingleCanalBinlog singleCanalBinlog) {
             Map<String, Object> resultMap = new HashMap<>();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String id = (String) columnMap.get("id");
