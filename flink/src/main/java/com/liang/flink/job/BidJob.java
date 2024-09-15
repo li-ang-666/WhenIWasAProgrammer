@@ -207,13 +207,7 @@ public class BidJob {
             resultMap.put("bid_publish_time", odsPublishTime != null && !odsPublishTime.startsWith("0000") ? odsPublishTime : null);
             resultMap.put("is_deleted", companyBidColumnMap.get("deleted"));
             resultMap.put("bid_announcement_type", StrUtil.blankToDefault((String) companyBidColumnMap.get("type"), ""));
-            String content = (String) companyBidColumnMap.get("content");
-            obsClient.putObject(
-                    "jindi-bigdata",
-                    "company_bid_parsed_info/content_obs_url/" + uuid + ".txt",
-                    new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-            );
-            resultMap.put("bid_content", "http://jindi-bigdata.obs.cn-north-4.myhuaweicloud.com/company_bid_parsed_info/content_obs_url/" + uuid + ".txt");
+            resultMap.put("bid_content", putObs(uuid, (String) companyBidColumnMap.get("content")));
             // 查询算法表
             resultMap.put("is_dirty", "0");
             String query069Sql = new SQL().SELECT("*")
@@ -277,6 +271,23 @@ public class BidJob {
                 }
             }
             write(resultMap);
+        }
+
+        private String putObs(String uuid, String content) {
+            try {
+                if (obsClient == null) {
+                    obsClient = new ObsWriter("").getClient();
+                }
+                obsClient.putObject(
+                        "jindi-bigdata",
+                        "company_bid_parsed_info/content_obs_url/" + uuid + ".txt",
+                        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+                );
+                return "http://jindi-bigdata.obs.cn-north-4.myhuaweicloud.com/company_bid_parsed_info/content_obs_url/" + uuid + ".txt";
+            } catch (Exception e) {
+                obsClient = null;
+                return putObs(uuid, content);
+            }
         }
 
         private void write(Map<String, Object> resultMap) {
