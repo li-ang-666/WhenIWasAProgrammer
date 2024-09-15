@@ -19,6 +19,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
             log.info("druid 加载: {}", name);
             return druidDataSource;
         } catch (Exception e) {
+            log.error("DruidFactory createPool error, name: {}", name, e);
             throw new RuntimeException(e);
         }
     }

@@ -38,6 +38,7 @@ public class JedisPoolFactory implements IFactory<JedisPool> {
             log.info("jedisPool 加载: {}", redisConfig);
             return new JedisPool(jedisPoolConfig, host, port, (int) TimeUnit.MINUTES.toMillis(5), password);
         } catch (Exception e) {
+            log.error("JedisPoolFactory createPool error, name: {}", name, e);
             throw new RuntimeException(e);
         }
     }

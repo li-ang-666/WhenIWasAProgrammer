@@ -19,6 +19,7 @@ public class HbaseConnectionFactory implements IFactory<Connection> {
             log.info("hbaseConnection 加载: {}", config);
             return ConnectionFactory.createConnection(configuration);
         } catch (Exception e) {
+            log.error("HbaseConnectionFactory createPool error, name: {}", name, e);
             throw new RuntimeException(e);
         }
     }
