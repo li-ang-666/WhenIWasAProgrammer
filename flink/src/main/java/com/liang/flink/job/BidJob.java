@@ -179,20 +179,20 @@ public class BidJob {
             Map<String, Object> resultMap = new HashMap<>();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             String id = (String) columnMap.get("id");
-            // 删除
-            String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
-                    .WHERE("id = " + SqlUtils.formatValue(id))
-                    .OR()
-                    .WHERE("main_id = " + SqlUtils.formatValue(id))
-                    .toString();
-            sink.update(deleteSql);
             // 查询company_bid
             String query104Sql = new SQL().SELECT("*")
                     .FROM("company_bid")
                     .WHERE("id = " + SqlUtils.formatValue(id))
                     .toString();
             List<Map<String, Object>> companyBidColumnMaps = dataBid104.queryForColumnMaps(query104Sql);
+            // 若不存在, 删除
             if (companyBidColumnMaps.isEmpty()) {
+                String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
+                        .WHERE("id = " + SqlUtils.formatValue(id))
+                        .OR()
+                        .WHERE("main_id = " + SqlUtils.formatValue(id))
+                        .toString();
+                sink.update(deleteSql);
                 return;
             }
             Map<String, Object> companyBidColumnMap = companyBidColumnMaps.get(0);
