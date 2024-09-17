@@ -189,8 +189,6 @@ public class BidJob {
             if (companyBidColumnMaps.isEmpty()) {
                 String deleteSql = new SQL().DELETE_FROM(SINK_TABlE)
                         .WHERE("id = " + SqlUtils.formatValue(id))
-                        .OR()
-                        .WHERE("main_id = " + SqlUtils.formatValue(id))
                         .toString();
                 sink.update(deleteSql);
                 return;
