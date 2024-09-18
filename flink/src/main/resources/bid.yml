@@ -21,7 +21,7 @@ repairTasks:
   - sourceName: "104.data_bid"
     tableName: "company_bid"
     columns: "*"
-    where: "uuid in ('9733ab45c49c4f13ac42c8acaf8c3124')"
+    where: "uuid in ('6e08b8cbda8b4ffc91d8872c2526f437')"
 
 kafkaConfigs:
   kafkaSource:
