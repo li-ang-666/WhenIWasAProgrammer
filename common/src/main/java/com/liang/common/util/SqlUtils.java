@@ -1,5 +1,6 @@
 package com.liang.common.util;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -154,11 +155,10 @@ public class SqlUtils {
     public String onDuplicateKeyUpdate(Collection<String> columns) {
         List<String> syntaxList = new ArrayList<>();
         for (String column : columns) {
-            if (column.equals("update_time")) {
-                syntaxList.add("update_time = NOW()");
-            } else {
-                syntaxList.add(String.format("%s = VALUES(%s)", column, column));
+            if (StrUtil.equalsAny(column, "create_time", "update_time")) {
+                continue;
             }
+            syntaxList.add(String.format("%s = VALUES(%s)", column, column));
         }
         return " ON DUPLICATE KEY UPDATE " + String.join(",", syntaxList);
     }
