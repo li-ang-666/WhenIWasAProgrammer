@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.DorisOneRow;
 import com.liang.common.dto.DorisSchema;
 import com.liang.common.util.ConfigUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
@@ -15,6 +16,8 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.parquet.io.OutputFile;
+import org.apache.parquet.io.PositionOutputStream;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -117,5 +120,45 @@ public class DorisParquetWriter {
             columns.addAll(dorisSchema.getDerivedColumns());
         }
         return String.join(",", columns);
+    }
+
+    @RequiredArgsConstructor
+    private static final class OutputFileBuffer implements OutputFile {
+        private final ByteBuffer byteBuffer;
+
+        @Override
+        public PositionOutputStream create(long blockSizeHint) {
+            return new PositionOutputStreamBuffer(byteBuffer);
+        }
+
+        @Override
+        public PositionOutputStream createOrOverwrite(long blockSizeHint) {
+            return create(blockSizeHint);
+        }
+
+        @Override
+        public boolean supportsBlockSize() {
+            return false;
+        }
+
+        @Override
+        public long defaultBlockSize() {
+            return 0;
+        }
+
+        @RequiredArgsConstructor
+        private static final class PositionOutputStreamBuffer extends PositionOutputStream {
+            private final ByteBuffer byteBuffer;
+
+            @Override
+            public long getPos() {
+                return byteBuffer.position();
+            }
+
+            @Override
+            public void write(int b) {
+                byteBuffer.put((byte) b);
+            }
+        }
     }
 }

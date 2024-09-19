@@ -8,6 +8,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -117,5 +118,13 @@ class DorisHelper {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
         return String.format("%s_%s_%s_%s", database, table,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), uuid);
+    }
+
+    @Slf4j
+    private static final class DorisRedirectStrategy extends DefaultRedirectStrategy {
+        @Override
+        protected boolean isRedirectable(String method) {
+            return true;
+        }
     }
 }
