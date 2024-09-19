@@ -48,7 +48,8 @@ public class BidToCloudJob {
             "volcanic_cloud_10"
     );
     private static final String SINK_TABlE = "company_bid";
-    private static final String SINK_TABlE_FAIL = "company_bid_fail";
+    private static final String SINK_TABlE_FAIL = "company_bid_empty";
+//    private static final String SINK_TABlE_FAIL = "company_bid_fail";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -87,8 +88,9 @@ public class BidToCloudJob {
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Map<String, Object>> out) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
             // 判断是否已经处理过
-            String sql1 = new SQL().SELECT("1").FROM(SINK_TABlE).WHERE("id = " + columnMap.get("id")).toString();
-            if (query.queryForObject(sql1, rs -> rs.getString(1)) != null) {
+            String sql1 = new SQL().SELECT("content").FROM(SINK_TABlE).WHERE("id = " + columnMap.get("id")).toString();
+            String queryRes = query.queryForObject(sql1, rs -> rs.getString(1));
+            if (queryRes != null && !queryRes.replaceAll("\\s", "").isEmpty()) {
                 return;
             }
             HashMap<String, Object> resultMap = new HashMap<>();
@@ -99,7 +101,7 @@ public class BidToCloudJob {
             resultMap.put("type", columnMap.get("type"));
             // html 转 md
             try {
-                throw new RuntimeException("故意的");
+                throw new RuntimeException();
 //                String md = executor
 //                        .submit(() -> htmlToMd((String) columnMap.get("content")))
 //                        .get(5000, TimeUnit.MILLISECONDS);
