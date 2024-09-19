@@ -1,20 +1,19 @@
 package com.liang.repair.impl.cache;
 
 import com.liang.common.service.storage.ObsWriter;
+import com.liang.common.util.JsonUtils;
 import com.liang.repair.service.ConfigHolder;
-import com.obs.services.ObsClient;
 
-import java.io.ByteArrayInputStream;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.HashMap;
 
 public class ObsWriterTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        ObsWriter obsWriter = new ObsWriter("");
-        ObsClient client = obsWriter.getClient();
-        client.putObject(
-                "jindi-bigdata",
-                "company_bid_parsed_info_test/content_obs_url/uuid.txt",
-                new ByteArrayInputStream(UUID.randomUUID().toString().getBytes())
-        );
+        ObsWriter obsWriter = new ObsWriter("obs://hadoop-obs/flink/test/", ObsWriter.FileFormat.JSON);
+        HashMap<String, Object> hashMap = new HashMap<String, Object>() {{
+            put("id", new BigDecimal("1.999999"));
+            put("name", "json");
+        }};
+        obsWriter.update(JsonUtils.toString(hashMap));
     }
 }
