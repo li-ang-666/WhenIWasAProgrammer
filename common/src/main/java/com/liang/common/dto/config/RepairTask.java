@@ -12,4 +12,5 @@ public class RepairTask implements Serializable {
     private String tableName;
     private String columns = "*";
     private String where = "1 = 1";
+    private int splitNum = 1;
 }

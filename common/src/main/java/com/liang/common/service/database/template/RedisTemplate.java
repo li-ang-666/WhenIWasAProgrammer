@@ -161,4 +161,8 @@ public class RedisTemplate {
             return null;
         }
     }
+
+    public Jedis getJedis() {
+        return pool.getResource();
+    }
 }
