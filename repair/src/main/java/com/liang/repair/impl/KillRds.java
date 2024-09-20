@@ -55,7 +55,7 @@ public class KillRds extends ConfigHolder {
     }
 
     public static void main(String[] args) {
-        File csvFile = new File("/Users/liang/Desktop/rds225.csv");
+        File csvFile = new File("/Users/liang/Desktop/rds241.csv");
         CsvReadConfig csvReadConfig = CsvReadConfig.defaultConfig()
                 .setHeaderLineNo(1)
                 .setContainsHeader(true);
