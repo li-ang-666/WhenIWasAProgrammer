@@ -9,4 +9,4 @@ repairTasks:
   - sourceName: "435.company_base"
     tableName: "company_index"
     columns: "*"
-    where: "company_id in (2996394894,3019314944)"
+    where: "company_id in (3331727638)"
