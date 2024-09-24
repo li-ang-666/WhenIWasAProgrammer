@@ -74,6 +74,6 @@ public class StreamFactory {
                 .flatMap(new RepairHandler(config, repairKey))
                 .name("RepairHandler")
                 .uid("RepairHandler")
-                .setParallelism(1);
+                .setParallelism(config.getFlinkConfig().getSourceParallel());
     }
 }
