@@ -21,6 +21,7 @@ import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -34,6 +35,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     private final String repairReportKey;
     private final String repairFinishKey;
     private final List<RepairSplit> repairSplits;
+    private AtomicBoolean sending = new AtomicBoolean(true);
     private RedisTemplate redisTemplate;
     private ListState<RepairState> repairStateHolder;
     private RepairState repairState;
@@ -53,8 +55,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 repairState = state;
                 String logs = String.format("RepairSplit %s restored successfully, position: %,d",
                         JsonUtils.toString(repairState.getRepairSplit()),
-                        repairState.getPosition()
-                );
+                        repairState.getPosition());
                 reportAndLog(logs);
                 break;
             }
@@ -82,6 +83,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 repairState.setPosition(rs.getLong("id"));
             }
         });
+        sending.set(false);
         if (repairSplits.size() > 1) {
 
         }
@@ -91,11 +93,17 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         repairStateHolder.clear();
         repairStateHolder.add(repairState);
-        String logs = String.format("RepairSplit %s ckp-%04d successfully, position: %,d",
-                JsonUtils.toString(repairState.getRepairSplit()),
-                context.getCheckpointId(),
-                repairState.getPosition()
-        );
+        String logs;
+        if (sending.get()) {
+            logs = String.format("RepairSplit %s ckp-%04d successfully, position: %,d",
+                    JsonUtils.toString(repairState.getRepairSplit()),
+                    context.getCheckpointId(),
+                    repairState.getPosition());
+        } else {
+            logs = String.format("RepairSplit %s already finished, position: %,d",
+                    JsonUtils.toString(repairState.getRepairSplit()),
+                    repairState.getPosition());
+        }
         reportAndLog(logs);
     }
 
@@ -104,7 +112,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         System.exit(1);
     }
 
-    private void reportAndLog(String logs) {
+    private synchronized void reportAndLog(String logs) {
         logs = String.format("[RepairSource-%03d] %s", getRuntimeContext().getIndexOfThisSubtask(), logs);
         redisTemplate.rPush(repairReportKey, logs);
         log.info("{}", logs);
