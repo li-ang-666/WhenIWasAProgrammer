@@ -33,18 +33,19 @@ import java.util.concurrent.locks.LockSupport;
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
-    private final int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
     private final AtomicBoolean sending = new AtomicBoolean(true);
     private final Config config;
     private final String repairReportKey;
     private final String repairFinishKey;
     private final List<RepairSplit> repairSplits;
+    private int indexOfThisSubtask;
     private RedisTemplate redisTemplate;
     private ListState<RepairState> repairStateHolder;
     private RepairState repairState;
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
+        indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
         ConfigUtils.setConfig(config);
         redisTemplate = new RedisTemplate("metadata");
         RepairSplit repairSplit = repairSplits.get(indexOfThisSubtask);
