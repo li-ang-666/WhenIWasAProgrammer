@@ -35,7 +35,7 @@ public class RepairGenerator {
                         sql.WHERE("id % " + repairTask.getSplitNum() + " = " + i);
                     }
                     // 保存
-                    repairSplits.add(new RepairSplit(repairTask.getSourceName(), repairTask.getTableName(), sql));
+                    repairSplits.add(new RepairSplit(repairTask.getSourceName(), sql));
                 }
             }
         }

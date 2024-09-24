@@ -49,6 +49,11 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
         for (RepairState state : repairStateHolder.get()) {
             if (repairSplit.equals(state.getRepairSplit())) {
                 repairState = state;
+                String logs = String.format("RepairSplit %s restored successfully, position: %,d",
+                        JsonUtils.toString(repairState.getRepairSplit()),
+                        repairState.getPosition()
+                );
+                reportAndLog(logs);
                 break;
             }
         }
@@ -75,13 +80,16 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
                 repairState.setPosition(rs.getLong("id"));
             }
         });
+        if (repairSplits.size() > 1) {
+
+        }
     }
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         repairStateHolder.clear();
         repairStateHolder.add(repairState);
-        String logs = String.format("repairSplit %s ckp-%04d successfully, position: %,d",
+        String logs = String.format("RepairSplit %s ckp-%04d successfully, position: %,d",
                 JsonUtils.toString(repairState.getRepairSplit()),
                 context.getCheckpointId(),
                 repairState.getPosition()

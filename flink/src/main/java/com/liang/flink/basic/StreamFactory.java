@@ -9,9 +9,9 @@ import com.liang.flink.basic.kafka.KafkaMonitor;
 import com.liang.flink.basic.kafka.KafkaReporter;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
 import com.liang.flink.basic.repair.RepairGenerator;
-import com.liang.flink.basic.repair.RepairHandler;
 import com.liang.flink.basic.repair.RepairReporter;
 import com.liang.flink.basic.repair.RepairSource;
+import com.liang.flink.basic.repair.RepairSplit;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -21,6 +21,8 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import java.util.List;
 
 import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 
@@ -61,20 +63,18 @@ public class StreamFactory {
         String jobClassName = StackUtils.getMainFrame().getClassName();
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
-        String repairKey = String.format("%s_%s_%s", simpleName, "Repair", DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
-        log.info("repairKey: {}", repairKey);
-        DaemonExecutor.launch("RepairReporter", new RepairReporter(repairKey));
+        String repairReportKey = String.format("%s_%s_%s", simpleName, "Report", DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
+        String repairFinishKey = String.format("%s_%s_%s", simpleName, "Finish", DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
+        log.info("repairReportKey: {}", repairReportKey);
+        log.info("repairFinishKey: {}", repairFinishKey);
+        DaemonExecutor.launch("RepairReporter", new RepairReporter(repairReportKey));
         // 组装RepairSource
         Config config = ConfigUtils.getConfig();
+        List<RepairSplit> repairSplits = new RepairGenerator().generate();
         return streamEnvironment
-                .addSource(new RepairSource(config, repairKey))
+                .addSource(new RepairSource(config, repairReportKey, repairFinishKey, repairSplits))
                 .name("RepairSource")
                 .uid("RepairSource")
-                .setParallelism(1)
-                .broadcast()
-                .flatMap(new RepairHandler(config, repairKey))
-                .name("RepairHandler")
-                .uid("RepairHandler")
-                .setParallelism(new RepairGenerator().generate().size());
+                .setParallelism(repairSplits.size());
     }
 }

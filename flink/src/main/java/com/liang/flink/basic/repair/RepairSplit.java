@@ -8,6 +8,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class RepairSplit {
     private String sourceName;
-    private String tableName;
     private SQL sql;
 }
