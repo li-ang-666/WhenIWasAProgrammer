@@ -1,6 +1,6 @@
 package com.liang.flink.basic.repair;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
+import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
@@ -8,20 +8,13 @@ import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
-import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.runtime.state.FunctionInitializationContext;
-import org.apache.flink.runtime.state.FunctionSnapshotContext;
-import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
-import java.sql.ResultSetMetaData;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -29,106 +22,60 @@ import java.util.Map;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
-    private static final ListStateDescriptor<RepairState> STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
-    private final RepairState repairState = new RepairState();
+public class RepairSource extends RichSourceFunction<List<RepairSplit>> {
     private final Config config;
     private final String repairKey;
-    private ListState<RepairState> repairStateHolder;
     private RedisTemplate redisTemplate;
-    private JdbcTemplate jdbcTemplate;
-    private String repairSql;
 
     @Override
-    public void initializeState(FunctionInitializationContext context) {
-        try {
-            initializeStateWithE(context);
-        } catch (Exception e) {
-            log.error("RepairSource initializeState error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void initializeStateWithE(FunctionInitializationContext context) throws Exception {
-        // 初始化redis
+    public void open(Configuration parameters) throws Exception {
         ConfigUtils.setConfig(config);
         redisTemplate = new RedisTemplate("metadata");
-        // 根据index分配task
-        repairState.setRepairTask(config.getRepairTasks().get(getRuntimeContext().getIndexOfThisSubtask()));
-        RepairTask repairTask = repairState.getRepairTask();
-        // 根据task恢复state
-        repairStateHolder = context.getOperatorStateStore().getUnionListState(STATE_DESCRIPTOR);
-        for (RepairState repairStateOld : repairStateHolder.get()) {
-            RepairTask repairTaskOld = repairStateOld.getRepairTask();
-            long maxParsedIdOld = repairStateOld.getMaxParsedId();
-            if (repairTask.equals(repairTaskOld)) {
-                repairState.setMaxParsedId(maxParsedIdOld);
-                String logs = String.format("RepairTask %s restored successfully, last id: %,d",
-                        JsonUtils.toString(repairTask),
-                        repairState.getMaxParsedId()
-                );
-                reportAndLog(logs);
-                break;
-            }
-        }
-        // 初始化 mysql
-        jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-        repairSql = new SQL()
-                .SELECT(repairTask.getColumns())
-                .FROM(repairTask.getTableName())
-                .WHERE(repairTask.getWhere())
-                .WHERE("id >= " + repairState.getMaxParsedId())
-                .ORDER_BY("id ASC")
-                .toString();
-        reportAndLog(String.format("repair sql: %s", repairSql));
     }
 
     @Override
-    public void run(SourceContext<SingleCanalBinlog> ctx) {
-        jdbcTemplate.streamQuery(true, repairSql, rs -> {
-            synchronized (ctx.getCheckpointLock()) {
-                ResultSetMetaData metaData = rs.getMetaData();
-                int columnCount = metaData.getColumnCount();
-                Map<String, Object> columnMap = new HashMap<>(columnCount);
-                for (int i = 1; i <= columnCount; i++) columnMap.put(metaData.getColumnName(i), rs.getString(i));
-                ctx.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
-                repairState.setMaxParsedId(rs.getLong("id"));
+    public void run(SourceContext<List<RepairSplit>> ctx) {
+        List<RepairSplit> repairSplits = new ArrayList<>();
+        // 遍历每个task
+        for (RepairTask repairTask : ConfigUtils.getConfig().getRepairTasks()) {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+            List<String> tableNames = jdbcTemplate.queryForList("SHOW TABLES",
+                    rs -> rs.getString(1));
+            // 遍历所有可能满足的表名
+            for (String tableName : tableNames) {
+                // 表名满足
+                if (!tableName.matches(repairTask.getTableName())) {
+                    continue;
+                }
+                for (int i = 0; i < repairTask.getSplitNum(); i++) {
+                    // 拼装sql
+                    SQL sql = new SQL()
+                            .SELECT(repairTask.getColumns())
+                            .FROM(repairTask.getTableName())
+                            .WHERE(repairTask.getWhere())
+                            .ORDER_BY("id ASC");
+                    if (repairTask.getSplitNum() > 1) {
+                        sql.WHERE("id % " + repairTask.getSplitNum() + " = " + i);
+                    }
+                    // 保存
+                    repairSplits.add(new RepairSplit(repairTask.getSourceName(), repairTask.getTableName(), sql));
+                }
             }
-        });
-        // 使用UnionListState不支持部分算子finish后的ckp
-        if (config.getRepairTasks().size() > 1) {
-
         }
-    }
-
-    @Override
-    public void snapshotState(FunctionSnapshotContext context) {
-        try {
-            snapshotStateWithE(context);
-        } catch (Exception e) {
-            log.error("RepairSource snapshotState error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void snapshotStateWithE(FunctionSnapshotContext context) throws Exception {
-        repairStateHolder.clear();
-        repairStateHolder.addAll(Collections.singletonList(repairState));
-        String logs = String.format("RepairTask %s ckp-%d successfully, max id: %,d",
-                JsonUtils.toString(repairState.getRepairTask()),
-                context.getCheckpointId(),
-                repairState.getMaxParsedId()
-        );
-        reportAndLog(logs);
+        // 打印
+        reportAndLog(StrUtil.repeat("=", 50));
+        for (RepairSplit repairSplit : repairSplits) reportAndLog(JsonUtils.toString(repairSplit));
+        reportAndLog(StrUtil.repeat("=", 50));
+        // 发送下游
+        ctx.collect(repairSplits);
     }
 
     @Override
     public void cancel() {
-        System.exit(100);
     }
 
     private void reportAndLog(String logs) {
-        logs = String.format("[RepairSource-%d] %s", getRuntimeContext().getIndexOfThisSubtask(), logs);
+        logs = String.format("[RepairSource] %s", logs);
         redisTemplate.rPush(repairKey, logs);
         log.info("{}", logs);
     }

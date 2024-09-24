@@ -1,12 +1,13 @@
 package com.liang.flink.basic.repair;
 
-import com.liang.common.dto.config.RepairTask;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
+@AllArgsConstructor
 public class RepairState implements Serializable {
-    private volatile RepairTask repairTask;
-    private volatile long maxParsedId = 0L;
+    private volatile RepairSplit repairSplit;
+    private volatile long position;
 }
