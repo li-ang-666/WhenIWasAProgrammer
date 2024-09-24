@@ -1,7 +1,7 @@
 # sourceType: Kafka or Repair
 flinkConfig:
   sourceType: Repair
-  sourceParallel: 1
+  sourceParallel: 4
   otherParallel: 1
 
 
@@ -9,7 +9,8 @@ repairTasks:
   - sourceName: "435.company_base"
     tableName: "company_index"
     columns: "id"
-    where: "company_id <= 1aaaa"
+    where: "1=1"
+    splitNum: 4
 
 kafkaConfigs:
   kafkaSource:

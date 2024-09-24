@@ -37,6 +37,7 @@ public class JsonUtils {
             .configure(JsonReadFeature.ALLOW_JAVA_COMMENTS.mappedFeature(), true);
 
     static {
+        // 超长
         StreamReadConstraints streamReadConstraints = StreamReadConstraints
                 .builder()
                 .maxStringLength(Integer.MAX_VALUE - 1)
