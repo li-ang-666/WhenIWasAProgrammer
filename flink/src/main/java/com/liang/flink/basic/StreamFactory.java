@@ -8,6 +8,7 @@ import com.liang.common.util.StackUtils;
 import com.liang.flink.basic.kafka.KafkaMonitor;
 import com.liang.flink.basic.kafka.KafkaReporter;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
+import com.liang.flink.basic.repair.RepairGenerator;
 import com.liang.flink.basic.repair.RepairHandler;
 import com.liang.flink.basic.repair.RepairReporter;
 import com.liang.flink.basic.repair.RepairSource;
@@ -74,6 +75,6 @@ public class StreamFactory {
                 .flatMap(new RepairHandler(config, repairKey))
                 .name("RepairHandler")
                 .uid("RepairHandler")
-                .setParallelism(config.getFlinkConfig().getSourceParallel());
+                .setParallelism(new RepairGenerator().generate().size());
     }
 }

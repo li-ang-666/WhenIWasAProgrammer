@@ -2,6 +2,7 @@ package com.liang.flink.basic.repair;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
+import com.liang.common.service.DaemonExecutor;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
@@ -55,24 +56,28 @@ public class RepairHandler extends RichFlatMapFunction<List<RepairSplit>, Single
                 break;
             }
         }
-        // 执行sql
+        // 初始化sql与jdbcTemplate
         String sql = repairSplit.getSql()
                 .WHERE("id >= " + repairState.getPosition())
                 .toString();
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairSplit.getSourceName());
-        jdbcTemplate.streamQuery(true, sql, rs -> {
-            try {
-                lock.lock();
-                ResultSetMetaData metaData = rs.getMetaData();
-                int columnCount = metaData.getColumnCount();
-                Map<String, Object> columnMap = new HashMap<>(columnCount);
-                for (int i = 1; i <= columnCount; i++) columnMap.put(metaData.getColumnName(i), rs.getString(i));
-                out.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
-                repairState.setPosition(rs.getLong("id"));
-            } finally {
-                lock.unlock();
-            }
-        });
+        // 异步执行, 不阻挡barrier
+        DaemonExecutor.launch("RepairSender", () ->
+                jdbcTemplate.streamQuery(true, sql, rs -> {
+                    try {
+                        lock.lock();
+                        ResultSetMetaData metaData = rs.getMetaData();
+                        int columnCount = metaData.getColumnCount();
+                        Map<String, Object> columnMap = new HashMap<>(columnCount);
+                        for (int i = 1; i <= columnCount; i++)
+                            columnMap.put(metaData.getColumnName(i), rs.getString(i));
+                        out.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+                        repairState.setPosition(rs.getLong("id"));
+                    } finally {
+                        lock.unlock();
+                    }
+                })
+        );
     }
 
     @Override

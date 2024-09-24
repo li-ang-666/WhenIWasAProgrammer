@@ -1,7 +1,7 @@
 # sourceType: Kafka or Repair
 flinkConfig:
   sourceType: Repair
-  sourceParallel: 4
+  sourceParallel: 1
   otherParallel: 1
 
 
