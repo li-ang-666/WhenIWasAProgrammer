@@ -1,6 +1,7 @@
 package com.liang.common.service;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,7 +13,7 @@ import java.util.List;
  * @author Adam Gent
  * @author Kazuki Shimizu
  */
-public abstract class AbstractSQL<T> {
+public abstract class AbstractSQL<T> implements Serializable {
 
     private static final String AND = ") AND (";
     private static final String OR = ") OR (";
@@ -452,7 +453,7 @@ public abstract class AbstractSQL<T> {
         return sb.toString();
     }
 
-    private static class SafeAppendable {
+    private static class SafeAppendable implements Serializable {
         private final Appendable appendable;
         private boolean empty = true;
 
@@ -479,7 +480,7 @@ public abstract class AbstractSQL<T> {
 
     }
 
-    private static class SQLStatement {
+    private static class SQLStatement implements Serializable {
 
         StatementType statementType;
         List<String> sets = new ArrayList<>();

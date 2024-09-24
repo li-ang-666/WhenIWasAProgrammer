@@ -1,5 +1,6 @@
 package com.liang.flink.basic.repair;
 
+import cn.hutool.core.util.ObjUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -14,7 +15,7 @@ import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
-import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
+import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import java.util.Map;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
+public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
     private final Config config;
     private final String repairReportKey;
@@ -41,13 +42,14 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
     public void initializeState(FunctionInitializationContext context) throws Exception {
         ConfigUtils.setConfig(config);
         redisTemplate = new RedisTemplate("metadata");
-        repairStateHolder = context.getOperatorStateStore().getUnionListState(LIST_STATE_DESCRIPTOR);
         RepairSplit repairSplit = repairSplits.get(getRuntimeContext().getIndexOfThisSubtask());
         // 初始化state
         repairState = new RepairState(repairSplit, 0L);
         // 更新state
+        repairStateHolder = context.getOperatorStateStore().getUnionListState(LIST_STATE_DESCRIPTOR);
         for (RepairState state : repairStateHolder.get()) {
-            if (repairSplit.equals(state.getRepairSplit())) {
+            RepairSplit stateSplit = state.getRepairSplit();
+            if (repairSplit.getSql().toString().equals(stateSplit.getSql().toString()) && repairSplit.getSourceName().equals(stateSplit.getSourceName())) {
                 repairState = state;
                 String logs = String.format("RepairSplit %s restored successfully, position: %,d",
                         JsonUtils.toString(repairState.getRepairSplit()),
@@ -64,7 +66,7 @@ public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implemen
         RepairSplit repairSplit = repairState.getRepairSplit();
         long position = repairState.getPosition();
         // 初始化sql与jdbcTemplate
-        String sql = repairSplit.getSql()
+        String sql = ObjUtil.cloneByStream(repairSplit.getSql())
                 .WHERE("id >= " + position)
                 .toString();
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairSplit.getSourceName());
