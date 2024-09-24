@@ -162,6 +162,27 @@ public class RedisTemplate {
         }
     }
 
+    public void setBit(String key, int offset, boolean value) {
+        logging.beforeExecute();
+        try (Jedis jedis = pool.getResource()) {
+            logging.afterExecute("setBit", key + " -> " + offset + " -> " + value);
+            jedis.setbit(key, offset, value);
+        } catch (Exception e) {
+            logging.ifError("setBit", key, e);
+        }
+    }
+
+    public int bitCount(String key) {
+        logging.beforeExecute();
+        try (Jedis jedis = pool.getResource()) {
+            logging.afterExecute("bitCount", key);
+            return (int) ((long) jedis.bitcount(key));
+        } catch (Exception e) {
+            logging.ifError("bitCount", key, e);
+            return -1;
+        }
+    }
+
     public Jedis getJedis() {
         return pool.getResource();
     }

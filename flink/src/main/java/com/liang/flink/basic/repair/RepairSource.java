@@ -18,10 +18,12 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
 import java.sql.ResultSetMetaData;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -31,6 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
+    private final int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
     private final AtomicBoolean sending = new AtomicBoolean(true);
     private final Config config;
     private final String repairReportKey;
@@ -44,7 +47,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     public void initializeState(FunctionInitializationContext context) throws Exception {
         ConfigUtils.setConfig(config);
         redisTemplate = new RedisTemplate("metadata");
-        RepairSplit repairSplit = repairSplits.get(getRuntimeContext().getIndexOfThisSubtask());
+        RepairSplit repairSplit = repairSplits.get(indexOfThisSubtask);
         // 初始化state
         repairState = new RepairState(repairSplit, 0L);
         // 更新state
@@ -64,6 +67,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
 
     @Override
     public void run(SourceContext<SingleCanalBinlog> ctx) {
+        final Object checkpointLock = ctx.getCheckpointLock();
         RepairSplit repairSplit = repairState.getRepairSplit();
         long position = repairState.getPosition();
         // 初始化sql与jdbcTemplate
@@ -73,7 +77,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairSplit.getSourceName());
         // 执行
         jdbcTemplate.streamQuery(true, sql, rs -> {
-            synchronized (ctx.getCheckpointLock()) {
+            synchronized (checkpointLock) {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 Map<String, Object> columnMap = new HashMap<>(columnCount);
@@ -83,9 +87,24 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                 repairState.setPosition(rs.getLong("id"));
             }
         });
+        // 单任务直接结束
+        if (repairSplits.size() == 1) {
+            return;
+        }
         sending.set(false);
-        if (repairSplits.size() > 1) {
-
+        synchronized (checkpointLock) {
+            redisTemplate.setBit(repairFinishKey, indexOfThisSubtask, true);
+        }
+        while (true) {
+            int count;
+            synchronized (checkpointLock) {
+                count = redisTemplate.bitCount(repairFinishKey);
+            }
+            if (repairSplits.size() == count) {
+                return;
+            } else {
+                LockSupport.parkNanos(Duration.ofSeconds(1).toNanos());
+            }
         }
     }
 
@@ -112,8 +131,8 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         System.exit(1);
     }
 
-    private synchronized void reportAndLog(String logs) {
-        logs = String.format("[RepairSource-%03d] %s", getRuntimeContext().getIndexOfThisSubtask(), logs);
+    private void reportAndLog(String logs) {
+        logs = String.format("[RepairSource-%03d] %s", indexOfThisSubtask, logs);
         redisTemplate.rPush(repairReportKey, logs);
         log.info("{}", logs);
     }
