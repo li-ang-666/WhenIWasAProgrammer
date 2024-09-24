@@ -70,9 +70,10 @@ public class StreamFactory {
                 .name("RepairSource")
                 .uid("RepairSource")
                 .setParallelism(1)
+                .broadcast()
                 .flatMap(new RepairHandler(config, repairKey))
-                .name("RepairSource")
-                .uid("RepairSource")
+                .name("RepairHandler")
+                .uid("RepairHandler")
                 .setParallelism(1);
     }
 }
