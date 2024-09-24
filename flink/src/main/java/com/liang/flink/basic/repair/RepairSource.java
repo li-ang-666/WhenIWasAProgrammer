@@ -1,16 +1,25 @@
 package com.liang.flink.basic.repair;
 
-import cn.hutool.core.util.StrUtil;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
+import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.configuration.Configuration;
+import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.api.common.state.ListStateDescriptor;
+import org.apache.flink.runtime.state.FunctionInitializationContext;
+import org.apache.flink.runtime.state.FunctionSnapshotContext;
+import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
+import java.sql.ResultSetMetaData;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -18,36 +27,76 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RepairSource extends RichSourceFunction<List<RepairSplit>> {
+public class RepairSource extends RichSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
+    private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
     private final Config config;
-    private final String repairKey;
+    private final String repairReportKey;
+    private final String repairFinishKey;
+    private final List<RepairSplit> repairSplits;
     private RedisTemplate redisTemplate;
+    private ListState<RepairState> repairStateHolder;
+    private RepairState repairState;
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void initializeState(FunctionInitializationContext context) throws Exception {
         ConfigUtils.setConfig(config);
         redisTemplate = new RedisTemplate("metadata");
+        repairStateHolder = context.getOperatorStateStore().getUnionListState(LIST_STATE_DESCRIPTOR);
+        RepairSplit repairSplit = repairSplits.get(getRuntimeContext().getIndexOfThisSubtask());
+        // 初始化state
+        repairState = new RepairState(repairSplit, 0L);
+        // 更新state
+        for (RepairState state : repairStateHolder.get()) {
+            if (repairSplit.equals(state.getRepairSplit())) {
+                repairState = state;
+                break;
+            }
+        }
     }
 
     @Override
-    public void run(SourceContext<List<RepairSplit>> ctx) {
-        // 生成
-        List<RepairSplit> repairSplits = new RepairGenerator().generate();
-        // 打印
-        reportAndLog(StrUtil.repeat("=", 50));
-        for (RepairSplit repairSplit : repairSplits) reportAndLog(JsonUtils.toString(repairSplit));
-        reportAndLog(StrUtil.repeat("=", 50));
-        // 发送下游
-        ctx.collect(repairSplits);
+    public void run(SourceContext<SingleCanalBinlog> ctx) {
+        RepairSplit repairSplit = repairState.getRepairSplit();
+        long position = repairState.getPosition();
+        // 初始化sql与jdbcTemplate
+        String sql = repairSplit.getSql()
+                .WHERE("id >= " + position)
+                .toString();
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(repairSplit.getSourceName());
+        // 执行
+        jdbcTemplate.streamQuery(true, sql, rs -> {
+            synchronized (ctx.getCheckpointLock()) {
+                ResultSetMetaData metaData = rs.getMetaData();
+                int columnCount = metaData.getColumnCount();
+                Map<String, Object> columnMap = new HashMap<>(columnCount);
+                for (int i = 1; i <= columnCount; i++)
+                    columnMap.put(metaData.getColumnName(i), rs.getString(i));
+                ctx.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+                repairState.setPosition(rs.getLong("id"));
+            }
+        });
+    }
+
+    @Override
+    public void snapshotState(FunctionSnapshotContext context) throws Exception {
+        repairStateHolder.clear();
+        repairStateHolder.add(repairState);
+        String logs = String.format("repairSplit %s ckp-%04d successfully, position: %,d",
+                JsonUtils.toString(repairState.getRepairSplit()),
+                context.getCheckpointId(),
+                repairState.getPosition()
+        );
+        reportAndLog(logs);
     }
 
     @Override
     public void cancel() {
+        System.exit(1);
     }
 
     private void reportAndLog(String logs) {
-        logs = String.format("[RepairSource] %s", logs);
-        redisTemplate.rPush(repairKey, logs);
+        logs = String.format("[RepairSource-%03d] %s", getRuntimeContext().getIndexOfThisSubtask(), logs);
+        redisTemplate.rPush(repairReportKey, logs);
         log.info("{}", logs);
     }
 }
