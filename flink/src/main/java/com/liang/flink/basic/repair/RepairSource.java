@@ -31,11 +31,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor
 public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
     private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
+    private final AtomicBoolean sending = new AtomicBoolean(true);
     private final Config config;
     private final String repairReportKey;
     private final String repairFinishKey;
     private final List<RepairSplit> repairSplits;
-    private AtomicBoolean sending = new AtomicBoolean(true);
     private RedisTemplate redisTemplate;
     private ListState<RepairState> repairStateHolder;
     private RepairState repairState;
