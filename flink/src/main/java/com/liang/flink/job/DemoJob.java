@@ -49,7 +49,6 @@ public class DemoJob {
             jdbcTemplate.enableCache();
             obsWriter = new ObsWriter("obs://hadoop-obs/flink/test/", ObsWriter.FileFormat.TXT);
             obsWriter.enableCache();
-
         }
 
         @Override

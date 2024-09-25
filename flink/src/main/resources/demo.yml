@@ -8,9 +8,8 @@ flinkConfig:
 repairTasks:
   - sourceName: "435.company_base"
     tableName: "company_index"
-    columns: "id"
+    columns: "*"
     where: "1=1"
-    splitNum: 4
 
 kafkaConfigs:
   kafkaSource:
