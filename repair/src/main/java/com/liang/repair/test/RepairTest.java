@@ -1,12 +1,12 @@
 package com.liang.repair.test;
 
-import com.liang.common.service.database.template.RedisTemplate;
+import cn.hutool.core.util.IdUtil;
 import com.liang.repair.service.ConfigHolder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) {
-        RedisTemplate redisTemplate = new RedisTemplate("");
+        System.out.println(IdUtil.getSnowflakeNextId() / 10000);
     }
 }
