@@ -10,4 +10,5 @@ import java.io.Serializable;
 public class RepairState implements Serializable {
     private volatile RepairSplit repairSplit;
     private volatile long position;
+    private volatile long count;
 }

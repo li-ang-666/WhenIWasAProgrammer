@@ -50,16 +50,16 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         redisTemplate = new RedisTemplate("metadata");
         RepairSplit repairSplit = repairSplits.get(indexOfThisSubtask);
         // 初始化state
-        repairState = new RepairState(repairSplit, 0L);
+        repairState = new RepairState(repairSplit, 0L, 0L);
         // 更新state
         repairStateHolder = context.getOperatorStateStore().getUnionListState(LIST_STATE_DESCRIPTOR);
         for (RepairState state : repairStateHolder.get()) {
             RepairSplit stateSplit = state.getRepairSplit();
             if (repairSplit.getSql().toString().equals(stateSplit.getSql().toString()) && repairSplit.getSourceName().equals(stateSplit.getSourceName())) {
                 repairState = state;
-                String logs = String.format("RepairSplit %s restored successfully, position: %,d",
+                String logs = String.format("RepairSplit %s restored successfully, position: %,d count: %,d",
                         JsonUtils.toString(repairState.getRepairSplit()),
-                        repairState.getPosition());
+                        repairState.getPosition(), repairState.getCount());
                 reportAndLog(logs);
                 break;
             }
@@ -86,6 +86,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
                     columnMap.put(metaData.getColumnName(i), rs.getString(i));
                 ctx.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
                 repairState.setPosition(rs.getLong("id"));
+                repairState.setCount(repairState.getCount() + 1);
             }
         });
         // 单任务直接结束
@@ -115,14 +116,14 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
         repairStateHolder.add(repairState);
         String logs;
         if (sending.get()) {
-            logs = String.format("RepairSplit %s ckp-%04d successfully, position: %,d",
+            logs = String.format("RepairSplit %s ckp_%04d successfully, position: %,d count: %,d",
                     JsonUtils.toString(repairState.getRepairSplit()),
                     context.getCheckpointId(),
-                    repairState.getPosition());
+                    repairState.getPosition(), repairState.getCount());
         } else {
-            logs = String.format("RepairSplit %s already finished, position: %,d",
+            logs = String.format("RepairSplit %s already finished, position: %,d count: %,d",
                     JsonUtils.toString(repairState.getRepairSplit()),
-                    repairState.getPosition());
+                    repairState.getPosition(), repairState.getCount());
         }
         reportAndLog(logs);
     }
@@ -133,7 +134,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     private void reportAndLog(String logs) {
-        logs = String.format("[RepairSource-%03d] %s", indexOfThisSubtask, logs);
+        logs = String.format("[RepairSource_%03d] %s", indexOfThisSubtask, logs);
         redisTemplate.rPush(repairReportKey, logs);
         log.info("{}", logs);
     }
