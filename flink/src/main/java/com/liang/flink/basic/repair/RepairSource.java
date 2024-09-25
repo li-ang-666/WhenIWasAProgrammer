@@ -52,7 +52,7 @@ public class RepairSource extends RichParallelSourceFunction<RepairSplit> implem
                     long id = rs.getLong("id");
                     ids.add(id);
                     if (ids.getLongCardinality() >= BATCH_SIZE) {
-                        ctx.collect(new RepairSplit(repairTask, ids));
+                        ctx.collect(new RepairSplit(repairTask, ids.first(), ids.last()));
                         ids.clear();
                     }
                 }

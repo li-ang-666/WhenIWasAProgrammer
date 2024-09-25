@@ -14,7 +14,6 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.util.Collector;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
@@ -38,13 +37,12 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
         try {
             lock.lock();
             RepairTask repairTask = repairSplit.getRepairTask();
-            Roaring64Bitmap ids = repairSplit.getIds();
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             String sql = new SQL().SELECT(repairTask.getColumns())
                     .FROM(repairTask.getTableName())
                     .WHERE(repairTask.getWhere())
-                    .WHERE("id >= " + ids.first())
-                    .WHERE("id <= " + ids.last())
+                    .WHERE("id >= " + repairSplit.getMinId())
+                    .WHERE("id <= " + repairSplit.getMaxId())
                     .toString();
             jdbcTemplate.queryForList(sql, rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
