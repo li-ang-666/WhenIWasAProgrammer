@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
-import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RepairSource extends RichParallelSourceFunction<RepairSplit> implements CheckpointedFunction {
+public class RepairSource extends RichSourceFunction<RepairSplit> implements CheckpointedFunction {
     private static final long BATCH_SIZE = 1000;
     private final Config config;
     private final String repairReportKey;

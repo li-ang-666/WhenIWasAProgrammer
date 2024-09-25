@@ -44,14 +44,14 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
                     .WHERE("id >= " + repairSplit.getMinId())
                     .WHERE("id <= " + repairSplit.getMaxId())
                     .toString();
-            jdbcTemplate.queryForList(sql, rs -> {
+            jdbcTemplate.streamQuery(true, sql, rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 Map<String, Object> columnMap = new HashMap<>(columnCount);
                 for (int i = 1; i <= columnCount; i++)
                     columnMap.put(metaData.getColumnName(i), rs.getString(i));
-                return new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap);
-            }).forEach(out::collect);
+                out.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+            });
         } finally {
             lock.unlock();
         }
