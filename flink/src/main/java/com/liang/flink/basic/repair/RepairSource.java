@@ -1,29 +1,20 @@
 package com.liang.flink.basic.repair;
 
-import cn.hutool.core.util.ObjUtil;
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
+import com.liang.common.dto.config.RepairTask;
+import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
-import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.sql.ResultSetMetaData;
-import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.LockSupport;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -31,101 +22,46 @@ import java.util.concurrent.locks.LockSupport;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> implements CheckpointedFunction {
-    private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
-    private final AtomicBoolean sending = new AtomicBoolean(true);
+public class RepairSource extends RichParallelSourceFunction<RepairSplit> implements CheckpointedFunction {
+    private static final long BATCH_SIZE = 1000;
     private final Config config;
     private final String repairReportKey;
-    private final String repairFinishKey;
-    private final List<RepairSplit> repairSplits;
-    private int indexOfThisSubtask;
+    private final List<RepairTask> repairTasks;
     private RedisTemplate redisTemplate;
-    private ListState<RepairState> repairStateHolder;
-    private RepairState repairState;
 
     @Override
-    public void initializeState(FunctionInitializationContext context) throws Exception {
-        indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
+    public void initializeState(FunctionInitializationContext context) {
         ConfigUtils.setConfig(config);
         redisTemplate = new RedisTemplate("metadata");
-        RepairSplit repairSplit = repairSplits.get(indexOfThisSubtask);
-        // 初始化state
-        repairState = new RepairState(repairSplit, 0L, 0L);
-        // 更新state
-        repairStateHolder = context.getOperatorStateStore().getUnionListState(LIST_STATE_DESCRIPTOR);
-        for (RepairState state : repairStateHolder.get()) {
-            RepairSplit stateSplit = state.getRepairSplit();
-            if (repairSplit.getSql().toString().equals(stateSplit.getSql().toString()) && repairSplit.getSourceName().equals(stateSplit.getSourceName())) {
-                repairState = state;
-                String logs = String.format("RepairSplit %s restored successfully, position: %,d count: %,d",
-                        JsonUtils.toString(repairState.getRepairSplit()),
-                        repairState.getPosition(), repairState.getCount());
-                reportAndLog(logs);
-                break;
-            }
-        }
     }
 
     @Override
-    public void run(SourceContext<SingleCanalBinlog> ctx) {
+    public void run(SourceContext<RepairSplit> ctx) {
         final Object checkpointLock = ctx.getCheckpointLock();
-        RepairSplit repairSplit = repairState.getRepairSplit();
-        long position = repairState.getPosition();
-        // 初始化sql与jdbcTemplate
-        String sql = ObjUtil.cloneByStream(repairSplit.getSql())
-                .WHERE("id >= " + position)
-                .toString();
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(repairSplit.getSourceName());
-        // 执行
-        jdbcTemplate.streamQuery(true, sql, rs -> {
-            synchronized (checkpointLock) {
-                ResultSetMetaData metaData = rs.getMetaData();
-                int columnCount = metaData.getColumnCount();
-                Map<String, Object> columnMap = new HashMap<>(columnCount);
-                for (int i = 1; i <= columnCount; i++)
-                    columnMap.put(metaData.getColumnName(i), rs.getString(i));
-                ctx.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
-                repairState.setPosition(rs.getLong("id"));
-                repairState.setCount(repairState.getCount() + 1);
-            }
-        });
-        // 单任务直接结束
-        if (repairSplits.size() == 1) {
-            return;
-        }
-        sending.set(false);
-        synchronized (checkpointLock) {
-            redisTemplate.setBit(repairFinishKey, indexOfThisSubtask, true);
-        }
-        while (true) {
-            int count;
-            synchronized (checkpointLock) {
-                count = redisTemplate.bitCount(repairFinishKey);
-            }
-            if (repairSplits.size() == count) {
-                return;
-            } else {
-                LockSupport.parkNanos(Duration.ofSeconds(1).toNanos());
-            }
+        for (RepairTask repairTask : repairTasks) {
+            // 初始化
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+            String sql = new SQL().SELECT("id")
+                    .FROM(repairTask.getTableName())
+                    .ORDER_BY("id")
+                    .toString();
+            Roaring64Bitmap ids = new Roaring64Bitmap();
+            // 执行
+            jdbcTemplate.streamQuery(true, sql, rs -> {
+                synchronized (checkpointLock) {
+                    long id = rs.getLong("id");
+                    ids.add(id);
+                    if (ids.getLongCardinality() >= BATCH_SIZE) {
+                        ctx.collect(new RepairSplit(repairTask, ids));
+                        ids.clear();
+                    }
+                }
+            });
         }
     }
 
     @Override
-    public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        repairStateHolder.clear();
-        repairStateHolder.add(repairState);
-        String logs;
-        if (sending.get()) {
-            logs = String.format("RepairSplit %s ckp_%04d successfully, position: %,d count: %,d",
-                    JsonUtils.toString(repairState.getRepairSplit()),
-                    context.getCheckpointId(),
-                    repairState.getPosition(), repairState.getCount());
-        } else {
-            logs = String.format("RepairSplit %s already finished, position: %,d count: %,d",
-                    JsonUtils.toString(repairState.getRepairSplit()),
-                    repairState.getPosition(), repairState.getCount());
-        }
-        reportAndLog(logs);
+    public void snapshotState(FunctionSnapshotContext context) {
     }
 
     @Override
@@ -134,7 +70,7 @@ public class RepairSource extends RichParallelSourceFunction<SingleCanalBinlog> 
     }
 
     private void reportAndLog(String logs) {
-        logs = String.format("[RepairSource_%03d] %s", indexOfThisSubtask, logs);
+        logs = String.format("[RepairSource] %s", logs);
         redisTemplate.rPush(repairReportKey, logs);
         log.info("{}", logs);
     }

@@ -1,14 +1,15 @@
 package com.liang.flink.basic.repair;
 
-import com.liang.common.service.SQL;
+import com.liang.common.dto.config.RepairTask;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.io.Serializable;
 
 @Data
 @AllArgsConstructor
 public class RepairSplit implements Serializable {
-    private String sourceName;
-    private SQL sql;
+    private RepairTask repairTask;
+    private Roaring64Bitmap ids;
 }

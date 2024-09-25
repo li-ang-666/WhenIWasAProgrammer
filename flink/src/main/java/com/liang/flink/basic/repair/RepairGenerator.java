@@ -1,7 +1,7 @@
 package com.liang.flink.basic.repair;
 
+import cn.hutool.core.util.ObjUtil;
 import com.liang.common.dto.config.RepairTask;
-import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +11,8 @@ import java.util.List;
 
 @Slf4j
 public class RepairGenerator {
-    public List<RepairSplit> generate() {
-        List<RepairSplit> repairSplits = new ArrayList<>();
+    public List<RepairTask> generate() {
+        List<RepairTask> repairTasks = new ArrayList<>();
         // 遍历每个task
         for (RepairTask repairTask : ConfigUtils.getConfig().getRepairTasks()) {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
@@ -24,21 +24,11 @@ public class RepairGenerator {
                 if (!tableName.matches(repairTask.getTableName())) {
                     continue;
                 }
-                for (int i = 0; i < repairTask.getSplitNum(); i++) {
-                    // 拼装sql
-                    SQL sql = new SQL()
-                            .SELECT(repairTask.getColumns())
-                            .FROM(repairTask.getTableName())
-                            .WHERE(repairTask.getWhere())
-                            .ORDER_BY("id ASC");
-                    if (repairTask.getSplitNum() > 1) {
-                        sql.WHERE("id % " + repairTask.getSplitNum() + " = " + i);
-                    }
-                    // 保存
-                    repairSplits.add(new RepairSplit(repairTask.getSourceName(), sql));
-                }
+                RepairTask newTask = ObjUtil.cloneByStream(repairTask);
+                newTask.setTableName(tableName);
+                repairTasks.add(newTask);
             }
         }
-        return repairSplits;
+        return repairTasks;
     }
 }

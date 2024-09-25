@@ -1,6 +1,7 @@
 package com.liang.flink.basic;
 
 import com.liang.common.dto.Config;
+import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.DaemonExecutor;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.DateUtils;
@@ -9,9 +10,9 @@ import com.liang.flink.basic.kafka.KafkaMonitor;
 import com.liang.flink.basic.kafka.KafkaReporter;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
 import com.liang.flink.basic.repair.RepairGenerator;
+import com.liang.flink.basic.repair.RepairHandler;
 import com.liang.flink.basic.repair.RepairReporter;
 import com.liang.flink.basic.repair.RepairSource;
-import com.liang.flink.basic.repair.RepairSplit;
 import com.liang.flink.dto.BatchCanalBinlog;
 import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.dto.SingleCanalBinlog;
@@ -70,11 +71,16 @@ public class StreamFactory {
         DaemonExecutor.launch("RepairReporter", new RepairReporter(repairReportKey));
         // 组装RepairSource
         Config config = ConfigUtils.getConfig();
-        List<RepairSplit> repairSplits = new RepairGenerator().generate();
+        List<RepairTask> repairTasks = new RepairGenerator().generate();
         return streamEnvironment
-                .addSource(new RepairSource(config, repairReportKey, repairFinishKey, repairSplits))
+                .addSource(new RepairSource(config, repairReportKey, repairTasks))
                 .name("RepairSource")
                 .uid("RepairSource")
-                .setParallelism(repairSplits.size());
+                .setParallelism(1)
+                .rebalance()
+                .flatMap(new RepairHandler(config))
+                .name("RepairHandler")
+                .uid("RepairHandler")
+                .setParallelism(config.getFlinkConfig().getSourceParallel());
     }
 }
