@@ -40,6 +40,8 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&characterSetResults=UTF-8" +
                 // useSSL
                 "&useSSL=false" +
+                // 游标
+                "&useCursorFetch=true" +
                 // 性能优化
                 "&maxAllowedPacket=1073741824" + // 1G
                 "&rewriteBatchedStatements=true";
