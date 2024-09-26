@@ -62,7 +62,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     .FROM(repairTask.getTableName())
                     .WHERE("id > " + repairState.getPosition(repairTask))
                     .ORDER_BY("id ASC");
-            // 单并发时,只查符合指定where的id
+            // 单并发时, 直接在从源头就过滤where
             if (config.getFlinkConfig().getSourceParallel() == 1) {
                 sql.WHERE(repairTask.getWhere());
             }

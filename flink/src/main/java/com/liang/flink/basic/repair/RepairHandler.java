@@ -38,13 +38,15 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             lock.lock();
             RepairTask repairTask = repairSplit.getRepairTask();
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            String sql = new SQL().SELECT(repairTask.getColumns())
+            SQL sql = new SQL().SELECT(repairTask.getColumns())
                     .FROM(repairTask.getTableName())
-                    .WHERE(repairTask.getWhere())
                     .WHERE("id >= " + repairSplit.getMinId())
-                    .WHERE("id <= " + repairSplit.getMaxId())
-                    .toString();
-            jdbcTemplate.streamQuery(true, sql, rs -> {
+                    .WHERE("id <= " + repairSplit.getMaxId());
+            // 单并发时, 上游已经过滤了where, 无需再次过滤
+            if (config.getFlinkConfig().getSourceParallel() > 1) {
+                sql.WHERE(repairTask.getWhere());
+            }
+            jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 Map<String, Object> columnMap = new HashMap<>(columnCount);
