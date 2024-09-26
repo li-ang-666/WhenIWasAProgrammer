@@ -6,14 +6,14 @@ import lombok.Data;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 
 @Data
 public class RepairState {
-    private final Map<RepairTask, State> states = new LinkedHashMap<>();
+    private final Map<RepairTask, State> states = new ConcurrentSkipListMap<>();
 
     public RepairState(List<RepairTask> repairTasks) {
         for (RepairTask repairTask : repairTasks) {
