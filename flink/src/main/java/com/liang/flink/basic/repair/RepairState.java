@@ -1,26 +1,32 @@
 package com.liang.flink.basic.repair;
 
 import com.liang.common.dto.config.RepairTask;
+import com.liang.common.util.JsonUtils;
 import lombok.Data;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 public class RepairState {
-    private final Map<RepairTask, State> states = new HashMap<>();
+    private final Map<RepairTask, State> states = new LinkedHashMap<>();
 
     public RepairState(List<RepairTask> repairTasks) {
         for (RepairTask repairTask : repairTasks) {
-            states.put(repairTask, new State());
+            this.states.put(repairTask, new State());
         }
     }
 
     public void initializeState(RepairState restored) {
-
-        this.states.putAll(restored.states);
+        restored.states.forEach((k, v) -> {
+            if (this.states.containsKey(k)) {
+                this.states.put(k, v);
+            }
+        });
     }
 
     public void snapshotState(RepairTask repairTask, Roaring64Bitmap bitmap) {
@@ -35,6 +41,17 @@ public class RepairState {
 
     public long getCount(RepairTask repairTask) {
         return states.get(repairTask).getCount();
+    }
+
+    public String toReportString() {
+        List<HashMap<String, Object>> stateList = states.entrySet().stream()
+                .map(entry -> new HashMap<String, Object>() {{
+                    put("RepairTask", entry.getKey());
+                    put("Position", String.format("%,d", entry.getValue().getPosition()));
+                    put("Count", String.format("%,d", entry.getValue().getCount()));
+                }})
+                .collect(Collectors.toList());
+        return JsonUtils.toString(stateList);
     }
 
     @Data

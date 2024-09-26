@@ -7,7 +7,6 @@ import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
@@ -42,14 +41,14 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         redisTemplate = new RedisTemplate("metadata");
         // 初始化
         repairState = new RepairState(repairTasks);
-        reportAndLog(String.format("init successfully, states: %s", JsonUtils.toString(repairState.getStates())));
+        reportAndLog(String.format("init successfully, states: %s", repairState.toReportString()));
         // 恢复
         repairStateHolder = context.getOperatorStateStore().getListState(LIST_STATE_DESCRIPTOR);
         if (context.isRestored()) {
             for (RepairState restoredState : repairStateHolder.get()) {
                 repairState.initializeState(restoredState);
             }
-            reportAndLog(String.format("restored successfully, states: %s", JsonUtils.toString(repairState.getStates())));
+            reportAndLog(String.format("restored successfully, states: %s", repairState.toReportString()));
         }
     }
 
@@ -97,8 +96,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         repairStateHolder.add(repairState);
         String logs = String.format("ckp_%d successfully, states: %s",
                 context.getCheckpointId(),
-                JsonUtils.toString(repairState.getStates())
-        );
+                repairState.toReportString());
         reportAndLog(logs);
     }
 
