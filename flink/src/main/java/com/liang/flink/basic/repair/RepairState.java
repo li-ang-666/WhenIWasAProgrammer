@@ -47,14 +47,17 @@ public class RepairState {
     }
 
     public String toReportString() {
-        List<HashMap<String, Object>> stateList = states.entrySet().stream()
-                .map(entry -> new HashMap<String, Object>() {{
-                    put("RepairTask", entry.getKey());
-                    put("Position", String.format("%,d", entry.getValue().getPosition()));
-                    put("Count", String.format("%,d", entry.getValue().getCount()));
-                }})
-                .collect(Collectors.toList());
-        return JsonUtils.toString(stateList);
+        RepairState repairState = this;
+        return JsonUtils.toString(
+                states.keySet()
+                        .stream()
+                        .map(k -> new HashMap<String, Object>() {{
+                            put("task", k);
+                            put("position", repairState.getPosition(k));
+                            put("count", repairState.getCount(k));
+                        }})
+                        .collect(Collectors.toList())
+        );
     }
 
     @Data
