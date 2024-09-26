@@ -103,7 +103,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
 
     @Override
     public void notifyCheckpointComplete(long checkpointId) {
-        String logs = String.format("ckp_%d successfully, states: %s",
+        String logs = String.format("ckp_%04d successfully, states: %s",
                 checkpointId,
                 repairState.toReportString());
         reportAndLog(logs);
