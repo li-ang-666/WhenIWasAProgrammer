@@ -5,7 +5,7 @@ import com.liang.common.util.JsonUtils;
 import lombok.Data;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -48,7 +48,7 @@ public class RepairState {
         return JsonUtils.toString(
                 states.keySet()
                         .stream()
-                        .map(k -> new HashMap<String, Object>() {{
+                        .map(k -> new LinkedHashMap<String, Object>() {{
                             put("task", k);
                             put("position", String.format("%,d", repairState.getPosition(k)));
                             put("count", String.format("%,d", repairState.getCount(k)));
