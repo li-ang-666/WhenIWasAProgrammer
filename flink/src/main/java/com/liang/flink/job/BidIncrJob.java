@@ -79,16 +79,17 @@ public class BidIncrJob {
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Map<String, Object>> out) {
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            Object id = columnMap.get("id");
             // 判断是否已经处理过
-            String sql1 = new SQL().SELECT("1").FROM("company_bid").WHERE("id = " + columnMap.get("id")).toString();
-            String sql2 = new SQL().SELECT("1").FROM("company_bid_fail").WHERE("id = " + columnMap.get("id")).toString();
-            String sql3 = new SQL().SELECT("1").FROM("company_bid_empty").WHERE("id = " + columnMap.get("id")).toString();
-            String sql4 = new SQL().SELECT("1").FROM("company_bid_incr").WHERE("id = " + columnMap.get("id")).toString();
+            String sql1 = new SQL().SELECT("1").FROM("company_bid").WHERE("id = " + id).toString();
+            String sql2 = new SQL().SELECT("1").FROM("company_bid_fail").WHERE("id = " + id).toString();
+            String sql3 = new SQL().SELECT("1").FROM("company_bid_empty").WHERE("id = " + id).toString();
+            String sql4 = new SQL().SELECT("1").FROM("company_bid_incr").WHERE("id = " + id).toString();
             String sql = sql1 + " union all " + sql2 + " union all " + sql3 + " union all " + sql4;
             String queryRes = query.queryForObject(sql, rs -> rs.getString(1));
             if (queryRes == null) {
                 Map<String, Object> resultMap = new HashMap<>();
-                resultMap.put("id", columnMap.get("id"));
+                resultMap.put("id", id);
                 out.collect(resultMap);
             }
         }
