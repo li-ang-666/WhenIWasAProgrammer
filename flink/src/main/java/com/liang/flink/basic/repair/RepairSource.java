@@ -61,6 +61,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             SQL sql = new SQL().SELECT("id")
                     .FROM(repairTask.getTableName())
+                    .WHERE("id > " + repairState.getPosition(repairTask))
                     .ORDER_BY("id ASC");
             // 单并发时,只查符合指定where的id
             if (config.getFlinkConfig().getSourceParallel() == 1) {
