@@ -58,10 +58,10 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         final Object checkpointLock = ctx.getCheckpointLock();
         for (RepairTask repairTask : repairTasks) {
             // 初始化
-            JdbcTemplate jdbcTemplate;
-            Roaring64Bitmap bitmap;
-            Task snapshotSplit;
-            SQL sql;
+            final JdbcTemplate jdbcTemplate;
+            final Roaring64Bitmap bitmap;
+            final Task snapshotSplit;
+            final SQL sql;
             synchronized (checkpointLock) {
                 jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
                 bitmap = new Roaring64Bitmap();
