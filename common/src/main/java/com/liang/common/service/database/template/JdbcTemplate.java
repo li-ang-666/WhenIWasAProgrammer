@@ -140,8 +140,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
             try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-                //statement.setFetchSize(Integer.MIN_VALUE);
-                statement.setFetchSize(10_000);
+                statement.setFetchSize(Integer.MIN_VALUE);
                 statement.setQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
                 try (ResultSet resultSet = statement.executeQuery(sql)) {
                     while (resultSet.next()) {
