@@ -9,6 +9,7 @@ import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.state.CheckpointListener;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
@@ -25,7 +26,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RepairSource extends RichSourceFunction<RepairSplit> implements CheckpointedFunction {
+public class RepairSource extends RichSourceFunction<RepairSplit> implements CheckpointedFunction, CheckpointListener {
     private static final int BATCH_SIZE = 1_000;
     private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
     private final Config config;
@@ -98,15 +99,19 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         repairStateHolder.clear();
         repairStateHolder.add(repairState);
+    }
+
+    @Override
+    public void notifyCheckpointComplete(long checkpointId) {
         String logs = String.format("ckp_%d successfully, states: %s",
-                context.getCheckpointId(),
+                checkpointId,
                 repairState.toReportString());
         reportAndLog(logs);
     }
 
     @Override
     public void cancel() {
-        System.exit(1);
+        System.exit(100);
     }
 
     private void reportAndLog(String logs) {
