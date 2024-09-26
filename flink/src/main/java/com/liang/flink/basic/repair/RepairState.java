@@ -10,15 +10,20 @@ import java.util.Map;
 
 @Data
 public class RepairState {
+    private final Map<RepairTask, State> states = new HashMap<>();
+
     public RepairState(List<RepairTask> repairTasks) {
         for (RepairTask repairTask : repairTasks) {
             states.put(repairTask, new State());
         }
     }
 
-    private Map<RepairTask, State> states = new HashMap<>();
+    public void initializeState(RepairState restored) {
 
-    public void register(RepairTask repairTask, Roaring64Bitmap bitmap) {
+        this.states.putAll(restored.states);
+    }
+
+    public void snapshotState(RepairTask repairTask, Roaring64Bitmap bitmap) {
         State state = states.get(repairTask);
         state.setPosition(bitmap.last());
         state.setCount(state.getCount() + bitmap.getLongCardinality());
@@ -34,7 +39,7 @@ public class RepairState {
 
     @Data
     private static final class State {
-        private long position = 0L;
-        private long count = 0L;
+        private volatile long position = 0L;
+        private volatile long count = 0L;
     }
 }
