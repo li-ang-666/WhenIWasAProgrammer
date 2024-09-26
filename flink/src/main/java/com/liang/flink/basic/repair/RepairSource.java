@@ -8,6 +8,7 @@ import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -23,6 +24,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class RepairSource extends RichSourceFunction<RepairSplit> implements CheckpointedFunction {
+    private static final ListStateDescriptor<> STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
     private static final long BATCH_SIZE = 1000;
     private final Config config;
     private final String repairReportKey;
@@ -47,7 +49,6 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             if (config.getFlinkConfig().getSourceParallel() == 1) {
                 sql.WHERE(repairTask.getWhere());
             }
-            Roaring64Bitmap allIds = new Roaring64Bitmap();
             Roaring64Bitmap cachedIds = new Roaring64Bitmap();
             // 执行
             jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
@@ -55,7 +56,6 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     cachedIds.add(rs.getLong("id"));
                     if (cachedIds.getLongCardinality() >= BATCH_SIZE) {
                         ctx.collect(new RepairSplit(repairTask, cachedIds.first(), cachedIds.last()));
-                        allIds.or(cachedIds);
                         cachedIds.clear();
                     }
                 }
@@ -63,7 +63,6 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             synchronized (checkpointLock) {
                 if (!cachedIds.isEmpty()) {
                     ctx.collect(new RepairSplit(repairTask, cachedIds.first(), cachedIds.last()));
-                    allIds.or(cachedIds);
                     cachedIds.clear();
                 }
             }
