@@ -58,32 +58,36 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         for (RepairTask repairTask : repairTasks) {
             // 初始化
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+            Roaring64Bitmap bitmap = new Roaring64Bitmap();
+            Task snapshotSplit = () -> {
+                ctx.collect(new RepairSplit(repairTask, bitmap));
+                repairState.snapshotState(repairTask, bitmap);
+                bitmap.clear();
+            };
             SQL sql = new SQL().SELECT("id")
                     .FROM(repairTask.getTableName())
-                    .WHERE("id > " + repairState.getPosition(repairTask))
                     .ORDER_BY("id ASC");
-            // 单并发时, 直接在从源头就过滤where
+            // 读取state
+            if (repairState.getPosition(repairTask) > 0) {
+                sql.WHERE("id > " + repairState.getPosition(repairTask));
+            }
+            // 单并发时, 直接从源头就过滤where
             if (config.getFlinkConfig().getSourceParallel() == 1) {
                 sql.WHERE(repairTask.getWhere());
             }
-            Roaring64Bitmap cachedIds = new Roaring64Bitmap();
-            Task snapshotSplit = () -> {
-                ctx.collect(new RepairSplit(repairTask, cachedIds.first(), cachedIds.last()));
-                repairState.snapshotState(repairTask, cachedIds);
-                cachedIds.clear();
-            };
-            // 执行
+            // 执行sql
+            reportAndLog(String.format("execute sql: %s", sql));
             jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
                 synchronized (checkpointLock) {
-                    cachedIds.add(rs.getLong("id"));
-                    if (cachedIds.getLongCardinality() >= BATCH_SIZE) {
+                    bitmap.add(rs.getLong("id"));
+                    if (bitmap.getLongCardinality() >= BATCH_SIZE) {
                         snapshotSplit.execute();
                     }
                 }
             });
-            // 扫尾
+            // 清空缓存
             synchronized (checkpointLock) {
-                if (!cachedIds.isEmpty()) {
+                if (!bitmap.isEmpty()) {
                     snapshotSplit.execute();
                 }
             }

@@ -6,6 +6,7 @@ import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,12 +15,14 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.util.Collector;
+import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,17 +39,18 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     public void flatMap(RepairSplit repairSplit, Collector<SingleCanalBinlog> out) {
         try {
             lock.lock();
+            // 初始化
             RepairTask repairTask = repairSplit.getRepairTask();
+            Roaring64Bitmap bitmap = repairSplit.getBitmap();
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            SQL sql = new SQL().SELECT(repairTask.getColumns())
+            String sql = new SQL().SELECT(repairTask.getColumns())
                     .FROM(repairTask.getTableName())
-                    .WHERE("id >= " + repairSplit.getMinId())
-                    .WHERE("id <= " + repairSplit.getMaxId());
-            // 单并发时, 上游已经过滤了where, 无需再次过滤
-            if (config.getFlinkConfig().getSourceParallel() > 1) {
-                sql.WHERE(repairTask.getWhere());
-            }
-            jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
+                    .WHERE(repairTask.getWhere())
+                    .WHERE("id in " + SqlUtils.formatValue(bitmap.stream().boxed().collect(Collectors.toList())))
+                    .ORDER_BY("id ASC")
+                    .toString();
+            // 执行sql
+            jdbcTemplate.streamQuery(true, sql, rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 Map<String, Object> columnMap = new HashMap<>(columnCount);
