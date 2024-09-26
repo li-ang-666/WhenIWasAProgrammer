@@ -65,9 +65,7 @@ public class StreamFactory {
         String[] split = jobClassName.split("\\.");
         String simpleName = split[split.length - 1];
         String repairReportKey = String.format("%s_%s_%s", simpleName, "Report", DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
-        String repairFinishKey = String.format("%s_%s_%s", simpleName, "Finish", DateUtils.fromUnixTime(System.currentTimeMillis() / 1000, "yyyyMMddHHmmss"));
         log.info("repairReportKey: {}", repairReportKey);
-        log.info("repairFinishKey: {}", repairFinishKey);
         DaemonExecutor.launch("RepairReporter", new RepairReporter(repairReportKey));
         // 组装RepairSource
         Config config = ConfigUtils.getConfig();
