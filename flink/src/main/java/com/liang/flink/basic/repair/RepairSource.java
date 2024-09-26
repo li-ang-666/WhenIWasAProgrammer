@@ -41,27 +41,38 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         for (RepairTask repairTask : repairTasks) {
             // 初始化
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            String sql = new SQL().SELECT("id")
+            SQL sql = new SQL().SELECT("id")
                     .FROM(repairTask.getTableName())
-                    .ORDER_BY("id")
-                    .toString();
-            Roaring64Bitmap ids = new Roaring64Bitmap();
+                    .ORDER_BY("id ASC");
+            if (config.getFlinkConfig().getSourceParallel() == 1) {
+                sql.WHERE(repairTask.getWhere());
+            }
+            Roaring64Bitmap allIds = new Roaring64Bitmap();
+            Roaring64Bitmap cachedIds = new Roaring64Bitmap();
             // 执行
-            jdbcTemplate.streamQuery(true, sql, rs -> {
+            jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
                 synchronized (checkpointLock) {
-                    long id = rs.getLong("id");
-                    ids.add(id);
-                    if (ids.getLongCardinality() >= BATCH_SIZE) {
-                        ctx.collect(new RepairSplit(repairTask, ids.first(), ids.last()));
-                        ids.clear();
+                    cachedIds.add(rs.getLong("id"));
+                    if (cachedIds.getLongCardinality() >= BATCH_SIZE) {
+                        ctx.collect(new RepairSplit(repairTask, cachedIds.first(), cachedIds.last()));
+                        allIds.or(cachedIds);
+                        cachedIds.clear();
                     }
                 }
             });
+            synchronized (checkpointLock) {
+                if (!cachedIds.isEmpty()) {
+                    ctx.collect(new RepairSplit(repairTask, cachedIds.first(), cachedIds.last()));
+                    allIds.or(cachedIds);
+                    cachedIds.clear();
+                }
+            }
         }
     }
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) {
+
     }
 
     @Override
