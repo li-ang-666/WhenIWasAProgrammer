@@ -13,10 +13,7 @@ import java.util.stream.Collectors;
 
 @Data
 public class RepairState {
-    // forever positive
-    private final Map<RepairTask, State> states = new ConcurrentSkipListMap<>(
-            (task1, task2) -> task1.equals(task2) ? 0 : 1
-    );
+    private final Map<RepairTask, State> states = new ConcurrentSkipListMap<>();
 
     public RepairState(List<RepairTask> repairTasks) {
         for (RepairTask repairTask : repairTasks) {
@@ -53,8 +50,8 @@ public class RepairState {
                         .stream()
                         .map(k -> new HashMap<String, Object>() {{
                             put("task", k);
-                            put("position", repairState.getPosition(k));
-                            put("count", repairState.getCount(k));
+                            put("position", String.format("%,d", repairState.getPosition(k)));
+                            put("count", String.format("%,d", repairState.getCount(k)));
                         }})
                         .collect(Collectors.toList())
         );
