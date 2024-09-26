@@ -58,26 +58,32 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         final Object checkpointLock = ctx.getCheckpointLock();
         for (RepairTask repairTask : repairTasks) {
             // 初始化
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            Roaring64Bitmap bitmap = new Roaring64Bitmap();
-            Task snapshotSplit = () -> {
-                ctx.collect(new RepairSplit(repairTask, bitmap));
-                repairState.snapshotState(repairTask, bitmap);
-                bitmap.clear();
-            };
-            SQL sql = new SQL().SELECT("id")
-                    .FROM(repairTask.getTableName())
-                    .ORDER_BY("id ASC");
-            // 读取state
-            if (repairState.getPosition(repairTask) > 0) {
-                sql.WHERE("id > " + repairState.getPosition(repairTask));
-            }
-            // 单并发时, 直接从源头就过滤where
-            if (config.getFlinkConfig().getSourceParallel() == 1) {
-                sql.WHERE(repairTask.getWhere());
+            JdbcTemplate jdbcTemplate;
+            Roaring64Bitmap bitmap;
+            Task snapshotSplit;
+            SQL sql;
+            synchronized (checkpointLock) {
+                jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+                bitmap = new Roaring64Bitmap();
+                snapshotSplit = () -> {
+                    ctx.collect(new RepairSplit(repairTask, bitmap));
+                    repairState.snapshotState(repairTask, bitmap);
+                    bitmap.clear();
+                };
+                sql = new SQL().SELECT("id")
+                        .FROM(repairTask.getTableName())
+                        .ORDER_BY("id ASC");
+                // 读取state
+                if (repairState.getPosition(repairTask) > 0) {
+                    sql.WHERE("id > " + repairState.getPosition(repairTask));
+                }
+                // 单并发时, 直接从源头就过滤where
+                if (config.getFlinkConfig().getSourceParallel() == 1) {
+                    sql.WHERE(repairTask.getWhere());
+                }
+                reportAndLog(String.format("execute sql: %s", sql));
             }
             // 执行sql
-            reportAndLog(String.format("execute sql: %s", sql));
             jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
                 synchronized (checkpointLock) {
                     bitmap.add(rs.getLong("id"));
