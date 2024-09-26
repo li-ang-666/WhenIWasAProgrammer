@@ -130,6 +130,7 @@ public class BlackList extends ConfigHolder {
         deleteBossAll("00NBU9H00F11A1JZR");
         deleteBossAll("20T969Z00B3MR23DL");
         deleteBossAll("908GUM200SZZNVCGT");
+        deleteBossAll("G0SV3MS09EAQ24RZR");
         deleteBossAll("P004HMJ00TGTBYKP6");
         deleteBossAll("J01HR9P09NDU79N8L");
         deleteBossAll("E0TJ0MR02R2TCBSVC");
@@ -143,9 +144,12 @@ public class BlackList extends ConfigHolder {
         deleteBossAll("H0HKFM000YDDFF4VZ");
         deleteBossAll("90071MZ0216M1BGBA");
         deleteBossAll("B0A75ME09BZMJVSZN");
+        deleteBossAll("80TA5MB00S2N6PTSP");
+        deleteBossAll("10TNMM602K1GSN032");
         // 删除合作伙伴
         deletePartner("40TN89C001CR0MVL6");
-        deletePartner("006Y8MG0AR6MCDRBF");
+        deletePartner("H0J1VMA09KRU1HGJC");
+        deletePartner("U0L6TM70254L9F22R");
         deletePartner("M018B9N09U8GJMQEB");
         deletePartner("10NHVMV00N5KSP4S7");
         deletePartner("408CGM80ACU1YBT6J");
@@ -155,6 +159,7 @@ public class BlackList extends ConfigHolder {
         deletePartner("00ZMBMR0AA973DCZF");
         deletePartner("00Z9BMR0AAA7Y46MR");
         deletePartner("00Z9BMR0AAJ70VTVM");
+        deletePartner("N01YRMJ098TMSJ8TF");
         deletePartner("R0TF6MU00YUJ6V4D5");
         deletePartner("K0YQPML010TFKFYZC");
         deletePartner("M0NECMY0TPFRLF769");
