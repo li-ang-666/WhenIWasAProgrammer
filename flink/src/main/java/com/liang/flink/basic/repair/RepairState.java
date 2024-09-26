@@ -13,7 +13,9 @@ import java.util.stream.Collectors;
 
 @Data
 public class RepairState {
-    private final Map<RepairTask, State> states = new ConcurrentSkipListMap<>();
+    private final Map<RepairTask, State> states = new ConcurrentSkipListMap<>((task1, task2) ->
+            task1.equals(task2) ? 0 : 1
+    );
 
     public RepairState(List<RepairTask> repairTasks) {
         for (RepairTask repairTask : repairTasks) {
