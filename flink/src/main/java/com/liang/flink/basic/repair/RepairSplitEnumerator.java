@@ -11,27 +11,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class RepairSplitEnumerator {
     private static final int BATCH_SIZE = 10000;
-    private static final int THREAD_NUM = 10;
+    private static final int THREAD_NUM = 100;
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(THREAD_NUM);
 
     public static void main(String[] args) throws Exception {
         ConfigUtils.setConfig(ConfigUtils.createConfig(null));
         RepairTask repairTask = new RepairTask();
-        repairTask.setSourceName("104.data_bid");
-        repairTask.setTableName("company_bid");
+        repairTask.setSourceName("116.prism");
+        repairTask.setTableName("equity_ratio");
 
         long sec1 = System.currentTimeMillis() / 1000;
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
         long sec2 = System.currentTimeMillis() / 1000;
+        log.info("time : {} seconds, id size: {}", sec2 - sec1, allIds.getLongCardinality());
     }
 
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
@@ -50,24 +53,20 @@ public class RepairSplitEnumerator {
         // 开始多线程遍历
         while (!uncheckedSplits.isEmpty()) {
             int size = uncheckedSplits.size();
+            // 任务不足则补充
+            if (size < THREAD_NUM) {
+                uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplits.removeFirst(), THREAD_NUM - (size - 1)));
+            }
             AtomicBoolean running = new AtomicBoolean(true);
             CountDownLatch countDownLatch = new CountDownLatch(size);
-            List<Future<UncheckedSplit>> futures = new ArrayList<>(size);
             // 发布任务
             for (int i = 0; i < size; i++) {
-                SplitTask splitTask = new SplitTask(allIds, repairTask, uncheckedSplits.removeFirst(), running, countDownLatch);
-                Future<UncheckedSplit> future = EXECUTOR_SERVICE.submit(splitTask);
-                futures.add(future);
+                SplitTask splitTask = new SplitTask(uncheckedSplits, allIds, repairTask, uncheckedSplits.removeFirst(), running, countDownLatch);
+                EXECUTOR_SERVICE.submit(splitTask);
             }
             // 等待任务结束
             countDownLatch.await();
-            // 补充下一轮待查询分片
-            for (Future<UncheckedSplit> future : futures) {
-                UncheckedSplit uncheckedSplit = future.get();
-                if (uncheckedSplit != null) {
-                    uncheckedSplits.addLast(uncheckedSplit);
-                }
-            }
+            log.info("id size: {}", allIds.getLongCardinality());
         }
         return allIds;
     }
@@ -76,12 +75,21 @@ public class RepairSplitEnumerator {
         Deque<UncheckedSplit> result = new ConcurrentLinkedDeque<>();
         long l = uncheckedSplit.getL();
         long r = uncheckedSplit.getR();
+        // 过滤无效数据
+        if (l > r) {
+            return result;
+        }
         long interval = (r - l) / num;
+        // 小批次不再拆分
+        if (interval <= BATCH_SIZE) {
+            result.addLast(uncheckedSplit);
+            return result;
+        }
         for (int i = 0; i < num; i++) {
             if (i == num - 1) {
-                result.add(new UncheckedSplit(l, r));
+                result.addLast(new UncheckedSplit(l, r));
             } else {
-                result.add(new UncheckedSplit(l, l + interval));
+                result.addLast(new UncheckedSplit(l, l + interval));
                 l = l + interval + 1;
             }
         }
@@ -89,7 +97,8 @@ public class RepairSplitEnumerator {
     }
 
     @RequiredArgsConstructor
-    private static final class SplitTask implements Callable<UncheckedSplit> {
+    private static final class SplitTask implements Runnable {
+        private final Deque<UncheckedSplit> uncheckedSplits;
         private final Roaring64Bitmap all_ids;
         private final RepairTask repairTask;
         private final UncheckedSplit uncheckedSplit;
@@ -97,7 +106,7 @@ public class RepairSplitEnumerator {
         private final CountDownLatch countDownLatch;
 
         @Override
-        public UncheckedSplit call() {
+        public void run() {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             long l = uncheckedSplit.getL();
             long r = uncheckedSplit.getR();
@@ -113,8 +122,7 @@ public class RepairSplitEnumerator {
                 // 如果本线程 [自然] 执行完毕
                 if (res.isEmpty()) {
                     running.set(false);
-                    countDownLatch.countDown();
-                    return null;
+                    break;
                 }
                 // 收集本批次id, 准备寻找下批次id
                 Roaring64Bitmap ids = Roaring64Bitmap.bitmapOf(res.stream().mapToLong(Long::longValue).toArray());
@@ -124,11 +132,14 @@ public class RepairSplitEnumerator {
                 l = ids.last() + 1;
                 // 如果本线程 [被动] 执行完毕
                 if (!running.get()) {
-                    countDownLatch.countDown();
-                    // 返回未遍历的切片
-                    return new UncheckedSplit(l, r);
+                    // 补充未处理分片
+                    if (l <= r) {
+                        uncheckedSplits.addLast(new UncheckedSplit(l, r));
+                    }
+                    break;
                 }
             }
+            countDownLatch.countDown();
         }
     }
 
