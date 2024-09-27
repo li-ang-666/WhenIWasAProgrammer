@@ -42,13 +42,24 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             RepairTask repairTask = repairSplit.getRepairTask();
             Roaring64Bitmap bitmap = repairSplit.getBitmap();
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            String sql = bitmap.stream().boxed()
-                    .map(id -> new SQL().SELECT(repairTask.getColumns())
-                            .FROM(repairTask.getTableName())
-                            .WHERE(repairTask.getWhere())
-                            .WHERE("id = " + id)
-                            .toString())
-                    .collect(Collectors.joining(") UNION ALL (", "(", ")"));
+            String sql;
+            // 有注释, 代表全表扫
+            if (repairTask.getWhere().matches("(.*?)/\\*(.*?)\\*/(.*)")) {
+                sql = new SQL().SELECT(repairTask.getColumns())
+                        .FROM(repairTask.getTableName())
+                        .WHERE(repairTask.getWhere())
+                        .WHERE("id >= " + bitmap.first())
+                        .WHERE("id <= " + bitmap.last())
+                        .toString();
+            } else {
+                sql = bitmap.stream().boxed()
+                        .map(id -> new SQL().SELECT(repairTask.getColumns())
+                                .FROM(repairTask.getTableName())
+                                .WHERE(repairTask.getWhere())
+                                .WHERE("id = " + id)
+                                .toString())
+                        .collect(Collectors.joining(") UNION ALL (", "(", ")"));
+            }
             // 执行sql
             jdbcTemplate.streamQuery(true, sql, rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
