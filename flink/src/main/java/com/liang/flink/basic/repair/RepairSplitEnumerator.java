@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RepairSplitEnumerator {
     private static final int BATCH_SIZE = 10000;
     private static final int THREAD_NUM = 128;
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(THREAD_NUM);
 
     public static void main(String[] args) throws Exception {
         ConfigUtils.setConfig(ConfigUtils.createConfig(null));
@@ -38,6 +37,7 @@ public class RepairSplitEnumerator {
     }
 
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
+        ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUM);
         Roaring64Bitmap allIds = new Roaring64Bitmap();
         // 查询边界
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
@@ -65,12 +65,13 @@ public class RepairSplitEnumerator {
             for (int i = 0; i < size; i++) {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
                 SplitTask splitTask = new SplitTask(uncheckedSplits, allIds, repairTask, uncheckedSplit, running, countDownLatch);
-                EXECUTOR_SERVICE.execute(splitTask);
+                executorService.execute(splitTask);
             }
             // 等待任务结束
             countDownLatch.await();
             log.info("id num: {}", allIds.getLongCardinality());
         }
+        executorService.shutdown();
         return allIds;
     }
 
