@@ -47,7 +47,7 @@ public class RepairSplitEnumerator {
         Tuple2<Long, Long> minAndMax = jdbcTemplate.queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
         long l = minAndMax.f0;
         long r = minAndMax.f1;
-        // 初始化待查询分片队列
+        // 首次初始化待查询分片队列
         UncheckedSplit firstUncheckedSplit = new UncheckedSplit(l, r);
         Deque<UncheckedSplit> uncheckedSplits = splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM);
         // 开始多线程遍历
@@ -57,10 +57,12 @@ public class RepairSplitEnumerator {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
                 uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplit, THREAD_NUM - uncheckedSplits.size()));
             }
+            // 任务补充后, 记录一下size
+            int size = uncheckedSplits.size();
             AtomicBoolean running = new AtomicBoolean(true);
-            CountDownLatch countDownLatch = new CountDownLatch(uncheckedSplits.size());
+            CountDownLatch countDownLatch = new CountDownLatch(size);
             // 发布任务
-            for (int i = 0; i < uncheckedSplits.size(); i++) {
+            for (int i = 0; i < size; i++) {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
                 SplitTask splitTask = new SplitTask(uncheckedSplits, allIds, repairTask, uncheckedSplit, running, countDownLatch);
                 EXECUTOR_SERVICE.execute(splitTask);
@@ -121,15 +123,14 @@ public class RepairSplitEnumerator {
                         .FROM(repairTask.getTableName())
                         .WHERE("id >= " + l)
                         .WHERE("id <= " + r)
-                        .ORDER_BY("id")
+                        .ORDER_BY("id ASC")
                         .LIMIT(BATCH_SIZE)
                         .toString();
                 List<Long> res = jdbcTemplate.queryForList(sql, rs -> rs.getLong(1));
                 // 如果本线程 [自然] 执行完毕
                 if (res.isEmpty()) {
                     running.set(false);
-                    countDownLatch.countDown();
-                    return;
+                    break;
                 }
                 // 收集本批次id, 准备寻找下批次id
                 Roaring64Bitmap ids = Roaring64Bitmap.bitmapOf(res.stream().mapToLong(Long::longValue).toArray());
@@ -143,10 +144,10 @@ public class RepairSplitEnumerator {
                     if (l <= r) {
                         uncheckedSplits.addLast(new UncheckedSplit(l, r));
                     }
-                    countDownLatch.countDown();
-                    return;
+                    break;
                 }
             }
+            countDownLatch.countDown();
         }
     }
 
