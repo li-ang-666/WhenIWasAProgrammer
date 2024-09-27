@@ -27,8 +27,8 @@ public class RepairSplitEnumerator {
     public static void main(String[] args) throws Exception {
         ConfigUtils.setConfig(ConfigUtils.createConfig(null));
         RepairTask repairTask = new RepairTask();
-        repairTask.setSourceName("116.prism");
-        repairTask.setTableName("equity_ratio");
+        repairTask.setSourceName("104.data_bid");
+        repairTask.setTableName("company_bid");
 
         long sec1 = System.currentTimeMillis() / 1000;
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
