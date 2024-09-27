@@ -34,7 +34,7 @@ public class RepairSplitEnumerator {
         long sec1 = System.currentTimeMillis() / 1000;
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
         long sec2 = System.currentTimeMillis() / 1000;
-        log.info("time : {} seconds, id size: {}", sec2 - sec1, allIds.getLongCardinality());
+        log.info("time : {} seconds, id num: {}", sec2 - sec1, allIds.getLongCardinality());
     }
 
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
@@ -52,21 +52,21 @@ public class RepairSplitEnumerator {
         Deque<UncheckedSplit> uncheckedSplits = splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM);
         // 开始多线程遍历
         while (!uncheckedSplits.isEmpty()) {
-            int size = uncheckedSplits.size();
-            // 任务不足则补充
-            if (size < THREAD_NUM) {
-                uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplits.removeFirst(), THREAD_NUM - (size - 1)));
+            // 任务不足线程数则补充(有可能补充不到)
+            if (uncheckedSplits.size() < THREAD_NUM) {
+                UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
+                uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplit, THREAD_NUM - uncheckedSplits.size()));
             }
             AtomicBoolean running = new AtomicBoolean(true);
-            CountDownLatch countDownLatch = new CountDownLatch(size);
+            CountDownLatch countDownLatch = new CountDownLatch(uncheckedSplits.size());
             // 发布任务
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < uncheckedSplits.size(); i++) {
                 SplitTask splitTask = new SplitTask(uncheckedSplits, allIds, repairTask, uncheckedSplits.removeFirst(), running, countDownLatch);
                 EXECUTOR_SERVICE.submit(splitTask);
             }
             // 等待任务结束
             countDownLatch.await();
-            log.info("id size: {}", allIds.getLongCardinality());
+            log.info("id num: {}", allIds.getLongCardinality());
         }
         return allIds;
     }
@@ -77,6 +77,11 @@ public class RepairSplitEnumerator {
         long r = uncheckedSplit.getR();
         // 过滤无效数据
         if (l > r) {
+            return result;
+        }
+        // 小批次不再拆分
+        if (r - l <= BATCH_SIZE) {
+            result.addLast(uncheckedSplit);
             return result;
         }
         long interval = (r - l) / num;
