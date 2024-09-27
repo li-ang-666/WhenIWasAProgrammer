@@ -108,7 +108,7 @@ public class RepairSplitEnumerator {
     @RequiredArgsConstructor
     private static final class SplitTask implements Runnable {
         private final Deque<UncheckedSplit> uncheckedSplits;
-        private final Roaring64Bitmap all_ids;
+        private final Roaring64Bitmap allIds;
         private final RepairTask repairTask;
         private final UncheckedSplit uncheckedSplit;
         private final AtomicBoolean running;
@@ -135,8 +135,8 @@ public class RepairSplitEnumerator {
                 }
                 // 收集本批次id, 准备寻找下批次id
                 Roaring64Bitmap ids = Roaring64Bitmap.bitmapOf(res.stream().mapToLong(Long::longValue).toArray());
-                synchronized (all_ids) {
-                    all_ids.or(ids);
+                synchronized (allIds) {
+                    allIds.or(ids);
                 }
                 l = ids.last() + 1;
                 // 如果本线程 [被动] 执行完毕
