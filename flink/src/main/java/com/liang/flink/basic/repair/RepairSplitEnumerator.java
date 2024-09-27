@@ -53,6 +53,7 @@ public class RepairSplitEnumerator {
         // 开始多线程遍历
         while (!uncheckedSplits.isEmpty()) {
             // 任务不足线程数, 则补充(有可能补充不到)
+            // TODO 更好的切分
             if (uncheckedSplits.size() < THREAD_NUM) {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
                 uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplit, THREAD_NUM - uncheckedSplits.size()));
@@ -75,7 +76,7 @@ public class RepairSplitEnumerator {
         return allIds;
     }
 
-    private Deque<UncheckedSplit> splitUncheckedSplit(UncheckedSplit uncheckedSplit, int num) {
+    private Deque<UncheckedSplit> splitUncheckedSplit(UncheckedSplit uncheckedSplit, long num) {
         Deque<UncheckedSplit> result = new ConcurrentLinkedDeque<>();
         long l = uncheckedSplit.getL();
         long r = uncheckedSplit.getR();
@@ -84,16 +85,12 @@ public class RepairSplitEnumerator {
             return result;
         }
         // 小批次不再拆分
-        if (r - l <= BATCH_SIZE) {
+        // TODO 更好的切分
+        if (r - l <= BATCH_SIZE || r - l <= BATCH_SIZE * num) {
             result.addLast(uncheckedSplit);
             return result;
         }
         long interval = (r - l) / num;
-        // 小批次不再拆分
-        if (interval <= BATCH_SIZE) {
-            result.addLast(uncheckedSplit);
-            return result;
-        }
         for (int i = 0; i < num; i++) {
             if (i == num - 1) {
                 result.addLast(new UncheckedSplit(l, r));
