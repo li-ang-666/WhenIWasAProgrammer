@@ -70,16 +70,16 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     repairState.snapshotState(repairTask, bitmap);
                     bitmap.clear();
                 };
-                sql = new SQL().SELECT("id")
-                        .FROM(repairTask.getTableName())
-                        .ORDER_BY("id ASC");
-                // 读取state
-                if (repairState.getPosition(repairTask) > 0) {
-                    sql.WHERE("id > " + repairState.getPosition(repairTask));
-                }
-                // 单并发时, 直接从源头就过滤where
-                if (config.getFlinkConfig().getSourceParallel() == 1) {
-                    sql.WHERE(repairTask.getWhere());
+                // 有注释, 代表全表扫
+                if (repairTask.getWhere().matches("(.*?)/\\*(.*?)\\*/(.*)")) {
+                    sql = new SQL().SELECT("id")
+                            .FROM(repairTask.getTableName())
+                            .WHERE("/* from state */ id > " + repairState.getPosition(repairTask))
+                            .ORDER_BY("id ASC");
+                } else {
+                    sql = new SQL().SELECT("id")
+                            .FROM(repairTask.getTableName())
+                            .WHERE(repairTask.getWhere());
                 }
                 reportAndLog(String.format("execute sql: %s", sql));
             }

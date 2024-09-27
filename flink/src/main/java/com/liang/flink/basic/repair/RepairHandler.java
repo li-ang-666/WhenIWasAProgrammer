@@ -6,7 +6,6 @@ import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
-import com.liang.common.util.SqlUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +42,13 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             RepairTask repairTask = repairSplit.getRepairTask();
             Roaring64Bitmap bitmap = repairSplit.getBitmap();
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            String sql = new SQL().SELECT(repairTask.getColumns())
-                    .FROM(repairTask.getTableName())
-                    .WHERE(repairTask.getWhere())
-                    .WHERE("id in " + SqlUtils.formatValue(bitmap.stream().boxed().collect(Collectors.toList())))
-                    .ORDER_BY("id ASC")
-                    .toString();
+            String sql = bitmap.stream().boxed()
+                    .map(id -> new SQL().SELECT(repairTask.getColumns())
+                            .FROM(repairTask.getTableName())
+                            .WHERE(repairTask.getWhere())
+                            .WHERE("id = " + id)
+                            .toString())
+                    .collect(Collectors.joining(") UNION ALL (", "(", ")"));
             // 执行sql
             jdbcTemplate.streamQuery(true, sql, rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
