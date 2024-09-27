@@ -61,8 +61,9 @@ public class RepairSplitEnumerator {
             CountDownLatch countDownLatch = new CountDownLatch(uncheckedSplits.size());
             // 发布任务
             for (int i = 0; i < uncheckedSplits.size(); i++) {
-                SplitTask splitTask = new SplitTask(uncheckedSplits, allIds, repairTask, uncheckedSplits.removeFirst(), running, countDownLatch);
-                EXECUTOR_SERVICE.submit(splitTask);
+                UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
+                SplitTask splitTask = new SplitTask(uncheckedSplits, allIds, repairTask, uncheckedSplit, running, countDownLatch);
+                EXECUTOR_SERVICE.execute(splitTask);
             }
             // 等待任务结束
             countDownLatch.await();
@@ -127,7 +128,8 @@ public class RepairSplitEnumerator {
                 // 如果本线程 [自然] 执行完毕
                 if (res.isEmpty()) {
                     running.set(false);
-                    break;
+                    countDownLatch.countDown();
+                    return;
                 }
                 // 收集本批次id, 准备寻找下批次id
                 Roaring64Bitmap ids = Roaring64Bitmap.bitmapOf(res.stream().mapToLong(Long::longValue).toArray());
@@ -141,10 +143,10 @@ public class RepairSplitEnumerator {
                     if (l <= r) {
                         uncheckedSplits.addLast(new UncheckedSplit(l, r));
                     }
-                    break;
+                    countDownLatch.countDown();
+                    return;
                 }
             }
-            countDownLatch.countDown();
         }
     }
 
