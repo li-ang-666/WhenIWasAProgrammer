@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class RepairSplitEnumerator {
     private static final int BATCH_SIZE = 10000;
-    private static final int THREAD_NUM = 100;
+    private static final int THREAD_NUM = 128;
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(THREAD_NUM);
 
     public static void main(String[] args) throws Exception {

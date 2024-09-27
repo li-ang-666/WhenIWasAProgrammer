@@ -16,8 +16,8 @@ public class JedisPoolFactory implements IFactory<JedisPool> {
     static {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMinIdle(1);
-        jedisPoolConfig.setMaxIdle(16);
-        jedisPoolConfig.setMaxTotal(16);
+        jedisPoolConfig.setMaxIdle(128);
+        jedisPoolConfig.setMaxTotal(128);
         jedisPoolConfig.setMaxWait(Duration.ofMinutes(5));
         jedisPoolConfig.setTestOnBorrow(false);
         jedisPoolConfig.setTestOnReturn(false);
