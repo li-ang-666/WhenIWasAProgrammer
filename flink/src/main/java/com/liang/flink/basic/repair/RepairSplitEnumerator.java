@@ -33,7 +33,7 @@ public class RepairSplitEnumerator {
         long sec1 = System.currentTimeMillis() / 1000;
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
         long sec2 = System.currentTimeMillis() / 1000;
-        log.info("time : {} seconds, id num: {}", sec2 - sec1, allIds.getLongCardinality());
+        log.info("time: {} seconds, id num: {}", sec2 - sec1, allIds.getLongCardinality());
     }
 
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
