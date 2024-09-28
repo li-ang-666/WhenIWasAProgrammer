@@ -53,8 +53,8 @@ public class RepairSplitEnumerator {
         // 开始多线程遍历
         while (!uncheckedSplits.isEmpty()) {
             // 任务不足线程数, 则补充(有可能补充不到)
-            // TODO 更好的切分
-            if (uncheckedSplits.size() < THREAD_NUM) {
+            int num = uncheckedSplits.size();
+            while (num-- > 0 || uncheckedSplits.size() < THREAD_NUM) {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
                 uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplit, THREAD_NUM - uncheckedSplits.size()));
             }
