@@ -22,13 +22,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class RepairSplitEnumerator {
     private static final int BATCH_SIZE = 10000;
-    private static final int THREAD_NUM = 10;
+    private static final int THREAD_NUM = 128;
 
     public static void main(String[] args) throws Exception {
         ConfigUtils.setConfig(ConfigUtils.createConfig(null));
         RepairTask repairTask = new RepairTask();
-        repairTask.setSourceName("104.data_bid");
-        repairTask.setTableName("company_bid");
+        repairTask.setSourceName("116.prism");
+        repairTask.setTableName("equity_ratio");
 
         long sec1 = System.currentTimeMillis() / 1000;
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
