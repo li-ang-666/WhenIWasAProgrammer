@@ -55,13 +55,16 @@ public class RepairSplitEnumerator {
         while (!uncheckedSplits.isEmpty()) {
             // 分片不足线程数, 则补充(有可能补充不到)
             // 记录一下初始分片数
-            int num = uncheckedSplits.size();
-            while (num-- > 0 && uncheckedSplits.size() < THREAD_NUM) {
+            int canRemoveNum = uncheckedSplits.size();
+            int size = canRemoveNum;
+            while (canRemoveNum-- > 0 && size < THREAD_NUM) {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.remove();
-                uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplit, THREAD_NUM - uncheckedSplits.size()));
+                size--;
+                int diff = THREAD_NUM - size;
+                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(uncheckedSplit, diff);
+                uncheckedSplits.addAll(splitedUncheckedSplits);
+                size += splitedUncheckedSplits.size();
             }
-            // 分片补充后, 重新记录一下size
-            int size = uncheckedSplits.size();
             AtomicBoolean running = new AtomicBoolean(true);
             CountDownLatch countDownLatch = new CountDownLatch(size);
             // 发布任务
