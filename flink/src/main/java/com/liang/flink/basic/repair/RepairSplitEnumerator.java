@@ -38,7 +38,7 @@ public class RepairSplitEnumerator {
 
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
         Roaring64Bitmap allIds = new Roaring64Bitmap();
-        long sec1 = System.currentTimeMillis() / 1000;
+        long startTime = System.currentTimeMillis();
         // 查询边界
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
         String sql = new SQL().SELECT("MIN(id)", "MAX(id)")
@@ -76,8 +76,9 @@ public class RepairSplitEnumerator {
                 log.info("id num: {}", allIds.getLongCardinality());
             }
         }
-        long sec2 = System.currentTimeMillis() / 1000;
-        log.info("time: {} seconds, id num: {}", sec2 - sec1, allIds.getLongCardinality());
+        synchronized (allIds) {
+            log.info("time: {} seconds, id num: {}", (System.currentTimeMillis() - startTime) / 1000, allIds.getLongCardinality());
+        }
         executorService.shutdown();
         return allIds;
     }
