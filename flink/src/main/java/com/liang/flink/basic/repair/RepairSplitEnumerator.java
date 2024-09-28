@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.ArrayList;
@@ -44,24 +43,20 @@ public class RepairSplitEnumerator {
         String sql = new SQL().SELECT("MIN(id)", "MAX(id)")
                 .FROM(repairTask.getTableName())
                 .toString();
-        Tuple2<Long, Long> minAndMax = jdbcTemplate.queryForObject(sql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
-        long l = minAndMax.f0;
-        long r = minAndMax.f1;
         // 首次初始化待查询分片队列
-        UncheckedSplit firstUncheckedSplit = new UncheckedSplit(l, r);
+        UncheckedSplit firstUncheckedSplit = jdbcTemplate.queryForObject(sql, rs -> new UncheckedSplit(rs.getLong(1), rs.getLong(2)));
         Queue<UncheckedSplit> uncheckedSplits = new ConcurrentLinkedQueue<>(splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM));
         // 开始多线程遍历
         int times = 0;
         while (!uncheckedSplits.isEmpty()) {
             // 分片不足线程数, 则补充(有可能补充不到)
             // 记录一下初始分片数
-            int canRemoveNum = uncheckedSplits.size();
-            int size = canRemoveNum;
+            int size = uncheckedSplits.size();
+            int canRemoveNum = size;
             while (canRemoveNum-- > 0 && size < THREAD_NUM) {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.remove();
                 size--;
-                int diff = THREAD_NUM - size;
-                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(uncheckedSplit, diff);
+                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(uncheckedSplit, THREAD_NUM - size);
                 uncheckedSplits.addAll(splitedUncheckedSplits);
                 size += splitedUncheckedSplits.size();
             }
@@ -83,8 +78,8 @@ public class RepairSplitEnumerator {
         return allIds;
     }
 
-    private List<UncheckedSplit> splitUncheckedSplit(UncheckedSplit uncheckedSplit, int num) {
-        List<UncheckedSplit> result = new ArrayList<>(num);
+    private List<UncheckedSplit> splitUncheckedSplit(UncheckedSplit uncheckedSplit, int estimatedNum) {
+        List<UncheckedSplit> result = new ArrayList<>(estimatedNum);
         long l = uncheckedSplit.getL();
         long r = uncheckedSplit.getR();
         // 无效边界
@@ -97,7 +92,7 @@ public class RepairSplitEnumerator {
             return result;
         }
         // 可以拆分多个, 但不足num个
-        else if (r - l + 1 <= (long) num * BATCH_SIZE) {
+        else if (r - l + 1 <= (long) estimatedNum * BATCH_SIZE) {
             long interval = BATCH_SIZE - 1;
             while (l <= r) {
                 result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
@@ -107,7 +102,7 @@ public class RepairSplitEnumerator {
         }
         // 可以拆分为num个
         else {
-            long interval = ((r - l) / num) + 1;
+            long interval = ((r - l) / estimatedNum) + 1;
             while (l <= r) {
                 result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
