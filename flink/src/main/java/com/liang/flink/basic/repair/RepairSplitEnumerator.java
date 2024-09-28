@@ -13,11 +13,12 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -39,34 +40,28 @@ public class RepairSplitEnumerator {
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
         long startTime = System.currentTimeMillis();
         Roaring64Bitmap allIds = new Roaring64Bitmap();
-        // 查询边界
+        // 查询边界, 初始化待查询分片队列
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
         String sql = new SQL().SELECT("MIN(id)", "MAX(id)")
                 .FROM(repairTask.getTableName())
                 .toString();
-        // 首次初始化待查询分片队列
-        UncheckedSplit firstUncheckedSplit = jdbcTemplate.queryForObject(sql, rs -> new UncheckedSplit(rs.getLong(1), rs.getLong(2)));
-        Queue<UncheckedSplit> uncheckedSplits = new PriorityBlockingQueue<>(splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM));
+        Queue<UncheckedSplit> uncheckedSplits = new ConcurrentLinkedQueue<>(splitUncheckedSplit(jdbcTemplate.queryForObject(sql, rs -> new UncheckedSplit(rs.getLong(1), rs.getLong(2))), THREAD_NUM));
         // 循环处理分片队列
         int times = 0;
         while (!uncheckedSplits.isEmpty()) {
-            // 分片不足线程数, 则补充(有可能补充不到)
-            // 记录一下初始分片数
-            int size = uncheckedSplits.size();
-            int canPoll = size;
-            while (canPoll-- > 0 && size < THREAD_NUM) {
+            // 使用优先队列优先切分较大的分片, 尽可能补全分片数到线程数
+            PriorityQueue<UncheckedSplit> priorityQueue = new PriorityQueue<>(uncheckedSplits);
+            uncheckedSplits.clear();
+            while (priorityQueue.size() < THREAD_NUM) {
                 @SuppressWarnings("ConstantConditions")
-                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(uncheckedSplits.poll(), THREAD_NUM - size);
-                size--;
-                uncheckedSplits.addAll(splitedUncheckedSplits);
-                size += splitedUncheckedSplits.size();
+                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(priorityQueue.poll(), THREAD_NUM - priorityQueue.size());
+                priorityQueue.addAll(splitedUncheckedSplits);
             }
             // 执行任务
             AtomicBoolean running = new AtomicBoolean(true);
-            List<SplitTask> tasks = uncheckedSplits.parallelStream()
+            List<SplitTask> tasks = priorityQueue.parallelStream()
                     .map(split -> new SplitTask(uncheckedSplits, allIds, repairTask, split, running))
                     .collect(Collectors.toList());
-            uncheckedSplits.clear();
             executorService.invokeAll(tasks);
             if (++times % 10 == 0) {
                 log.info("times: {}, id num: {}", times, String.format("%,d", allIds.getLongCardinality()));
