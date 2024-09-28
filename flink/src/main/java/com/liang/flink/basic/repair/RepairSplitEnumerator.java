@@ -67,6 +67,7 @@ public class RepairSplitEnumerator {
                     .map(split -> new SplitTask(uncheckedSplits, allIds, repairTask, split, running))
                     .collect(Collectors.toList());
             executorService.invokeAll(tasks);
+            // 汇报log
             if (++times % 10 == 0) {
                 log.info("times: {}, id num: {}", times, String.format("%,d", allIds.getLongCardinality()));
             }
