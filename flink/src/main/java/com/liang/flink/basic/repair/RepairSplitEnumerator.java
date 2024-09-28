@@ -32,14 +32,12 @@ public class RepairSplitEnumerator {
         repairTask.setSourceName("116.prism");
         repairTask.setTableName("equity_ratio");
 
-        long sec1 = System.currentTimeMillis() / 1000;
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
-        long sec2 = System.currentTimeMillis() / 1000;
-        log.info("time: {} seconds, id num: {}", sec2 - sec1, allIds.getLongCardinality());
     }
 
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
         Roaring64Bitmap allIds = new Roaring64Bitmap();
+        long sec1 = System.currentTimeMillis() / 1000;
         // 查询边界
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
         String sql = new SQL().SELECT("MIN(id)", "MAX(id)")
@@ -52,6 +50,7 @@ public class RepairSplitEnumerator {
         UncheckedSplit firstUncheckedSplit = new UncheckedSplit(l, r);
         Queue<UncheckedSplit> uncheckedSplits = new ConcurrentLinkedQueue<>(splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM));
         // 开始多线程遍历
+        int times = 0;
         while (!uncheckedSplits.isEmpty()) {
             // 分片不足线程数, 则补充(有可能补充不到)
             // 记录一下初始分片数
@@ -75,8 +74,12 @@ public class RepairSplitEnumerator {
             }
             // 等待任务结束
             countDownLatch.await();
-            log.info("id num: {}", allIds.getLongCardinality());
+            if (++times % 10 == 0) {
+                log.info("id num: {}", allIds.getLongCardinality());
+            }
         }
+        long sec2 = System.currentTimeMillis() / 1000;
+        log.info("time: {} seconds, id num: {}", sec2 - sec1, allIds.getLongCardinality());
         executorService.shutdown();
         return allIds;
     }
