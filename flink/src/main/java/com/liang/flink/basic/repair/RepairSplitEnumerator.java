@@ -14,11 +14,12 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class RepairSplitEnumerator {
@@ -65,15 +66,12 @@ public class RepairSplitEnumerator {
                 size += splitedUncheckedSplits.size();
             }
             AtomicBoolean running = new AtomicBoolean(true);
-            CountDownLatch countDownLatch = new CountDownLatch(size);
-            // 发布任务
-            for (int i = 0; i < size; i++) {
-                UncheckedSplit uncheckedSplit = uncheckedSplits.remove();
-                SplitTask splitTask = new SplitTask(uncheckedSplits, allIds, repairTask, uncheckedSplit, running, countDownLatch);
-                executorService.execute(splitTask);
-            }
-            // 等待任务结束
-            countDownLatch.await();
+            // 执行任务
+            List<SplitTask> tasks = uncheckedSplits.parallelStream()
+                    .map(split -> new SplitTask(uncheckedSplits, allIds, repairTask, split, running))
+                    .collect(Collectors.toList());
+            uncheckedSplits.clear();
+            executorService.invokeAll(tasks);
             if (++times % 10 == 0) {
                 log.info("id num: {}", allIds.getLongCardinality());
             }
@@ -118,16 +116,15 @@ public class RepairSplitEnumerator {
     }
 
     @RequiredArgsConstructor
-    private static final class SplitTask implements Runnable {
+    private static final class SplitTask implements Callable<Void> {
         private final Queue<UncheckedSplit> uncheckedSplits;
         private final Roaring64Bitmap allIds;
         private final RepairTask repairTask;
         private final UncheckedSplit uncheckedSplit;
         private final AtomicBoolean running;
-        private final CountDownLatch countDownLatch;
 
         @Override
-        public void run() {
+        public Void call() {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             long l = uncheckedSplit.getL();
             long r = uncheckedSplit.getR();
@@ -143,7 +140,7 @@ public class RepairSplitEnumerator {
                 // 如果本线程 [自然] 执行完毕
                 if (res.isEmpty()) {
                     running.set(false);
-                    break;
+                    return null;
                 }
                 // 收集本批次id, 准备寻找下批次id
                 Roaring64Bitmap ids = Roaring64Bitmap.bitmapOf(res.parallelStream().mapToLong(Long::longValue).toArray());
@@ -157,10 +154,9 @@ public class RepairSplitEnumerator {
                     if (l <= r) {
                         uncheckedSplits.add(new UncheckedSplit(l, r));
                     }
-                    break;
+                    return null;
                 }
             }
-            countDownLatch.countDown();
         }
     }
 
