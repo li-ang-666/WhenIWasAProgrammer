@@ -85,11 +85,11 @@ public class RepairSplitEnumerator {
         // 无效边界
         if (l > r) {
         }
-        // 不足或者正好一个
+        // 不足或者正好 1 个
         else if (r - l + 1 <= BATCH_SIZE) {
             result.add(uncheckedSplit);
         }
-        // 可以拆分多个, 但不足 estimatedNum 个
+        // 不足或者正好 estimatedNum 个
         else if (r - l + 1 < (long) estimatedNum * BATCH_SIZE) {
             long interval = BATCH_SIZE - 1;
             while (l <= r) {
@@ -97,10 +97,9 @@ public class RepairSplitEnumerator {
                 l = l + interval + 1;
             }
         }
-        // 可以拆分为 estimatedNum 个
-        // TODO 检查一下刚好切分为 estimatedNum 的情况
+        // 大分片, 稳定拆分为 estimatedNum 个
         else {
-            long interval = ((r - l) / estimatedNum) - 1;
+            long interval = ((r - l) / estimatedNum) + 1;
             while (l <= r) {
                 result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
