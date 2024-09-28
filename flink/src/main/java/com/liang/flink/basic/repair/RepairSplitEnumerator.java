@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class RepairSplitEnumerator {
     private static final int BATCH_SIZE = 10000;
-    private static final int THREAD_NUM = 128;
+    private static final int THREAD_NUM = 10;
 
     public static void main(String[] args) throws Exception {
         ConfigUtils.setConfig(ConfigUtils.createConfig(null));
@@ -80,26 +80,33 @@ public class RepairSplitEnumerator {
         Deque<UncheckedSplit> result = new ConcurrentLinkedDeque<>();
         long l = uncheckedSplit.getL();
         long r = uncheckedSplit.getR();
-        // 过滤无效数据
+        // 无效边界
         if (l > r) {
             return result;
         }
-        // 小批次不再拆分
-        // TODO 更好的切分
-        if (r - l <= BATCH_SIZE || r - l <= BATCH_SIZE * num) {
+        // 不足以拆分为多个
+        else if (r - l + 1 <= BATCH_SIZE) {
             result.addLast(uncheckedSplit);
             return result;
         }
-        long interval = (r - l) / num;
-        for (int i = 0; i < num; i++) {
-            if (i == num - 1) {
-                result.addLast(new UncheckedSplit(l, r));
-            } else {
-                result.addLast(new UncheckedSplit(l, l + interval));
+        // 可以拆分多个, 但不足num个
+        else if (r - l + 1 <= num * BATCH_SIZE) {
+            long interval = BATCH_SIZE - 1;
+            while (l <= r) {
+                result.addLast(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
             }
+            return result;
         }
-        return result;
+        // 可以拆分为num个
+        else {
+            long interval = (r - l) / num;
+            while (l <= r) {
+                result.addLast(new UncheckedSplit(l, Math.min(l + interval, r)));
+                l = l + interval + 1;
+            }
+            return result;
+        }
     }
 
     @RequiredArgsConstructor
