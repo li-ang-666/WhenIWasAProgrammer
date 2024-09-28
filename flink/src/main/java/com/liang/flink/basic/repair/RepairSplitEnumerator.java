@@ -152,8 +152,8 @@ public class RepairSplitEnumerator {
                     allIds.add(ids.parallelStream().mapToLong(e -> e).toArray());
                 }
                 l = ids.get(ids.size() - 1) + 1;
-                // 如果本线程 [被动] 执行完毕 && 仍需要多次查询
-                if (!running.get() && r - l + 1 > BATCH_SIZE) {
+                // 如果本线程 [被动] 执行完毕
+                if (!running.get()) {
                     // 返还未处理分片
                     if (l <= r) {
                         uncheckedSplits.add(new UncheckedSplit(l, r));
