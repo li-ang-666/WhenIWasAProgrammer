@@ -52,7 +52,8 @@ public class RepairSplitEnumerator {
             // 使用优先队列优先切分较大的分片, 尽可能补全分片数到线程数
             PriorityQueue<UncheckedSplit> priorityQueue = new PriorityQueue<>(uncheckedSplits);
             uncheckedSplits.clear();
-            while (priorityQueue.size() < THREAD_NUM) {
+            int i = THREAD_NUM;
+            while (i-- > 0 && priorityQueue.size() < THREAD_NUM) {
                 @SuppressWarnings("ConstantConditions")
                 List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(priorityQueue.poll(), THREAD_NUM - priorityQueue.size());
                 priorityQueue.addAll(splitedUncheckedSplits);
