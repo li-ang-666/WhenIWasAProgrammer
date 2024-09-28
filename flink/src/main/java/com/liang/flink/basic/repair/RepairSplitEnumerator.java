@@ -11,9 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.Deque;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RepairSplitEnumerator {
     private static final int BATCH_SIZE = 10000;
     private static final int THREAD_NUM = 128;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUM);
 
     public static void main(String[] args) throws Exception {
         ConfigUtils.setConfig(ConfigUtils.createConfig(null));
@@ -37,7 +39,6 @@ public class RepairSplitEnumerator {
     }
 
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
-        ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUM);
         Roaring64Bitmap allIds = new Roaring64Bitmap();
         // 查询边界
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
@@ -49,14 +50,14 @@ public class RepairSplitEnumerator {
         long r = minAndMax.f1;
         // 首次初始化待查询分片队列
         UncheckedSplit firstUncheckedSplit = new UncheckedSplit(l, r);
-        Deque<UncheckedSplit> uncheckedSplits = splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM);
+        Queue<UncheckedSplit> uncheckedSplits = new ConcurrentLinkedQueue<>(splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM));
         // 开始多线程遍历
         while (!uncheckedSplits.isEmpty()) {
             // 分片不足线程数, 则补充(有可能补充不到)
             // 记录一下初始分片数
             int num = uncheckedSplits.size();
             while (num-- > 0 && uncheckedSplits.size() < THREAD_NUM) {
-                UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
+                UncheckedSplit uncheckedSplit = uncheckedSplits.remove();
                 uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplit, THREAD_NUM - uncheckedSplits.size()));
             }
             // 分片补充后, 重新记录一下size
@@ -65,7 +66,7 @@ public class RepairSplitEnumerator {
             CountDownLatch countDownLatch = new CountDownLatch(size);
             // 发布任务
             for (int i = 0; i < size; i++) {
-                UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
+                UncheckedSplit uncheckedSplit = uncheckedSplits.remove();
                 SplitTask splitTask = new SplitTask(uncheckedSplits, allIds, repairTask, uncheckedSplit, running, countDownLatch);
                 executorService.execute(splitTask);
             }
@@ -77,8 +78,8 @@ public class RepairSplitEnumerator {
         return allIds;
     }
 
-    private Deque<UncheckedSplit> splitUncheckedSplit(UncheckedSplit uncheckedSplit, long num) {
-        Deque<UncheckedSplit> result = new ConcurrentLinkedDeque<>();
+    private List<UncheckedSplit> splitUncheckedSplit(UncheckedSplit uncheckedSplit, int num) {
+        List<UncheckedSplit> result = new ArrayList<>(num);
         long l = uncheckedSplit.getL();
         long r = uncheckedSplit.getR();
         // 无效边界
@@ -87,14 +88,14 @@ public class RepairSplitEnumerator {
         }
         // 不足以拆分为多个
         else if (r - l + 1 <= BATCH_SIZE) {
-            result.addLast(uncheckedSplit);
+            result.add(uncheckedSplit);
             return result;
         }
         // 可以拆分多个, 但不足num个
-        else if (r - l + 1 <= num * BATCH_SIZE) {
+        else if (r - l + 1 <= (long) num * BATCH_SIZE) {
             long interval = BATCH_SIZE - 1;
             while (l <= r) {
-                result.addLast(new UncheckedSplit(l, Math.min(l + interval, r)));
+                result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
             }
             return result;
@@ -103,7 +104,7 @@ public class RepairSplitEnumerator {
         else {
             long interval = ((r - l) / num) + 1;
             while (l <= r) {
-                result.addLast(new UncheckedSplit(l, Math.min(l + interval, r)));
+                result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
             }
             return result;
@@ -112,7 +113,7 @@ public class RepairSplitEnumerator {
 
     @RequiredArgsConstructor
     private static final class SplitTask implements Runnable {
-        private final Deque<UncheckedSplit> uncheckedSplits;
+        private final Queue<UncheckedSplit> uncheckedSplits;
         private final Roaring64Bitmap allIds;
         private final RepairTask repairTask;
         private final UncheckedSplit uncheckedSplit;
@@ -148,7 +149,7 @@ public class RepairSplitEnumerator {
                 if (!running.get()) {
                     // 补充未处理分片
                     if (l <= r) {
-                        uncheckedSplits.addLast(new UncheckedSplit(l, r));
+                        uncheckedSplits.add(new UncheckedSplit(l, r));
                     }
                     break;
                 }
