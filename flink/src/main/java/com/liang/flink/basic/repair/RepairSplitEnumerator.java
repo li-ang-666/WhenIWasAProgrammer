@@ -146,7 +146,7 @@ public class RepairSplitEnumerator {
                     break;
                 }
                 // 收集本批次id, 准备寻找下批次id
-                Roaring64Bitmap ids = Roaring64Bitmap.bitmapOf(res.stream().mapToLong(Long::longValue).toArray());
+                Roaring64Bitmap ids = Roaring64Bitmap.bitmapOf(res.parallelStream().mapToLong(Long::longValue).toArray());
                 synchronized (allIds) {
                     allIds.or(ids);
                 }
