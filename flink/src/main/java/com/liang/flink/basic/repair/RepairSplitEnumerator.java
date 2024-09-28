@@ -125,14 +125,19 @@ public class RepairSplitEnumerator {
             long l = uncheckedSplit.getL();
             long r = uncheckedSplit.getR();
             while (true) {
-                String sql = new SQL().SELECT("id")
-                        .FROM(repairTask.getTableName())
-                        .WHERE("id >= " + l)
-                        .WHERE("id <= " + r)
-                        .ORDER_BY("id ASC")
-                        .LIMIT(BATCH_SIZE)
-                        .toString();
-                List<Long> res = jdbcTemplate.queryForList(sql, rs -> rs.getLong(1));
+                List<Long> res;
+                if (l > r) {
+                    res = new ArrayList<>();
+                } else {
+                    String sql = new SQL().SELECT("id")
+                            .FROM(repairTask.getTableName())
+                            .WHERE("id >= " + l)
+                            .WHERE("id <= " + r)
+                            .ORDER_BY("id ASC")
+                            .LIMIT(BATCH_SIZE)
+                            .toString();
+                    res = jdbcTemplate.queryForList(sql, rs -> rs.getLong(1));
+                }
                 // 如果本线程 [自然] 执行完毕
                 if (res.isEmpty()) {
                     running.set(false);
@@ -143,7 +148,6 @@ public class RepairSplitEnumerator {
                 synchronized (allIds) {
                     allIds.or(ids);
                 }
-                // TODO
                 l = ids.last() + 1;
                 // 如果本线程 [被动] 执行完毕
                 if (!running.get()) {
