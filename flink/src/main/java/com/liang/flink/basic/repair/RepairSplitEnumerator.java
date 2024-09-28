@@ -145,7 +145,7 @@ public class RepairSplitEnumerator {
                 }
                 // 收集本批次id, 准备寻找下批次id
                 synchronized (allIds) {
-                    allIds.add(ids.parallelStream().mapToLong(Long::longValue).toArray());
+                    allIds.add(ids.parallelStream().mapToLong(e -> e).toArray());
                 }
                 l = ids.get(ids.size() - 1) + 1;
                 // 如果本线程 [被动] 执行完毕
