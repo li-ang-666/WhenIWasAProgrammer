@@ -125,9 +125,9 @@ public class RepairSplitEnumerator {
             long l = uncheckedSplit.getL();
             long r = uncheckedSplit.getR();
             while (true) {
-                List<Long> res;
+                List<Long> ids;
                 if (l > r) {
-                    res = new ArrayList<>();
+                    ids = new ArrayList<>();
                 } else {
                     String sql = new SQL().SELECT("id")
                             .FROM(repairTask.getTableName())
@@ -136,19 +136,18 @@ public class RepairSplitEnumerator {
                             .ORDER_BY("id ASC")
                             .LIMIT(BATCH_SIZE)
                             .toString();
-                    res = jdbcTemplate.queryForList(sql, rs -> rs.getLong(1));
+                    ids = jdbcTemplate.queryForList(sql, rs -> rs.getLong(1));
                 }
                 // 如果本线程 [自然] 执行完毕
-                if (res.isEmpty()) {
+                if (ids.isEmpty()) {
                     running.set(false);
                     return null;
                 }
                 // 收集本批次id, 准备寻找下批次id
-                Roaring64Bitmap ids = Roaring64Bitmap.bitmapOf(res.parallelStream().mapToLong(Long::longValue).toArray());
                 synchronized (allIds) {
-                    allIds.or(ids);
+                    allIds.add(ids.parallelStream().mapToLong(Long::longValue).toArray());
                 }
-                l = ids.last() + 1;
+                l = ids.get(ids.size() - 1) + 1;
                 // 如果本线程 [被动] 执行完毕
                 if (!running.get()) {
                     // 补充未处理分片
