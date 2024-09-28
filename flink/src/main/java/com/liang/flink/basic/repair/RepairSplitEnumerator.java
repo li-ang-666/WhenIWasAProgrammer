@@ -90,7 +90,7 @@ public class RepairSplitEnumerator {
             result.add(uncheckedSplit);
         }
         // 不足或者正好 estimatedNum 个
-        else if (r - l + 1 < (long) estimatedNum * BATCH_SIZE) {
+        else if (r - l + 1 <= (long) estimatedNum * BATCH_SIZE) {
             long interval = BATCH_SIZE - 1;
             while (l <= r) {
                 result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
