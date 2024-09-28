@@ -52,7 +52,7 @@ public class RepairSplitEnumerator {
         Deque<UncheckedSplit> uncheckedSplits = splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM);
         // 开始多线程遍历
         while (!uncheckedSplits.isEmpty()) {
-            // 任务不足线程数, 则补充(有可能补充不到)
+            // 分片不足线程数, 则补充(有可能补充不到)
             int num = uncheckedSplits.size();
             while (num-- > 0 || uncheckedSplits.size() < THREAD_NUM) {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
