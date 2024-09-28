@@ -65,8 +65,8 @@ public class RepairSplitEnumerator {
                 uncheckedSplits.addAll(splitedUncheckedSplits);
                 size += splitedUncheckedSplits.size();
             }
-            AtomicBoolean running = new AtomicBoolean(true);
             // 执行任务
+            AtomicBoolean running = new AtomicBoolean(true);
             List<SplitTask> tasks = uncheckedSplits.parallelStream()
                     .map(split -> new SplitTask(uncheckedSplits, allIds, repairTask, split, running))
                     .collect(Collectors.toList());
