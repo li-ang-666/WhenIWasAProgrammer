@@ -55,7 +55,7 @@ public class RepairSplitEnumerator {
             while (priorityQueue.size() < THREAD_NUM) {
                 @SuppressWarnings("ConstantConditions")
                 List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(priorityQueue.poll(), THREAD_NUM - priorityQueue.size());
-                if (splitedUncheckedSplits.size() < THREAD_NUM - priorityQueue.size()) {
+                if (splitedUncheckedSplits.size() < (THREAD_NUM - priorityQueue.size())) {
                     break;
                 }
                 priorityQueue.addAll(splitedUncheckedSplits);
