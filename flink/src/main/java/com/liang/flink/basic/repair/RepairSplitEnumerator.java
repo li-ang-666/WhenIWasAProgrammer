@@ -54,7 +54,7 @@ public class RepairSplitEnumerator {
             // 分片不足线程数, 则补充(有可能补充不到)
             // 记录一下初始分片数
             int size = uncheckedSplits.size();
-            // 使用优先队列, 优先获取边界差距大的分片, 进行切分
+            // 使用优先队列, 优先获取边界差距较大的分片, 进行切分
             PriorityQueue<UncheckedSplit> priorityUncheckedSplits = new PriorityQueue<>(uncheckedSplits);
             while (!priorityUncheckedSplits.isEmpty() && size < THREAD_NUM) {
                 UncheckedSplit maxIntervalUncheckedSplit = priorityUncheckedSplits.poll();
