@@ -68,7 +68,7 @@ public class RepairSplitEnumerator {
             uncheckedSplits.clear();
             executorService.invokeAll(tasks);
             if (++times % 10 == 0) {
-                log.info("id num: {}", String.format("%,d", allIds.getLongCardinality()));
+                log.info("times: {}, id num: {}", times, String.format("%,d", allIds.getLongCardinality()));
             }
         }
         executorService.shutdown();
