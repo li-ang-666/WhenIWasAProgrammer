@@ -48,7 +48,7 @@ public class RepairSplitEnumerator {
         // 首次初始化待查询分片队列
         UncheckedSplit firstUncheckedSplit = jdbcTemplate.queryForObject(sql, rs -> new UncheckedSplit(rs.getLong(1), rs.getLong(2)));
         Queue<UncheckedSplit> uncheckedSplits = new ConcurrentLinkedQueue<>(splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM));
-        // 开始多线程遍历
+        // 循环处理分片队列
         int times = 0;
         while (!uncheckedSplits.isEmpty()) {
             // 分片不足线程数, 则补充(有可能补充不到)
