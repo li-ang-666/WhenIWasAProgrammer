@@ -100,7 +100,7 @@ public class RepairSplitEnumerator {
         }
         // 可以拆分为num个
         else {
-            long interval = (r - l) / num;
+            long interval = ((r - l) / num) + 1;
             while (l <= r) {
                 result.addLast(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
