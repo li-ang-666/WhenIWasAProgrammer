@@ -68,9 +68,7 @@ public class RepairSplitEnumerator {
             }
         }
         executorService.shutdown();
-        synchronized (allIds) {
-            log.info("time: {} seconds, id num: {}", (System.currentTimeMillis() - startTime) / 1000, String.format("%,d", allIds.getLongCardinality()));
-        }
+        log.info("time: {} seconds, id num: {}", (System.currentTimeMillis() - startTime) / 1000, String.format("%,d", allIds.getLongCardinality()));
         return allIds;
     }
 
