@@ -77,18 +77,17 @@ public class RepairSplitEnumerator {
         return allIds;
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     private List<UncheckedSplit> splitUncheckedSplit(UncheckedSplit uncheckedSplit, int estimatedNum) {
         List<UncheckedSplit> result = new ArrayList<>(estimatedNum);
         long l = uncheckedSplit.getL();
         long r = uncheckedSplit.getR();
         // 无效边界
         if (l > r) {
-            return result;
         }
         // 不足以拆分为多个
         else if (r - l + 1 <= BATCH_SIZE) {
             result.add(uncheckedSplit);
-            return result;
         }
         // 可以拆分多个, 但不足num个
         else if (r - l + 1 <= (long) estimatedNum * BATCH_SIZE) {
@@ -97,7 +96,6 @@ public class RepairSplitEnumerator {
                 result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
             }
-            return result;
         }
         // 可以拆分为num个
         else {
@@ -106,8 +104,8 @@ public class RepairSplitEnumerator {
                 result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
             }
-            return result;
         }
+        return result;
     }
 
     @RequiredArgsConstructor
