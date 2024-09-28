@@ -55,7 +55,7 @@ public class RepairSplitEnumerator {
             // 分片不足线程数, 则补充(有可能补充不到)
             // 记录一下初始分片数
             int num = uncheckedSplits.size();
-            while (num-- > 0 || uncheckedSplits.size() < THREAD_NUM) {
+            while (num-- > 0 && uncheckedSplits.size() < THREAD_NUM) {
                 UncheckedSplit uncheckedSplit = uncheckedSplits.removeFirst();
                 uncheckedSplits.addAll(splitUncheckedSplit(uncheckedSplit, THREAD_NUM - uncheckedSplits.size()));
             }
