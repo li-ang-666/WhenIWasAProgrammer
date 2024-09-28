@@ -98,8 +98,9 @@ public class RepairSplitEnumerator {
             }
         }
         // 可以拆分为 estimatedNum 个
+        // TODO 检查一下刚好切分为 estimatedNum 的情况
         else {
-            long interval = ((r - l) / estimatedNum) + 1;
+            long interval = ((r - l) / estimatedNum) - 1;
             while (l <= r) {
                 result.add(new UncheckedSplit(l, Math.min(l + interval, r)));
                 l = l + interval + 1;
