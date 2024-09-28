@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class RepairSplitEnumerator {
-    private static final int BATCH_SIZE = 10000;
+    private static final int BATCH_SIZE = 1000;
     private static final int THREAD_NUM = 128;
     private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUM);
 
