@@ -13,12 +13,11 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -33,7 +32,7 @@ public class RepairSplitEnumerator {
         RepairTask repairTask = new RepairTask();
         repairTask.setSourceName("116.prism");
         repairTask.setTableName("equity_ratio");
-
+        @SuppressWarnings("unused")
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
     }
 
@@ -47,20 +46,18 @@ public class RepairSplitEnumerator {
                 .toString();
         // 首次初始化待查询分片队列
         UncheckedSplit firstUncheckedSplit = jdbcTemplate.queryForObject(sql, rs -> new UncheckedSplit(rs.getLong(1), rs.getLong(2)));
-        Queue<UncheckedSplit> uncheckedSplits = new ConcurrentLinkedQueue<>(splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM));
+        Queue<UncheckedSplit> uncheckedSplits = new PriorityBlockingQueue<>(splitUncheckedSplit(firstUncheckedSplit, THREAD_NUM));
         // 循环处理分片队列
         int times = 0;
         while (!uncheckedSplits.isEmpty()) {
             // 分片不足线程数, 则补充(有可能补充不到)
             // 记录一下初始分片数
             int size = uncheckedSplits.size();
-            // 使用优先队列, 优先获取边界差距较大的分片, 进行切分
-            PriorityQueue<UncheckedSplit> priorityUncheckedSplits = new PriorityQueue<>(uncheckedSplits);
-            while (!priorityUncheckedSplits.isEmpty() && size < THREAD_NUM) {
-                UncheckedSplit maxIntervalUncheckedSplit = priorityUncheckedSplits.poll();
-                uncheckedSplits.remove(maxIntervalUncheckedSplit);
+            int canPoll = size;
+            while (canPoll-- > 0 && size < THREAD_NUM) {
+                @SuppressWarnings("ConstantConditions")
+                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(uncheckedSplits.poll(), THREAD_NUM - size);
                 size--;
-                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(maxIntervalUncheckedSplit, THREAD_NUM - size);
                 uncheckedSplits.addAll(splitedUncheckedSplits);
                 size += splitedUncheckedSplits.size();
             }
