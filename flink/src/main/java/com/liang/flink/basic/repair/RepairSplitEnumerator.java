@@ -8,10 +8,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class RepairSplitEnumerator {
-    private static final int BATCH_SIZE = 1000;
+    private static final int BATCH_SIZE = 10000;
     private static final int THREAD_NUM = 128;
     private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUM);
 
@@ -52,11 +54,13 @@ public class RepairSplitEnumerator {
             // 分片不足线程数, 则补充(有可能补充不到)
             // 记录一下初始分片数
             int size = uncheckedSplits.size();
-            int canRemoveNum = size;
-            while (canRemoveNum-- > 0 && size < THREAD_NUM) {
-                UncheckedSplit uncheckedSplit = uncheckedSplits.remove();
+            // 使用优先队列, 优先获取边界差距大的分片, 进行切分
+            PriorityQueue<UncheckedSplit> priorityUncheckedSplits = new PriorityQueue<>(uncheckedSplits);
+            while (!priorityUncheckedSplits.isEmpty() && size < THREAD_NUM) {
+                UncheckedSplit maxIntervalUncheckedSplit = priorityUncheckedSplits.poll();
+                uncheckedSplits.remove(maxIntervalUncheckedSplit);
                 size--;
-                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(uncheckedSplit, THREAD_NUM - size);
+                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(maxIntervalUncheckedSplit, THREAD_NUM - size);
                 uncheckedSplits.addAll(splitedUncheckedSplits);
                 size += splitedUncheckedSplits.size();
             }
@@ -162,8 +166,21 @@ public class RepairSplitEnumerator {
 
     @Data
     @AllArgsConstructor
-    private static final class UncheckedSplit {
+    private static final class UncheckedSplit implements Comparable<UncheckedSplit> {
         private long l;
         private long r;
+
+        @Override
+        public int compareTo(@NotNull UncheckedSplit another) {
+            long diff = this.r - this.l;
+            long anotherDiff = another.r - another.l;
+            if (anotherDiff - diff > 0) {
+                return 1;
+            } else if (anotherDiff - diff < 0) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
     }
 }
