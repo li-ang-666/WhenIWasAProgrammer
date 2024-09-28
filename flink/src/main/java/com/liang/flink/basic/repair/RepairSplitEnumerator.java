@@ -30,8 +30,8 @@ public class RepairSplitEnumerator {
     public static void main(String[] args) throws Exception {
         ConfigUtils.setConfig(ConfigUtils.createConfig(null));
         RepairTask repairTask = new RepairTask();
-        repairTask.setSourceName("116.prism");
-        repairTask.setTableName("equity_ratio");
+        repairTask.setSourceName("435.company_base");
+        repairTask.setTableName("company_index");
 
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
     }
@@ -73,11 +73,11 @@ public class RepairSplitEnumerator {
             uncheckedSplits.clear();
             executorService.invokeAll(tasks);
             if (++times % 10 == 0) {
-                log.info("id num: {}", allIds.getLongCardinality());
+                log.info("id num: {}", String.format("%,d", allIds.getLongCardinality()));
             }
         }
         synchronized (allIds) {
-            log.info("time: {} seconds, id num: {}", (System.currentTimeMillis() - startTime) / 1000, allIds.getLongCardinality());
+            log.info("time: {} seconds, id num: {}", (System.currentTimeMillis() - startTime) / 1000, String.format("%,d", allIds.getLongCardinality()));
         }
         executorService.shutdown();
         return allIds;
