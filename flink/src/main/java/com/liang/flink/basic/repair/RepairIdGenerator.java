@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,32 +36,28 @@ public class RepairIdGenerator {
 
     @Slf4j
     @RequiredArgsConstructor
-    private static final class StreamQueryTask implements Callable<Void> {
+    private static final class StreamQueryTask implements Runnable {
         private final RepairTask repairTask;
         private final String orderBySyntax;
         private final Roaring64Bitmap allIds;
         private final AtomicBoolean running;
 
         @Override
-        public Void call() {
+        public void run() {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             String sql = String.format("SELECT id FROM %s ORDER BY %s", repairTask.getTableName(), orderBySyntax);
-            try {
-                jdbcTemplate.streamQuery(true, sql, rs -> {
-                    if (running.get()) {
-                        long id = rs.getLong(1);
-                        synchronized (allIds) {
-                            if (running.get() && !allIds.contains(id)) {
-                                allIds.add(id);
-                            } else {
-                                running.set(false);
-                            }
+            jdbcTemplate.streamQuery(true, sql, rs -> {
+                if (running.get()) {
+                    long id = rs.getLong(1);
+                    synchronized (allIds) {
+                        if (running.get() && !allIds.contains(id)) {
+                            allIds.add(id);
+                        } else {
+                            running.set(false);
                         }
                     }
-                });
-            } catch (Exception ignore) {
-            }
-            return null;
+                }
+            });
         }
     }
 }
