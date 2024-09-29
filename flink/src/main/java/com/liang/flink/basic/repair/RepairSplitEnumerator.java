@@ -61,8 +61,7 @@ public class RepairSplitEnumerator {
                     priorityQueue.add(maxIntervalSplit);
                     break;
                 } else {
-                    List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(maxIntervalSplit, THREAD_NUM - priorityQueue.size());
-                    priorityQueue.addAll(splitedUncheckedSplits);
+                    priorityQueue.addAll(splitUncheckedSplit(maxIntervalSplit, THREAD_NUM - priorityQueue.size()));
                 }
             }
             // 执行任务
