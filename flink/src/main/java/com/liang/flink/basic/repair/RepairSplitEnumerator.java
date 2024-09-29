@@ -28,15 +28,17 @@ public class RepairSplitEnumerator {
     private static final int THREAD_NUM = 128;
     private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUM);
 
+    @SuppressWarnings("unused")
     public static void main(String[] args) throws Exception {
         ConfigUtils.setConfig(ConfigUtils.createConfig(null));
         RepairTask repairTask = new RepairTask();
         repairTask.setSourceName("116.prism");
         repairTask.setTableName("equity_ratio");
-        @SuppressWarnings("unused")
+
         Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
     }
 
+    @SuppressWarnings("ConstantConditions")
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
         long startTime = System.currentTimeMillis();
         Roaring64Bitmap allIds = new Roaring64Bitmap();
@@ -49,17 +51,19 @@ public class RepairSplitEnumerator {
         // 循环处理分片队列
         int times = 0;
         while (!uncheckedSplits.isEmpty()) {
-            // 使用优先队列优先切分较大的分片, 尽可能补全分片数到线程数
+            // 使用优先队列优先切分最大的分片, 尽可能补全分片数到线程数
             PriorityQueue<UncheckedSplit> priorityQueue = new PriorityQueue<>(uncheckedSplits);
-            uncheckedSplits.clear();
+            executorService.submit(uncheckedSplits::clear);
             while (priorityQueue.size() < THREAD_NUM) {
-                @SuppressWarnings("ConstantConditions")
-                List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(priorityQueue.poll(), THREAD_NUM - priorityQueue.size());
-                // 没有大分片, 跳出
-                if (splitedUncheckedSplits.size() < (THREAD_NUM - priorityQueue.size())) {
+                UncheckedSplit maxIntervalSplit = priorityQueue.poll();
+                // 最大分片也只能切为1片, 则不再切
+                if (maxIntervalSplit.getR() - maxIntervalSplit.getL() + 1 <= BATCH_SIZE) {
+                    priorityQueue.add(maxIntervalSplit);
                     break;
+                } else {
+                    List<UncheckedSplit> splitedUncheckedSplits = splitUncheckedSplit(maxIntervalSplit, THREAD_NUM - priorityQueue.size());
+                    priorityQueue.addAll(splitedUncheckedSplits);
                 }
-                priorityQueue.addAll(splitedUncheckedSplits);
             }
             // 执行任务
             AtomicBoolean running = new AtomicBoolean(true);
