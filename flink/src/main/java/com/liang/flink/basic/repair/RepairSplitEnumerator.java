@@ -3,7 +3,6 @@ package com.liang.flink.basic.repair;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
-import com.liang.common.util.ConfigUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -27,16 +26,6 @@ public class RepairSplitEnumerator {
     private static final int BATCH_SIZE = 10000;
     private static final int THREAD_NUM = 128;
     private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUM);
-
-    @SuppressWarnings("unused")
-    public static void main(String[] args) throws Exception {
-        ConfigUtils.setConfig(ConfigUtils.createConfig(null));
-        RepairTask repairTask = new RepairTask();
-        repairTask.setSourceName("116.prism");
-        repairTask.setTableName("equity_ratio");
-
-        Roaring64Bitmap allIds = new RepairSplitEnumerator().getAllIds(repairTask);
-    }
 
     @SuppressWarnings("ConstantConditions")
     public Roaring64Bitmap getAllIds(RepairTask repairTask) throws Exception {
