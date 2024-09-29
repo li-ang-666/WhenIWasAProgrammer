@@ -34,7 +34,7 @@ public class RepairIdGenerator {
         executorService.submit(new StreamQueryTask(repairTask, uuid1, orderByColumnName + " ASC", allIds, running));
         executorService.submit(new StreamQueryTask(repairTask, uuid2, orderByColumnName + " DESC", allIds, running));
         // 等待流式查询结束
-        while (!running.get()) {
+        while (running.get()) {
         }
         // kill session
         List<Tuple2<String, String>> sessionIdAndSqls = jdbcTemplate.queryForList("SHOW PROCESSLIST", rs -> Tuple2.of(rs.getString(1), rs.getString(8)));
