@@ -52,7 +52,7 @@ public class RepairSplitEnumerator {
         int times = 0;
         while (!uncheckedSplits.isEmpty()) {
             // 使用优先队列优先切分最大的分片, 尽可能补全分片数到线程数
-            PriorityQueue<UncheckedSplit> priorityQueue = new PriorityQueue<>(uncheckedSplits);
+            Queue<UncheckedSplit> priorityQueue = new PriorityQueue<>(uncheckedSplits);
             executorService.submit(uncheckedSplits::clear);
             while (priorityQueue.size() < THREAD_NUM) {
                 UncheckedSplit maxIntervalSplit = priorityQueue.poll();
