@@ -56,7 +56,7 @@ public class RepairSplitEnumerator {
             executorService.submit(uncheckedSplits::clear);
             while (priorityQueue.size() < THREAD_NUM) {
                 UncheckedSplit maxIntervalSplit = priorityQueue.poll();
-                // 最大分片也只能切为1片, 则不再切
+                // 最大分片也只能切为 1 片, 则不再切
                 if (maxIntervalSplit.getR() - maxIntervalSplit.getL() + 1 <= BATCH_SIZE) {
                     priorityQueue.add(maxIntervalSplit);
                     break;
