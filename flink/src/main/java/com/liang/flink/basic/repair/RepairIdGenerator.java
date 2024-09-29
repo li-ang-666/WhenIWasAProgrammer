@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
-@SuppressWarnings("StatementWithEmptyBody")
+@SuppressWarnings({"StatementWithEmptyBody", "UnusedReturnValue"})
 public class RepairIdGenerator {
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
