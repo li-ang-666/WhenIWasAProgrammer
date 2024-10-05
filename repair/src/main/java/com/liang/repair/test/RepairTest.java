@@ -3,24 +3,35 @@ package com.liang.repair.test;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.repair.service.ConfigHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        log.info("1");
-        Roaring64Bitmap bitmap = new Roaring64Bitmap();
-        JdbcTemplate jdbcTemplate = new JdbcTemplate("104.data_bid");
-        Thread thread = new Thread(() -> {
-            jdbcTemplate.streamQuery(true, "select id from company_bid", rs -> {
-            });
-        });
-        thread.setDaemon(true);
-        thread.start();
-        TimeUnit.SECONDS.sleep(5);
-        thread.interrupt();
-        log.info("1");
+        List<Callable<Void>> list = Arrays.asList(
+
+                () -> {
+                    new JdbcTemplate("435.company_base").streamQuery(false, "select id from company_index", rs -> {
+                    });
+                    return null;
+                },
+                () -> {
+                    new JdbcTemplate("116.prism").streamQuery(false, "select id from equity_ratio", rs -> {
+                    });
+                    return null;
+                }
+                , () -> {
+                    new JdbcTemplate("104.data_bid").streamQuery(false, "select id from company_bid", rs -> {
+                    });
+                    return null;
+                }
+        );
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        executorService.invokeAll(list);
     }
 }
