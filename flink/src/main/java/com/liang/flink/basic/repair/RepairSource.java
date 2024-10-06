@@ -65,27 +65,24 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             // 遍历
             Roaring64Bitmap partIdBitmap = new Roaring64Bitmap();
             allIdBitmap.forEach(id -> {
-                if (id <= repairState.getPosition(repairTask)) {
-                    return;
-                }
-                partIdBitmap.add(id);
-                if (partIdBitmap.getLongCardinality() < BATCH_SIZE) {
-                    return;
-                }
-                synchronized (checkpointLock) {
-                    ctx.collect(new RepairSplit(repairTask, partIdBitmap));
-                    repairState.updateState(repairTask, allIdBitmap, id);
-                    partIdBitmap.clear();
+                if (id > repairState.getPosition(repairTask)) {
+                    partIdBitmap.add(id);
+                    if (partIdBitmap.getLongCardinality() >= BATCH_SIZE) {
+                        synchronized (checkpointLock) {
+                            ctx.collect(new RepairSplit(repairTask, partIdBitmap));
+                            repairState.updateState(repairTask, allIdBitmap, id);
+                            partIdBitmap.clear();
+                        }
+                    }
                 }
             });
             // 清空缓存
-            if (partIdBitmap.isEmpty()) {
-                return;
-            }
-            synchronized (checkpointLock) {
-                ctx.collect(new RepairSplit(repairTask, partIdBitmap));
-                repairState.updateState(repairTask, allIdBitmap, partIdBitmap.last());
-                partIdBitmap.clear();
+            if (!partIdBitmap.isEmpty()) {
+                synchronized (checkpointLock) {
+                    ctx.collect(new RepairSplit(repairTask, partIdBitmap));
+                    repairState.updateState(repairTask, allIdBitmap, partIdBitmap.last());
+                    partIdBitmap.clear();
+                }
             }
         }
     }
