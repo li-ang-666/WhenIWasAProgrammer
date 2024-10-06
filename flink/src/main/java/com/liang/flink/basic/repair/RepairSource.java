@@ -27,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @SuppressWarnings("deprecation")
 public class RepairSource extends RichSourceFunction<RepairSplit> implements CheckpointedFunction, CheckpointListener {
+    private static final int EXIT_CODE = -1013;
     private static final int EVENLY_THRESHOLD = 1_000;
     private static final int BATCH_SIZE = 1_000;
     private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
@@ -103,7 +104,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
 
     @Override
     public void cancel() {
-        System.exit(100);
+        System.exit(EXIT_CODE);
     }
 
     private Roaring64Bitmap newAllIdBitmap(RepairTask repairTask) {
