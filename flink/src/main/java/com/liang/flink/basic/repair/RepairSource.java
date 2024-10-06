@@ -53,7 +53,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     @Override
     public void run(SourceContext<RepairSplit> ctx) {
         final Object checkpointLock = ctx.getCheckpointLock();
-        for (RepairTask repairTask : repairTasks) {
+        repairTasks.forEach(repairTask -> {
             // 获取全部id
             Roaring64Bitmap allIdBitmap;
             synchronized (checkpointLock) {
@@ -84,7 +84,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     partIdBitmap.clear();
                 }
             }
-        }
+        });
     }
 
     @Override
