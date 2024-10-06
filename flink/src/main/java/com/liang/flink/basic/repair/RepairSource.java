@@ -37,21 +37,16 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     private ListState<RepairState> repairStateHolder;
 
     @Override
-    public void initializeState(FunctionInitializationContext context) {
-        try {
-            ConfigUtils.setConfig(config);
-            // 初始化
-            repairState = new RepairState(repairTasks);
-            report(String.format("init successfully, states: %s", repairState.toReportString()));
-            // 恢复
-            repairStateHolder = context.getOperatorStateStore().getListState(LIST_STATE_DESCRIPTOR);
-            if (context.isRestored()) {
-                repairStateHolder.get().forEach(repairState::restoreState);
-                report(String.format("restored successfully, states: %s", repairState.toReportString()));
-            }
-        } catch (Exception e) {
-            log.error("RepairSource initializeState failed", e);
-            throw new RuntimeException(e);
+    public void initializeState(FunctionInitializationContext context) throws Exception {
+        ConfigUtils.setConfig(config);
+        // 初始化
+        repairState = new RepairState(repairTasks);
+        report(String.format("init successfully, states: %s", repairState.toReportString()));
+        // 恢复
+        repairStateHolder = context.getOperatorStateStore().getListState(LIST_STATE_DESCRIPTOR);
+        if (context.isRestored()) {
+            repairStateHolder.get().forEach(repairState::restoreState);
+            report(String.format("restored successfully, states: %s", repairState.toReportString()));
         }
     }
 
