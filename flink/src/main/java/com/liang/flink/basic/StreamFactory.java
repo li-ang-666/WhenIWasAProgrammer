@@ -27,8 +27,9 @@ import java.util.List;
 
 import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 
-@UtilityClass
 @Slf4j
+@UtilityClass
+@SuppressWarnings("deprecation")
 public class StreamFactory {
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
