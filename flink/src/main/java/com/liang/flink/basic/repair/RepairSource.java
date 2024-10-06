@@ -55,8 +55,9 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         final Object checkpointLock = ctx.getCheckpointLock();
         for (RepairTask repairTask : repairTasks) {
             // 获取全部id
-            Roaring64Bitmap allIdBitmap = repairState.getAllIdBitmap(repairTask);
+            Roaring64Bitmap allIdBitmap;
             synchronized (checkpointLock) {
+                allIdBitmap = repairState.getAllIdBitmap(repairTask);
                 if (allIdBitmap.isEmpty()) {
                     allIdBitmap.or(newAllIdBitmap(repairTask));
                 }

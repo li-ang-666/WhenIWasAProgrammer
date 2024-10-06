@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Data
@@ -44,7 +45,7 @@ public class RepairState {
         return states.get(repairTask).getPosition();
     }
 
-    public long getCount(RepairTask repairTask) {
+    public long getTotal(RepairTask repairTask) {
         return states.get(repairTask).getAllIdBitmap().getLongCardinality();
     }
 
@@ -54,9 +55,18 @@ public class RepairState {
                 states.keySet()
                         .stream()
                         .map(k -> new LinkedHashMap<String, Object>() {{
-                            put("task", k);
-                            put("position", String.format("%,d", repairState.getPosition(k)));
-                            put("count", String.format("%,d", repairState.getCount(k)));
+                            put("source", k.getSourceName());
+                            put("table", k.getTableName());
+                            long position = repairState.getPosition(k);
+                            put("position", String.format("%,d", position));
+                            AtomicLong count = new AtomicLong(0L);
+                            repairState.getAllIdBitmap(k).forEach(id -> {
+                                if (id <= position) {
+                                    count.incrementAndGet();
+                                }
+                            });
+                            put("count", count.get());
+                            put("total", String.format("%,d", repairState.getTotal(k)));
                         }})
                         .collect(Collectors.toList())
         );
