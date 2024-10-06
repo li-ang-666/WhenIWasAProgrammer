@@ -145,7 +145,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
 
     private Roaring64Bitmap getUnevenlyBitmap(RepairTask repairTask) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-        String sql = String.format("SELECT id FROM %s", repairTask.getTableName());
+        String sql = String.format("/* stream query */ SELECT id FROM %s", repairTask.getTableName());
         Roaring64Bitmap bitmap = new Roaring64Bitmap();
         jdbcTemplate.streamQuery(true, sql, rs -> bitmap.add(rs.getLong(1)));
         return bitmap;
