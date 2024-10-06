@@ -125,10 +125,10 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         Roaring64Bitmap bitmap;
         long start = System.currentTimeMillis();
         if (mismatch <= EVENLY_THRESHOLD) {
-            report("switch to evenly, please waiting for generate id bitmap");
+            report("switch to evenly mode, please waiting for generate id bitmap");
             bitmap = getEvenlyBitmap(min, max);
         } else {
-            report("switch to unevenly, please waiting for generate id bitmap");
+            report("switch to unevenly mode, please waiting for generate id bitmap");
             bitmap = getUnevenlyBitmap(repairTask);
         }
         long end = System.currentTimeMillis();
@@ -138,9 +138,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
 
     private Roaring64Bitmap getEvenlyBitmap(long min, long max) {
         Roaring64Bitmap bitmap = new Roaring64Bitmap();
-        for (long i = min; i <= max; i++) {
-            bitmap.add(i);
-        }
+        bitmap.addRange(min, max + 1);
         return bitmap;
     }
 
