@@ -135,7 +135,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             bitmap = getUnevenlyBitmap(repairTask);
         }
         long end = System.currentTimeMillis();
-        report(String.format("speed %s seconds", (end - start) / 1000));
+        report(String.format("spend %s seconds", (end - start) / 1000));
         return bitmap;
     }
 
