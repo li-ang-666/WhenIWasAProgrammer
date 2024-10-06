@@ -2,62 +2,57 @@ package com.liang.flink.basic.repair;
 
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 @Slf4j
-@SuppressWarnings({"StatementWithEmptyBody", "UnusedReturnValue"})
 public class RepairIdGenerator {
-    private final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private static final long THRESHOLD = 1000L;
 
-    public Roaring64Bitmap getAllIds(RepairTask repairTask) {
-        long startTime = System.currentTimeMillis();
-        // 查询用到的索引
-        Roaring64Bitmap allIds = new Roaring64Bitmap();
+    public static Roaring64Bitmap newIdBitmap(RepairTask repairTask) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-        String indexName = jdbcTemplate.queryForObject(String.format("EXPLAIN SELECT id FROM %s", repairTask.getTableName()), rs -> rs.getString(7));
-        String orderByColumnName = jdbcTemplate.queryForObject(String.format("SHOW INDEXES FROM %s WHERE KEY_NAME = '%s' AND SEQ_IN_INDEX = 1", repairTask.getTableName(), indexName), rs -> rs.getString(5));
-        // 执行双向流式查询
-        AtomicBoolean running = new AtomicBoolean(true);
-        executorService.submit(new StreamQueryTask(repairTask, orderByColumnName + "  ASC, id  ASC", allIds, running));
-        executorService.submit(new StreamQueryTask(repairTask, orderByColumnName + " DESC, id DESC", allIds, running));
-        // 等待流式查询结束
-        while (running.get()) {
+
+        String queryBoundSql = String.format("SELECT MIN(id), MAX(id) FROM %s", repairTask.getTableName());
+        Tuple2<Long, Long> minAndMax = jdbcTemplate.queryForObject(queryBoundSql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
+        Long min = minAndMax.f0;
+        Long max = minAndMax.f1;
+        log.info(String.format("source: %s, table: %s, min: %,d, max: %,d", repairTask.getSourceName(), repairTask.getTableName(), min, max));
+
+        String queryStatusSql = String.format("SHOW TABLE STATUS LIKE '%s'", repairTask.getTableName());
+        Long probablyRows = jdbcTemplate.queryForObject(queryStatusSql, rs -> rs.getLong(5));
+        log.info(String.format("probably rows: %,d", probablyRows));
+
+        long mismatch = (max - min) / (probablyRows);
+        log.info(String.format("mismatch: %,d", mismatch));
+
+        Roaring64Bitmap bitmap;
+        long start = System.currentTimeMillis();
+        if (mismatch <= THRESHOLD) {
+            log.info("switch to evenly, please waiting for generate id bitmap");
+            bitmap = getEvenlyBitmap(min, max);
+        } else {
+            log.info("switch to unevenly, please waiting for generate id bitmap");
+            bitmap = getUnevenlyBitmap(repairTask);
         }
-        executorService.shutdown();
-        log.info("time: {} seconds, id num: {}", (System.currentTimeMillis() - startTime) / 1000, String.format("%,d", allIds.getLongCardinality()));
-        return allIds;
+        long end = System.currentTimeMillis();
+        log.info("speed {} seconds", (end - start) / 1000);
+        return bitmap;
     }
 
-    @Slf4j
-    @RequiredArgsConstructor
-    private static final class StreamQueryTask implements Runnable {
-        private final RepairTask repairTask;
-        private final String orderBySyntax;
-        private final Roaring64Bitmap allIds;
-        private final AtomicBoolean running;
-
-        @Override
-        public void run() {
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            String sql = String.format("SELECT id FROM %s ORDER BY %s", repairTask.getTableName(), orderBySyntax);
-            jdbcTemplate.streamQuery(true, sql, rs -> {
-                if (running.get()) {
-                    long id = rs.getLong(1);
-                    synchronized (allIds) {
-                        if (running.get() && !allIds.contains(id)) {
-                            allIds.add(id);
-                        } else {
-                            running.set(false);
-                        }
-                    }
-                }
-            });
+    private static Roaring64Bitmap getEvenlyBitmap(long min, long max) {
+        Roaring64Bitmap bitmap = new Roaring64Bitmap();
+        for (long i = min; i <= max; i++) {
+            bitmap.add(i);
         }
+        return bitmap;
+    }
+
+    private static Roaring64Bitmap getUnevenlyBitmap(RepairTask repairTask) {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+        String sql = String.format("SELECT id FROM %s", repairTask.getTableName());
+        Roaring64Bitmap bitmap = new Roaring64Bitmap();
+        jdbcTemplate.streamQuery(true, sql, rs -> bitmap.add(rs.getLong(1)));
+        return bitmap;
     }
 }

@@ -15,24 +15,29 @@ import java.util.stream.Collectors;
 public class RepairState {
     private final Map<RepairTask, State> states = new ConcurrentSkipListMap<>();
 
+    // 初始化
     public RepairState(List<RepairTask> repairTasks) {
-        for (RepairTask repairTask : repairTasks) {
-            this.states.put(repairTask, new State());
-        }
+        repairTasks.forEach(repairTask -> this.states.put(repairTask, new State()));
     }
 
-    public void initializeState(RepairState restored) {
-        restored.states.forEach((k, v) -> {
+    // 恢复
+    public void restoreState(RepairState oldState) {
+        oldState.states.forEach((k, v) -> {
             if (this.states.containsKey(k)) {
                 this.states.put(k, v);
             }
         });
     }
 
-    public void snapshotState(RepairTask repairTask, Roaring64Bitmap bitmap) {
+    // 更新
+    public void updateState(RepairTask repairTask, Roaring64Bitmap allIdBitmap, long position) {
         State state = states.get(repairTask);
-        state.setPosition(bitmap.last());
-        state.setCount(state.getCount() + bitmap.getLongCardinality());
+        state.setAllIdBitmap(allIdBitmap);
+        state.setPosition(position);
+    }
+
+    public Roaring64Bitmap getAllIdBitmap(RepairTask repairTask) {
+        return states.get(repairTask).getAllIdBitmap();
     }
 
     public long getPosition(RepairTask repairTask) {
@@ -40,7 +45,7 @@ public class RepairState {
     }
 
     public long getCount(RepairTask repairTask) {
-        return states.get(repairTask).getCount();
+        return states.get(repairTask).getAllIdBitmap().getLongCardinality();
     }
 
     public String toReportString() {
@@ -59,7 +64,7 @@ public class RepairState {
 
     @Data
     private static final class State {
-        private volatile long position = 0L;
-        private volatile long count = 0L;
+        private volatile Roaring64Bitmap allIdBitmap = new Roaring64Bitmap();
+        private volatile long position = -1L;
     }
 }

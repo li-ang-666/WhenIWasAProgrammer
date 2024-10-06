@@ -1,10 +1,7 @@
 package com.liang.flink.basic.repair;
 
-import cn.hutool.cron.task.Task;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
-import com.liang.common.service.SQL;
-import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.database.template.RedisTemplate;
 import com.liang.common.util.ConfigUtils;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +23,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("deprecation")
 public class RepairSource extends RichSourceFunction<RepairSplit> implements CheckpointedFunction, CheckpointListener {
     private static final int BATCH_SIZE = 1_000;
     private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
@@ -46,9 +44,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         // 恢复
         repairStateHolder = context.getOperatorStateStore().getListState(LIST_STATE_DESCRIPTOR);
         if (context.isRestored()) {
-            for (RepairState restoredState : repairStateHolder.get()) {
-                repairState.initializeState(restoredState);
-            }
+            repairStateHolder.get().forEach(repairState::restoreState);
             reportAndLog(String.format("restored successfully, states: %s", repairState.toReportString()));
         }
     }
@@ -57,45 +53,35 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     public void run(SourceContext<RepairSplit> ctx) {
         final Object checkpointLock = ctx.getCheckpointLock();
         for (RepairTask repairTask : repairTasks) {
-            // 初始化
-            final JdbcTemplate jdbcTemplate;
-            final Roaring64Bitmap bitmap;
-            final Task snapshotSplit;
-            final SQL sql;
+            // 获取全部id
+            Roaring64Bitmap allIdBitmap = repairState.getAllIdBitmap(repairTask);
             synchronized (checkpointLock) {
-                jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-                bitmap = new Roaring64Bitmap();
-                snapshotSplit = () -> {
-                    ctx.collect(new RepairSplit(repairTask, bitmap));
-                    repairState.snapshotState(repairTask, bitmap);
-                    bitmap.clear();
-                };
-                // 有注释, 代表全表扫
-                if (repairTask.getWhere().matches("(.*?)/\\*(.*?)\\*/(.*)")) {
-                    sql = new SQL().SELECT("id")
-                            .FROM(repairTask.getTableName())
-                            .WHERE("/* from state */ id > " + repairState.getPosition(repairTask))
-                            .ORDER_BY("id ASC");
-                } else {
-                    sql = new SQL().SELECT("id")
-                            .FROM(repairTask.getTableName())
-                            .WHERE(repairTask.getWhere());
+                if (allIdBitmap.isEmpty()) {
+                    allIdBitmap.or(RepairIdGenerator.newIdBitmap(repairTask));
                 }
-                reportAndLog(String.format("execute sql: %s", sql));
             }
-            // 执行sql
-            jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
+            // 遍历
+            Roaring64Bitmap partIdBitmap = new Roaring64Bitmap();
+            allIdBitmap.forEach(id -> {
+                if (id <= repairState.getPosition(repairTask)) {
+                    return;
+                }
+                partIdBitmap.add(id);
+                if (partIdBitmap.getLongCardinality() < BATCH_SIZE) {
+                    return;
+                }
                 synchronized (checkpointLock) {
-                    bitmap.add(rs.getLong("id"));
-                    if (bitmap.getLongCardinality() >= BATCH_SIZE) {
-                        snapshotSplit.execute();
-                    }
+                    ctx.collect(new RepairSplit(repairTask, partIdBitmap));
+                    repairState.updateState(repairTask, allIdBitmap, id);
+                    partIdBitmap.clear();
                 }
             });
             // 清空缓存
-            synchronized (checkpointLock) {
-                if (!bitmap.isEmpty()) {
-                    snapshotSplit.execute();
+            if (!partIdBitmap.isEmpty()) {
+                synchronized (checkpointLock) {
+                    ctx.collect(new RepairSplit(repairTask, partIdBitmap));
+                    repairState.updateState(repairTask, allIdBitmap, partIdBitmap.last());
+                    partIdBitmap.clear();
                 }
             }
         }
