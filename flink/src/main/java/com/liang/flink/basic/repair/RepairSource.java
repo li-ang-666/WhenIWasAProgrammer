@@ -30,22 +30,20 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     private final Config config;
     private final String repairReportKey;
     private final List<RepairTask> repairTasks;
-    private RedisTemplate redisTemplate;
     private RepairState repairState;
     private ListState<RepairState> repairStateHolder;
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
         ConfigUtils.setConfig(config);
-        redisTemplate = new RedisTemplate("metadata");
         // 初始化
         repairState = new RepairState(repairTasks);
-        reportAndLog(String.format("init successfully, states: %s", repairState.toReportString()));
+        report(String.format("init successfully, states: %s", repairState.toReportString()));
         // 恢复
         repairStateHolder = context.getOperatorStateStore().getListState(LIST_STATE_DESCRIPTOR);
         if (context.isRestored()) {
             repairStateHolder.get().forEach(repairState::restoreState);
-            reportAndLog(String.format("restored successfully, states: %s", repairState.toReportString()));
+            report(String.format("restored successfully, states: %s", repairState.toReportString()));
         }
     }
 
@@ -57,7 +55,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             Roaring64Bitmap allIdBitmap = repairState.getAllIdBitmap(repairTask);
             synchronized (checkpointLock) {
                 if (allIdBitmap.isEmpty()) {
-                    allIdBitmap.or(RepairIdGenerator.newIdBitmap(repairTask));
+                    allIdBitmap.or(RepairIdGenerator.newIdBitmap(repairTask, repairReportKey));
                 }
             }
             // 遍历
@@ -98,7 +96,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         String logs = String.format("ckp_%04d successfully, states: %s",
                 checkpointId,
                 repairState.toReportString());
-        reportAndLog(logs);
+        report(logs);
     }
 
     @Override
@@ -106,9 +104,8 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         System.exit(100);
     }
 
-    private void reportAndLog(String logs) {
+    private void report(String logs) {
         logs = String.format("[_RepairSource_] %s", logs);
-        redisTemplate.rPush(repairReportKey, logs);
-        log.info("{}", logs);
+        new RedisTemplate("metadata").rPush(repairReportKey, logs);
     }
 }
