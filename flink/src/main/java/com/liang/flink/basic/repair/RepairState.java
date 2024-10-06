@@ -65,7 +65,7 @@ public class RepairState {
                                     count.incrementAndGet();
                                 }
                             });
-                            put("count", count.get());
+                            put("count", String.format("%,d", count.get()));
                             put("total", String.format("%,d", repairState.getTotal(k)));
                         }})
                         .collect(Collectors.toList())
