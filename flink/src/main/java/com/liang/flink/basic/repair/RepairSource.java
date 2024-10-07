@@ -108,32 +108,47 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     }
 
     private Roaring64Bitmap newAllIdBitmap(RepairTask repairTask) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-        // 边界
-        String queryBoundSql = String.format("SELECT MIN(id), MAX(id) FROM %s", repairTask.getTableName());
-        Tuple2<Long, Long> minAndMax = jdbcTemplate.queryForObject(queryBoundSql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
-        Long min = minAndMax.f0;
-        Long max = minAndMax.f1;
-        report(String.format("source: %s, table: %s, min: %,d, max: %,d", repairTask.getSourceName(), repairTask.getTableName(), min, max));
-        // 粗略行数
-        String queryStatusSql = String.format("SHOW TABLE STATUS LIKE '%s'", repairTask.getTableName());
-        Long probablyRows = jdbcTemplate.queryForObject(queryStatusSql, rs -> rs.getLong(5));
-        report(String.format("probably rows: %,d", probablyRows));
-        // 偏差
-        long mismatch = (max - min) / (probablyRows);
-        report(String.format("mismatch: %,d", mismatch));
-        // 生成
         Roaring64Bitmap bitmap;
-        long start = System.currentTimeMillis();
-        if (mismatch <= EVENLY_THRESHOLD) {
-            report("switch to evenly mode, please waiting for generate id bitmap");
-            bitmap = getEvenlyBitmap(min, max);
+        long start;
+        if (repairTask.getMode() == RepairTask.RepairTaskMode.D) {
+            report("switch to direct mode, please waiting for generate id bitmap");
+            start = System.currentTimeMillis();
+            bitmap = getDirectBitmap(repairTask);
         } else {
-            report("switch to unevenly mode, please waiting for generate id bitmap");
-            bitmap = getUnevenlyBitmap(repairTask);
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+            // 边界
+            String queryBoundSql = String.format("SELECT MIN(id), MAX(id) FROM %s", repairTask.getTableName());
+            Tuple2<Long, Long> minAndMax = jdbcTemplate.queryForObject(queryBoundSql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
+            Long min = minAndMax.f0;
+            Long max = minAndMax.f1;
+            report(String.format("source: %s, table: %s, min: %,d, max: %,d", repairTask.getSourceName(), repairTask.getTableName(), min, max));
+            // 粗略行数
+            String queryStatusSql = String.format("SHOW TABLE STATUS LIKE '%s'", repairTask.getTableName());
+            Long probablyRows = jdbcTemplate.queryForObject(queryStatusSql, rs -> rs.getLong(5));
+            report(String.format("probably rows: %,d", probablyRows));
+            // 偏差
+            long mismatch = (max - min) / (probablyRows);
+            report(String.format("mismatch: %,d", mismatch));
+            // 生成
+            start = System.currentTimeMillis();
+            if (mismatch <= EVENLY_THRESHOLD) {
+                report("switch to evenly mode, please waiting for generate id bitmap");
+                bitmap = getEvenlyBitmap(min, max);
+            } else {
+                report("switch to unevenly mode, please waiting for generate id bitmap");
+                bitmap = getUnevenlyBitmap(repairTask);
+            }
         }
         long end = System.currentTimeMillis();
         report(String.format("used %s seconds", (end - start) / 1000));
+        return bitmap;
+    }
+
+    private Roaring64Bitmap getDirectBitmap(RepairTask repairTask) {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+        String sql = String.format("/* stream query */ SELECT id FROM %s WHERE %s", repairTask.getTableName(), repairTask.getWhere());
+        Roaring64Bitmap bitmap = new Roaring64Bitmap();
+        jdbcTemplate.streamQuery(true, sql, rs -> bitmap.add(rs.getLong(1)));
         return bitmap;
     }
 
