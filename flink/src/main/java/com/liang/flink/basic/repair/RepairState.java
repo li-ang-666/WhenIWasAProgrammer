@@ -45,6 +45,17 @@ public class RepairState {
         return states.get(repairTask).getPosition();
     }
 
+    public long getCount(RepairTask repairTask) {
+        long position = getPosition(repairTask);
+        AtomicLong count = new AtomicLong(0L);
+        getAllIdBitmap(repairTask).forEach(id -> {
+            if (id <= position) {
+                count.incrementAndGet();
+            }
+        });
+        return count.get();
+    }
+
     public long getTotal(RepairTask repairTask) {
         return states.get(repairTask).getAllIdBitmap().getLongCardinality();
     }
@@ -57,15 +68,8 @@ public class RepairState {
                         .map(k -> new LinkedHashMap<String, Object>() {{
                             put("source", k.getSourceName());
                             put("table", k.getTableName());
-                            long position = repairState.getPosition(k);
-                            put("position", String.format("%,d", position));
-                            AtomicLong count = new AtomicLong(0L);
-                            repairState.getAllIdBitmap(k).forEach(id -> {
-                                if (id <= position) {
-                                    count.incrementAndGet();
-                                }
-                            });
-                            put("count", String.format("%,d", count.get()));
+                            put("position", String.format("%,d", repairState.getPosition(k)));
+                            put("count", String.format("%,d", repairState.getCount(k)));
                             put("total", String.format("%,d", repairState.getTotal(k)));
                         }})
                         .collect(Collectors.toList())
