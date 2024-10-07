@@ -18,6 +18,7 @@ import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -65,14 +66,17 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             }
             // 遍历
             Roaring64Bitmap partIdBitmap = new Roaring64Bitmap();
+            long position = repairState.getPosition(repairTask);
+            AtomicLong batchSize = new AtomicLong(0L);
             allIdBitmap.forEach(id -> {
-                if (id > repairState.getPosition(repairTask)) {
+                if (id > position) {
                     partIdBitmap.add(id);
-                    if (partIdBitmap.getLongCardinality() >= BATCH_SIZE) {
+                    if (batchSize.incrementAndGet() >= BATCH_SIZE) {
                         synchronized (checkpointLock) {
                             ctx.collect(new RepairSplit(repairTask, partIdBitmap));
                             repairState.updateState(repairTask, allIdBitmap, id);
                             partIdBitmap.clear();
+                            batchSize.set(0L);
                         }
                     }
                 }
@@ -83,6 +87,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     ctx.collect(new RepairSplit(repairTask, partIdBitmap));
                     repairState.updateState(repairTask, allIdBitmap, partIdBitmap.last());
                     partIdBitmap.clear();
+                    batchSize.set(0L);
                 }
             }
         });
