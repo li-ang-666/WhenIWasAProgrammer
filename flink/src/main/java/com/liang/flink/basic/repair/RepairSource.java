@@ -109,10 +109,9 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
 
     private Roaring64Bitmap newAllIdBitmap(RepairTask repairTask) {
         Roaring64Bitmap bitmap;
-        long start;
+        long start = System.currentTimeMillis();
         if (repairTask.getMode() == RepairTask.RepairTaskMode.D) {
             report("switch to direct mode, please waiting for generate id bitmap by jdbc");
-            start = System.currentTimeMillis();
             bitmap = getDirectBitmap(repairTask);
         } else {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
@@ -130,7 +129,6 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             long mismatch = (max - min) / (probablyRows);
             report(String.format("mismatch: %,d", mismatch));
             // 生成
-            start = System.currentTimeMillis();
             if (mismatch <= EVENLY_THRESHOLD) {
                 report("switch to evenly mode, please waiting for generate id bitmap by range add");
                 bitmap = getEvenlyBitmap(min, max);
@@ -139,8 +137,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                 bitmap = getUnevenlyBitmap(repairTask);
             }
         }
-        long end = System.currentTimeMillis();
-        report(String.format("used %s seconds", (end - start) / 1000));
+        report(String.format("used %s seconds", (System.currentTimeMillis() - start) / 1000));
         return bitmap;
     }
 
