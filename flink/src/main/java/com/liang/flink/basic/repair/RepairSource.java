@@ -147,6 +147,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     private Roaring64Bitmap getDirectBitmap(RepairTask repairTask) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
         String sql = String.format("/* stream query */ SELECT id FROM %s WHERE %s", repairTask.getTableName(), repairTask.getWhere());
+        report(String.format("execute query sql: %s", sql));
         Roaring64Bitmap bitmap = new Roaring64Bitmap();
         jdbcTemplate.streamQuery(true, sql, rs -> bitmap.add(rs.getLong(1)));
         return bitmap;
@@ -161,6 +162,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     private Roaring64Bitmap getUnevenlyBitmap(RepairTask repairTask) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
         String sql = String.format("/* stream query */ SELECT id FROM %s", repairTask.getTableName());
+        report(String.format("execute query sql: %s", sql));
         Roaring64Bitmap bitmap = new Roaring64Bitmap();
         jdbcTemplate.streamQuery(true, sql, rs -> bitmap.add(rs.getLong(1)));
         return bitmap;
