@@ -111,7 +111,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         Roaring64Bitmap bitmap;
         long start;
         if (repairTask.getMode() == RepairTask.RepairTaskMode.D) {
-            report("switch to direct mode, please waiting for generate id bitmap");
+            report("switch to direct mode, please waiting for generate id bitmap by jdbc");
             start = System.currentTimeMillis();
             bitmap = getDirectBitmap(repairTask);
         } else {
@@ -132,10 +132,10 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             // 生成
             start = System.currentTimeMillis();
             if (mismatch <= EVENLY_THRESHOLD) {
-                report("switch to evenly mode, please waiting for generate id bitmap");
+                report("switch to evenly mode, please waiting for generate id bitmap by range add");
                 bitmap = getEvenlyBitmap(min, max);
             } else {
-                report("switch to unevenly mode, please waiting for generate id bitmap");
+                report("switch to unevenly mode, please waiting for generate id bitmap by jdbc");
                 bitmap = getUnevenlyBitmap(repairTask);
             }
         }
