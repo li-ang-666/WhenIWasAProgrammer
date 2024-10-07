@@ -13,6 +13,7 @@ public class RepairTask implements Serializable, Comparable<RepairTask> {
     private String tableName;
     private String columns = "*";
     private String where = "1 = 1";
+    @NonNull
     private RepairTaskMode mode = RepairTaskMode.D;
 
     @Override
