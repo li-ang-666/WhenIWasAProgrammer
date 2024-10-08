@@ -1,14 +1,14 @@
 # sourceType: Kafka or Repair
 flinkConfig:
   sourceType: Repair
-  sourceParallel: 2
-  otherParallel: 2
+  sourceParallel: 1
+  otherParallel: 1
 
 repairTasks:
-  #  - sourceName: "435.company_base"
-  #    tableName: "company_legal_person"
-  #    columns: "*"
-  #    where: "company_id = 14427175"
+  - sourceName: "435.company_base"
+    tableName: "company_legal_person"
+    columns: "*"
+    where: "company_id = 14427175"
 
   - sourceName: "430.graph_data"
     tableName: "company_equity_relation_details"

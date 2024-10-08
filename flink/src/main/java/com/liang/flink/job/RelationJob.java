@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
 import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.ConfigUtils;
@@ -8,11 +9,11 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.common.typeinfo.TypeHint;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -21,10 +22,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @LocalConfigFile("relation.yml")
@@ -35,12 +35,10 @@ public class RelationJob {
         StreamFactory.create(env)
                 .keyBy(e -> e.getColumnMap().get("id"))
                 .flatMap(new RelationMapper(config))
-                .returns(TypeInformation.of(new TypeHint<List<String>>() {
-                }))
                 .name("RelationMapper")
                 .uid("RelationMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .keyBy(e -> e.get(0))
+                .keyBy(e -> e)
                 .addSink(new RelationSink(config))
                 .name("RelationSink")
                 .uid("RelationSink")
@@ -49,7 +47,7 @@ public class RelationJob {
     }
 
     @RequiredArgsConstructor
-    private static final class RelationMapper extends RichFlatMapFunction<SingleCanalBinlog, List<String>> {
+    private static final class RelationMapper extends RichFlatMapFunction<SingleCanalBinlog, Row> {
         private final Config config;
 
         @Override
@@ -58,7 +56,7 @@ public class RelationJob {
         }
 
         @Override
-        public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
+        public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             String table = singleCanalBinlog.getTable();
             switch (table) {
                 case "company_legal_person":
@@ -74,13 +72,12 @@ public class RelationJob {
                     parseBranch(singleCanalBinlog, out);
                     break;
                 default:
-                    log.error("unknown table: {}", table);
-                    throw new RuntimeException("wrong table: " + table);
+                    log.error("wrong table: {}", table);
             }
         }
 
         // 法人 -> 公司
-        private void parseLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
+        private void parseLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             if (!beforeColumnMap.isEmpty()) {
@@ -96,9 +93,7 @@ public class RelationJob {
                 }
                 String companyId = (String) beforeColumnMap.get("company_id");
                 String identity = (String) beforeColumnMap.get("legal_rep_display_name");
-                if (TycUtils.isTycUniqueEntityId(id) && TycUtils.isUnsignedId(companyId)) {
-                    out.collect(Arrays.asList(id, companyId, "LEGAL", identity, "DELETE"));
-                }
+                out.collect(new Row(id, companyId, "LEGAL", identity, CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
                 String pid = (String) afterColumnMap.get("legal_rep_human_id");
@@ -113,74 +108,63 @@ public class RelationJob {
                 }
                 String companyId = (String) afterColumnMap.get("company_id");
                 String identity = (String) afterColumnMap.get("legal_rep_display_name");
-                if (TycUtils.isTycUniqueEntityId(id) && TycUtils.isUnsignedId(companyId)) {
-                    out.collect(Arrays.asList(id, companyId, "LEGAL", identity, "INSERT"));
-                }
+                out.collect(new Row(id, companyId, "LEGAL", identity, CanalEntry.EventType.INSERT));
             }
         }
 
         // 实控人 -> 公司
-        private void parseController(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
+        private void parseController(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             if (!beforeColumnMap.isEmpty()) {
                 String shareholderId = (String) beforeColumnMap.get("tyc_unique_entity_id");
                 String companyId = (String) beforeColumnMap.get("company_id_controlled");
-                out.collect(Arrays.asList(shareholderId, companyId, "CONTROL", "", "DELETE"));
+                out.collect(new Row(shareholderId, companyId, "CONTROL", "", CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
                 String shareholderId = (String) afterColumnMap.get("tyc_unique_entity_id");
                 String companyId = (String) afterColumnMap.get("company_id_controlled");
-                out.collect(Arrays.asList(shareholderId, companyId, "CONTROL", "", "INSERT"));
+                out.collect(new Row(shareholderId, companyId, "CONTROL", "", CanalEntry.EventType.INSERT));
             }
         }
 
         // 股东 -> 公司
-        private void parseShareholder(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
+        private void parseShareholder(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             if (!beforeColumnMap.isEmpty()) {
                 String shareholderId = (String) beforeColumnMap.get("shareholder_id");
                 String companyId = (String) beforeColumnMap.get("company_id");
                 String equityRatio = (String) beforeColumnMap.get("equity_ratio");
-                out.collect(Arrays.asList(shareholderId, companyId, "INVEST", equityRatio, "DELETE"));
+                out.collect(new Row(shareholderId, companyId, "INVEST", equityRatio, CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
                 String shareholderId = (String) afterColumnMap.get("shareholder_id");
                 String companyId = (String) afterColumnMap.get("company_id");
-                String equityRatio = (String) beforeColumnMap.get("equity_ratio");
-                out.collect(Arrays.asList(shareholderId, companyId, "INVEST", equityRatio, "INSERT"));
+                String equityRatio = (String) afterColumnMap.get("equity_ratio");
+                out.collect(new Row(shareholderId, companyId, "INVEST", equityRatio, CanalEntry.EventType.INSERT));
             }
         }
 
         // 分公司 -> 总公司
-        private void parseBranch(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
+        private void parseBranch(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             if (!beforeColumnMap.isEmpty()) {
                 String branchCompanyId = (String) beforeColumnMap.get("branch_company_id");
                 String companyId = (String) beforeColumnMap.get("company_id");
-                if (TycUtils.isUnsignedId(branchCompanyId) && TycUtils.isUnsignedId(companyId)) {
-                    out.collect(Arrays.asList(branchCompanyId, companyId, "BRANCH", "", "DELETE"));
-                }
+                out.collect(new Row(branchCompanyId, companyId, "BRANCH", "", CanalEntry.EventType.DELETE));
             }
-            if (!afterColumnMap.isEmpty()) {
+            if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted"))) {
                 String branchCompanyId = (String) afterColumnMap.get("branch_company_id");
                 String companyId = (String) afterColumnMap.get("company_id");
-                String isDeleted = (String) afterColumnMap.get("is_deleted");
-                if (TycUtils.isUnsignedId(branchCompanyId) && TycUtils.isUnsignedId(companyId)) {
-                    if ("0".equals(isDeleted)) {
-                        out.collect(Arrays.asList(branchCompanyId, companyId, "BRANCH", "", "INSERT"));
-                    } else {
-                        out.collect(Arrays.asList(branchCompanyId, companyId, "BRANCH", "", "DELETE"));
-                    }
-                }
+                out.collect(new Row(branchCompanyId, companyId, "BRANCH", "", CanalEntry.EventType.INSERT));
             }
         }
     }
 
     @RequiredArgsConstructor
-    private static final class RelationSink extends RichSinkFunction<List<String>> implements CheckpointedFunction {
+    private static final class RelationSink extends RichSinkFunction<Row> implements CheckpointedFunction {
         private final Config config;
         private ObsWriter obsWriter;
 
@@ -192,11 +176,13 @@ public class RelationJob {
         }
 
         @Override
-        public void invoke(List<String> values, Context context) {
-            String row = values.subList(0, 4).stream()
-                    .map(value -> value.replaceAll("[\"',\\s]", ""))
-                    .collect(Collectors.joining(","));
-            obsWriter.update(row);
+        public void invoke(Row row, Context context) {
+            if (row.isValid()) {
+                String str = Stream.of(row.getId(), row.getCompanyId(), row.getRelation(), row.getOther())
+                        .map(value -> value.replaceAll("[\"',\\s]", ""))
+                        .collect(Collectors.joining(","));
+                obsWriter.update(str);
+            }
         }
 
         @Override
@@ -212,6 +198,20 @@ public class RelationJob {
         @Override
         public void finish() {
             obsWriter.flush();
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static final class Row {
+        private String id;
+        private String companyId;
+        private String relation;
+        private String other;
+        private CanalEntry.EventType opt;
+
+        public boolean isValid() {
+            return TycUtils.isTycUniqueEntityId(id) && TycUtils.isUnsignedId(companyId);
         }
     }
 }
