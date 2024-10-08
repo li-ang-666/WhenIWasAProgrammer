@@ -22,7 +22,7 @@ public class RepairTask implements Serializable, Comparable<RepairTask> {
         return this.equals(another) ? 0 : 1;
     }
 
-    public enum RepairTaskMode {
+    public enum RepairTaskMode implements Serializable {
         D, F
     }
 }

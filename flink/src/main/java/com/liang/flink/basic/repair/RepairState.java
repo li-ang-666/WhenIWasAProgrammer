@@ -31,9 +31,8 @@ public class RepairState {
     }
 
     // 更新
-    public void updateState(RepairTask repairTask, Roaring64Bitmap allIdBitmap, long position) {
+    public void updatePosition(RepairTask repairTask, long position) {
         State state = states.get(repairTask);
-        state.setAllIdBitmap(allIdBitmap);
         state.setPosition(position);
     }
 

@@ -73,7 +73,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     if (ids.size() >= BATCH_SIZE) {
                         synchronized (checkpointLock) {
                             ctx.collect(new RepairSplit(repairTask, ids));
-                            repairState.updateState(repairTask, allIdBitmap, id);
+                            repairState.updatePosition(repairTask, id);
                             ids.clear();
                         }
                     }
@@ -83,7 +83,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             if (!ids.isEmpty()) {
                 synchronized (checkpointLock) {
                     ctx.collect(new RepairSplit(repairTask, ids));
-                    repairState.updateState(repairTask, allIdBitmap, ids.get(ids.size() - 1));
+                    repairState.updatePosition(repairTask, ids.get(ids.size() - 1));
                     ids.clear();
                 }
             }
