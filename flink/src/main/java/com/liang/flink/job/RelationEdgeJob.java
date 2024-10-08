@@ -53,7 +53,7 @@ public class RelationEdgeJob {
     }
 
     private enum Relation {
-        LEGAL, AC, HIS_INVEST, INVEST, BRANCH
+        LEGAL, HIS_LEGAL, AC, HIS_INVEST, INVEST, BRANCH
     }
 
     @RequiredArgsConstructor
@@ -85,6 +85,9 @@ public class RelationEdgeJob {
                     break;
                 case "entity_investment_history_fusion_details":
                     parseHisShareholder(singleCanalBinlog, out);
+                    break;
+                case "entity_legal_rep_list_total":
+                    parseHisLegalPerson(singleCanalBinlog, out);
                     break;
                 default:
                     log.error("wrong table: {}", table);
@@ -173,6 +176,21 @@ public class RelationEdgeJob {
             if (!beforeColumnMap.isEmpty())
                 out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")))
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+        }
+
+        // 历史法人 -> 公司
+        private void parseHisLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+            Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
+            Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
+            Function<Map<String, Object>, Row> f = columnMap -> {
+                String shareholderId = (String) columnMap.get("tyc_unique_entity_id_legal_rep");
+                String companyId = (String) columnMap.get("tyc_unique_entity_id");
+                return new Row(shareholderId, companyId, Relation.HIS_LEGAL, "", null);
+            };
+            if (!beforeColumnMap.isEmpty())
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+            if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")) && "0".equals(afterColumnMap.get("is_history_legal_rep")))
                 out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
 
