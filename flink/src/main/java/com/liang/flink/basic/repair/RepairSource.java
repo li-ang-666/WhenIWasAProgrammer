@@ -30,7 +30,7 @@ import java.util.List;
 public class RepairSource extends RichSourceFunction<RepairSplit> implements CheckpointedFunction, CheckpointListener {
     private static final int EXIT_CODE = -1013;
     private static final int EVENLY_THRESHOLD = 1_000;
-    private static final int BATCH_SIZE = 1_000;
+    private static final int BATCH_SIZE = 10_000;
     private static final ListStateDescriptor<RepairState> LIST_STATE_DESCRIPTOR = new ListStateDescriptor<>(RepairState.class.getSimpleName(), RepairState.class);
     private final Config config;
     private final String repairReportKey;
