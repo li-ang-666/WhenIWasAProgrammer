@@ -209,10 +209,10 @@ public class RelationEdgeJob {
             return prismBoss157.queryForObject(sql, rs -> rs.getString(1));
         }
 
-        private String queryLegalType(String company_id) {
+        private String queryLegalType(String companyId) {
             String sql = new SQL().SELECT("legal_rep_display_name")
                     .FROM("company_legal_person")
-                    .WHERE("company_id = " + SqlUtils.formatValue(company_id))
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
                     .toString();
             return companyBase435.queryForObject(sql, rs -> rs.getString(1));
         }
