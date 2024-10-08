@@ -23,6 +23,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,9 +81,9 @@ public class RelationEdgeJob {
         private void parseLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
-            if (!beforeColumnMap.isEmpty()) {
-                String pid = (String) beforeColumnMap.get("legal_rep_human_id");
-                String gid = (String) beforeColumnMap.get("legal_rep_name_id");
+            Function<Map<String, Object>, Row> function = columnMap -> {
+                String pid = (String) columnMap.get("legal_rep_human_id");
+                String gid = (String) columnMap.get("legal_rep_name_id");
                 String id;
                 if (TycUtils.isTycUniqueEntityId(pid)) {
                     id = pid;
@@ -91,24 +92,19 @@ public class RelationEdgeJob {
                 } else {
                     id = null;
                 }
-                String companyId = (String) beforeColumnMap.get("company_id");
-                String identity = (String) beforeColumnMap.get("legal_rep_display_name");
-                out.collect(new Row(id, companyId, "LEGAL", identity, CanalEntry.EventType.DELETE));
+                String companyId = (String) columnMap.get("company_id");
+                String identity = (String) columnMap.get("legal_rep_display_name");
+                return new Row(id, companyId, "LEGAL", identity, null);
+            };
+            if (!beforeColumnMap.isEmpty()) {
+                Row before = function.apply(beforeColumnMap);
+                before.setOpt(CanalEntry.EventType.DELETE);
+                out.collect(before);
             }
             if (!afterColumnMap.isEmpty()) {
-                String pid = (String) afterColumnMap.get("legal_rep_human_id");
-                String gid = (String) afterColumnMap.get("legal_rep_name_id");
-                String id;
-                if (TycUtils.isTycUniqueEntityId(pid)) {
-                    id = pid;
-                } else if (TycUtils.isUnsignedId(gid)) {
-                    id = gid;
-                } else {
-                    id = null;
-                }
-                String companyId = (String) afterColumnMap.get("company_id");
-                String identity = (String) afterColumnMap.get("legal_rep_display_name");
-                out.collect(new Row(id, companyId, "LEGAL", identity, CanalEntry.EventType.INSERT));
+                Row after = function.apply(afterColumnMap);
+                after.setOpt(CanalEntry.EventType.INSERT);
+                out.collect(after);
             }
         }
 
@@ -116,15 +112,20 @@ public class RelationEdgeJob {
         private void parseController(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
+            Function<Map<String, Object>, Row> function = columnMap -> {
+                String shareholderId = (String) columnMap.get("tyc_unique_entity_id");
+                String companyId = (String) columnMap.get("company_id_controlled");
+                return new Row(shareholderId, companyId, "AC", "", null);
+            };
             if (!beforeColumnMap.isEmpty()) {
-                String shareholderId = (String) beforeColumnMap.get("tyc_unique_entity_id");
-                String companyId = (String) beforeColumnMap.get("company_id_controlled");
-                out.collect(new Row(shareholderId, companyId, "AC", "", CanalEntry.EventType.DELETE));
+                Row before = function.apply(beforeColumnMap);
+                before.setOpt(CanalEntry.EventType.DELETE);
+                out.collect(before);
             }
             if (!afterColumnMap.isEmpty()) {
-                String shareholderId = (String) afterColumnMap.get("tyc_unique_entity_id");
-                String companyId = (String) afterColumnMap.get("company_id_controlled");
-                out.collect(new Row(shareholderId, companyId, "AC", "", CanalEntry.EventType.INSERT));
+                Row after = function.apply(afterColumnMap);
+                after.setOpt(CanalEntry.EventType.INSERT);
+                out.collect(after);
             }
         }
 
@@ -132,17 +133,21 @@ public class RelationEdgeJob {
         private void parseShareholder(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
+            Function<Map<String, Object>, Row> function = columnMap -> {
+                String shareholderId = (String) columnMap.get("shareholder_id");
+                String companyId = (String) columnMap.get("company_id");
+                String equityRatio = (String) columnMap.get("equity_ratio");
+                return new Row(shareholderId, companyId, "INVEST", equityRatio, null);
+            };
             if (!beforeColumnMap.isEmpty()) {
-                String shareholderId = (String) beforeColumnMap.get("shareholder_id");
-                String companyId = (String) beforeColumnMap.get("company_id");
-                String equityRatio = (String) beforeColumnMap.get("equity_ratio");
-                out.collect(new Row(shareholderId, companyId, "INVEST", equityRatio, CanalEntry.EventType.DELETE));
+                Row before = function.apply(beforeColumnMap);
+                before.setOpt(CanalEntry.EventType.DELETE);
+                out.collect(before);
             }
             if (!afterColumnMap.isEmpty()) {
-                String shareholderId = (String) afterColumnMap.get("shareholder_id");
-                String companyId = (String) afterColumnMap.get("company_id");
-                String equityRatio = (String) afterColumnMap.get("equity_ratio");
-                out.collect(new Row(shareholderId, companyId, "INVEST", equityRatio, CanalEntry.EventType.INSERT));
+                Row after = function.apply(afterColumnMap);
+                after.setOpt(CanalEntry.EventType.INSERT);
+                out.collect(after);
             }
         }
 
@@ -150,15 +155,20 @@ public class RelationEdgeJob {
         private void parseBranch(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
+            Function<Map<String, Object>, Row> function = columnMap -> {
+                String branchCompanyId = (String) columnMap.get("branch_company_id");
+                String companyId = (String) columnMap.get("company_id");
+                return new Row(branchCompanyId, companyId, "BRANCH", "", null);
+            };
             if (!beforeColumnMap.isEmpty()) {
-                String branchCompanyId = (String) beforeColumnMap.get("branch_company_id");
-                String companyId = (String) beforeColumnMap.get("company_id");
-                out.collect(new Row(branchCompanyId, companyId, "BRANCH", "", CanalEntry.EventType.DELETE));
+                Row before = function.apply(beforeColumnMap);
+                before.setOpt(CanalEntry.EventType.DELETE);
+                out.collect(before);
             }
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted"))) {
-                String branchCompanyId = (String) afterColumnMap.get("branch_company_id");
-                String companyId = (String) afterColumnMap.get("company_id");
-                out.collect(new Row(branchCompanyId, companyId, "BRANCH", "", CanalEntry.EventType.INSERT));
+                Row after = function.apply(afterColumnMap);
+                after.setOpt(CanalEntry.EventType.INSERT);
+                out.collect(after);
             }
         }
     }
