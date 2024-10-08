@@ -1,9 +1,13 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
+import com.liang.common.service.SQL;
+import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
@@ -49,16 +53,18 @@ public class RelationEdgeJob {
     }
 
     private enum Relation {
-        LEGAL, AC, INVEST, BRANCH
+        LEGAL, AC, HIS_INVEST, INVEST, BRANCH
     }
 
     @RequiredArgsConstructor
     private static final class RelationEdgeMapper extends RichFlatMapFunction<SingleCanalBinlog, Row> {
         private final Config config;
+        private JdbcTemplate prismBoss157;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
+            prismBoss157 = new JdbcTemplate("157.prism_boss");
         }
 
         @Override
@@ -76,6 +82,9 @@ public class RelationEdgeJob {
                     break;
                 case "company_branch":
                     parseBranch(singleCanalBinlog, out);
+                    break;
+                case "entity_investment_history_fusion_details":
+                    parseHisShareholder(singleCanalBinlog, out);
                     break;
                 default:
                     log.error("wrong table: {}", table);
@@ -145,6 +154,37 @@ public class RelationEdgeJob {
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted")))
                 out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
+
+        // 历史股东 -> 公司
+        private void parseHisShareholder(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+            Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
+            Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
+            Function<Map<String, Object>, Row> f = columnMap -> {
+                String shareholderGid = (String) columnMap.get("entity_name_id");
+                String shareholderType = (String) columnMap.get("entity_type_id");
+                String companyId = (String) columnMap.get("company_id_invested");
+                String investmentRatio = StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "");
+                if ("2".equals(shareholderType)) {
+                    return new Row(queryPid(companyId, shareholderGid), companyId, Relation.HIS_INVEST, investmentRatio, null);
+                } else {
+                    return new Row(shareholderGid, companyId, Relation.HIS_INVEST, investmentRatio, null);
+                }
+            };
+            if (!beforeColumnMap.isEmpty())
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+            if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")))
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+        }
+
+        private String queryPid(String companyGid, String humanGid) {
+            String sql = new SQL().SELECT("human_pid")
+                    .FROM("company_human_relation")
+                    .WHERE("company_graph_id = " + SqlUtils.formatValue(companyGid))
+                    .WHERE("human_graph_id = " + SqlUtils.formatValue(humanGid))
+                    .WHERE("deleted = 0")
+                    .toString();
+            return prismBoss157.queryForObject(sql, rs -> rs.getString(1));
+        }
     }
 
     @RequiredArgsConstructor
@@ -155,7 +195,7 @@ public class RelationEdgeJob {
         @Override
         public void initializeState(FunctionInitializationContext context) {
             ConfigUtils.setConfig(config);
-            obsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/edge/", ObsWriter.FileFormat.CSV);
+            obsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/edge/", ObsWriter.FileFormat.TXT);
             obsWriter.enableCache();
         }
 

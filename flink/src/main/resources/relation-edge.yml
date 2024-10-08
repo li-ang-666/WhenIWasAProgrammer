@@ -25,3 +25,7 @@ repairTasks:
     columns: "*"
     where: "company_id = 14427175"
 
+  - sourceName: "463.bdp_equity"
+    tableName: "entity_investment_history_fusion_details"
+    columns: "*"
+    where: "company_id_invested = 14427175"
