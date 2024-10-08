@@ -12,6 +12,7 @@ import com.liang.flink.service.LocalConfigFile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.configuration.Configuration;
@@ -97,14 +98,10 @@ public class RelationEdgeJob {
                 return new Row(id, companyId, "LEGAL", identity, null);
             };
             if (!beforeColumnMap.isEmpty()) {
-                Row before = function.apply(beforeColumnMap);
-                before.setOpt(CanalEntry.EventType.DELETE);
-                out.collect(before);
+                out.collect(function.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
-                Row after = function.apply(afterColumnMap);
-                after.setOpt(CanalEntry.EventType.INSERT);
-                out.collect(after);
+                out.collect(function.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
             }
         }
 
@@ -118,14 +115,10 @@ public class RelationEdgeJob {
                 return new Row(shareholderId, companyId, "AC", "", null);
             };
             if (!beforeColumnMap.isEmpty()) {
-                Row before = function.apply(beforeColumnMap);
-                before.setOpt(CanalEntry.EventType.DELETE);
-                out.collect(before);
+                out.collect(function.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
-                Row after = function.apply(afterColumnMap);
-                after.setOpt(CanalEntry.EventType.INSERT);
-                out.collect(after);
+                out.collect(function.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
             }
         }
 
@@ -140,14 +133,10 @@ public class RelationEdgeJob {
                 return new Row(shareholderId, companyId, "INVEST", equityRatio, null);
             };
             if (!beforeColumnMap.isEmpty()) {
-                Row before = function.apply(beforeColumnMap);
-                before.setOpt(CanalEntry.EventType.DELETE);
-                out.collect(before);
+                out.collect(function.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
-                Row after = function.apply(afterColumnMap);
-                after.setOpt(CanalEntry.EventType.INSERT);
-                out.collect(after);
+                out.collect(function.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
             }
         }
 
@@ -161,14 +150,10 @@ public class RelationEdgeJob {
                 return new Row(branchCompanyId, companyId, "BRANCH", "", null);
             };
             if (!beforeColumnMap.isEmpty()) {
-                Row before = function.apply(beforeColumnMap);
-                before.setOpt(CanalEntry.EventType.DELETE);
-                out.collect(before);
+                out.collect(function.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted"))) {
-                Row after = function.apply(afterColumnMap);
-                after.setOpt(CanalEntry.EventType.INSERT);
-                out.collect(after);
+                out.collect(function.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
             }
         }
     }
@@ -213,6 +198,7 @@ public class RelationEdgeJob {
 
     @Data
     @AllArgsConstructor
+    @Accessors(chain = true)
     private static final class Row {
         private String id;
         private String companyId;
