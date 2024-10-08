@@ -48,6 +48,10 @@ public class RelationEdgeJob {
         env.execute("RelationEdgeJob");
     }
 
+    private enum Relation {
+        LEGAL, AC, INVEST, BRANCH
+    }
+
     @RequiredArgsConstructor
     private static final class RelationEdgeMapper extends RichFlatMapFunction<SingleCanalBinlog, Row> {
         private final Config config;
@@ -82,26 +86,19 @@ public class RelationEdgeJob {
         private void parseLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
-            Function<Map<String, Object>, Row> function = columnMap -> {
+            Function<Map<String, Object>, Row> f = columnMap -> {
                 String pid = (String) columnMap.get("legal_rep_human_id");
                 String gid = (String) columnMap.get("legal_rep_name_id");
-                String id;
-                if (TycUtils.isTycUniqueEntityId(pid)) {
-                    id = pid;
-                } else if (TycUtils.isUnsignedId(gid)) {
-                    id = gid;
-                } else {
-                    id = null;
-                }
+                String id = TycUtils.isTycUniqueEntityId(pid) ? pid : gid;
                 String companyId = (String) columnMap.get("company_id");
                 String identity = (String) columnMap.get("legal_rep_display_name");
-                return new Row(id, companyId, "LEGAL", identity, null);
+                return new Row(id, companyId, Relation.LEGAL, identity, null);
             };
             if (!beforeColumnMap.isEmpty()) {
-                out.collect(function.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
-                out.collect(function.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
             }
         }
 
@@ -109,16 +106,16 @@ public class RelationEdgeJob {
         private void parseController(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
-            Function<Map<String, Object>, Row> function = columnMap -> {
+            Function<Map<String, Object>, Row> f = columnMap -> {
                 String shareholderId = (String) columnMap.get("tyc_unique_entity_id");
                 String companyId = (String) columnMap.get("company_id_controlled");
-                return new Row(shareholderId, companyId, "AC", "", null);
+                return new Row(shareholderId, companyId, Relation.AC, "", null);
             };
             if (!beforeColumnMap.isEmpty()) {
-                out.collect(function.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
-                out.collect(function.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
             }
         }
 
@@ -126,17 +123,17 @@ public class RelationEdgeJob {
         private void parseShareholder(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
-            Function<Map<String, Object>, Row> function = columnMap -> {
+            Function<Map<String, Object>, Row> f = columnMap -> {
                 String shareholderId = (String) columnMap.get("shareholder_id");
                 String companyId = (String) columnMap.get("company_id");
                 String equityRatio = (String) columnMap.get("equity_ratio");
-                return new Row(shareholderId, companyId, "INVEST", equityRatio, null);
+                return new Row(shareholderId, companyId, Relation.INVEST, equityRatio, null);
             };
             if (!beforeColumnMap.isEmpty()) {
-                out.collect(function.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
-                out.collect(function.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
             }
         }
 
@@ -144,16 +141,16 @@ public class RelationEdgeJob {
         private void parseBranch(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
-            Function<Map<String, Object>, Row> function = columnMap -> {
+            Function<Map<String, Object>, Row> f = columnMap -> {
                 String branchCompanyId = (String) columnMap.get("branch_company_id");
                 String companyId = (String) columnMap.get("company_id");
-                return new Row(branchCompanyId, companyId, "BRANCH", "", null);
+                return new Row(branchCompanyId, companyId, Relation.BRANCH, "", null);
             };
             if (!beforeColumnMap.isEmpty()) {
-                out.collect(function.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted"))) {
-                out.collect(function.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
             }
         }
     }
@@ -174,7 +171,7 @@ public class RelationEdgeJob {
         public void invoke(Row row, Context context) {
             if (row.isValid()) {
                 String str = Stream.of(row.getId(), row.getCompanyId(), row.getRelation(), row.getOther())
-                        .map(value -> value.replaceAll("[\"',\\s]", ""))
+                        .map(value -> String.valueOf(value).replaceAll("[\"',\\s]", ""))
                         .collect(Collectors.joining(","));
                 obsWriter.update(str);
             }
@@ -202,7 +199,7 @@ public class RelationEdgeJob {
     private static final class Row {
         private String id;
         private String companyId;
-        private String relation;
+        private Relation relation;
         private String other;
         private CanalEntry.EventType opt;
 
