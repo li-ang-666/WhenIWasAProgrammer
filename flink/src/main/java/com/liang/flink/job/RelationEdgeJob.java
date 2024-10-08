@@ -226,7 +226,7 @@ public class RelationEdgeJob {
         @Override
         public void initializeState(FunctionInitializationContext context) {
             ConfigUtils.setConfig(config);
-            obsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/edge/", ObsWriter.FileFormat.TXT);
+            obsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/edge/", ObsWriter.FileFormat.CSV);
             obsWriter.enableCache();
         }
 
