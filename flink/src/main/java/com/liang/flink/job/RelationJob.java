@@ -11,6 +11,8 @@ import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -22,6 +24,7 @@ import org.apache.flink.util.Collector;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @LocalConfigFile("relation.yml")
@@ -32,10 +35,12 @@ public class RelationJob {
         StreamFactory.create(env)
                 .keyBy(e -> e.getColumnMap().get("id"))
                 .flatMap(new RelationMapper(config))
+                .returns(TypeInformation.of(new TypeHint<List<String>>() {
+                }))
                 .name("RelationMapper")
                 .uid("RelationMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .keyBy(e -> e)
+                .keyBy(e -> e.get(0))
                 .addSink(new RelationSink(config))
                 .name("RelationSink")
                 .uid("RelationSink")
@@ -69,7 +74,7 @@ public class RelationJob {
                     parseBranch(singleCanalBinlog, out);
                     break;
                 default:
-                    throw new RuntimeException();
+                    throw new RuntimeException("wrong table: " + table);
             }
         }
 
@@ -175,13 +180,16 @@ public class RelationJob {
         @Override
         public void initializeState(FunctionInitializationContext context) {
             ConfigUtils.setConfig(config);
-            obsWriter = new ObsWriter("obs://");
+            obsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/edge/");
             obsWriter.enableCache();
         }
 
         @Override
         public void invoke(List<String> values, Context context) {
-
+            String row = values.subList(0, 3).stream()
+                    .map(value -> value.replaceAll("[\"',\\s]", ""))
+                    .collect(Collectors.joining(","));
+            obsWriter.update(row);
         }
 
         @Override
