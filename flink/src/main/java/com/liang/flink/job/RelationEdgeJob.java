@@ -166,12 +166,9 @@ public class RelationEdgeJob {
                 String shareholderGid = (String) columnMap.get("entity_name_id");
                 String shareholderType = (String) columnMap.get("entity_type_id");
                 String companyId = (String) columnMap.get("company_id_invested");
+                String shareholderId = "2".equals(shareholderType) ? queryPid(companyId, shareholderGid) : shareholderGid;
                 String investmentRatio = StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "");
-                if ("2".equals(shareholderType)) {
-                    return new Row(queryPid(companyId, shareholderGid), companyId, Relation.HIS_INVEST, investmentRatio, null);
-                } else {
-                    return new Row(shareholderGid, companyId, Relation.HIS_INVEST, investmentRatio, null);
-                }
+                return new Row(shareholderId, companyId, Relation.HIS_INVEST, investmentRatio, null);
             };
             if (!beforeColumnMap.isEmpty())
                 out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
