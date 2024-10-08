@@ -14,10 +14,10 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.util.Collector;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,11 +40,11 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             lock.lock();
             // 初始化
             RepairTask repairTask = repairSplit.getRepairTask();
-            Roaring64Bitmap bitmap = repairSplit.getIds();
+            List<Long> ids = repairSplit.getIds();
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             String sql;
             if (repairTask.getMode() == RepairTask.RepairTaskMode.D) {
-                sql = bitmap.stream().boxed()
+                sql = ids.stream()
                         .map(id -> new SQL().SELECT(repairTask.getColumns())
                                 .FROM(repairTask.getTableName())
                                 .WHERE(repairTask.getWhere())
@@ -55,8 +55,8 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
                 sql = new SQL().SELECT(repairTask.getColumns())
                         .FROM(repairTask.getTableName())
                         .WHERE(repairTask.getWhere())
-                        .WHERE("id >= " + bitmap.first())
-                        .WHERE("id <= " + bitmap.last())
+                        .WHERE("id >= " + ids.get(0))
+                        .WHERE("id <= " + ids.get(ids.size() - 1))
                         .toString();
             }
             // 执行sql
