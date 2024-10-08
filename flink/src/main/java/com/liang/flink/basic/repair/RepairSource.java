@@ -74,8 +74,8 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                         synchronized (checkpointLock) {
                             ctx.collect(new RepairSplit(repairTask, ids));
                             repairState.updatePosition(repairTask, id);
-                            ids.clear();
                         }
+                        ids.clear();
                     }
                 }
             });
@@ -84,8 +84,8 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                 synchronized (checkpointLock) {
                     ctx.collect(new RepairSplit(repairTask, ids));
                     repairState.updatePosition(repairTask, ids.get(ids.size() - 1));
-                    ids.clear();
                 }
+                ids.clear();
             }
         });
     }
