@@ -72,13 +72,13 @@ public class RelationNodeJob {
                 }
                 boolean isEmpty = emptyCompany.contains(companyId);
                 String companyName = ((String) columnMap.get("company_name")).replaceAll("[\"',\\s]", "");
-                companyObsWriter.update(String.join(",", String.valueOf(companyId), String.valueOf(status), String.valueOf(isEmpty), companyName));
+                companyObsWriter.update(String.join(",", String.valueOf(companyId), "company", String.valueOf(status), String.valueOf(isEmpty), companyName));
             } else if ("human".equals(table)) {
                 String pid = (String) columnMap.get("human_id");
                 String gid = (String) columnMap.get("human_name_id");
                 String name = ((String) columnMap.get("human_name")).replaceAll("[\"',\\s]", "");
                 if (TycUtils.isTycUniqueEntityId(pid) && TycUtils.isUnsignedId(gid)) {
-                    humanObsWriter.update(String.join(",", pid, gid, name));
+                    humanObsWriter.update(String.join(",", pid, "human", gid, name));
                 }
             }
         }
