@@ -40,7 +40,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             lock.lock();
             // 初始化
             RepairTask repairTask = repairSplit.getRepairTask();
-            Roaring64Bitmap bitmap = repairSplit.getBitmap();
+            Roaring64Bitmap bitmap = repairSplit.getIds();
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             String sql;
             if (repairTask.getMode() == RepairTask.RepairTaskMode.D) {

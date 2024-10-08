@@ -17,8 +17,8 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /*
  * https://nightlies.apache.org/flink/flink-docs-release-1.17/zh/docs/dev/datastream/fault-tolerance/checkpointing
@@ -65,29 +65,26 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                 }
             }
             // 遍历
-            Roaring64Bitmap partIdBitmap = new Roaring64Bitmap();
-            long position = repairState.getPosition(repairTask);
-            AtomicLong catchSize = new AtomicLong(0L);
+            List<Long> ids = new ArrayList<>();
+            long lastRuntimeMaxId = repairState.getPosition(repairTask);
             allIdBitmap.forEach(id -> {
-                if (id > position) {
-                    partIdBitmap.add(id);
-                    if (catchSize.incrementAndGet() >= BATCH_SIZE) {
+                if (id > lastRuntimeMaxId) {
+                    ids.add(id);
+                    if (ids.size() >= BATCH_SIZE) {
                         synchronized (checkpointLock) {
-                            ctx.collect(new RepairSplit(repairTask, partIdBitmap));
+                            ctx.collect(new RepairSplit(repairTask, ids));
                             repairState.updateState(repairTask, allIdBitmap, id);
-                            partIdBitmap.clear();
-                            catchSize.set(0L);
+                            ids.clear();
                         }
                     }
                 }
             });
             // 清空缓存
-            if (!partIdBitmap.isEmpty()) {
+            if (!ids.isEmpty()) {
                 synchronized (checkpointLock) {
-                    ctx.collect(new RepairSplit(repairTask, partIdBitmap));
-                    repairState.updateState(repairTask, allIdBitmap, partIdBitmap.last());
-                    partIdBitmap.clear();
-                    catchSize.set(0L);
+                    ctx.collect(new RepairSplit(repairTask, ids));
+                    repairState.updateState(repairTask, allIdBitmap, ids.get(ids.size() - 1));
+                    ids.clear();
                 }
             }
         });

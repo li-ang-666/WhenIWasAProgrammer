@@ -3,13 +3,13 @@ package com.liang.flink.basic.repair;
 import com.liang.common.dto.config.RepairTask;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 public class RepairSplit implements Serializable {
     private RepairTask repairTask;
-    private Roaring64Bitmap bitmap;
+    private List<Long> ids;
 }
