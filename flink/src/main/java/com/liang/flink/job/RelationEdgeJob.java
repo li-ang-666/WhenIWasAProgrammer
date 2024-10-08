@@ -94,12 +94,10 @@ public class RelationEdgeJob {
                 String identity = (String) columnMap.get("legal_rep_display_name");
                 return new Row(id, companyId, Relation.LEGAL, identity, null);
             };
-            if (!beforeColumnMap.isEmpty()) {
+            if (!beforeColumnMap.isEmpty())
                 out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
-            }
-            if (!afterColumnMap.isEmpty()) {
+            if (!afterColumnMap.isEmpty())
                 out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
-            }
         }
 
         // 实控人 -> 公司
@@ -111,12 +109,10 @@ public class RelationEdgeJob {
                 String companyId = (String) columnMap.get("company_id_controlled");
                 return new Row(shareholderId, companyId, Relation.AC, "", null);
             };
-            if (!beforeColumnMap.isEmpty()) {
+            if (!beforeColumnMap.isEmpty())
                 out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
-            }
-            if (!afterColumnMap.isEmpty()) {
+            if (!afterColumnMap.isEmpty())
                 out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
-            }
         }
 
         // 股东 -> 公司
@@ -129,12 +125,10 @@ public class RelationEdgeJob {
                 String equityRatio = (String) columnMap.get("equity_ratio");
                 return new Row(shareholderId, companyId, Relation.INVEST, equityRatio, null);
             };
-            if (!beforeColumnMap.isEmpty()) {
+            if (!beforeColumnMap.isEmpty())
                 out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
-            }
-            if (!afterColumnMap.isEmpty()) {
+            if (!afterColumnMap.isEmpty())
                 out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
-            }
         }
 
         // 分公司 -> 总公司
@@ -146,12 +140,10 @@ public class RelationEdgeJob {
                 String companyId = (String) columnMap.get("company_id");
                 return new Row(branchCompanyId, companyId, Relation.BRANCH, "", null);
             };
-            if (!beforeColumnMap.isEmpty()) {
+            if (!beforeColumnMap.isEmpty())
                 out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
-            }
-            if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted"))) {
+            if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted")))
                 out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
-            }
         }
     }
 
