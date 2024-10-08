@@ -6,6 +6,7 @@ import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.SqlUtils;
 import com.liang.flink.dto.SingleCanalBinlog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,25 +42,16 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             RepairTask repairTask = repairSplit.getRepairTask();
             List<Long> ids = repairSplit.getIds();
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-            String sql;
+            SQL sql = new SQL().SELECT(repairTask.getColumns())
+                    .FROM(repairTask.getTableName())
+                    .WHERE(repairTask.getWhere());
             if (repairTask.getMode() == RepairTask.RepairTaskMode.D) {
-                sql = ids.stream()
-                        .map(id -> new SQL().SELECT(repairTask.getColumns())
-                                .FROM(repairTask.getTableName())
-                                .WHERE(repairTask.getWhere())
-                                .WHERE("id = " + id)
-                                .toString())
-                        .collect(Collectors.joining(") UNION ALL (", "(", ")"));
+                sql.WHERE("id in " + SqlUtils.formatValue(ids));
             } else {
-                sql = new SQL().SELECT(repairTask.getColumns())
-                        .FROM(repairTask.getTableName())
-                        .WHERE(repairTask.getWhere())
-                        .WHERE("id >= " + ids.get(0))
-                        .WHERE("id <= " + ids.get(ids.size() - 1))
-                        .toString();
+                sql.WHERE("id >= " + ids.get(0)).WHERE("id <= " + ids.get(ids.size() - 1));
             }
             // 执行sql
-            jdbcTemplate.streamQuery(true, sql, rs -> {
+            jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 Map<String, Object> columnMap = new HashMap<>(columnCount);

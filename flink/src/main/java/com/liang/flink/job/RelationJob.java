@@ -59,23 +59,24 @@ public class RelationJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
-            String table = singleCanalBinlog.getTable();
-            switch (table) {
-                case "company_legal_person":
-                    parseLegalPerson(singleCanalBinlog, out);
-                    break;
-                case "entity_controller_details_new":
-                    parseController(singleCanalBinlog, out);
-                    break;
-                case "company_equity_relation_details":
-                    parseShareholder(singleCanalBinlog, out);
-                    break;
-                case "company_branch":
-                    parseBranch(singleCanalBinlog, out);
-                    break;
-                default:
-                    throw new RuntimeException("wrong table: " + table);
-            }
+//            String table = singleCanalBinlog.getTable();
+//            switch (table) {
+//                case "company_legal_person":
+//                    parseLegalPerson(singleCanalBinlog, out);
+//                    break;
+//                case "entity_controller_details_new":
+//                    parseController(singleCanalBinlog, out);
+//                    break;
+//                case "company_equity_relation_details":
+//                    parseShareholder(singleCanalBinlog, out);
+//                    break;
+//                case "company_branch":
+//                    parseBranch(singleCanalBinlog, out);
+//                    break;
+//                default:
+//                    log.error("unknown table: {}", table);
+//                    throw new RuntimeException("wrong table: " + table);
+//            }
         }
 
         private void parseLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
@@ -180,13 +181,13 @@ public class RelationJob {
         @Override
         public void initializeState(FunctionInitializationContext context) {
             ConfigUtils.setConfig(config);
-            obsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/edge/");
+            obsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/edge/", ObsWriter.FileFormat.TXT);
             obsWriter.enableCache();
         }
 
         @Override
         public void invoke(List<String> values, Context context) {
-            String row = values.subList(0, 3).stream()
+            String row = values.subList(0, 4).stream()
                     .map(value -> value.replaceAll("[\"',\\s]", ""))
                     .collect(Collectors.joining(","));
             obsWriter.update(row);
