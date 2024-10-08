@@ -59,26 +59,27 @@ public class RelationJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
-//            String table = singleCanalBinlog.getTable();
-//            switch (table) {
-//                case "company_legal_person":
-//                    parseLegalPerson(singleCanalBinlog, out);
-//                    break;
-//                case "entity_controller_details_new":
-//                    parseController(singleCanalBinlog, out);
-//                    break;
-//                case "company_equity_relation_details":
-//                    parseShareholder(singleCanalBinlog, out);
-//                    break;
-//                case "company_branch":
-//                    parseBranch(singleCanalBinlog, out);
-//                    break;
-//                default:
-//                    log.error("unknown table: {}", table);
-//                    throw new RuntimeException("wrong table: " + table);
-//            }
+            String table = singleCanalBinlog.getTable();
+            switch (table) {
+                case "company_legal_person":
+                    parseLegalPerson(singleCanalBinlog, out);
+                    break;
+                case "entity_controller_details_new":
+                    parseController(singleCanalBinlog, out);
+                    break;
+                case "company_equity_relation_details":
+                    parseShareholder(singleCanalBinlog, out);
+                    break;
+                case "company_branch":
+                    parseBranch(singleCanalBinlog, out);
+                    break;
+                default:
+                    log.error("unknown table: {}", table);
+                    throw new RuntimeException("wrong table: " + table);
+            }
         }
 
+        // 法人 -> 公司
         private void parseLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
@@ -118,6 +119,7 @@ public class RelationJob {
             }
         }
 
+        // 实控人 -> 公司
         private void parseController(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
@@ -133,21 +135,25 @@ public class RelationJob {
             }
         }
 
+        // 股东 -> 公司
         private void parseShareholder(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             if (!beforeColumnMap.isEmpty()) {
                 String shareholderId = (String) beforeColumnMap.get("shareholder_id");
                 String companyId = (String) beforeColumnMap.get("company_id");
-                out.collect(Arrays.asList(shareholderId, companyId, "INVEST", "", "DELETE"));
+                String equityRatio = (String) beforeColumnMap.get("equity_ratio");
+                out.collect(Arrays.asList(shareholderId, companyId, "INVEST", equityRatio, "DELETE"));
             }
             if (!afterColumnMap.isEmpty()) {
                 String shareholderId = (String) afterColumnMap.get("shareholder_id");
                 String companyId = (String) afterColumnMap.get("company_id");
-                out.collect(Arrays.asList(shareholderId, companyId, "INVEST", "", "INSERT"));
+                String equityRatio = (String) beforeColumnMap.get("equity_ratio");
+                out.collect(Arrays.asList(shareholderId, companyId, "INVEST", equityRatio, "INSERT"));
             }
         }
 
+        // 分公司 -> 总公司
         private void parseBranch(SingleCanalBinlog singleCanalBinlog, Collector<List<String>> out) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
