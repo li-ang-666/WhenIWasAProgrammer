@@ -119,12 +119,12 @@ public class RelationJob {
             if (!beforeColumnMap.isEmpty()) {
                 String shareholderId = (String) beforeColumnMap.get("tyc_unique_entity_id");
                 String companyId = (String) beforeColumnMap.get("company_id_controlled");
-                out.collect(new Row(shareholderId, companyId, "CONTROL", "", CanalEntry.EventType.DELETE));
+                out.collect(new Row(shareholderId, companyId, "AC", "", CanalEntry.EventType.DELETE));
             }
             if (!afterColumnMap.isEmpty()) {
                 String shareholderId = (String) afterColumnMap.get("tyc_unique_entity_id");
                 String companyId = (String) afterColumnMap.get("company_id_controlled");
-                out.collect(new Row(shareholderId, companyId, "CONTROL", "", CanalEntry.EventType.INSERT));
+                out.collect(new Row(shareholderId, companyId, "AC", "", CanalEntry.EventType.INSERT));
             }
         }
 
