@@ -74,21 +74,27 @@ public class RelationEdgeJob {
             String table = singleCanalBinlog.getTable();
             switch (table) {
                 case "company_legal_person":
+                    // 法人
                     parseLegalPerson(singleCanalBinlog, out);
                     break;
                 case "entity_controller_details_new":
+                    // 实控人
                     parseController(singleCanalBinlog, out);
                     break;
                 case "company_equity_relation_details":
+                    // 股东
                     parseShareholder(singleCanalBinlog, out);
                     break;
                 case "company_branch":
+                    // 分支机构
                     parseBranch(singleCanalBinlog, out);
                     break;
                 case "entity_investment_history_fusion_details":
+                    // 历史股东
                     parseHisShareholder(singleCanalBinlog, out);
                     break;
                 case "entity_legal_rep_list_total":
+                    // 历史法人
                     parseHisLegalPerson(singleCanalBinlog, out);
                     break;
                 default:
