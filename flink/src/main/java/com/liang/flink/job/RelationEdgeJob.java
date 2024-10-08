@@ -60,11 +60,13 @@ public class RelationEdgeJob {
     private static final class RelationEdgeMapper extends RichFlatMapFunction<SingleCanalBinlog, Row> {
         private final Config config;
         private JdbcTemplate prismBoss157;
+        private JdbcTemplate companyBase435;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             prismBoss157 = new JdbcTemplate("157.prism_boss");
+            companyBase435 = new JdbcTemplate("435.company_base");
         }
 
         @Override
@@ -183,11 +185,11 @@ public class RelationEdgeJob {
             Function<Map<String, Object>, Row> f = columnMap -> {
                 String shareholderId = (String) columnMap.get("tyc_unique_entity_id_legal_rep");
                 String companyId = (String) columnMap.get("tyc_unique_entity_id");
-                return new Row(shareholderId, companyId, Relation.HIS_LEGAL, "", null);
+                return new Row(shareholderId, companyId, Relation.HIS_LEGAL, queryLegalType(companyId), null);
             };
             if (!beforeColumnMap.isEmpty())
                 out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
-            if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")) && "0".equals(afterColumnMap.get("is_history_legal_rep")))
+            if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")) && "1".equals(afterColumnMap.get("is_history_legal_rep")))
                 out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
 
@@ -199,6 +201,14 @@ public class RelationEdgeJob {
                     .WHERE("deleted = 0")
                     .toString();
             return prismBoss157.queryForObject(sql, rs -> rs.getString(1));
+        }
+
+        private String queryLegalType(String company_id) {
+            String sql = new SQL().SELECT("legal_rep_display_name")
+                    .FROM("company_legal_person")
+                    .WHERE("company_id = " + SqlUtils.formatValue(company_id))
+                    .toString();
+            return companyBase435.queryForObject(sql, rs -> rs.getString(1));
         }
     }
 

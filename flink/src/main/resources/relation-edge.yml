@@ -33,4 +33,4 @@ repairTasks:
   - sourceName: "466.bdp_personnel"
     tableName: "entity_legal_rep_list_total"
     columns: "*"
-    where: "company_id_invested = 14427175"
+    where: "tyc_unique_entity_id = '14427175'"
