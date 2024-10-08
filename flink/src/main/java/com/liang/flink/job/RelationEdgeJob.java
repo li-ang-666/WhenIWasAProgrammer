@@ -27,27 +27,27 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@LocalConfigFile("relation.yml")
-public class RelationJob {
+@LocalConfigFile("relation-edge.yml")
+public class RelationEdgeJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
                 .keyBy(e -> e.getColumnMap().get("id"))
-                .flatMap(new RelationMapper(config))
-                .name("RelationMapper")
-                .uid("RelationMapper")
+                .flatMap(new RelationEdgeMapper(config))
+                .name("RelationEdgeMapper")
+                .uid("RelationEdgeMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .keyBy(e -> e)
-                .addSink(new RelationSink(config))
-                .name("RelationSink")
-                .uid("RelationSink")
+                .addSink(new RelationEdgeSink(config))
+                .name("RelationEdgeSink")
+                .uid("RelationEdgeSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
-        env.execute("RelationJob");
+        env.execute("RelationEdgeJob");
     }
 
     @RequiredArgsConstructor
-    private static final class RelationMapper extends RichFlatMapFunction<SingleCanalBinlog, Row> {
+    private static final class RelationEdgeMapper extends RichFlatMapFunction<SingleCanalBinlog, Row> {
         private final Config config;
 
         @Override
@@ -164,7 +164,7 @@ public class RelationJob {
     }
 
     @RequiredArgsConstructor
-    private static final class RelationSink extends RichSinkFunction<Row> implements CheckpointedFunction {
+    private static final class RelationEdgeSink extends RichSinkFunction<Row> implements CheckpointedFunction {
         private final Config config;
         private ObsWriter obsWriter;
 

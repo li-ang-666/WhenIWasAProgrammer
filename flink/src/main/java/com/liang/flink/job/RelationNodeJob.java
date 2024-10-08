@@ -21,22 +21,22 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 import java.util.Map;
 
 @Slf4j
-@LocalConfigFile("relation-export.yml")
-public class RelationExportJob {
+@LocalConfigFile("relation-node.yml")
+public class RelationNodeJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
                 .rebalance()
-                .addSink(new RelationExportSink(config))
-                .name("RelationExportSink")
-                .uid("RelationExportSink")
+                .addSink(new RelationNodeSink(config))
+                .name("RelationNodeSink")
+                .uid("RelationNodeSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
-        env.execute("RelationExportJob");
+        env.execute("RelationNodeJob");
     }
 
     @RequiredArgsConstructor
-    private static final class RelationExportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
+    private static final class RelationNodeSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
         private final Roaring64Bitmap emptyCompany = new Roaring64Bitmap();
         private ObsWriter companyObsWriter;
