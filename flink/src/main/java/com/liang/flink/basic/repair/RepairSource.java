@@ -67,16 +67,16 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             // 遍历
             Roaring64Bitmap partIdBitmap = new Roaring64Bitmap();
             long position = repairState.getPosition(repairTask);
-            AtomicLong batchSize = new AtomicLong(0L);
+            AtomicLong catchSize = new AtomicLong(0L);
             allIdBitmap.forEach(id -> {
                 if (id > position) {
                     partIdBitmap.add(id);
-                    if (batchSize.incrementAndGet() >= BATCH_SIZE) {
+                    if (catchSize.incrementAndGet() >= BATCH_SIZE) {
                         synchronized (checkpointLock) {
                             ctx.collect(new RepairSplit(repairTask, partIdBitmap));
                             repairState.updateState(repairTask, allIdBitmap, id);
                             partIdBitmap.clear();
-                            batchSize.set(0L);
+                            catchSize.set(0L);
                         }
                     }
                 }
@@ -87,7 +87,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     ctx.collect(new RepairSplit(repairTask, partIdBitmap));
                     repairState.updateState(repairTask, allIdBitmap, partIdBitmap.last());
                     partIdBitmap.clear();
-                    batchSize.set(0L);
+                    catchSize.set(0L);
                 }
             }
         });
