@@ -35,6 +35,7 @@ drop table if exists test.relation_node_human;
 create external table if not exists test.relation_node_human(
   `row` string
 )stored as textfile location 'obs://hadoop-obs/flink/relation/node/human';
+
 */
 
 // spark-sql

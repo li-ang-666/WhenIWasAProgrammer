@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
@@ -44,6 +45,7 @@ drop table if exists test.relation_edge;
 create external table if not exists test.relation_edge(
   `row` string
 )stored as textfile location 'obs://hadoop-obs/flink/relation/edge';
+
 */
 
 // spark-sql
@@ -63,7 +65,7 @@ public class RelationEdgeJob {
                 .name("RelationEdgeMapper")
                 .uid("RelationEdgeMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .keyBy(e -> Tuple3.of(e.getCompanyId(), e.getId(), e.getRelation()))
+                .keyBy(new RelationEdgePartitioner())
                 .addSink(new RelationEdgeSink(config))
                 .name("RelationEdgeSink")
                 .uid("RelationEdgeSink")
@@ -73,6 +75,13 @@ public class RelationEdgeJob {
 
     private enum Relation {
         LEGAL, HIS_LEGAL, AC, HIS_INVEST, INVEST, BRANCH
+    }
+
+    private static final class RelationEdgePartitioner implements KeySelector<Row, Tuple3<String, String, String>> {
+        @Override
+        public Tuple3<String, String, String> getKey(Row row) {
+            return Tuple3.of(row.getCompanyId(), row.getId(), row.getRelation().toString());
+        }
     }
 
     @RequiredArgsConstructor
