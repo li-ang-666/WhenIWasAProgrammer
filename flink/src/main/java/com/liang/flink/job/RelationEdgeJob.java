@@ -27,6 +27,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -59,14 +60,19 @@ public class RelationEdgeJob {
     @RequiredArgsConstructor
     private static final class RelationEdgeMapper extends RichFlatMapFunction<SingleCanalBinlog, Row> {
         private final Config config;
+        private final Map<String, String> dictionary = new HashMap<>();
         private JdbcTemplate prismBoss157;
-        private JdbcTemplate companyBase435;
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
             prismBoss157 = new JdbcTemplate("157.prism_boss");
-            companyBase435 = new JdbcTemplate("435.company_base");
+            dictionary.put("1", "法定代表人");
+            dictionary.put("2", "负责人");
+            dictionary.put("3", "经营者");
+            dictionary.put("4", "投资人");
+            dictionary.put("5", "执行事务合伙人");
+            dictionary.put("6", "法定代表人|负责人");
         }
 
         @Override
@@ -191,7 +197,9 @@ public class RelationEdgeJob {
             Function<Map<String, Object>, Row> f = columnMap -> {
                 String shareholderId = (String) columnMap.get("tyc_unique_entity_id_legal_rep");
                 String companyId = (String) columnMap.get("tyc_unique_entity_id");
-                return new Row(shareholderId, companyId, Relation.HIS_LEGAL, queryLegalType(companyId), null);
+                String displayId = (String) columnMap.get("legal_rep_type_display_name");
+                String displayName = dictionary.getOrDefault(displayId, "法定代表人|负责人");
+                return new Row(shareholderId, companyId, Relation.HIS_LEGAL, displayName, null);
             };
             if (!beforeColumnMap.isEmpty())
                 out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
@@ -207,14 +215,6 @@ public class RelationEdgeJob {
                     .WHERE("deleted = 0")
                     .toString();
             return prismBoss157.queryForObject(sql, rs -> rs.getString(1));
-        }
-
-        private String queryLegalType(String companyId) {
-            String sql = new SQL().SELECT("legal_rep_display_name")
-                    .FROM("company_legal_person")
-                    .WHERE("company_id = " + SqlUtils.formatValue(companyId))
-                    .toString();
-            return companyBase435.queryForObject(sql, rs -> rs.getString(1));
         }
     }
 
