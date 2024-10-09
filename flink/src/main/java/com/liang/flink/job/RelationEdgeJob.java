@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -72,7 +73,7 @@ public class RelationEdgeJob {
                 .name("RelationEdgeMapper")
                 .uid("RelationEdgeMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .keyBy(row -> String.join("-", row.getSourceId(), row.getRelation().toString(), row.getTargetId()));
+                .keyBy(new RelationEdgeKeySelector());
         FlinkConfig.SourceType sourceType = config.getFlinkConfig().getSourceType();
         if (sourceType == FlinkConfig.SourceType.Repair) {
             stream
@@ -94,9 +95,17 @@ public class RelationEdgeJob {
         LEGAL, HIS_LEGAL, AC, HIS_INVEST, INVEST, BRANCH
     }
 
+    private static final class RelationEdgeKeySelector implements KeySelector<Row, String> {
+        @Override
+        public String getKey(Row row) {
+            return String.join("-", row.getSourceId(), row.getRelation().toString(), row.getTargetId());
+        }
+    }
+
     @RequiredArgsConstructor
     private static final class RelationEdgeMapper extends RichFlatMapFunction<SingleCanalBinlog, Row> {
         private final Config config;
+        private final RelationEdgeKeySelector relationEdgeKeySelector = new RelationEdgeKeySelector();
         private final Map<String, String> dictionary = new HashMap<>();
         private JdbcTemplate prismBoss157;
         private JdbcTemplate kv;
@@ -147,7 +156,18 @@ public class RelationEdgeJob {
                     log.error("wrong table: {}", table);
                     break;
             }
-            results.forEach(out::collect);
+            results.forEach(row -> {
+                String key = relationEdgeKeySelector.getKey(row);
+                long currentId = Long.parseLong(row.getId());
+                Long maxId = kv.queryForObject("SELECT v FROM relation_kv WHERE k = " + SqlUtils.formatValue(key),
+                        rs -> rs.getLong(1));
+                // 同id先插后删, 所以是 大于等于
+                if (maxId == null || currentId >= maxId) {
+                    kv.update(String.format("INSERT INTO relation_kv (k, v) VALUES (%s, %s) ON DUPLICATE KEY UPDATE k = VALUES(k), v = VALUES(v)",
+                            SqlUtils.formatValue(key), currentId));
+                    out.collect(row);
+                }
+            });
         }
 
         // 法人 -> 公司
