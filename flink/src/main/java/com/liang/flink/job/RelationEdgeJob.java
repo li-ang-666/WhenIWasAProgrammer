@@ -3,6 +3,7 @@ package com.liang.flink.job;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.liang.common.dto.Config;
+import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.storage.ObsWriter;
@@ -26,6 +27,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
@@ -69,17 +71,27 @@ public class RelationEdgeJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        StreamFactory.create(env)
+        KeyedStream<Row, Tuple3<String, String, String>> stream = StreamFactory.create(env)
                 .rebalance()
                 .flatMap(new RelationEdgeMapper(config))
                 .name("RelationEdgeMapper")
                 .uid("RelationEdgeMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .keyBy(new RelationEdgePartitioner())
-                .addSink(new RelationEdgeObsSink(config))
-                .name("RelationEdgeSink")
-                .uid("RelationEdgeSink")
-                .setParallelism(config.getFlinkConfig().getOtherParallel());
+                .keyBy(new RelationEdgePartitioner());
+        FlinkConfig.SourceType sourceType = config.getFlinkConfig().getSourceType();
+        if (sourceType == FlinkConfig.SourceType.Repair) {
+            stream
+                    .addSink(new RelationEdgeObsSink(config))
+                    .name("RelationEdgeObsSink")
+                    .uid("RelationEdgeObsSink")
+                    .setParallelism(config.getFlinkConfig().getOtherParallel());
+        } else {
+            stream
+                    .addSink(new RelationEdgeKafkaSink(config))
+                    .name("RelationEdgeKafkaSink")
+                    .uid("RelationEdgeKafkaSink")
+                    .setParallelism(30);
+        }
         env.execute("RelationEdgeJob");
     }
 
@@ -90,7 +102,7 @@ public class RelationEdgeJob {
     private static final class RelationEdgePartitioner implements KeySelector<Row, Tuple3<String, String, String>> {
         @Override
         public Tuple3<String, String, String> getKey(Row row) {
-            return Tuple3.of(row.getCompanyId(), row.getId(), row.getRelation().toString());
+            return Tuple3.of(row.getId(), row.getRelation().toString(), row.getCompanyId());
         }
     }
 
