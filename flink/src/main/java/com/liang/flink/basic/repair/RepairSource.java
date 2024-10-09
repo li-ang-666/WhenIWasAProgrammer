@@ -93,6 +93,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     }
                     ids.clear();
                 }
+                // 优化内存
                 allIdBitmap.runOptimize();
             });
         } catch (Exception e) {
