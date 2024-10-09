@@ -69,6 +69,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     if (allIdBitmap.isEmpty()) {
                         allIdBitmap.or(newAllIdBitmap(repairTask));
                     }
+                    allIdBitmap.runOptimize();
                     lastRuntimeMaxId = repairState.getPosition(repairTask);
                 }
                 // 遍历全部id
@@ -92,10 +93,6 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                         repairState.updatePosition(repairTask, ids.get(ids.size() - 1));
                     }
                     ids.clear();
-                }
-                // 优化内存
-                synchronized (checkpointLock) {
-                    allIdBitmap.runOptimize();
                 }
             });
         } catch (Exception e) {
