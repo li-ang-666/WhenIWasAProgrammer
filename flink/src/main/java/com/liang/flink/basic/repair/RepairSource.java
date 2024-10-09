@@ -94,7 +94,9 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     ids.clear();
                 }
                 // 优化内存
-                allIdBitmap.runOptimize();
+                synchronized (checkpointLock) {
+                    allIdBitmap.runOptimize();
+                }
             });
         } catch (Exception e) {
             log.error("RepairSource run() error", e);
