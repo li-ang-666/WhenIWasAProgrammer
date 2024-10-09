@@ -246,12 +246,13 @@ public class RelationEdgeJob {
         }
 
         @Override
-        public void close() {
+        public void finish() {
             obsWriter.flush();
         }
 
+
         @Override
-        public void finish() {
+        public void close() {
             obsWriter.flush();
         }
     }
