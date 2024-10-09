@@ -63,7 +63,7 @@ public class RelationNodeJob {
                 long companyId = Long.parseLong((String) columnMap.get("company_id"));
                 String odsStatus = (String) columnMap.get("company_registation_status");
                 int status;
-                if (odsStatus.contains("注销")) {
+                if (odsStatus.contains("注销") && !odsStatus.contains("未注销")) {
                     status = 1;
                 } else if (odsStatus.contains("吊销")) {
                     status = 2;
