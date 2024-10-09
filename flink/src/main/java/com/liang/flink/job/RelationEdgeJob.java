@@ -305,6 +305,7 @@ public class RelationEdgeJob {
 
     @RequiredArgsConstructor
     private static final class RelationEdgeKafkaSink extends RichSinkFunction<Row> implements CheckpointedFunction {
+        private static final String BOOTSTRAP_SERVERS = "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092";
         private static final String TOPIC = "rds.json.relation.edge";
         private final Config config;
         private final Lock lock = new ReentrantLock(true);
@@ -315,7 +316,7 @@ public class RelationEdgeJob {
         public void initializeState(FunctionInitializationContext context) {
             ConfigUtils.setConfig(config);
             Properties properties = new Properties();
-            properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092");
+            properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
             properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
             properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
             // ack
