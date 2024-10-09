@@ -9,12 +9,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
 public class RepairState {
-    private final Map<RepairTask, State> states = new ConcurrentSkipListMap<>();
+    private final Map<RepairTask, State> states = new LinkedHashMap<>();
 
     // 初始化
     public RepairState(List<RepairTask> repairTasks) {

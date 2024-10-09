@@ -60,6 +60,8 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
                 }
                 out.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
             });
+        } catch (Exception e) {
+            log.error("RepairHandler flatMap() error,", e);
         } finally {
             lock.unlock();
         }
@@ -69,6 +71,8 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
     public void snapshotState(FunctionSnapshotContext context) {
         try {
             lock.lock();
+        } catch (Exception e) {
+            log.error("RepairHandler snapshotState() error,", e);
         } finally {
             lock.unlock();
         }

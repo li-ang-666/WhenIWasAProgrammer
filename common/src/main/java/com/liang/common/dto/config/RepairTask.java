@@ -8,19 +8,13 @@ import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
-public class RepairTask implements Serializable, Comparable<RepairTask> {
+public class RepairTask implements Serializable {
     private String sourceName;
     private String tableName;
     private String columns = "*";
     private String where = "1 = 1";
     @NonNull
     private RepairTaskMode mode = RepairTaskMode.D;
-
-    @Override
-    public int compareTo(@NonNull RepairTask another) {
-        // forever positive
-        return this.equals(another) ? 0 : 1;
-    }
 
     public enum RepairTaskMode implements Serializable {
         D, F

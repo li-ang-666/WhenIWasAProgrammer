@@ -58,40 +58,45 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
 
     @Override
     public void run(SourceContext<RepairSplit> ctx) {
-        final Object checkpointLock = ctx.getCheckpointLock();
-        repairTasks.forEach(repairTask -> {
-            // 获取全部id
-            Roaring64Bitmap allIdBitmap;
-            synchronized (checkpointLock) {
-                allIdBitmap = repairState.getAllIdBitmap(repairTask);
-                if (allIdBitmap.isEmpty()) {
-                    allIdBitmap.or(newAllIdBitmap(repairTask));
-                }
-            }
-            // 遍历
-            List<Long> ids = new ArrayList<>(BATCH_SIZE);
-            long lastRuntimeMaxId = repairState.getPosition(repairTask);
-            allIdBitmap.forEach(id -> {
-                if (id > lastRuntimeMaxId) {
-                    ids.add(id);
-                    if (ids.size() >= BATCH_SIZE) {
-                        synchronized (checkpointLock) {
-                            ctx.collect(new RepairSplit(repairTask, ids));
-                            repairState.updatePosition(repairTask, id);
-                        }
-                        ids.clear();
+        try {
+            final Object checkpointLock = ctx.getCheckpointLock();
+            repairTasks.forEach(repairTask -> {
+                // 获取全部id
+                Roaring64Bitmap allIdBitmap;
+                long lastRuntimeMaxId;
+                synchronized (checkpointLock) {
+                    allIdBitmap = repairState.getAllIdBitmap(repairTask);
+                    if (allIdBitmap.isEmpty()) {
+                        allIdBitmap.or(newAllIdBitmap(repairTask));
                     }
+                    lastRuntimeMaxId = repairState.getPosition(repairTask);
+                }
+                // 遍历
+                List<Long> ids = new ArrayList<>(BATCH_SIZE);
+                allIdBitmap.forEach(id -> {
+                    if (id > lastRuntimeMaxId) {
+                        ids.add(id);
+                        if (ids.size() >= BATCH_SIZE) {
+                            synchronized (checkpointLock) {
+                                ctx.collect(new RepairSplit(repairTask, ids));
+                                repairState.updatePosition(repairTask, id);
+                            }
+                            ids.clear();
+                        }
+                    }
+                });
+                // 清空缓存
+                if (!ids.isEmpty()) {
+                    synchronized (checkpointLock) {
+                        ctx.collect(new RepairSplit(repairTask, ids));
+                        repairState.updatePosition(repairTask, ids.get(ids.size() - 1));
+                    }
+                    ids.clear();
                 }
             });
-            // 清空缓存
-            if (!ids.isEmpty()) {
-                synchronized (checkpointLock) {
-                    ctx.collect(new RepairSplit(repairTask, ids));
-                    repairState.updatePosition(repairTask, ids.get(ids.size() - 1));
-                }
-                ids.clear();
-            }
-        });
+        } catch (Exception e) {
+            log.error("RepairSource run() error", e);
+        }
     }
 
     @Override
@@ -106,10 +111,14 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
 
     @Override
     public void notifyCheckpointComplete(long checkpointId) {
-        String logs = String.format("ckp_%04d successfully, states: %s",
-                checkpointId,
-                repairState.toReportString());
-        report(logs);
+        try {
+            String logs = String.format("ckp_%04d successfully, states: %s",
+                    checkpointId,
+                    repairState.toReportString());
+            report(logs);
+        } catch (Exception e) {
+            log.error("RepairSource notifyCheckpointComplete() error", e);
+        }
     }
 
     @Override
