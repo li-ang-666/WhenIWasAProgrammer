@@ -41,8 +41,8 @@ select count(1) from test.relation_node_company;
 select count(1) from test.relation_node_human;
 */
 
-// insert overwrite table test.relation_node_company select /*+ REPARTITION(6) */ * from test.relation_node_company;
-// insert overwrite table test.relation_node_human select /*+ REPARTITION(6) */ * from test.relation_node_human;
+// insert overwrite table test.relation_node_company select /*+ REPARTITION(4) */ * from test.relation_node_company;
+// insert overwrite table test.relation_node_human select /*+ REPARTITION(4) */ * from test.relation_node_human;
 @Slf4j
 @LocalConfigFile("relation-node.yml")
 public class RelationNodeJob {

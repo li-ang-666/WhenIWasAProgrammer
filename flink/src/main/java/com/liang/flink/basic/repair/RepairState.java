@@ -57,9 +57,9 @@ public class RepairState {
             LinkedHashMap<String, Object> info = new LinkedHashMap<>();
             info.put("source", k.getSourceName());
             info.put("table", k.getTableName());
-            info.put("position", v.getPosition());
-            info.put("count", v.getCount());
-            info.put("total", v.getTotal());
+            info.put("position", String.format("%,d", v.getPosition()));
+            info.put("count", String.format("%,d", v.getCount()));
+            info.put("total", String.format("%,d", v.getTotal()));
             infos.add(info);
         });
         return JsonUtils.toString(infos);
