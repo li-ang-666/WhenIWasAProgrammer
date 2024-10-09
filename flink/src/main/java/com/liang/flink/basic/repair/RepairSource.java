@@ -71,7 +71,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     }
                     lastRuntimeMaxId = repairState.getPosition(repairTask);
                 }
-                // 遍历
+                // 遍历全部id
                 List<Long> ids = new ArrayList<>(BATCH_SIZE);
                 allIdBitmap.forEach(id -> {
                     if (id > lastRuntimeMaxId) {
