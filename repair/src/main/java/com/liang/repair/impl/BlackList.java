@@ -148,6 +148,9 @@ public class BlackList extends ConfigHolder {
         deleteBossAll("10TNMM602K1GSN032");
         // 删除合作伙伴 ============================================================================
         deletePartner("40TN89C001CR0MVL6");
+        deletePartner("00V0Y9P02VHCN26Q5");
+        deletePartner("40TN89C001CR0MVL6");
+        deletePartner("H0KVB9609SBAALP29");
         deletePartner("G04CMM602C44GD6T7");
         deletePartner("K038V9000E896M2N5");
         deletePartner("H0J1VMA09KRU1HGJC");
