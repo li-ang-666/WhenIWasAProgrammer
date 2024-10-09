@@ -5,12 +5,12 @@ import com.liang.common.util.JsonUtils;
 import lombok.Data;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @Data
 public class RepairState {
@@ -18,14 +18,14 @@ public class RepairState {
 
     // 初始化
     public RepairState(List<RepairTask> repairTasks) {
-        repairTasks.forEach(repairTask -> this.states.put(repairTask, new State()));
+        repairTasks.forEach(repairTask -> states.put(repairTask, new State()));
     }
 
     // 恢复
     public void restoreState(RepairState oldState) {
-        oldState.states.forEach((k, v) -> {
-            if (this.states.containsKey(k)) {
-                this.states.put(k, v);
+        oldState.getStates().forEach((k, v) -> {
+            if (states.containsKey(k)) {
+                states.put(k, v);
             }
         });
     }
@@ -45,39 +45,44 @@ public class RepairState {
     }
 
     public long getCount(RepairTask repairTask) {
-        long position = getPosition(repairTask);
-        AtomicLong count = new AtomicLong(0L);
-        getAllIdBitmap(repairTask).forEach(id -> {
-            if (id <= position) {
-                count.incrementAndGet();
-            }
-        });
-        return count.get();
+        return states.get(repairTask).getCount();
     }
 
     public long getTotal(RepairTask repairTask) {
-        return states.get(repairTask).getAllIdBitmap().getLongCardinality();
+        return states.get(repairTask).getTotal();
     }
 
     public String toReportString() {
-        RepairState repairState = this;
-        return JsonUtils.toString(
-                states.keySet()
-                        .stream()
-                        .map(k -> new LinkedHashMap<String, Object>() {{
-                            put("source", k.getSourceName());
-                            put("table", k.getTableName());
-                            put("position", String.format("%,d", repairState.getPosition(k)));
-                            put("count", String.format("%,d", repairState.getCount(k)));
-                            put("total", String.format("%,d", repairState.getTotal(k)));
-                        }})
-                        .collect(Collectors.toList())
-        );
+        List<Map<String, Object>> infos = new ArrayList<>();
+        states.forEach((k, v) -> {
+            LinkedHashMap<String, Object> info = new LinkedHashMap<>();
+            info.put("source", k.getSourceName());
+            info.put("table", k.getTableName());
+            info.put("position", v.getPosition());
+            info.put("count", v.getCount());
+            info.put("total", v.getTotal());
+            infos.add(info);
+        });
+        return JsonUtils.toString(infos);
     }
 
     @Data
     private static final class State {
         private volatile Roaring64Bitmap allIdBitmap = new Roaring64Bitmap();
         private volatile long position = -1L;
+
+        private long getCount() {
+            AtomicLong count = new AtomicLong(0L);
+            allIdBitmap.forEach(id -> {
+                if (id <= position) {
+                    count.incrementAndGet();
+                }
+            });
+            return count.get();
+        }
+
+        private long getTotal() {
+            return allIdBitmap.getLongCardinality();
+        }
     }
 }
