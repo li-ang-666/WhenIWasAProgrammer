@@ -108,13 +108,13 @@ public class RelationEdgeJob {
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
-            prismBoss157 = new JdbcTemplate("157.prism_boss");
             dictionary.put("1", "法定代表人");
             dictionary.put("2", "负责人");
             dictionary.put("3", "经营者");
             dictionary.put("4", "投资人");
             dictionary.put("5", "执行事务合伙人");
             dictionary.put("6", "法定代表人|负责人");
+            prismBoss157 = new JdbcTemplate("157.prism_boss");
         }
 
         @Override
