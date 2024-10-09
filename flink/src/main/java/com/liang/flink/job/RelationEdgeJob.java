@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /*
-hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/edge/
+!sh hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/edge/*
 
 
 drop table if exists test.relation_edge;

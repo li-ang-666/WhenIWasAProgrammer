@@ -21,8 +21,8 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 import java.util.Map;
 
 /*
-hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/node/company/
-hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/node/human/
+!sh hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/node/company/*
+!sh hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/node/human/*
 
 
 drop table if exists test.relation_node_company;
