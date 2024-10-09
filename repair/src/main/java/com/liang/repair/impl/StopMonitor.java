@@ -34,6 +34,7 @@ public class StopMonitor {
         LIST.add(Tuple3.of("liang", "Moka20190520", "BidToCloudJob火山云线上任务"));
         LIST.add(Tuple3.of("liang", "Moka20190520", "company_bid_parsed_info"));
         LIST.add(Tuple3.of("liang", "Moka20190520", "BidJob离线修复"));
+        LIST.add(Tuple3.of("liang", "Moka20190520", "RelationEdgeJob"));
     }
 
     public static void main(String[] args) {

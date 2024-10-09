@@ -25,12 +25,9 @@ public class KafkaConsumerJob {
         Config config = ConfigUtils.getConfig();
         KafkaSource<KafkaRecord<String>> kafkaSource = KafkaSourceFactory.create(String::new);
         env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "KafkaSource")
-                .setParallelism(1)
-                .map(KafkaRecord::getValue)
-                .returns(String.class)
-                .setParallelism(1)
-                .addSink(new KafkaConsumerSink(config))
-                .setParallelism(1);
+                .filter(e -> e.getPartition() == 0)
+                .print();
+        env.setParallelism(1);
         env.execute("KafkaConsumerJob");
     }
 
@@ -49,8 +46,7 @@ public class KafkaConsumerJob {
 
         @Override
         public void invoke(String value, Context context) {
-            if (value.contains("UPDATE"))
-                System.out.println(value);
+            System.out.println(value);
         }
 
         @Override

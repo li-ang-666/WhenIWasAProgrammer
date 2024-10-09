@@ -21,8 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -30,6 +29,7 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -64,20 +64,20 @@ create external table if not exists test.relation_edge(
 
 // select count(1) from test.relation_edge;
 
-// insert overwrite table test.relation_edge select /*+ REPARTITION(12) */ * from test.relation_edge;
+// insert overwrite table test.relation_edge select /*+ REPARTITION(7) */ * from test.relation_edge;
 @Slf4j
 @LocalConfigFile("relation-edge.yml")
 public class RelationEdgeJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        KeyedStream<Row, Tuple3<String, String, String>> stream = StreamFactory.create(env)
+        KeyedStream<Row, String> stream = StreamFactory.create(env)
                 .rebalance()
                 .flatMap(new RelationEdgeMapper(config))
                 .name("RelationEdgeMapper")
                 .uid("RelationEdgeMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .keyBy(new RelationEdgePartitioner());
+                .keyBy(row -> String.join("-", row.getSourceId(), row.getRelation().toString(), row.getTargetId()));
         FlinkConfig.SourceType sourceType = config.getFlinkConfig().getSourceType();
         if (sourceType == FlinkConfig.SourceType.Repair) {
             stream
@@ -97,17 +97,6 @@ public class RelationEdgeJob {
 
     private enum Relation {
         LEGAL, HIS_LEGAL, AC, HIS_INVEST, INVEST, BRANCH
-    }
-
-    private static final class RelationEdgePartitioner implements KeySelector<Row, Tuple3<String, String, String>> {
-        @Override
-        public Tuple3<String, String, String> getKey(Row row) {
-            return Tuple3.of(
-                    row.getId(),
-                    row.getRelation().toString(),
-                    row.getCompanyId()
-            );
-        }
     }
 
     @RequiredArgsConstructor
@@ -166,17 +155,19 @@ public class RelationEdgeJob {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
+                String id = (String) columnMap.get("id");
                 String pid = (String) columnMap.get("legal_rep_human_id");
                 String gid = (String) columnMap.get("legal_rep_name_id");
-                String id = TycUtils.isTycUniqueEntityId(pid) ? pid : gid;
+                String legalPersonId = TycUtils.isTycUniqueEntityId(pid) ? pid : gid;
                 String companyId = (String) columnMap.get("company_id");
                 String identity = (String) columnMap.get("legal_rep_display_name");
-                return new Row(id, companyId, Relation.LEGAL, identity, null);
+                return new Row(id, legalPersonId, companyId, Relation.LEGAL, identity, null, null);
             };
+            Tuple2<RowKind, RowKind> rowKindTuple = getRowKindTuple(singleCanalBinlog);
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE).setRowKind(rowKindTuple.f0));
             if (!afterColumnMap.isEmpty())
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT).setRowKind(rowKindTuple.f1));
         }
 
         // 实控人 -> 公司
@@ -184,14 +175,16 @@ public class RelationEdgeJob {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
+                String id = (String) columnMap.get("id");
                 String shareholderId = (String) columnMap.get("tyc_unique_entity_id");
                 String companyId = (String) columnMap.get("company_id_controlled");
-                return new Row(shareholderId, companyId, Relation.AC, "", null);
+                return new Row(id, shareholderId, companyId, Relation.AC, "", null, null);
             };
+            Tuple2<RowKind, RowKind> rowKindTuple = getRowKindTuple(singleCanalBinlog);
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE).setRowKind(rowKindTuple.f0));
             if (!afterColumnMap.isEmpty())
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT).setRowKind(rowKindTuple.f1));
         }
 
         // 股东 -> 公司
@@ -199,15 +192,17 @@ public class RelationEdgeJob {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
+                String id = (String) columnMap.get("id");
                 String shareholderId = (String) columnMap.get("shareholder_id");
                 String companyId = (String) columnMap.get("company_id");
                 String equityRatio = (String) columnMap.get("equity_ratio");
-                return new Row(shareholderId, companyId, Relation.INVEST, equityRatio, null);
+                return new Row(id, shareholderId, companyId, Relation.INVEST, equityRatio, null, null);
             };
+            Tuple2<RowKind, RowKind> rowKindTuple = getRowKindTuple(singleCanalBinlog);
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE).setRowKind(rowKindTuple.f0));
             if (!afterColumnMap.isEmpty())
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT).setRowKind(rowKindTuple.f1));
         }
 
         // 分公司 -> 总公司
@@ -215,14 +210,16 @@ public class RelationEdgeJob {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
+                String id = (String) columnMap.get("id");
                 String branchCompanyId = (String) columnMap.get("branch_company_id");
                 String companyId = (String) columnMap.get("company_id");
-                return new Row(branchCompanyId, companyId, Relation.BRANCH, "", null);
+                return new Row(id, branchCompanyId, companyId, Relation.BRANCH, "", null, null);
             };
+            Tuple2<RowKind, RowKind> rowKindTuple = getRowKindTuple(singleCanalBinlog);
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE).setRowKind(rowKindTuple.f0));
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted")))
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT).setRowKind(rowKindTuple.f1));
         }
 
         // 历史股东 -> 公司
@@ -230,17 +227,19 @@ public class RelationEdgeJob {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
+                String id = (String) columnMap.get("id");
                 String shareholderGid = (String) columnMap.get("entity_name_id");
                 String shareholderType = (String) columnMap.get("entity_type_id");
                 String companyId = (String) columnMap.get("company_id_invested");
                 String shareholderId = "2".equals(shareholderType) ? queryPid(companyId, shareholderGid) : shareholderGid;
                 String investmentRatio = StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "");
-                return new Row(shareholderId, companyId, Relation.HIS_INVEST, investmentRatio, null);
+                return new Row(id, shareholderId, companyId, Relation.HIS_INVEST, investmentRatio, null, null);
             };
+            Tuple2<RowKind, RowKind> rowKindTuple = getRowKindTuple(singleCanalBinlog);
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE).setRowKind(rowKindTuple.f0));
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")))
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT).setRowKind(rowKindTuple.f1));
         }
 
         // 历史法人 -> 公司
@@ -248,16 +247,18 @@ public class RelationEdgeJob {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
+                String id = (String) columnMap.get("id");
                 String shareholderId = (String) columnMap.get("tyc_unique_entity_id_legal_rep");
                 String companyId = (String) columnMap.get("tyc_unique_entity_id");
                 String displayId = (String) columnMap.get("legal_rep_type_display_name");
                 String displayName = dictionary.getOrDefault(displayId, "法定代表人|负责人");
-                return new Row(shareholderId, companyId, Relation.HIS_LEGAL, displayName, null);
+                return new Row(id, shareholderId, companyId, Relation.HIS_LEGAL, displayName, null, null);
             };
+            Tuple2<RowKind, RowKind> rowKindTuple = getRowKindTuple(singleCanalBinlog);
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE).setRowKind(rowKindTuple.f0));
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")) && "1".equals(afterColumnMap.get("is_history_legal_rep")))
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT).setRowKind(rowKindTuple.f1));
         }
 
         private String queryPid(String companyGid, String humanGid) {
@@ -268,6 +269,24 @@ public class RelationEdgeJob {
                     .WHERE("deleted = 0")
                     .toString();
             return prismBoss157.queryForObject(sql, rs -> rs.getString(1));
+        }
+
+        private Tuple2<RowKind, RowKind> getRowKindTuple(SingleCanalBinlog singleCanalBinlog) {
+            RowKind rowKind1;
+            RowKind rowKind2;
+            if (singleCanalBinlog.getEventType() == CanalEntry.EventType.INSERT) {
+                rowKind1 = null;
+                rowKind2 = RowKind.INSERT;
+            } else if (singleCanalBinlog.getEventType() == CanalEntry.EventType.UPDATE) {
+                rowKind1 = RowKind.UPDATE_BEFORE;
+                rowKind2 = RowKind.UPDATE_AFTER;
+            } else if (singleCanalBinlog.getEventType() == CanalEntry.EventType.DELETE) {
+                rowKind1 = RowKind.DELETE;
+                rowKind2 = null;
+            } else {
+                rowKind1 = rowKind2 = null;
+            }
+            return Tuple2.of(rowKind1, rowKind2);
         }
     }
 
@@ -389,26 +408,30 @@ public class RelationEdgeJob {
     @Accessors(chain = true)
     private static final class Row implements Serializable {
         private String id;
-        private String companyId;
+        private String sourceId;
+        private String targetId;
         private Relation relation;
         private String other;
         private CanalEntry.EventType opt;
+        private RowKind rowKind;
 
         public boolean isValid() {
-            return TycUtils.isTycUniqueEntityId(id) && TycUtils.isUnsignedId(companyId);
+            return TycUtils.isTycUniqueEntityId(sourceId) && TycUtils.isUnsignedId(targetId);
         }
 
         public String toCsv() {
-            return Stream.of(id, companyId, relation, other)
+            return Stream.of(sourceId, targetId, relation, other)
                     .map(value -> String.valueOf(value).replaceAll("[\"',\\s]", ""))
                     .collect(Collectors.joining(","));
         }
 
         public String toJson() {
             return JsonUtils.toString(new LinkedHashMap<String, Object>() {{
-                put("source_id", id);
-                put("relation_type", relation.toString());
-                put("target_id", companyId);
+                put("id", id);
+                put("row_kind", rowKind);
+                put("source_id", sourceId);
+                put("relation_type", relation);
+                put("target_id", targetId);
                 put("ext_info", other);
                 put("is_deleted", opt == CanalEntry.EventType.DELETE ? 1 : 0);
             }});
