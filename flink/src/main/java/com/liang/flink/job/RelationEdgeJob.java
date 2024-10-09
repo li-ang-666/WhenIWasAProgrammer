@@ -102,7 +102,11 @@ public class RelationEdgeJob {
     private static final class RelationEdgePartitioner implements KeySelector<Row, Tuple3<String, String, String>> {
         @Override
         public Tuple3<String, String, String> getKey(Row row) {
-            return Tuple3.of(row.getId(), row.getRelation().toString(), row.getCompanyId());
+            return Tuple3.of(
+                    row.getId(),
+                    row.getRelation().toString(),
+                    row.getCompanyId()
+            );
         }
     }
 
