@@ -345,9 +345,9 @@ public class RelationEdgeJob {
         public void invoke(Row row, Context context) {
             try {
                 lock.lock();
-                producer.send(new ProducerRecord<>(
-                        TOPIC, partition, null, row.toJson().getBytes(StandardCharsets.UTF_8)
-                ));
+                if (row.isValid()) {
+                    producer.send(new ProducerRecord<>(TOPIC, partition, null, row.toJson().getBytes(StandardCharsets.UTF_8)));
+                }
             } finally {
                 lock.unlock();
             }
