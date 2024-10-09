@@ -7,6 +7,7 @@ import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.service.storage.ObsWriter;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.JsonUtils;
 import com.liang.common.util.SqlUtils;
 import com.liang.common.util.TycUtils;
 import com.liang.flink.basic.EnvironmentFactory;
@@ -28,10 +29,19 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,7 +76,7 @@ public class RelationEdgeJob {
                 .uid("RelationEdgeMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
                 .keyBy(new RelationEdgePartitioner())
-                .addSink(new RelationEdgeSink(config))
+                .addSink(new RelationEdgeObsSink(config))
                 .name("RelationEdgeSink")
                 .uid("RelationEdgeSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
@@ -246,7 +256,7 @@ public class RelationEdgeJob {
     }
 
     @RequiredArgsConstructor
-    private static final class RelationEdgeSink extends RichSinkFunction<Row> implements CheckpointedFunction {
+    private static final class RelationEdgeObsSink extends RichSinkFunction<Row> implements CheckpointedFunction {
         private final Config config;
         private ObsWriter obsWriter;
 
@@ -260,10 +270,7 @@ public class RelationEdgeJob {
         @Override
         public void invoke(Row row, Context context) {
             if (row.isValid()) {
-                String str = Stream.of(row.getId(), row.getCompanyId(), row.getRelation(), row.getOther())
-                        .map(value -> String.valueOf(value).replaceAll("[\"',\\s]", ""))
-                        .collect(Collectors.joining(","));
-                obsWriter.update(str);
+                obsWriter.update(row.toCsv());
             }
         }
 
@@ -284,6 +291,82 @@ public class RelationEdgeJob {
         }
     }
 
+    @RequiredArgsConstructor
+    private static final class RelationEdgeKafkaSink extends RichSinkFunction<Row> implements CheckpointedFunction {
+        private static final String TOPIC = "rds.json.relation.edge";
+        private final Config config;
+        private final Lock lock = new ReentrantLock(true);
+        private KafkaProducer<byte[], byte[]> producer;
+        private int partition;
+
+        @Override
+        public void initializeState(FunctionInitializationContext context) {
+            ConfigUtils.setConfig(config);
+            Properties properties = new Properties();
+            properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092");
+            properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+            properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+            // ack
+            properties.put(ProducerConfig.ACKS_CONFIG, String.valueOf(1));
+            // retry
+            properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, String.valueOf(60 * 1000));
+            properties.put(ProducerConfig.RETRIES_CONFIG, String.valueOf(3));
+            properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, String.valueOf(2 * 1000));
+            // in order
+            properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, String.valueOf(1));
+            // performance cache time
+            properties.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(1000));
+            // performance cache memory
+            properties.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, String.valueOf(16 * 1024 * 1024));
+            properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, String.valueOf(16 * 1024 * 1024));
+            properties.put(ProducerConfig.BATCH_SIZE_CONFIG, String.valueOf(1024 * 1024));
+            producer = new KafkaProducer<>(properties);
+            partition = getRuntimeContext().getIndexOfThisSubtask();
+        }
+
+        @Override
+        public void invoke(Row row, Context context) {
+            try {
+                lock.lock();
+                producer.send(new ProducerRecord<>(
+                        TOPIC, partition, null, row.toJson().getBytes(StandardCharsets.UTF_8)
+                ));
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        @Override
+        public void snapshotState(FunctionSnapshotContext context) {
+            try {
+                lock.lock();
+                producer.flush();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        @Override
+        public void finish() {
+            try {
+                lock.lock();
+                producer.flush();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        @Override
+        public void close() {
+            try {
+                lock.lock();
+                producer.flush();
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
     @Data
     @AllArgsConstructor
     @Accessors(chain = true)
@@ -296,6 +379,22 @@ public class RelationEdgeJob {
 
         public boolean isValid() {
             return TycUtils.isTycUniqueEntityId(id) && TycUtils.isUnsignedId(companyId);
+        }
+
+        public String toCsv() {
+            return Stream.of(id, companyId, relation, other)
+                    .map(value -> String.valueOf(value).replaceAll("[\"',\\s]", ""))
+                    .collect(Collectors.joining(","));
+        }
+
+        public String toJson() {
+            return JsonUtils.toString(new LinkedHashMap<String, Object>() {{
+                put("source_id", id);
+                put("relation_type", relation.toString());
+                put("target_id", companyId);
+                put("ext_info", other);
+                put("is_deleted", opt == CanalEntry.EventType.DELETE);
+            }});
         }
     }
 }
