@@ -410,7 +410,7 @@ public class RelationEdgeJob {
                 put("relation_type", relation.toString());
                 put("target_id", companyId);
                 put("ext_info", other);
-                put("is_deleted", opt == CanalEntry.EventType.DELETE);
+                put("is_deleted", opt == CanalEntry.EventType.DELETE ? 1 : 0);
             }});
         }
     }
