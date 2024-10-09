@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -27,6 +28,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.util.Collector;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -56,12 +58,12 @@ public class RelationEdgeJob {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
-                .keyBy(e -> e.getColumnMap().get("id"))
+                .rebalance()
                 .flatMap(new RelationEdgeMapper(config))
                 .name("RelationEdgeMapper")
                 .uid("RelationEdgeMapper")
                 .setParallelism(config.getFlinkConfig().getOtherParallel())
-                .keyBy(e -> e)
+                .keyBy(e -> Tuple3.of(e.getCompanyId(), e.getId(), e.getRelation()))
                 .addSink(new RelationEdgeSink(config))
                 .name("RelationEdgeSink")
                 .uid("RelationEdgeSink")
@@ -276,7 +278,7 @@ public class RelationEdgeJob {
     @Data
     @AllArgsConstructor
     @Accessors(chain = true)
-    private static final class Row {
+    private static final class Row implements Serializable {
         private String id;
         private String companyId;
         private Relation relation;
