@@ -36,10 +36,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -102,10 +99,7 @@ public class RelationEdgeJob {
         private final Config config;
         private final Map<String, String> dictionary = new HashMap<>();
         private JdbcTemplate prismBoss157;
-        private JdbcTemplate companyBase435;
-        private JdbcTemplate bdpEquity463;
-        private JdbcTemplate bdpPersonnel466;
-        private JdbcTemplate graphData430;
+        private JdbcTemplate kv;
 
         @Override
         public void open(Configuration parameters) {
@@ -117,47 +111,47 @@ public class RelationEdgeJob {
             dictionary.put("5", "执行事务合伙人");
             dictionary.put("6", "法定代表人|负责人");
             prismBoss157 = new JdbcTemplate("157.prism_boss");
-            companyBase435 = new JdbcTemplate("435.company_base");
-            bdpEquity463 = new JdbcTemplate("463.bdp_equity");
-            bdpPersonnel466 = new JdbcTemplate("466.bdp_personnel");
-            graphData430 = new JdbcTemplate("430.graph_data");
+            kv = new JdbcTemplate("427.test");
         }
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+            ArrayList<Row> results = new ArrayList<>();
             String table = singleCanalBinlog.getTable();
             switch (table) {
                 case "company_legal_person":
                     // 法人
-                    parseLegalPerson(singleCanalBinlog, out);
+                    parseLegalPerson(singleCanalBinlog, results);
                     break;
                 case "entity_controller_details_new":
                     // 实控人
-                    parseController(singleCanalBinlog, out);
+                    parseController(singleCanalBinlog, results);
                     break;
                 case "company_equity_relation_details":
                     // 股东
-                    parseShareholder(singleCanalBinlog, out);
+                    parseShareholder(singleCanalBinlog, results);
                     break;
                 case "company_branch":
                     // 分支机构
-                    parseBranch(singleCanalBinlog, out);
+                    parseBranch(singleCanalBinlog, results);
                     break;
                 case "entity_investment_history_fusion_details":
                     // 历史股东
-                    parseHisShareholder(singleCanalBinlog, out);
+                    parseHisShareholder(singleCanalBinlog, results);
                     break;
                 case "entity_legal_rep_list_total":
                     // 历史法人
-                    parseHisLegalPerson(singleCanalBinlog, out);
+                    parseHisLegalPerson(singleCanalBinlog, results);
                     break;
                 default:
                     log.error("wrong table: {}", table);
+                    break;
             }
+            results.forEach(out::collect);
         }
 
         // 法人 -> 公司
-        private void parseLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+        private void parseLegalPerson(SingleCanalBinlog singleCanalBinlog, List<Row> results) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
@@ -170,13 +164,13 @@ public class RelationEdgeJob {
                 return new Row(id, legalPersonId, companyId, Relation.LEGAL, identity, null);
             };
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                results.add(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             if (!afterColumnMap.isEmpty())
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                results.add(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
 
         // 实控人 -> 公司
-        private void parseController(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+        private void parseController(SingleCanalBinlog singleCanalBinlog, List<Row> results) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
@@ -186,13 +180,13 @@ public class RelationEdgeJob {
                 return new Row(id, shareholderId, companyId, Relation.AC, "", null);
             };
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                results.add(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             if (!afterColumnMap.isEmpty())
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                results.add(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
 
         // 股东 -> 公司
-        private void parseShareholder(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+        private void parseShareholder(SingleCanalBinlog singleCanalBinlog, List<Row> results) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
@@ -203,13 +197,13 @@ public class RelationEdgeJob {
                 return new Row(id, shareholderId, companyId, Relation.INVEST, equityRatio, null);
             };
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                results.add(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             if (!afterColumnMap.isEmpty())
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                results.add(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
 
         // 分公司 -> 总公司
-        private void parseBranch(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+        private void parseBranch(SingleCanalBinlog singleCanalBinlog, List<Row> results) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
@@ -220,13 +214,13 @@ public class RelationEdgeJob {
             };
 
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                results.add(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("is_deleted")))
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                results.add(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
 
         // 历史股东 -> 公司
-        private void parseHisShareholder(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+        private void parseHisShareholder(SingleCanalBinlog singleCanalBinlog, List<Row> results) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
@@ -240,13 +234,13 @@ public class RelationEdgeJob {
             };
 
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                results.add(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")))
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                results.add(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
 
         // 历史法人 -> 公司
-        private void parseHisLegalPerson(SingleCanalBinlog singleCanalBinlog, Collector<Row> out) {
+        private void parseHisLegalPerson(SingleCanalBinlog singleCanalBinlog, List<Row> results) {
             Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
             Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
             Function<Map<String, Object>, Row> f = columnMap -> {
@@ -259,9 +253,9 @@ public class RelationEdgeJob {
             };
 
             if (!beforeColumnMap.isEmpty())
-                out.collect(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
+                results.add(f.apply(beforeColumnMap).setOpt(CanalEntry.EventType.DELETE));
             if (!afterColumnMap.isEmpty() && "0".equals(afterColumnMap.get("delete_status")) && "1".equals(afterColumnMap.get("is_history_legal_rep")))
-                out.collect(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
+                results.add(f.apply(afterColumnMap).setOpt(CanalEntry.EventType.INSERT));
         }
 
         private String queryPid(String companyGid, String humanGid) {
