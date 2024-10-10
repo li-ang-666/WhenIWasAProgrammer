@@ -1,39 +1,14 @@
 # sourceType: Kafka or Repair
 flinkConfig:
-  sourceType: Kafka
+  sourceType: Repair
   sourceParallel: 1
   otherParallel: 1
 
 repairTasks:
   - sourceName: "435.company_base"
-    tableName: "company_legal_person"
+    tableName: "company_index"
     columns: "*"
     where: "company_id = 14427175"
-
-  - sourceName: "430.graph_data"
-    tableName: "company_equity_relation_details"
-    columns: "*"
-    where: "company_id = 14427175"
-
-  - sourceName: "463.bdp_equity"
-    tableName: "entity_controller_details_new"
-    columns: "*"
-    where: "company_id_controlled = 14427175"
-
-  - sourceName: "435.company_base"
-    tableName: "company_branch"
-    columns: "*"
-    where: "company_id = 14427175"
-
-  - sourceName: "463.bdp_equity"
-    tableName: "entity_investment_history_fusion_details"
-    columns: "*"
-    where: "company_id_invested = 14427175"
-
-  - sourceName: "466.bdp_personnel"
-    tableName: "entity_legal_rep_list_total"
-    columns: "*"
-    where: "tyc_unique_entity_id = '14427175'"
 
 kafkaConfigs:
   kafkaSource:

@@ -1,5 +1,6 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.FlinkConfig;
 import com.liang.common.service.SQL;
@@ -87,6 +88,7 @@ public class RelationEdgeJob {
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
             switch (singleCanalBinlog.getTable()) {
+                case "company_index":
                 case "company_legal_person":
                 case "company_equity_relation_details":
                 case "company_branch":
@@ -195,7 +197,7 @@ public class RelationEdgeJob {
                 String sourceId = "1".equals(type) ? (String) columnMap.get("legal_rep_name_id") : (String) columnMap.get("legal_rep_human_id");
                 String name = (String) columnMap.get("legal_rep_name");
                 String other = (String) columnMap.get("legal_rep_display_name");
-                results.add(new Row(sourceId, companyId, Relation.LEGAL, other));
+                results.add(new Row(sourceId, name, companyId, Relation.LEGAL, other));
             }
         }
 
@@ -212,7 +214,7 @@ public class RelationEdgeJob {
                 String sourceId = (String) columnMap.get("tyc_unique_entity_id");
                 String name = (String) columnMap.get("entity_name_valid");
                 String other = "";
-                results.add(new Row(sourceId, companyId, Relation.AC, other));
+                results.add(new Row(sourceId, name, companyId, Relation.AC, other));
             }
         }
 
@@ -231,7 +233,7 @@ public class RelationEdgeJob {
                 String sourceId = (String) columnMap.get("shareholder_id");
                 String name = (String) columnMap.get("shareholder_name");
                 String other = (String) columnMap.get("equity_ratio");
-                results.add(new Row(sourceId, companyId, Relation.INVEST, other));
+                results.add(new Row(sourceId, name, companyId, Relation.INVEST, other));
             }
         }
 
@@ -247,7 +249,7 @@ public class RelationEdgeJob {
                 String sourceId = (String) columnMap.get("branch_company_id");
                 String name = "";
                 String other = "";
-                results.add(new Row(sourceId, companyId, Relation.BRANCH, other));
+                results.add(new Row(sourceId, name, companyId, Relation.BRANCH, other));
             }
         }
 
@@ -266,8 +268,8 @@ public class RelationEdgeJob {
                 }
                 String sourceId = "1".equals(type) ? (String) columnMap.get("entity_name_id") : queryPid(companyId, (String) columnMap.get("entity_name_id"));
                 String name = (String) columnMap.get("entity_name_valid");
-                String other = (String) columnMap.get("investment_ratio");
-                results.add(new Row(sourceId, companyId, Relation.HIS_INVEST, other));
+                String other = StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "");
+                results.add(new Row(sourceId, name, companyId, Relation.HIS_INVEST, other));
             }
         }
 
@@ -288,7 +290,7 @@ public class RelationEdgeJob {
                 String sourceId = (String) columnMap.get("tyc_unique_entity_id_legal_rep");
                 String name = (String) columnMap.get("entity_name_valid_legal_rep");
                 String other = dictionary.get((String) columnMap.get("legal_rep_type_display_name"));
-                results.add(new Row(sourceId, companyId, Relation.HIS_LEGAL, other));
+                results.add(new Row(sourceId, name, companyId, Relation.HIS_LEGAL, other));
             }
         }
 
@@ -323,6 +325,7 @@ public class RelationEdgeJob {
     @Accessors(chain = true)
     private static final class Row implements Serializable {
         private String sourceId;
+        private String sourceName;
         private String targetId;
         private Relation relation;
         private String other;
@@ -334,6 +337,7 @@ public class RelationEdgeJob {
         public Map<String, Object> toColumnMap() {
             return new HashMap<String, Object>() {{
                 put("source_id", sourceId);
+                put("source_name", sourceName);
                 put("target_id", targetId);
                 put("relation", relation.toString());
                 put("other", other);
