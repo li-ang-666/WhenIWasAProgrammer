@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Data
 @Slf4j
@@ -35,6 +36,10 @@ public class BatchCanalBinlog implements Serializable {
         } catch (Exception e) {
             log.error("parse canal binlog error, kafka message: {}", new String(kafkaRecordValue, StandardCharsets.UTF_8), e);
         }
+    }
+
+    public void forEach(Consumer<SingleCanalBinlog> consumer) {
+        singleCanalBinlogs.forEach(consumer);
     }
 
     public int size() {

@@ -2,6 +2,6 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
-      - "rds.json.relation.edge"
+      - "1ae09.json.graph_data.company_equity_relation_details"
     groupId: "kafka-consumer-job"
-    startFrom: "2"
+    startFrom: "1"

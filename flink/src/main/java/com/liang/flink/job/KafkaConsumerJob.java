@@ -4,13 +4,11 @@ import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.kafka.KafkaSourceFactory;
-import com.liang.flink.dto.KafkaRecord;
 import com.liang.flink.service.LocalConfigFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -23,9 +21,7 @@ public class KafkaConsumerJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
-        KafkaSource<KafkaRecord<String>> kafkaSource = KafkaSourceFactory.create(String::new);
-        env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "KafkaSource")
-                .filter(e -> e.getPartition() == 0)
+        env.fromSource(KafkaSourceFactory.create(String::new), WatermarkStrategy.noWatermarks(), "KafkaSource")
                 .print();
         env.setParallelism(1);
         env.execute("KafkaConsumerJob");
