@@ -71,15 +71,21 @@ public class BatchCanalBinlog implements Serializable {
         for (int i = 0; i < data.size(); i++) {
             Map<String, String> columnMap = data.get(i);
             SingleCanalBinlog singleCanalBinlog;
-            if (eventType == CanalEntry.EventType.INSERT) {
-                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(), new LinkedHashMap<>(columnMap));
-            } else if (eventType == CanalEntry.EventType.UPDATE) {
-                Map<String, String> oldColumnMapPart = old.get(i);
-                Map<String, String> oldColumnMapAll = new LinkedHashMap<>(columnMap);
-                oldColumnMapAll.putAll(oldColumnMapPart);
-                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(oldColumnMapAll), new LinkedHashMap<>(columnMap));
-            } else {
-                singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(columnMap), new LinkedHashMap<>());
+            switch (eventType) {
+                case INSERT:
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(), new LinkedHashMap<>(columnMap));
+                    break;
+                case UPDATE:
+                    Map<String, String> oldColumnMapPart = old.get(i);
+                    Map<String, String> oldColumnMapAll = new LinkedHashMap<>(columnMap);
+                    oldColumnMapAll.putAll(oldColumnMapPart);
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(oldColumnMapAll), new LinkedHashMap<>(columnMap));
+                    break;
+                case DELETE:
+                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(columnMap), new LinkedHashMap<>());
+                    break;
+                default:
+                    continue;
             }
             singleCanalBinlogs.add(singleCanalBinlog);
         }
@@ -149,12 +155,18 @@ public class BatchCanalBinlog implements Serializable {
                 Map<String, String> beforeColumnMap = columnListToColumnMap(rowData.getBeforeColumnsList());
                 Map<String, String> afterColumnMap = columnListToColumnMap(rowData.getAfterColumnsList());
                 SingleCanalBinlog singleCanalBinlog;
-                if (eventType == CanalEntry.EventType.INSERT) {
-                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(), new LinkedHashMap<>(afterColumnMap));
-                } else if (eventType == CanalEntry.EventType.UPDATE) {
-                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new LinkedHashMap<>(afterColumnMap));
-                } else {
-                    singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new LinkedHashMap<>());
+                switch (eventType) {
+                    case INSERT:
+                        singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(), new LinkedHashMap<>(afterColumnMap));
+                        break;
+                    case UPDATE:
+                        singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new LinkedHashMap<>(afterColumnMap));
+                        break;
+                    case DELETE:
+                        singleCanalBinlog = new SingleCanalBinlog(db, tb, executeTime, eventType, new LinkedHashMap<>(beforeColumnMap), new LinkedHashMap<>());
+                        break;
+                    default:
+                        continue;
                 }
                 singleCanalBinlogs.add(singleCanalBinlog);
             }
