@@ -108,7 +108,10 @@ public class RelationEdgeJob {
         private final RelationEdgeKeySelector relationEdgeKeySelector = new RelationEdgeKeySelector();
         private final Map<String, String> dictionary = new HashMap<>();
         private JdbcTemplate prismBoss157;
-        private JdbcTemplate kv;
+        private JdbcTemplate companyBase435;
+        private JdbcTemplate bdpEquity463;
+        private JdbcTemplate bdpPersonnel466;
+        private JdbcTemplate graphData430;
 
         @Override
         public void open(Configuration parameters) {
@@ -120,7 +123,10 @@ public class RelationEdgeJob {
             dictionary.put("5", "执行事务合伙人");
             dictionary.put("6", "法定代表人|负责人");
             prismBoss157 = new JdbcTemplate("157.prism_boss");
-            kv = new JdbcTemplate("427.test");
+            companyBase435 = new JdbcTemplate("435.company_base");
+            bdpEquity463 = new JdbcTemplate("463.bdp_equity");
+            bdpPersonnel466 = new JdbcTemplate("466.bdp_personnel");
+            graphData430 = new JdbcTemplate("430.graph_data");
         }
 
         @Override
