@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @Data
 @Slf4j
@@ -40,6 +41,10 @@ public class BatchCanalBinlog implements Serializable {
 
     public void forEach(Consumer<SingleCanalBinlog> consumer) {
         singleCanalBinlogs.forEach(consumer);
+    }
+
+    public Stream<SingleCanalBinlog> stream() {
+        return singleCanalBinlogs.stream();
     }
 
     public int size() {
