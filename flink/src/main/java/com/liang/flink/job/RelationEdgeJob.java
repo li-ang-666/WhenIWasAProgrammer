@@ -157,15 +157,17 @@ public class RelationEdgeJob {
                     break;
             }
             results.forEach(row -> {
-                String key = relationEdgeKeySelector.getKey(row);
-                long currentId = Long.parseLong(row.getId());
-                Long maxId = kv.queryForObject("SELECT v FROM relation_kv WHERE k = " + SqlUtils.formatValue(key),
-                        rs -> rs.getLong(1));
-                // 同id先插后删, 所以是 大于等于
-                if (maxId == null || currentId >= maxId) {
-                    kv.update(String.format("INSERT INTO relation_kv (k, v) VALUES (%s, %s) ON DUPLICATE KEY UPDATE k = VALUES(k), v = VALUES(v)",
-                            SqlUtils.formatValue(key), currentId));
-                    out.collect(row);
+                if (row.isValid()) {
+                    String key = relationEdgeKeySelector.getKey(row);
+                    long currentId = Long.parseLong(row.getId());
+                    Long maxId = kv.queryForObject("SELECT v FROM relation_kv WHERE k = " + SqlUtils.formatValue(key),
+                            rs -> rs.getLong(1));
+                    // 同id先插后删, 所以是 大于等于
+                    if (maxId == null || currentId >= maxId) {
+                        kv.update(String.format("INSERT INTO relation_kv (k, v) VALUES (%s, %s) ON DUPLICATE KEY UPDATE k = VALUES(k), v = VALUES(v)",
+                                SqlUtils.formatValue(key), currentId));
+                        out.collect(row);
+                    }
                 }
             });
         }
@@ -303,9 +305,7 @@ public class RelationEdgeJob {
 
         @Override
         public void invoke(Row row, Context context) {
-            if (row.isValid()) {
-                obsWriter.update(row.toCsv());
-            }
+            obsWriter.update(row.toCsv());
         }
 
         @Override
@@ -363,9 +363,7 @@ public class RelationEdgeJob {
         public void invoke(Row row, Context context) {
             try {
                 lock.lock();
-                if (row.isValid()) {
-                    producer.send(new ProducerRecord<>(TOPIC, partition, null, row.toJson().getBytes(StandardCharsets.UTF_8)));
-                }
+                producer.send(new ProducerRecord<>(TOPIC, partition, null, row.toJson().getBytes(StandardCharsets.UTF_8)));
             } finally {
                 lock.unlock();
             }
