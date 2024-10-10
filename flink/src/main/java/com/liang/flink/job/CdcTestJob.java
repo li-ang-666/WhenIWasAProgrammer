@@ -5,6 +5,7 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.cdc.MapDebeziumDeserializationSchema;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cdc.connectors.mysql.source.MySqlSource;
 import org.apache.flink.cdc.connectors.mysql.table.StartupOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -39,8 +40,14 @@ public class CdcTestJob {
                 .includeSchemaChanges(true)
                 .build();
         env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "CdcSource")
-                .map(JsonUtils::toString)
-                .returns(String.class)
+                .map(new MapFunction<Map<String, Object>, String>() {
+                    @Override
+                    public String map(Map<String, Object> value) throws Exception {
+                        value.remove("before");
+                        value.remove("after");
+                        return JsonUtils.toString(value);
+                    }
+                })
                 .print()
                 .setParallelism(1);
         env.execute("CdcTestJob");
