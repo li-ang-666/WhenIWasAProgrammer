@@ -190,14 +190,14 @@ public class RelationEdgeJob {
                     .toString();
             List<Map<String, Object>> columnMaps = companyBase435.queryForColumnMaps(sql);
             for (Map<String, Object> columnMap : columnMaps) {
-                String type = (String) columnMap.get("legal_rep_name_id");
+                String type = (String) columnMap.get("legal_rep_type");
                 if ("3".equals(type)) {
                     continue;
                 }
                 String sourceId = "1".equals(type) ? (String) columnMap.get("legal_rep_name_id") : (String) columnMap.get("legal_rep_human_id");
-                String name = (String) columnMap.get("legal_rep_name");
+                String sourceName = (String) columnMap.get("legal_rep_name");
                 String other = (String) columnMap.get("legal_rep_display_name");
-                results.add(new Row(sourceId, name, companyId, Relation.LEGAL, other));
+                results.add(new Row(sourceId, sourceName, companyId, Relation.LEGAL, other));
             }
         }
 
@@ -212,9 +212,9 @@ public class RelationEdgeJob {
             List<Map<String, Object>> columnMaps = bdpEquity463.queryForColumnMaps(sql);
             for (Map<String, Object> columnMap : columnMaps) {
                 String sourceId = (String) columnMap.get("tyc_unique_entity_id");
-                String name = (String) columnMap.get("entity_name_valid");
+                String sourceName = (String) columnMap.get("entity_name_valid");
                 String other = "";
-                results.add(new Row(sourceId, name, companyId, Relation.AC, other));
+                results.add(new Row(sourceId, sourceName, companyId, Relation.AC, other));
             }
         }
 
@@ -266,7 +266,8 @@ public class RelationEdgeJob {
                 if ("3".equals(type)) {
                     continue;
                 }
-                String sourceId = "1".equals(type) ? (String) columnMap.get("entity_name_id") : queryPid(companyId, (String) columnMap.get("entity_name_id"));
+                String sourceNameId = (String) columnMap.get("entity_name_id");
+                String sourceId = "1".equals(type) ? sourceNameId : queryPid(companyId, sourceNameId);
                 String name = (String) columnMap.get("entity_name_valid");
                 String other = StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "");
                 results.add(new Row(sourceId, name, companyId, Relation.HIS_INVEST, other));
