@@ -6,6 +6,7 @@ import com.liang.common.util.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -40,6 +41,8 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "&characterSetResults=UTF-8" +
                 // useSSL
                 "&useSSL=false" +
+                // 重连
+                "autoReconnect=true" +
                 // 性能优化
                 "&maxAllowedPacket=1073741824" + // 1G
                 "&rewriteBatchedStatements=true";
@@ -72,6 +75,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
         // 隔离级别
         druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         // 超时
+        druidDataSource.setConnectionInitSqls(Collections.singletonList("set wait_timeout = 3600 * 24 * 7"));
         druidDataSource.setConnectTimeout((int) TimeUnit.DAYS.toMillis(7));
         druidDataSource.setSocketTimeout((int) TimeUnit.DAYS.toMillis(7));
         druidDataSource.setQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
