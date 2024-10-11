@@ -155,27 +155,31 @@ public class RelationEdgeJob {
         private void flush() {
             synchronized (this) {
                 bitmap.forEach(companyId -> {
-                    String deleteSql = new SQL().DELETE_FROM("relation_edge")
-                            .WHERE("target_id = " + SqlUtils.formatValue(companyId))
-                            .toString();
-                    sink.update(deleteSql);
-                    ArrayList<Row> results = new ArrayList<>();
-                    parseLegalPerson(String.valueOf(companyId), results);
-                    parseController(String.valueOf(companyId), results);
-                    parseShareholder(String.valueOf(companyId), results);
-                    parseBranch(String.valueOf(companyId), results);
-                    parseHisShareholder(String.valueOf(companyId), results);
-                    parseHisLegalPerson(String.valueOf(companyId), results);
-                    List<Map<String, Object>> columnMaps = results.stream()
-                            .filter(Row::isValid)
-                            .map(Row::toColumnMap)
-                            .collect(Collectors.toList());
-                    Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                    String insertSql = new SQL().INSERT_INTO("relation_edge")
-                            .INTO_COLUMNS(insert.f0)
-                            .INTO_VALUES(insert.f1)
-                            .toString();
-                    sink.update(insertSql);
+                    String targetId = String.valueOf(companyId);
+                    String companyName = queryCompanyName(targetId);
+                    if (TycUtils.isValidName(companyName)) {
+                        String deleteSql = new SQL().DELETE_FROM("relation_edge")
+                                .WHERE("target_id = " + SqlUtils.formatValue(targetId))
+                                .toString();
+                        sink.update(deleteSql);
+                        ArrayList<Row> results = new ArrayList<>();
+                        parseLegalPerson(targetId, companyName, results);
+                        parseController(targetId, companyName, results);
+                        parseShareholder(targetId, companyName, results);
+                        parseBranch(targetId, companyName, results);
+                        parseHisShareholder(targetId, companyName, results);
+                        parseHisLegalPerson(targetId, companyName, results);
+                        List<Map<String, Object>> columnMaps = results.stream()
+                                .filter(Row::isValid)
+                                .map(Row::toColumnMap)
+                                .collect(Collectors.toList());
+                        Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                        String insertSql = new SQL().INSERT_INTO("relation_edge")
+                                .INTO_COLUMNS(insert.f0)
+                                .INTO_VALUES(insert.f1)
+                                .toString();
+                        sink.update(insertSql);
+                    }
                 });
                 bitmap.clear();
                 sink.flush();
@@ -183,7 +187,7 @@ public class RelationEdgeJob {
         }
 
         // 法人 -> 公司
-        private void parseLegalPerson(String companyId, List<Row> results) {
+        private void parseLegalPerson(String companyId, String companyName, List<Row> results) {
             String sql = new SQL().SELECT("*")
                     .FROM("company_legal_person")
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
@@ -197,13 +201,13 @@ public class RelationEdgeJob {
                 String sourceId = "1".equals(type) ? (String) columnMap.get("legal_rep_name_id") : (String) columnMap.get("legal_rep_human_id");
                 String sourceName = (String) columnMap.get("legal_rep_name");
                 String other = (String) columnMap.get("legal_rep_display_name");
-                results.add(new Row(sourceId, sourceName, companyId, Relation.LEGAL, other));
+                results.add(new Row(sourceId, sourceName, companyId, companyName, Relation.LEGAL, other));
             }
         }
 
 
         // 实控人 -> 公司
-        private void parseController(String companyId, List<Row> results) {
+        private void parseController(String companyId, String companyName, List<Row> results) {
             String sql = new SQL().SELECT("*")
                     .FROM("entity_controller_details_new")
                     .WHERE("company_id_controlled = " + SqlUtils.formatValue(companyId))
@@ -214,12 +218,12 @@ public class RelationEdgeJob {
                 String sourceId = (String) columnMap.get("tyc_unique_entity_id");
                 String sourceName = (String) columnMap.get("entity_name_valid");
                 String other = "";
-                results.add(new Row(sourceId, sourceName, companyId, Relation.AC, other));
+                results.add(new Row(sourceId, sourceName, companyId, companyName, Relation.AC, other));
             }
         }
 
         // 股东 -> 公司
-        private void parseShareholder(String companyId, List<Row> results) {
+        private void parseShareholder(String companyId, String companyName, List<Row> results) {
             String sql = new SQL().SELECT("*")
                     .FROM("company_equity_relation_details")
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
@@ -233,12 +237,12 @@ public class RelationEdgeJob {
                 String sourceId = (String) columnMap.get("shareholder_id");
                 String name = (String) columnMap.get("shareholder_name");
                 String other = (String) columnMap.get("equity_ratio");
-                results.add(new Row(sourceId, name, companyId, Relation.INVEST, other));
+                results.add(new Row(sourceId, name, companyId, companyName, Relation.INVEST, other));
             }
         }
 
         // 分公司 -> 总公司
-        private void parseBranch(String companyId, List<Row> results) {
+        private void parseBranch(String companyId, String companyName, List<Row> results) {
             String sql = new SQL().SELECT("*")
                     .FROM("company_branch")
                     .WHERE("company_id = " + SqlUtils.formatValue(companyId))
@@ -247,14 +251,14 @@ public class RelationEdgeJob {
             List<Map<String, Object>> columnMaps = companyBase435.queryForColumnMaps(sql);
             for (Map<String, Object> columnMap : columnMaps) {
                 String sourceId = (String) columnMap.get("branch_company_id");
-                String name = "";
+                String name = queryCompanyName(sourceId);
                 String other = "";
-                results.add(new Row(sourceId, name, companyId, Relation.BRANCH, other));
+                results.add(new Row(sourceId, name, companyId, companyName, Relation.BRANCH, other));
             }
         }
 
         // 历史股东 -> 公司
-        private void parseHisShareholder(String companyId, List<Row> results) {
+        private void parseHisShareholder(String companyId, String companyName, List<Row> results) {
             String sql = new SQL().SELECT("*")
                     .FROM("entity_investment_history_fusion_details")
                     .WHERE("company_id_invested = " + SqlUtils.formatValue(companyId))
@@ -270,12 +274,12 @@ public class RelationEdgeJob {
                 String sourceId = "1".equals(type) ? sourceNameId : queryPid(companyId, sourceNameId);
                 String name = (String) columnMap.get("entity_name_valid");
                 String other = StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "");
-                results.add(new Row(sourceId, name, companyId, Relation.HIS_INVEST, other));
+                results.add(new Row(sourceId, name, companyId, companyName, Relation.HIS_INVEST, other));
             }
         }
 
         // 历史法人 -> 公司
-        private void parseHisLegalPerson(String companyId, List<Row> results) {
+        private void parseHisLegalPerson(String companyId, String companyName, List<Row> results) {
             String sql = new SQL().SELECT("*")
                     .FROM("entity_legal_rep_list_total")
                     .WHERE("tyc_unique_entity_id = " + SqlUtils.formatValue(companyId))
@@ -291,7 +295,7 @@ public class RelationEdgeJob {
                 String sourceId = (String) columnMap.get("tyc_unique_entity_id_legal_rep");
                 String name = (String) columnMap.get("entity_name_valid_legal_rep");
                 String other = dictionary.get((String) columnMap.get("legal_rep_type_display_name"));
-                results.add(new Row(sourceId, name, companyId, Relation.HIS_LEGAL, other));
+                results.add(new Row(sourceId, name, companyId, companyName, Relation.HIS_LEGAL, other));
             }
         }
 
@@ -303,6 +307,14 @@ public class RelationEdgeJob {
                     .WHERE("deleted = 0")
                     .toString();
             return prismBoss157.queryForObject(sql, rs -> rs.getString(1));
+        }
+
+        private String queryCompanyName(String companyGid) {
+            String sql = new SQL().SELECT("company_name")
+                    .FROM("company_index")
+                    .WHERE("company_id = " + SqlUtils.formatValue(companyGid))
+                    .toString();
+            return companyBase435.queryForObject(sql, rs -> rs.getString(1));
         }
 
         @Override
@@ -328,11 +340,14 @@ public class RelationEdgeJob {
         private String sourceId;
         private String sourceName;
         private String targetId;
+        private String targetName;
         private Relation relation;
         private String other;
 
         public boolean isValid() {
-            return TycUtils.isTycUniqueEntityId(sourceId) && TycUtils.isUnsignedId(targetId);
+            return TycUtils.isTycUniqueEntityId(sourceId)
+                    && TycUtils.isValidName(sourceName)
+                    && TycUtils.isUnsignedId(targetId);
         }
 
         public Map<String, Object> toColumnMap() {
@@ -340,6 +355,7 @@ public class RelationEdgeJob {
                 put("source_id", sourceId);
                 put("source_name", sourceName);
                 put("target_id", targetId);
+                put("target_name", targetName);
                 put("relation", relation.toString());
                 put("other", other);
             }};
