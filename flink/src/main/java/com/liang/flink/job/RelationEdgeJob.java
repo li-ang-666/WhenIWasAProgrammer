@@ -200,7 +200,6 @@ public class RelationEdgeJob {
             }
         }
 
-
         // 实控人 -> 公司
         private void parseController(String companyId, String companyName, List<Row> results) {
             String sql = new SQL().SELECT("*")
