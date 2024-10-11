@@ -142,7 +142,7 @@ public class RelationEdgeJob {
 
         @Override
         public void invoke(String companyId, Context context) {
-            synchronized (this) {
+            synchronized (bitmap) {
                 if (TycUtils.isUnsignedId(companyId)) {
                     bitmap.add(Long.parseLong(companyId));
                     if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
@@ -153,7 +153,7 @@ public class RelationEdgeJob {
         }
 
         private void flush() {
-            synchronized (this) {
+            synchronized (bitmap) {
                 bitmap.forEach(companyId -> {
                     String targetId = String.valueOf(companyId);
                     String companyName = queryCompanyName(targetId);
