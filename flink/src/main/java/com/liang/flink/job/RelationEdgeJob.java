@@ -62,46 +62,32 @@ public class RelationEdgeJob {
     @RequiredArgsConstructor
     private static final class RelationEdgeMapper extends RichFlatMapFunction<SingleCanalBinlog, String> {
         private final Config config;
+        private final Map<String, String> dictionary = new HashMap<>();
 
         @Override
         public void open(Configuration parameters) {
             ConfigUtils.setConfig(config);
+            dictionary.put("company_index", "company_id");
+            dictionary.put("company_legal_person", "company_id");
+            dictionary.put("company_equity_relation_details", "company_id");
+            dictionary.put("company_branch", "company_id");
+            dictionary.put("entity_controller_details_new", "company_id_controlled");
+            dictionary.put("entity_investment_history_fusion_details", "company_id_invested");
+            dictionary.put("entity_legal_rep_list_total", "tyc_unique_entity_id");
+            dictionary.put("company_human_relation", "company_graph_id");
         }
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
-            String key;
-            switch (singleCanalBinlog.getTable()) {
-                case "company_index":
-                case "company_legal_person":
-                case "company_equity_relation_details":
-                case "company_branch":
-                    key = "company_id";
-                    break;
-                case "entity_controller_details_new":
-                    key = "company_id_controlled";
-                    break;
-                case "entity_investment_history_fusion_details":
-                    key = "company_id_invested";
-                    break;
-                case "entity_legal_rep_list_total":
-                    key = "tyc_unique_entity_id";
-                    break;
-                case "company_human_relation":
-                    key = "company_graph_id";
-                    break;
-                default:
-                    key = null;
-                    break;
-            }
+            String key = dictionary.getOrDefault(singleCanalBinlog.getTable(), null);
             if (key != null) {
                 Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
                 if (!beforeColumnMap.isEmpty()) {
-                    out.collect(StrUtil.nullToDefault((String) beforeColumnMap.get("key"), ""));
+                    out.collect(StrUtil.nullToDefault((String) beforeColumnMap.get(key), ""));
                 }
                 Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
                 if (!afterColumnMap.isEmpty()) {
-                    out.collect(StrUtil.nullToDefault((String) afterColumnMap.get("key"), ""));
+                    out.collect(StrUtil.nullToDefault((String) afterColumnMap.get(key), ""));
                 }
             }
         }
