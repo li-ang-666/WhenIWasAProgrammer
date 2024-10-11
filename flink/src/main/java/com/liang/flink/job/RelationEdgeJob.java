@@ -75,19 +75,19 @@ public class RelationEdgeJob {
                 case "company_legal_person":
                 case "company_equity_relation_details":
                 case "company_branch":
-                    out.collect((String) singleCanalBinlog.getColumnMap().get("company_id"));
+                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("company_id"), "0"));
                     break;
                 case "entity_controller_details_new":
-                    out.collect((String) singleCanalBinlog.getColumnMap().get("company_id_controlled"));
+                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("company_id_controlled"), "0"));
                     break;
                 case "entity_investment_history_fusion_details":
-                    out.collect((String) singleCanalBinlog.getColumnMap().get("company_id_invested"));
+                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("company_id_invested"), "0"));
                     break;
                 case "entity_legal_rep_list_total":
-                    out.collect((String) singleCanalBinlog.getColumnMap().get("tyc_unique_entity_id"));
+                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("tyc_unique_entity_id"), "0"));
                     break;
                 case "company_human_relation":
-                    out.collect((String) singleCanalBinlog.getColumnMap().get("company_graph_id"));
+                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("company_graph_id"), "0"));
                     break;
             }
         }
