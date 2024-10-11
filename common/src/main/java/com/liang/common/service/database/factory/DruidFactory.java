@@ -33,6 +33,8 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 "?serverTimezone=GMT%2B8" +
                 // datetime 字段处理
                 "&zeroDateTimeBehavior=convertToNull" +
+                // year
+                "&yearIsDateType=false" +
                 // tinyint(1) 字段处理
                 "&tinyInt1isBit=false" +
                 // 编码
