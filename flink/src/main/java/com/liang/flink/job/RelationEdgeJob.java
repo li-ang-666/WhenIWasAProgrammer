@@ -29,6 +29,8 @@ import org.apache.flink.util.Collector;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -224,6 +226,9 @@ public class RelationEdgeJob {
                 String sourceId = (String) columnMap.get("shareholder_id");
                 String name = (String) columnMap.get("shareholder_name");
                 String other = (String) columnMap.get("equity_ratio");
+                if (StrUtil.isNotBlank(other)) {
+                    other = new BigDecimal(other).setScale(12, RoundingMode.DOWN).toPlainString();
+                }
                 results.add(new Row(sourceId, name, companyId, companyName, Relation.INVEST, other));
             }
         }
@@ -261,6 +266,9 @@ public class RelationEdgeJob {
                 String sourceId = "1".equals(type) ? sourceNameId : queryPid(companyId, sourceNameId);
                 String name = (String) columnMap.get("entity_name_valid");
                 String other = StrUtil.nullToDefault((String) columnMap.get("investment_ratio"), "");
+                if (StrUtil.isNotBlank(other)) {
+                    other = new BigDecimal(other).setScale(12, RoundingMode.DOWN).toPlainString();
+                }
                 results.add(new Row(sourceId, name, companyId, companyName, Relation.HIS_INVEST, other));
             }
         }
