@@ -70,25 +70,39 @@ public class RelationEdgeJob {
 
         @Override
         public void flatMap(SingleCanalBinlog singleCanalBinlog, Collector<String> out) {
+            String key;
             switch (singleCanalBinlog.getTable()) {
                 case "company_index":
                 case "company_legal_person":
                 case "company_equity_relation_details":
                 case "company_branch":
-                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("company_id"), "0"));
+                    key = "company_id";
                     break;
                 case "entity_controller_details_new":
-                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("company_id_controlled"), "0"));
+                    key = "company_id_controlled";
                     break;
                 case "entity_investment_history_fusion_details":
-                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("company_id_invested"), "0"));
+                    key = "company_id_invested";
                     break;
                 case "entity_legal_rep_list_total":
-                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("tyc_unique_entity_id"), "0"));
+                    key = "tyc_unique_entity_id";
                     break;
                 case "company_human_relation":
-                    out.collect(StrUtil.nullToDefault((String) singleCanalBinlog.getColumnMap().get("company_graph_id"), "0"));
+                    key = "company_graph_id";
                     break;
+                default:
+                    key = null;
+                    break;
+            }
+            if (key != null) {
+                Map<String, Object> beforeColumnMap = singleCanalBinlog.getBeforeColumnMap();
+                if (!beforeColumnMap.isEmpty()) {
+                    out.collect(StrUtil.nullToDefault((String) beforeColumnMap.get("key"), ""));
+                }
+                Map<String, Object> afterColumnMap = singleCanalBinlog.getAfterColumnMap();
+                if (!afterColumnMap.isEmpty()) {
+                    out.collect(StrUtil.nullToDefault((String) afterColumnMap.get("key"), ""));
+                }
             }
         }
     }
