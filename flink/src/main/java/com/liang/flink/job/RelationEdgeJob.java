@@ -119,7 +119,7 @@ public class RelationEdgeJob {
             bdpEquity463 = new JdbcTemplate("463.bdp_equity");
             bdpPersonnel466 = new JdbcTemplate("466.bdp_personnel");
             graphData430 = new JdbcTemplate("430.graph_data");
-            sink = new JdbcTemplate("427.test");
+            sink = new JdbcTemplate("466.bdp_personnel");
             sink.enableCache();
         }
 
