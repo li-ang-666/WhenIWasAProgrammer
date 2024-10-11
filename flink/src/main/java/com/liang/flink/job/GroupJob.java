@@ -1,6 +1,5 @@
 package com.liang.flink.job;
 
-import cn.hutool.core.util.StrUtil;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.JsonUtils;
@@ -42,13 +41,11 @@ public class GroupJob {
                     String investedCompanyId = (String) columnMap.get("company_id");
                     String investedCompanyName = (String) columnMap.get("company_name");
                     String equityRatio = (String) columnMap.get("equity_ratio");
-                    System.out.println(equityRatio);
                     String maxEquityRatioSql = new SQL().SELECT("max(equity_ratio)")
                             .FROM("company_equity_relation_details")
                             .WHERE("company_id = " + SqlUtils.formatValue(investedCompanyId))
                             .toString();
                     String maxRatio = graphData430.queryForObject(maxEquityRatioSql, rs -> rs.getString(1));
-                    System.out.println(maxRatio);
                     if (maxRatio.equals(equityRatio)) {
                         Edge edge = new Edge(new BigDecimal(equityRatio).toPlainString());
                         Node node = new Node(investedCompanyId, investedCompanyName);
@@ -62,7 +59,7 @@ public class GroupJob {
             }
         }
         result.forEach((k, v) -> {
-            System.out.println(StrUtil.fillAfter(k.toString(), ' ', 130 - (k.toString().length())) + " -> " + v);
+            System.out.println(JsonUtils.toString(k) + " -> " + v.toJsonString());
         });
     }
 
@@ -108,16 +105,15 @@ public class GroupJob {
             return (Node) elements.get(elements.size() - 1);
         }
 
-        @Override
-        public String toString() {
-            return elements.stream().map(element -> {
+        public String toJsonString() {
+            return JsonUtils.toString(elements.stream().map(element -> {
                         if (element instanceof Edge) {
                             return ((Edge) element).info;
                         } else {
-                            return JsonUtils.toString(element);
+                            return element;
                         }
                     })
-                    .collect(Collectors.joining(" "));
+                    .collect(Collectors.toList()));
         }
     }
 }
