@@ -152,11 +152,11 @@ public class RelationEdgeJob {
                         parseBranch(targetId, companyName, results);
                         parseHisShareholder(targetId, companyName, results);
                         parseHisLegalPerson(targetId, companyName, results);
-                        List<Map<String, Object>> columnMaps = results.stream()
-                                .filter(Row::isValid)
-                                .map(Row::toColumnMap)
-                                .collect(Collectors.toList());
-                        if (!columnMaps.isEmpty()) {
+                        if (!results.isEmpty()) {
+                            List<Map<String, Object>> columnMaps = results.stream()
+                                    .filter(Row::isValid)
+                                    .map(Row::toColumnMap)
+                                    .collect(Collectors.toList());
                             Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
                             String insertSql = new SQL().INSERT_INTO("relation_edge")
                                     .INTO_COLUMNS(insert.f0)
