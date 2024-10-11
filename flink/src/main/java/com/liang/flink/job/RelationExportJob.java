@@ -36,18 +36,26 @@ create external table if not exists test.relation_node_human(
   `row` string
 )stored as textfile location 'obs://hadoop-obs/flink/relation/node/human';
 
+drop table if exists test.relation_edge;
+create external table if not exists test.relation_edge(
+  `row` string
+)stored as textfile location 'obs://hadoop-obs/flink/relation/edge';
+
+
 */
 
 // spark-sql
 
 // select count(1) from test.relation_node_company;
 // select count(1) from test.relation_node_human;
+// select count(1) from test.relation_edge;
 
 // insert overwrite table test.relation_node_company select /*+ REPARTITION(5) */ * from test.relation_node_company;
 // insert overwrite table test.relation_node_human select /*+ REPARTITION(4) */ * from test.relation_node_human;
+// insert overwrite table test.relation_edge select /*+ REPARTITION(8) */ * from test.relation_edge;
 @Slf4j
-@LocalConfigFile("relation-node.yml")
-public class RelationNodeJob {
+@LocalConfigFile("relation-export.yml")
+public class RelationExportJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
@@ -66,6 +74,7 @@ public class RelationNodeJob {
         private final Roaring64Bitmap emptyCompany = new Roaring64Bitmap();
         private ObsWriter companyObsWriter;
         private ObsWriter humanObsWriter;
+        private ObsWriter edgeObsWriter;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
@@ -74,6 +83,8 @@ public class RelationNodeJob {
             companyObsWriter.enableCache();
             humanObsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/node/human/", ObsWriter.FileFormat.CSV);
             humanObsWriter.enableCache();
+            edgeObsWriter = new ObsWriter("obs://hadoop-obs/flink/relation/edge/", ObsWriter.FileFormat.CSV);
+            edgeObsWriter.enableCache();
             new JdbcTemplate("116.prism")
                     .streamQuery(true,
                             "select graph_id from entity_empty_index where entity_type = 2 and deleted = 0",
@@ -105,6 +116,12 @@ public class RelationNodeJob {
                 if (TycUtils.isTycUniqueEntityId(pid) && TycUtils.isUnsignedId(gid)) {
                     humanObsWriter.update(String.join(",", pid, "human", gid, name));
                 }
+            } else if ("relation_edge".equals(table)) {
+                String sourceId = (String) columnMap.get("source_id");
+                String targetId = (String) columnMap.get("target_id");
+                String relation = (String) columnMap.get("relation");
+                String other = ((String) columnMap.get("other")).replaceAll("[\"',\\s]", "");
+
             }
         }
 
