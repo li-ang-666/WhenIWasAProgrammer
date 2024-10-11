@@ -14,6 +14,7 @@ kafkaConfigs:
   kafkaSource:
     bootstrapServers: "10.99.202.90:9092,10.99.206.80:9092,10.99.199.2:9092"
     topics:
+      - "ee59d.proto.company_base.company_index"
       - "ee59d.proto.company_base.company_legal_person"
       - "1ae09.proto.graph_data.company_equity_relation_details"
       - "48e2e.proto.bdp_equity.entity_controller_details_new"
