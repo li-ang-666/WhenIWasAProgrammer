@@ -42,7 +42,7 @@ public class DruidFactory implements IFactory<DruidDataSource> {
                 // useSSL
                 "&useSSL=false" +
                 // 重连
-                "autoReconnect=true" +
+                "&autoReconnect=true" +
                 // 性能优化
                 "&maxAllowedPacket=1073741824" + // 1G
                 "&rewriteBatchedStatements=true";
