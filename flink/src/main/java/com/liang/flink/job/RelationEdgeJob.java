@@ -157,12 +157,14 @@ public class RelationEdgeJob {
                                     .filter(Row::isValid)
                                     .map(Row::toColumnMap)
                                     .collect(Collectors.toList());
-                            Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
-                            String insertSql = new SQL().INSERT_INTO("relation_edge")
-                                    .INTO_COLUMNS(insert.f0)
-                                    .INTO_VALUES(insert.f1)
-                                    .toString();
-                            sink.update(insertSql);
+                            if (!columnMaps.isEmpty()) {
+                                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                                String insertSql = new SQL().INSERT_INTO("relation_edge")
+                                        .INTO_COLUMNS(insert.f0)
+                                        .INTO_VALUES(insert.f1)
+                                        .toString();
+                                sink.update(insertSql);
+                            }
                         }
                     }
                 });
