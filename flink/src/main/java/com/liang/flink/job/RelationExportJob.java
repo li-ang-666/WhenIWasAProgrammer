@@ -25,6 +25,7 @@ beeline
 
 !sh hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/node/company/*
 !sh hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/node/human/*
+!sh hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/edge/*
 
 drop table if exists test.relation_node_company;
 create external table if not exists test.relation_node_company(
@@ -61,15 +62,15 @@ public class RelationExportJob {
         Config config = ConfigUtils.getConfig();
         StreamFactory.create(env)
                 .rebalance()
-                .addSink(new RelationNodeSink(config))
-                .name("RelationNodeSink")
-                .uid("RelationNodeSink")
+                .addSink(new RelationExportSink(config))
+                .name("RelationExportSink")
+                .uid("RelationExportSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
-        env.execute("RelationNodeJob");
+        env.execute("RelationExportJob");
     }
 
     @RequiredArgsConstructor
-    private static final class RelationNodeSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
+    private static final class RelationExportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
         private final Roaring64Bitmap emptyCompany = new Roaring64Bitmap();
         private ObsWriter companyObsWriter;
@@ -121,7 +122,7 @@ public class RelationExportJob {
                 String targetId = (String) columnMap.get("target_id");
                 String relation = (String) columnMap.get("relation");
                 String other = ((String) columnMap.get("other")).replaceAll("[\"',\\s]", "");
-
+                companyObsWriter.update(String.join(",", sourceId, targetId, relation, other));
             }
         }
 
@@ -129,18 +130,21 @@ public class RelationExportJob {
         public void snapshotState(FunctionSnapshotContext context) {
             companyObsWriter.flush();
             humanObsWriter.flush();
+            edgeObsWriter.flush();
         }
 
         @Override
         public void close() {
             companyObsWriter.flush();
             humanObsWriter.flush();
+            edgeObsWriter.flush();
         }
 
         @Override
         public void finish() {
             companyObsWriter.flush();
             humanObsWriter.flush();
+            edgeObsWriter.flush();
         }
     }
 }
