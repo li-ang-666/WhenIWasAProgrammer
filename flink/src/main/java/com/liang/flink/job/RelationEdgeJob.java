@@ -66,9 +66,7 @@ public class RelationEdgeJob {
         private final Config config;
         private final Map<String, String> dictionary = new HashMap<>();
 
-        @Override
-        public void open(Configuration parameters) {
-            ConfigUtils.setConfig(config);
+        {
             dictionary.put("company_index", "company_id");
             dictionary.put("company_legal_person", "company_id");
             dictionary.put("company_equity_relation_details", "company_id");
@@ -77,6 +75,11 @@ public class RelationEdgeJob {
             dictionary.put("entity_investment_history_fusion_details", "company_id_invested");
             dictionary.put("entity_legal_rep_list_total", "tyc_unique_entity_id");
             dictionary.put("company_human_relation", "company_graph_id");
+        }
+
+        @Override
+        public void open(Configuration parameters) {
+            ConfigUtils.setConfig(config);
         }
 
         @Override
@@ -107,15 +110,18 @@ public class RelationEdgeJob {
         private JdbcTemplate graphData430;
         private JdbcTemplate sink;
 
-        @Override
-        public void initializeState(FunctionInitializationContext context) {
-            ConfigUtils.setConfig(config);
+        {
             dictionary.put("1", "法定代表人");
             dictionary.put("2", "负责人");
             dictionary.put("3", "经营者");
             dictionary.put("4", "投资人");
             dictionary.put("5", "执行事务合伙人");
             dictionary.put("6", "法定代表人|负责人");
+        }
+
+        @Override
+        public void initializeState(FunctionInitializationContext context) {
+            ConfigUtils.setConfig(config);
             prismBoss157 = new JdbcTemplate("157.prism_boss");
             companyBase435 = new JdbcTemplate("435.company_base");
             bdpEquity463 = new JdbcTemplate("463.bdp_equity");
