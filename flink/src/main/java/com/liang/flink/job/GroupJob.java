@@ -1,5 +1,7 @@
 package com.liang.flink.job;
 
+import cn.hutool.core.text.csv.CsvUtil;
+import cn.hutool.core.text.csv.CsvWriter;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.JsonUtils;
@@ -11,7 +13,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,9 +64,12 @@ public class GroupJob {
                 }
             }
         }
+        CsvWriter writer = CsvUtil.getWriter(new File("/Users/liang/Desktop/group.csv"), StandardCharsets.UTF_8);
+        writer.writeHeaderLine("company_id", "company_name", "level", "reason", "info");
         result.forEach((k, v) -> {
-            System.out.println(JsonUtils.toString(k) + " -> " + v.toJsonString());
+            writer.write(new String[]{k.getId(), k.getName(), String.valueOf(v.getLevel()), "每一跳 都是 该公司所有股东 最大股比 (非唯一, 比如两个50%, 或者3个30% + 1个10%)", v.toJsonString()});
         });
+        writer.flush();
         //List<String> ids = result.keySet().stream().map(Node::getId).collect(Collectors.toList());
         //String sql = new SQL().SELECT("company_id", "company_name",
         //                "group_concat(concat(shareholder_id,',',shareholder_name,',',investment_ratio_total) SEPARATOR '、') info")
@@ -129,6 +136,10 @@ public class GroupJob {
                         }
                     })
                     .collect(Collectors.toList()));
+        }
+
+        public int getLevel() {
+            return (elements.size() - 1) / 2;
         }
     }
 }
