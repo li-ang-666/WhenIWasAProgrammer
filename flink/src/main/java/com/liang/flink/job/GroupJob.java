@@ -63,19 +63,19 @@ public class GroupJob {
         result.forEach((k, v) -> {
             System.out.println(JsonUtils.toString(k) + " -> " + v.toJsonString());
         });
-        List<String> ids = result.keySet().stream().map(Node::getId).collect(Collectors.toList());
-        String sql = new SQL().SELECT("company_id", "company_name",
-                        "group_concat(concat(shareholder_id,',',shareholder_name,',',investment_ratio_total) SEPARATOR '、') info")
-                .FROM("shareholder_investment_ratio_total_new")
-                .WHERE("shareholder_id in " + SqlUtils.formatValue(ids))
-                .WHERE("company_id not in " + SqlUtils.formatValue(ids))
-                .GROUP_BY("company_id", "company_name")
-                .HAVING("max(investment_ratio_total) > 0.5")
-                .toString();
-        List<Map<String, Object>> columnMaps = bdpEquity457.queryForColumnMaps(sql);
-        for (Map<String, Object> columnMap : columnMaps) {
-            System.out.println(columnMap);
-        }
+        //List<String> ids = result.keySet().stream().map(Node::getId).collect(Collectors.toList());
+        //String sql = new SQL().SELECT("company_id", "company_name",
+        //                "group_concat(concat(shareholder_id,',',shareholder_name,',',investment_ratio_total) SEPARATOR '、') info")
+        //        .FROM("shareholder_investment_ratio_total_new")
+        //        .WHERE("shareholder_id in " + SqlUtils.formatValue(ids))
+        //        .WHERE("company_id not in " + SqlUtils.formatValue(ids))
+        //        .GROUP_BY("company_id", "company_name")
+        //        .HAVING("max(investment_ratio_total) > 0.5")
+        //        .toString();
+        //List<Map<String, Object>> columnMaps = bdpEquity457.queryForColumnMaps(sql);
+        //for (Map<String, Object> columnMap : columnMaps) {
+        //    System.out.println(columnMap);
+        //}
     }
 
     private interface Element {
