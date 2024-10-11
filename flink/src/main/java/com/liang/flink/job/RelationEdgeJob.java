@@ -147,12 +147,14 @@ public class RelationEdgeJob {
             synchronized (bitmap) {
                 bitmap.forEach(companyId -> {
                     String targetId = String.valueOf(companyId);
+                    // 先删除
+                    String deleteSql = new SQL().DELETE_FROM("relation_edge")
+                            .WHERE("target_id = " + SqlUtils.formatValue(targetId))
+                            .toString();
+                    sink.update(deleteSql);
                     String companyName = queryCompanyName(targetId);
+                    // 是合法公司, 才写入
                     if (TycUtils.isValidName(companyName)) {
-                        String deleteSql = new SQL().DELETE_FROM("relation_edge")
-                                .WHERE("target_id = " + SqlUtils.formatValue(targetId))
-                                .toString();
-                        sink.update(deleteSql);
                         ArrayList<Row> results = new ArrayList<>();
                         parseLegalPerson(targetId, companyName, results);
                         parseController(targetId, companyName, results);
