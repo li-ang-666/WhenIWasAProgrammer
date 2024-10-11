@@ -35,23 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/*
-beeline
-
-!sh hdfs dfs -rm -r -f -skipTrash obs://hadoop-obs/flink/relation/edge/*
-
-drop table if exists test.relation_edge;
-create external table if not exists test.relation_edge(
-  `row` string
-)stored as textfile location 'obs://hadoop-obs/flink/relation/edge';
-
-*/
-
-// spark-sql
-
-// select count(1) from test.relation_edge;
-
-// insert overwrite table test.relation_edge select /*+ REPARTITION(7) */ * from test.relation_edge;
 @Slf4j
 @LocalConfigFile("relation-edge.yml")
 public class RelationEdgeJob {
