@@ -50,7 +50,7 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
             } else {
                 sql.WHERE("id >= " + ids.get(0)).WHERE("id <= " + ids.get(ids.size() - 1));
             }
-            // 执行sql
+            // 执行sql, 下发数据
             List<SingleCanalBinlog> singleCanalBinlogs = jdbcTemplate.queryForList(sql.toString(), rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
