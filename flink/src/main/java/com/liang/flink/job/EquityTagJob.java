@@ -121,7 +121,7 @@ public class EquityTagJob {
         public void invoke(String companyId, Context context) {
             synchronized (bitmap) {
                 bitmap.add(Long.parseLong(companyId));
-                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
+                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.REPAIR) {
                     flush();
                 }
             }

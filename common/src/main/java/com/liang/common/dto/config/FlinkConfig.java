@@ -11,6 +11,6 @@ public class FlinkConfig implements Serializable {
     private int otherParallel;
 
     public enum SourceType {
-        Kafka, Repair
+        KAFKA, REPAIR
     }
 }

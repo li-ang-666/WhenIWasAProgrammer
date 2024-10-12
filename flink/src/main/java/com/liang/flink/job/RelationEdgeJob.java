@@ -136,7 +136,7 @@ public class RelationEdgeJob {
             synchronized (bitmap) {
                 if (TycUtils.isUnsignedId(companyId)) {
                     bitmap.add(Long.parseLong(companyId));
-                    if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
+                    if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.REPAIR) {
                         flush();
                     }
                 }

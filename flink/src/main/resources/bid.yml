@@ -11,9 +11,9 @@ dbConfigs:
   volcanic_cloud_9: { host: "101.126.92.217", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
   volcanic_cloud_10: { host: "101.126.95.93", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
 
-# sourceType: Kafka or Repair
+# sourceType: KAFKA or REPAIR
 flinkConfig:
-  sourceType: Repair
+  sourceType: REPAIR
   sourceParallel: 1
   otherParallel: 1
 

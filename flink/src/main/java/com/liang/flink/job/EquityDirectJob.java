@@ -143,7 +143,7 @@ public class EquityDirectJob {
                     bitmap.add(Long.parseLong(companyId));
                 }
                 // 全量修复的时候, 来一条计算一条
-                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
+                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.REPAIR) {
                     flush();
                 }
             }

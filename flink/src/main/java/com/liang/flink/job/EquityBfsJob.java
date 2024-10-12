@@ -103,7 +103,7 @@ public class EquityBfsJob {
                     out.collect(entityId);
                 }
                 // 全量repair的时候不走这里
-                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
+                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.REPAIR) {
                     continue;
                 }
                 List<String> sqls = new ArrayList<>();
@@ -149,7 +149,7 @@ public class EquityBfsJob {
                     bitmap.add(Long.parseLong(companyId));
                 }
                 // 全量修复的时候, 来一条计算一条
-                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.Repair) {
+                if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.REPAIR) {
                     flush(null);
                 }
             }

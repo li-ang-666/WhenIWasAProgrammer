@@ -25,7 +25,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.List;
 
-import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
+import static com.liang.common.dto.config.FlinkConfig.SourceType.KAFKA;
 
 @Slf4j
 @UtilityClass
@@ -33,7 +33,7 @@ import static com.liang.common.dto.config.FlinkConfig.SourceType.Kafka;
 public class StreamFactory {
     public static DataStream<SingleCanalBinlog> create(StreamExecutionEnvironment streamEnvironment) {
         Config config = ConfigUtils.getConfig();
-        return config.getFlinkConfig().getSourceType() == Kafka ?
+        return config.getFlinkConfig().getSourceType() == KAFKA ?
                 createKafkaStream(streamEnvironment) : createRepairStream(streamEnvironment);
     }
 
