@@ -75,6 +75,7 @@ public class RelationEdgeJob {
             dictionary.put("entity_investment_history_fusion_details", "company_id_invested");
             dictionary.put("entity_legal_rep_list_total", "tyc_unique_entity_id");
             dictionary.put("company_human_relation", "company_graph_id");
+            dictionary.put("entity_empty_index", "graph_id");
         }
 
         @Override

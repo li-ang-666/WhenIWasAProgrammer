@@ -22,5 +22,6 @@ kafkaConfigs:
       - "48e2e.proto.bdp_equity.entity_investment_history_fusion_details"
       - "b2e5b.proto.bdp_personnel.entity_legal_rep_list_total"
       - "9bc47.proto.prism_boss.company_human_relation"
+      - "0bb01.proto.prism.entity_empty_index"
     groupId: "relation-edge-job"
     startFrom: "2"
