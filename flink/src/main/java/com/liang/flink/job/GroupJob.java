@@ -64,7 +64,7 @@ public class GroupJob {
                 }
             }
         }
-        CsvWriter writer = CsvUtil.getWriter(new File("/Users/liang/Desktop/group.csv"), StandardCharsets.UTF_8);
+        CsvWriter writer = CsvUtil.getWriter(new File("/Users/liang/Desktop/上海宝信软件股份有限公司.csv"), StandardCharsets.UTF_8);
         writer.writeHeaderLine("company_id", "company_name", "level", "reason", "info");
         result.forEach((k, v) -> {
             writer.write(new String[]{k.getId(), k.getName(), String.valueOf(v.getLevel()), "每一跳 都是 该公司所有股东 最大股比 (非唯一, 比如两个50%, 或者3个30% + 1个10%)", v.toJsonString()});
