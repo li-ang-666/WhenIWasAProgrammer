@@ -26,11 +26,10 @@ public class GroupJob {
         EnvironmentFactory.create(args);
         Map<Node, Path> result = new LinkedHashMap<>();
         JdbcTemplate graphData430 = new JdbcTemplate("430.graph_data");
-        JdbcTemplate bdpEquity457 = new JdbcTemplate("457.bdp_equity");
-        String companyId = "2943915511";
-        String companyName = "中国宝武钢铁集团有限公司";
-        Queue<Path> queue = new ArrayDeque<>();
-        queue.add(Path.newPath(new Node(companyId, companyName)));
+        String groupName = "上海宝信软件股份有限公司";
+        Queue<Path> queue = new ArrayDeque<Path>() {{
+            add(Path.newPath(new Node("27624827", "上海宝信软件股份有限公司")));
+        }};
         queue.forEach(root -> result.put((Node) root.elements.get(0), root));
         while (!queue.isEmpty()) {
             int size = queue.size();
@@ -64,25 +63,17 @@ public class GroupJob {
                 }
             }
         }
-        CsvWriter writer = CsvUtil.getWriter(new File("/Users/liang/Desktop/" + companyName + ".csv"), StandardCharsets.UTF_8);
+        CsvWriter writer = CsvUtil.getWriter(new File("/Users/liang/Desktop/" + groupName + ".csv"), StandardCharsets.UTF_8);
         writer.writeHeaderLine("company_id", "company_name", "level", "reason", "info");
         result.forEach((k, v) -> {
-            writer.write(new String[]{k.getId(), k.getName(), String.valueOf(v.getLevel()), "每一跳 都是 该公司所有股东 最大股比 (非唯一, 比如两个50%, 或者3个30% + 1个10%)", v.toJsonString()});
+            String companyId = k.getId();
+            String companyName = k.getName();
+            String level = String.valueOf(v.getLevel());
+            String reason = "每一跳 都是 该公司所有股东 最大股比 (非唯一, 比如两个50%, 或者3个30% + 1个10%)";
+            String info = v.toJsonString();
+            writer.writeLine(companyId, companyName, level, reason, info);
         });
         writer.flush();
-        //List<String> ids = result.keySet().stream().map(Node::getId).collect(Collectors.toList());
-        //String sql = new SQL().SELECT("company_id", "company_name",
-        //                "group_concat(concat(shareholder_id,',',shareholder_name,',',investment_ratio_total) SEPARATOR '、') info")
-        //        .FROM("shareholder_investment_ratio_total_new")
-        //        .WHERE("shareholder_id in " + SqlUtils.formatValue(ids))
-        //        .WHERE("company_id not in " + SqlUtils.formatValue(ids))
-        //        .GROUP_BY("company_id", "company_name")
-        //        .HAVING("max(investment_ratio_total) > 0.5")
-        //        .toString();
-        //List<Map<String, Object>> columnMaps = bdpEquity457.queryForColumnMaps(sql);
-        //for (Map<String, Object> columnMap : columnMaps) {
-        //    System.out.println(columnMap);
-        //}
     }
 
     private interface Element {
