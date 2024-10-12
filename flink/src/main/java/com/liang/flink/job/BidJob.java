@@ -158,7 +158,8 @@ public class BidJob {
             sink.enableCache();
             int taskIdx = getRuntimeContext().getIndexOfThisSubtask();
             String volcanicRds = VOLCANIC_RDS.get(taskIdx % VOLCANIC_RDS.size());
-            volcanic = new JdbcTemplate(volcanicRds);
+//            volcanic = new JdbcTemplate(volcanicRds);
+            volcanic = new JdbcTemplate("104.data_bid");
             dataBid104 = new JdbcTemplate("104.data_bid");
             rds069 = new JdbcTemplate("069.semantic_analysis");
             companyBase435 = new JdbcTemplate("435.company_base");
