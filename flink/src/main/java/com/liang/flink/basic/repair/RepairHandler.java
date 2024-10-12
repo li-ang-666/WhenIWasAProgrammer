@@ -51,15 +51,16 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
                 sql.WHERE("id >= " + ids.get(0)).WHERE("id <= " + ids.get(ids.size() - 1));
             }
             // 执行sql
-            jdbcTemplate.streamQuery(true, sql.toString(), rs -> {
+            List<SingleCanalBinlog> singleCanalBinlogs = jdbcTemplate.queryForList(sql.toString(), rs -> {
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 Map<String, Object> columnMap = new HashMap<>(columnCount);
                 for (int i = 1; i <= columnCount; i++) {
                     columnMap.put(metaData.getColumnName(i), rs.getString(i));
                 }
-                out.collect(new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap));
+                return new SingleCanalBinlog(metaData.getCatalogName(1), metaData.getTableName(1), 0L, CanalEntry.EventType.INSERT, new HashMap<>(), columnMap);
             });
+            singleCanalBinlogs.forEach(out::collect);
         } catch (Exception e) {
             log.error("RepairHandler flatMap() error, will retry", e);
             flatMap(repairSplit, out);
