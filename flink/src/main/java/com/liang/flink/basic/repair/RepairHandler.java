@@ -74,7 +74,8 @@ public class RepairHandler extends RichFlatMapFunction<RepairSplit, SingleCanalB
         try {
             lock.lock();
         } catch (Exception e) {
-            log.error("RepairHandler snapshotState() error,", e);
+            log.error("RepairHandler snapshotState() error, will retry", e);
+            snapshotState(context);
         } finally {
             lock.unlock();
         }
