@@ -1,7 +1,5 @@
 package com.liang.common.util;
 
-import com.liang.common.dto.tyc.Company;
-import com.liang.common.dto.tyc.Human;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
 import lombok.NonNull;
@@ -137,51 +135,6 @@ public class TycUtils {
         }
     }
 
-    @NonNull
-    public static Company cid2Company(Object cid) {
-        if (!isUnsignedId(cid)) {
-            return new Company();
-        }
-        String sql = new SQL().SELECT("tyc_unique_entity_id", "entity_name_valid")
-                .FROM("tyc_entity_general_property_reference")
-                .WHERE("id = " + formatValue(cid))
-                .toString();
-        Tuple2<String, String> tuple2 = new JdbcTemplate("465.company_base").queryForObject(sql,
-                rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        if (tuple2 == null) {
-            return new Company();
-        }
-        String gid = tuple2.f0;
-        String name = tuple2.f1;
-        if (isUnsignedId(gid) && isValidName(name)) {
-            return new Company(Long.parseLong(gid), name);
-        }
-        return new Company();
-    }
-
-    @NonNull
-    public static Human cid2Human(Object cid) {
-        if (!isUnsignedId(cid)) {
-            return new Human();
-        }
-        String sql = new SQL().SELECT("hg.graph_id", "h.name")
-                .FROM("human_graph hg")
-                .JOIN("human h on hg.human_id = h.id")
-                .WHERE("hg.deleted = 0")
-                .WHERE("hg.human_id = " + formatValue(cid))
-                .toString();
-        Tuple2<String, String> tuple2 = new JdbcTemplate("116.prism").queryForObject(sql,
-                rs -> Tuple2.of(rs.getString(1), rs.getString(2)));
-        if (tuple2 == null) {
-            return new Human();
-        }
-        String gid = tuple2.f0;
-        String name = tuple2.f1;
-        if (isUnsignedId(gid) && isValidName(name)) {
-            return new Human(Long.parseLong(gid), name);
-        }
-        return new Human();
-    }
 
     @NonNull
     public static String gid2Pid(Object companyGid, Object humanGid) {
