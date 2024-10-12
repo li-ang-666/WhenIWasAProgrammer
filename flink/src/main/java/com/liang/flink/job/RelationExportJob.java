@@ -42,7 +42,6 @@ create external table if not exists test.relation_edge(
   `row` string
 )stored as textfile location 'obs://hadoop-obs/flink/relation/edge';
 
-
 */
 
 // spark-sql
@@ -122,7 +121,7 @@ public class RelationExportJob {
                 String targetId = (String) columnMap.get("target_id");
                 String relation = (String) columnMap.get("relation");
                 String other = ((String) columnMap.get("other")).replaceAll("[\"',\\s]", "");
-                companyObsWriter.update(String.join(",", sourceId, targetId, relation, other));
+                edgeObsWriter.update(String.join(",", sourceId, targetId, relation, other));
             }
         }
 
