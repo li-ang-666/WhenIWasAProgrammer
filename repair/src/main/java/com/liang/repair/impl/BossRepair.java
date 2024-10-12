@@ -12,7 +12,7 @@ public class BossRepair extends ConfigHolder {
 
     public static void main(String[] args) {
         String body = HttpUtil.createPost("http://10.99.138.255:9060/update_boss")
-                .form("hgid", "1807132440")
+                .form("hgid", "2002633907")
                 .timeout(TIMEOUT)
                 .execute()
                 .body();
