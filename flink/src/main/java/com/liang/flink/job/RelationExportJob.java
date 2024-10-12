@@ -95,6 +95,7 @@ public class RelationExportJob {
         public void invoke(SingleCanalBinlog singleCanalBinlog, Context context) {
             String table = singleCanalBinlog.getTable();
             Map<String, Object> columnMap = singleCanalBinlog.getColumnMap();
+            String regexp = "[\"',\\s]";
             if ("company_index".equals(table)) {
                 long companyId = Long.parseLong((String) columnMap.get("company_id"));
                 String odsStatus = (String) columnMap.get("company_registation_status");
@@ -107,12 +108,12 @@ public class RelationExportJob {
                     status = 0;
                 }
                 boolean isEmpty = emptyCompany.contains(companyId);
-                String companyName = ((String) columnMap.get("company_name")).replaceAll("[\"',\\s]", "");
+                String companyName = ((String) columnMap.get("company_name")).replaceAll(regexp, "");
                 companyObsWriter.update(String.join(",", String.valueOf(companyId), "company", String.valueOf(status), String.valueOf(isEmpty), companyName));
             } else if ("human".equals(table)) {
                 String pid = (String) columnMap.get("human_id");
                 String gid = (String) columnMap.get("human_name_id");
-                String name = ((String) columnMap.get("human_name")).replaceAll("[\"',\\s]", "");
+                String name = ((String) columnMap.get("human_name")).replaceAll(regexp, "");
                 if (TycUtils.isTycUniqueEntityId(pid) && TycUtils.isUnsignedId(gid)) {
                     humanObsWriter.update(String.join(",", pid, "human", gid, name));
                 }
@@ -120,7 +121,7 @@ public class RelationExportJob {
                 String sourceId = (String) columnMap.get("source_id");
                 String targetId = (String) columnMap.get("target_id");
                 String relation = (String) columnMap.get("relation");
-                String other = ((String) columnMap.get("other")).replaceAll("[\"',\\s]", "");
+                String other = ((String) columnMap.get("other")).replaceAll(regexp, "");
                 edgeObsWriter.update(String.join(",", sourceId, targetId, relation, other));
             }
         }
