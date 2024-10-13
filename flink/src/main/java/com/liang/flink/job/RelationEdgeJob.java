@@ -146,6 +146,9 @@ public class RelationEdgeJob {
 
         private void flush() {
             synchronized (bitmap) {
+                if (config.getFlinkConfig().getSourceType() != FlinkConfig.SourceType.REPAIR) {
+                    log.info("bitmap size: {}", bitmap.getLongCardinality());
+                }
                 bitmap.forEach(companyId -> {
                     String targetId = String.valueOf(companyId);
                     // 先删除
