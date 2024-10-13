@@ -138,16 +138,16 @@ public class RelationEdgeJob {
                 if (TycUtils.isUnsignedId(companyId)) {
                     bitmap.add(Long.parseLong(companyId));
                     if (config.getFlinkConfig().getSourceType() == FlinkConfig.SourceType.REPAIR) {
-                        flush();
+                        flush(null);
                     }
                 }
             }
         }
 
-        private void flush() {
+        private void flush(Long ckpId) {
             synchronized (bitmap) {
-                if (config.getFlinkConfig().getSourceType() != FlinkConfig.SourceType.REPAIR) {
-                    log.info("bitmap size: {}", bitmap.getLongCardinality());
+                if (config.getFlinkConfig().getSourceType() != FlinkConfig.SourceType.REPAIR && ckpId != null) {
+                    log.info("checkpoint-{}, bitmap size: {}", ckpId, bitmap.getLongCardinality());
                 }
                 bitmap.forEach(companyId -> {
                     String targetId = String.valueOf(companyId);
@@ -325,17 +325,17 @@ public class RelationEdgeJob {
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) {
-            flush();
+            flush(context.getCheckpointId());
         }
 
         @Override
         public void finish() {
-            flush();
+            flush(null);
         }
 
         @Override
         public void close() {
-            flush();
+            flush(null);
         }
     }
 
