@@ -42,6 +42,9 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     public void initializeState(FunctionInitializationContext context) {
         try {
             ConfigUtils.setConfig(config);
+            if (repairTasks.isEmpty()) {
+                throw new Exception("RepairTasks is empty");
+            }
             // 初始化
             repairState = new RepairState(repairTasks);
             report(String.format("init successfully, states: %s", repairState.toReportString()));
