@@ -123,6 +123,15 @@ public class RelationExportJob {
                 String relation = (String) columnMap.get("relation");
                 String other = ((String) columnMap.get("other")).replaceAll(regexp, "");
                 edgeObsWriter.update(String.join(",", sourceId, targetId, relation, other));
+            } else if ("personnel_merge".equals(table)) {
+                String sourceId = (String) columnMap.get("human_id");
+                String targetId = (String) columnMap.get("company_id");
+                String isHistory = (String) columnMap.get("is_history");
+                String relation = "1".equals(isHistory) ? "HIS_SERVE" : "SERVE";
+                String other = ((String) columnMap.get("personnel_position"))
+                        .replaceAll(",", "，")
+                        .replaceAll(regexp, "");
+                edgeObsWriter.update(String.join(",", sourceId, targetId, relation, other));
             }
         }
 
