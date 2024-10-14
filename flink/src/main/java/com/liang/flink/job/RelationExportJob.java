@@ -50,9 +50,9 @@ create external table if not exists test.relation_edge(
 // select count(1) from test.relation_node_human;
 // select count(1) from test.relation_edge;
 
-// insert overwrite table test.relation_node_company select /*+ REPARTITION(5) */ * from test.relation_node_company;
-// insert overwrite table test.relation_node_human select /*+ REPARTITION(4) */ * from test.relation_node_human;
-// insert overwrite table test.relation_edge select /*+ REPARTITION(8) */ * from test.relation_edge;
+// insert overwrite table test.relation_node_company select /*+ REPARTITION(5) */ distinct * from test.relation_node_company;
+// insert overwrite table test.relation_node_human select /*+ REPARTITION(4) */ distinct * from test.relation_node_human;
+// insert overwrite table test.relation_edge select /*+ REPARTITION(8) */ distinct * from test.relation_edge;
 @Slf4j
 @LocalConfigFile("relation-export.yml")
 public class RelationExportJob {
