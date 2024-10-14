@@ -131,7 +131,9 @@ public class RelationExportJob {
                 String other = ((String) columnMap.get("personnel_position"))
                         .replaceAll(",", "，")
                         .replaceAll(regexp, "");
-                edgeObsWriter.update(String.join(",", sourceId, targetId, relation, other));
+                if (TycUtils.isTycUniqueEntityId(sourceId) && TycUtils.isUnsignedId(targetId)) {
+                    edgeObsWriter.update(String.join(",", sourceId, targetId, relation, other));
+                }
             }
         }
 
