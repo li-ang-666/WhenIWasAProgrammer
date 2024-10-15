@@ -22,6 +22,8 @@ public class RepairReporter implements Runnable {
             } else {
                 if (logs.contains("() error")) {
                     log.error(logs);
+                } else if (logs.contains("cancel()")) {
+                    log.warn(logs);
                 } else {
                     log.info(logs);
                 }

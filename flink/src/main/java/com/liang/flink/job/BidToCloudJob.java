@@ -100,17 +100,8 @@ public class BidToCloudJob {
             resultMap.put("deleted", columnMap.get("deleted"));
             resultMap.put("type", columnMap.get("type"));
             // html 转 md
-            try {
-                throw new RuntimeException();
-//                String md = executor
-//                        .submit(() -> htmlToMd((String) columnMap.get("content")))
-//                        .get(5000, TimeUnit.MILLISECONDS);
-//                resultMap.put("content", md);
-//                resultMap.put("fail", false);
-            } catch (Exception e) {
-                resultMap.put("content", columnMap.get("content"));
-                resultMap.put("fail", true);
-            }
+            resultMap.put("content", columnMap.get("content"));
+            resultMap.put("fail", true);
             out.collect(resultMap);
         }
 

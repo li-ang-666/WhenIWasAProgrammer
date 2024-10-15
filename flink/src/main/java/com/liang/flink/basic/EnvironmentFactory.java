@@ -27,8 +27,9 @@ public class EnvironmentFactory {
         try {
             return createWithE(args);
         } catch (Exception e) {
-            log.error("EnvironmentFactory create error", e);
-            throw new RuntimeException(e);
+            String msg = "EnvironmentFactory create error";
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
         }
     }
 

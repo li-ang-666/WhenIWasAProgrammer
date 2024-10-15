@@ -59,7 +59,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             String msg = "RepairSource initializeState() error";
             report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
             log.error(msg, e);
-            throw new RuntimeException(e);
+            throw new RuntimeException(msg, e);
         }
     }
 
@@ -106,7 +106,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             String msg = "RepairSource run() error";
             report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
             log.error(msg, e);
-            throw new RuntimeException(e);
+            throw new RuntimeException(msg, e);
         }
     }
 
@@ -119,7 +119,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             String msg = "RepairSource snapshotState() error";
             report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
             log.error(msg, e);
-            throw new RuntimeException(e);
+            throw new RuntimeException(msg, e);
         }
     }
 
@@ -134,13 +134,13 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             String msg = "RepairSource notifyCheckpointComplete() error";
             report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
             log.error(msg, e);
-            throw new RuntimeException(e);
+            throw new RuntimeException(msg, e);
         }
     }
 
     @Override
     public void cancel() {
-        String msg = String.format("RepairSource cancel, System.exit(%d)", EXIT_CODE);
+        String msg = String.format("RepairSource cancel(), System.exit(%d)", EXIT_CODE);
         report(msg);
         log.warn(msg);
         System.exit(EXIT_CODE);
