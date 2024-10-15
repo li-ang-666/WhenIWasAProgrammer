@@ -20,7 +20,11 @@ public class RepairReporter implements Runnable {
             if (logs == null) {
                 LockSupport.parkNanos(Duration.ofSeconds(3).toNanos());
             } else {
-                log.info("{}", logs);
+                if (logs.contains("() error")) {
+                    log.error(logs);
+                } else {
+                    log.info(logs);
+                }
             }
         }
     }
