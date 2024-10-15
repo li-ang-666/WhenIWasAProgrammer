@@ -73,9 +73,13 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                 Roaring64Bitmap allIdBitmap;
                 long lastRuntimeMaxId;
                 synchronized (checkpointLock) {
+                    report(String.format("current running: %s.%s", repairTask.getSourceName(), repairTask.getTableName()));
                     allIdBitmap = repairState.getAllIdBitmap(repairTask);
                     if (allIdBitmap.isEmpty()) {
+                        report("will get bitmap by rebuild");
                         allIdBitmap.or(newAllIdBitmap(repairTask));
+                    } else {
+                        report("got bitmap by state");
                     }
                     allIdBitmap.runOptimize();
                     lastRuntimeMaxId = repairState.getPosition(repairTask);
@@ -148,12 +152,11 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     }
 
     private Roaring64Bitmap newAllIdBitmap(RepairTask repairTask) {
-        report(String.format("source: %s, table: %s", repairTask.getSourceName(), repairTask.getTableName()));
         Roaring64Bitmap bitmap;
         long start = System.currentTimeMillis();
         if (repairTask.getMode() == RepairTask.RepairTaskMode.D) {
             report("switch to direct mode, please waiting for generate id bitmap by jdbc");
-            bitmap = getDirectBitmap();
+            bitmap = getDirectBitmap(repairTask);
         } else {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             // 边界
@@ -182,8 +185,13 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         return bitmap;
     }
 
-    private Roaring64Bitmap getDirectBitmap() {
-        return Roaring64Bitmap.bitmapOf(1L);
+    private Roaring64Bitmap getDirectBitmap(RepairTask repairTask) {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
+        String sql = String.format("/* stream query */ SELECT id FROM %s WHERE %s", repairTask.getTableName(), repairTask.getWhere());
+        report(String.format("execute query sql: %s", sql));
+        Roaring64Bitmap bitmap = new Roaring64Bitmap();
+        jdbcTemplate.streamQuery(true, sql, rs -> bitmap.add(rs.getLong(1)));
+        return bitmap;
     }
 
     private Roaring64Bitmap getEvenlyBitmap(long min, long max) {
