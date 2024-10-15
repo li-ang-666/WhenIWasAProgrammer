@@ -206,6 +206,6 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
 
     private void report(String logs) {
         new RedisTemplate("metadata")
-                .rPush(repairReportKey, String.format("[_RepairSource_] %s", logs));
+                .rPush(repairReportKey, String.format("[___RepairSource___] %s", logs));
     }
 }
