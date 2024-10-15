@@ -43,7 +43,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         try {
             ConfigUtils.setConfig(config);
             if (repairTasks.isEmpty()) {
-                throw new Exception("RepairTasks is empty");
+                throw new RuntimeException("RepairTasks is empty");
             }
             // 初始化
             repairState = new RepairState(repairTasks);
