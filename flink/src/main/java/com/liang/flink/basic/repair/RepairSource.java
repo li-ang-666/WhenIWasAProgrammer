@@ -1,5 +1,6 @@
 package com.liang.flink.basic.repair;
 
+import cn.hutool.core.exceptions.ExceptionUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -55,8 +56,8 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                 report(String.format("restored successfully, states: %s", repairState.toReportString()));
             }
         } catch (Exception e) {
-            String msg = String.format("RepairSource initializeState() error, %s, %s", e.getClass().getName(), e.getMessage());
-            report(msg);
+            String msg = "RepairSource initializeState() error";
+            report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
             log.error(msg, e);
             throw new RuntimeException(e);
         }
@@ -102,8 +103,8 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                 }
             });
         } catch (Exception e) {
-            String msg = String.format("RepairSource run() error, %s, %s", e.getClass().getName(), e.getMessage());
-            report(msg);
+            String msg = "RepairSource run() error";
+            report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
             log.error(msg, e);
             throw new RuntimeException(e);
         }
@@ -115,8 +116,8 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             repairStateHolder.clear();
             repairStateHolder.add(repairState);
         } catch (Exception e) {
-            String msg = String.format("RepairSource snapshotState() error, %s, %s", e.getClass().getName(), e.getMessage());
-            report(msg);
+            String msg = "RepairSource snapshotState() error";
+            report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
             log.error(msg, e);
             throw new RuntimeException(e);
         }
@@ -130,8 +131,8 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
                     repairState.toReportString());
             report(logs);
         } catch (Exception e) {
-            String msg = String.format("RepairSource notifyCheckpointComplete() error, %s, %s", e.getClass().getName(), e.getMessage());
-            report(msg);
+            String msg = "RepairSource notifyCheckpointComplete() error";
+            report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
             log.error(msg, e);
             throw new RuntimeException(e);
         }

@@ -6,7 +6,7 @@ flinkConfig:
 
 repairTasks:
   - sourceName: "435.company_base"
-    tableName: "company_index"
+    tableName: "company_indexxx"
     columns: "*"
     where: "company_id = 1163921791"
 
