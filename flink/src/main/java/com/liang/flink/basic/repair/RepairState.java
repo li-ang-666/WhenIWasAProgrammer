@@ -1,6 +1,7 @@
 package com.liang.flink.basic.repair;
 
 import com.liang.common.dto.config.RepairTask;
+import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.Data;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
@@ -9,11 +10,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
 public class RepairState {
-    private final Map<RepairTask, State> states = new LinkedHashMap<>();
+    private final Map<RepairTask, State> states = new ConcurrentHashMap<>();
 
     // 初始化
     public RepairState(List<RepairTask> repairTasks) {
@@ -53,13 +55,13 @@ public class RepairState {
 
     public String toReportString() {
         List<Map<String, Object>> infos = new ArrayList<>();
-        states.forEach((k, v) -> {
+        ConfigUtils.getConfig().getRepairTasks().forEach(repairTask -> {
             LinkedHashMap<String, Object> info = new LinkedHashMap<>();
-            info.put("source", k.getSourceName());
-            info.put("table", k.getTableName());
-            info.put("position", String.format("%,d", v.getPosition()));
-            info.put("count", String.format("%,d", v.getCount()));
-            info.put("total", String.format("%,d", v.getTotal()));
+            info.put("source", repairTask.getSourceName());
+            info.put("table", repairTask.getTableName());
+            info.put("position", String.format("%,d", getPosition(repairTask)));
+            info.put("count", String.format("%,d", getCount(repairTask)));
+            info.put("total", String.format("%,d", getTotal(repairTask)));
             infos.add(info);
         });
         return JsonUtils.toString(infos);
