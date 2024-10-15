@@ -6,6 +6,7 @@ import com.liang.common.util.JsonUtils;
 import lombok.Data;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
-public class RepairState {
+public class RepairState implements Serializable {
     private final Map<RepairTask, State> states = new ConcurrentHashMap<>();
 
     // 初始化
@@ -68,7 +69,7 @@ public class RepairState {
     }
 
     @Data
-    private static final class State {
+    private static final class State implements Serializable {
         private volatile Roaring64Bitmap allIdBitmap = new Roaring64Bitmap();
         private volatile long position = -1L;
 

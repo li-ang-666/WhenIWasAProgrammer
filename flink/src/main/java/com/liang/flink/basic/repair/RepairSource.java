@@ -1,6 +1,7 @@
 package com.liang.flink.basic.repair;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
+import cn.hutool.core.util.ObjUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.dto.config.RepairTask;
 import com.liang.common.service.database.template.JdbcTemplate;
@@ -52,7 +53,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             // 恢复
             repairStateHolder = context.getOperatorStateStore().getListState(LIST_STATE_DESCRIPTOR);
             if (context.isRestored()) {
-                repairStateHolder.get().forEach(repairState::restoreState);
+                repairState.restoreState(repairStateHolder.get().iterator().next());
                 report(String.format("restored successfully, states: %s", repairState.toReportString()));
             }
         } catch (Exception e) {
@@ -114,7 +115,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     public void snapshotState(FunctionSnapshotContext context) {
         try {
             repairStateHolder.clear();
-            repairStateHolder.add(repairState);
+            repairStateHolder.add(ObjUtil.cloneByStream(repairState));
         } catch (Exception e) {
             String msg = "RepairSource snapshotState() error";
             report(msg + "\n" + ExceptionUtil.stacktraceToString(e));
@@ -128,7 +129,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         try {
             String logs = String.format("ckp_%04d successfully, states: %s",
                     checkpointId,
-                    repairState.toReportString());
+                    repairStateHolder.get().iterator().next().toReportString());
             report(logs);
         } catch (Exception e) {
             String msg = "RepairSource notifyCheckpointComplete() error";
