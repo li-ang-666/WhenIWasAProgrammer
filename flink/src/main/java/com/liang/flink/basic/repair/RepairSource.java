@@ -148,11 +148,12 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
     }
 
     private Roaring64Bitmap newAllIdBitmap(RepairTask repairTask) {
+        report(String.format("source: %s, table: %s", repairTask.getSourceName(), repairTask.getTableName()));
         Roaring64Bitmap bitmap;
         long start = System.currentTimeMillis();
         if (repairTask.getMode() == RepairTask.RepairTaskMode.D) {
             report("switch to direct mode, please waiting for generate id bitmap by jdbc");
-            bitmap = getDirectBitmap(repairTask);
+            bitmap = getDirectBitmap();
         } else {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
             // 边界
@@ -160,7 +161,7 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
             Tuple2<Long, Long> minAndMax = jdbcTemplate.queryForObject(queryBoundSql, rs -> Tuple2.of(rs.getLong(1), rs.getLong(2)));
             Long min = minAndMax.f0;
             Long max = minAndMax.f1;
-            report(String.format("source: %s, table: %s, min: %,d, max: %,d", repairTask.getSourceName(), repairTask.getTableName(), min, max));
+            report(String.format("min: %,d, max: %,d", min, max));
             // 粗略行数
             String queryStatusSql = String.format("SHOW TABLE STATUS LIKE '%s'", repairTask.getTableName());
             Long probablyRows = jdbcTemplate.queryForObject(queryStatusSql, rs -> rs.getLong(5));
@@ -181,13 +182,8 @@ public class RepairSource extends RichSourceFunction<RepairSplit> implements Che
         return bitmap;
     }
 
-    private Roaring64Bitmap getDirectBitmap(RepairTask repairTask) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(repairTask.getSourceName());
-        String sql = String.format("/* stream query */ SELECT id FROM %s WHERE %s", repairTask.getTableName(), repairTask.getWhere());
-        report(String.format("execute query sql: %s", sql));
-        Roaring64Bitmap bitmap = new Roaring64Bitmap();
-        jdbcTemplate.streamQuery(true, sql, rs -> bitmap.add(rs.getLong(1)));
-        return bitmap;
+    private Roaring64Bitmap getDirectBitmap() {
+        return Roaring64Bitmap.bitmapOf(1L);
     }
 
     private Roaring64Bitmap getEvenlyBitmap(long min, long max) {
