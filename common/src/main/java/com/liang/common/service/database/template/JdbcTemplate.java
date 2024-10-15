@@ -152,8 +152,7 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         } catch (Exception e) {
             logging.ifError("streamQuery", sql, e);
             if (ifThrow) {
-                log.error("streamQuery报错啦!!!!!");
-                throw new RuntimeException();
+                throw new RuntimeException("streamQuery error", e);
             }
         }
     }
