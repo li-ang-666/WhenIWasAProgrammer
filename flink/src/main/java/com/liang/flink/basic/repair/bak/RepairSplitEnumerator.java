@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import java.util.ArrayList;
@@ -156,7 +155,7 @@ public class RepairSplitEnumerator {
         private long r;
 
         @Override
-        public int compareTo(@NotNull UncheckedSplit another) {
+        public int compareTo(UncheckedSplit another) {
             long diff = this.r - this.l;
             long anotherDiff = another.r - another.l;
             if (anotherDiff - diff > 0) {
