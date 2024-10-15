@@ -10,8 +10,6 @@ import com.liang.flink.basic.EnvironmentFactory;
 import com.liang.flink.basic.StreamFactory;
 import com.liang.flink.dto.SingleCanalBinlog;
 import com.liang.flink.service.LocalConfigFile;
-import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
-import com.vladsch.flexmark.util.data.MutableDataSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
@@ -105,11 +103,11 @@ public class BidToCloudJob {
             out.collect(resultMap);
         }
 
-        private String htmlToMd(String html) {
-            MutableDataSet options = new MutableDataSet();
-            FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder(options).build();
-            return converter.convert(html);
-        }
+//        private String htmlToMd(String html) {
+//            MutableDataSet options = new MutableDataSet();
+//            FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder(options).build();
+//            return converter.convert(html);
+//        }
     }
 
     @RequiredArgsConstructor
