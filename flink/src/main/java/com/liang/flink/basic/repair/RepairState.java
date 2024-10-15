@@ -1,7 +1,6 @@
 package com.liang.flink.basic.repair;
 
 import com.liang.common.dto.config.RepairTask;
-import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.Data;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
@@ -16,10 +15,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Data
 public class RepairState implements Serializable {
+    private final List<RepairTask> repairTasks;
     private final Map<RepairTask, State> states = new ConcurrentHashMap<>();
 
     // 初始化
     public RepairState(List<RepairTask> repairTasks) {
+        this.repairTasks = repairTasks;
         repairTasks.forEach(repairTask -> states.put(repairTask, new State()));
     }
 
@@ -56,7 +57,7 @@ public class RepairState implements Serializable {
 
     public String toReportString() {
         List<Map<String, Object>> infos = new ArrayList<>();
-        ConfigUtils.getConfig().getRepairTasks().forEach(repairTask -> {
+        repairTasks.forEach(repairTask -> {
             LinkedHashMap<String, Object> info = new LinkedHashMap<>();
             info.put("source", repairTask.getSourceName());
             info.put("table", repairTask.getTableName());
