@@ -87,12 +87,6 @@
             <artifactId>mybatis</artifactId>
         </dependency>
 
-        <!--静虎 和 国旺 的 shareholder-->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-        </dependency>
-
         <!--flink-->
         <dependency>
             <groupId>org.apache.flink</groupId>

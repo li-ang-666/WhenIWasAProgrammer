@@ -38,13 +38,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!--静虎 和 国旺 的 shareholder-->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!--apollo-->
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>

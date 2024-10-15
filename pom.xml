@@ -50,13 +50,6 @@
                 <version>3.5.15</version>
             </dependency>
 
-            <!--fastjson: 静虎 和 国旺 的 shareholder-->
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>1.2.61</version>
-            </dependency>
-
             <!--hutool-->
             <dependency>
                 <groupId>cn.hutool</groupId>
