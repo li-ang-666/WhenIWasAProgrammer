@@ -8,4 +8,4 @@ repairTasks:
   - sourceName: "435.company_base"
     tableName: "company_index"
     columns: "*"
-    where: "company_id in (141868270)"
+    where: "company_id in (1013474254)"
