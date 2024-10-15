@@ -6,9 +6,9 @@ flinkConfig:
 
 repairTasks:
   - sourceName: "435.company_base"
-    tableName: "company_indexxx"
+    tableName: "company_index"
     columns: "*"
-    where: "company_id = 1163921791"
+    where: "company_id = 3178907028"
 
 kafkaConfigs:
   kafkaSource:
