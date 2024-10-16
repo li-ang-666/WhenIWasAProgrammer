@@ -10,7 +10,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.hudi.common.model.WriteOperationType;
 
 import java.io.InputStream;
@@ -50,22 +50,26 @@ public class TableFactory {
         String max = jdbcTemplate.queryForObject("select max(id) from " + tableName, rs -> rs.getString(1));
         // mapping column and type
         AtomicInteger maxColumnLength = new AtomicInteger(Integer.MIN_VALUE);
-        List<Tuple2<String, String>> list = jdbcTemplate.queryForList("desc " + tableName, rs -> {
-            String columnName = SqlUtils.formatField(rs.getString(1));
+        List<Tuple3<String, String, String>> list = jdbcTemplate.queryForList("desc " + tableName, rs -> {
+            String columnName = rs.getString(1);
             String columnType = rs.getString(2);
+            String newColumnName = Character.isLetter(columnName.charAt(0)) ? columnName : "_" + columnName;
             maxColumnLength.set(Math.max(maxColumnLength.get(), columnName.length()));
-            return Tuple2.of(columnName, mappingToFlinkSqlType(columnType));
+            // avro 规定 columnName 第一个字符 必须是 字母
+            return Tuple3.of(SqlUtils.formatField(columnName), mappingToFlinkSqlType(columnType), SqlUtils.formatField(newColumnName));
         });
-        String createTable = list.stream().map(e -> "  " + e.f0 + StringUtils.repeat(" ", maxColumnLength.get() + 1 - e.f0.length()) + e.f1 + ",")
+        String odsCreateTable = list.stream().map(e -> "  " + e.f0 + StringUtils.repeat(" ", maxColumnLength.get() + 10 - e.f0.length()) + e.f1 + ",")
+                .collect(Collectors.joining("\n", "\n", ""));
+        String dwdCreateTable = list.stream().map(e -> "  " + e.f2 + StringUtils.repeat(" ", maxColumnLength.get() + 10 - e.f2.length()) + e.f1 + ",")
                 .collect(Collectors.joining("\n", "\n", ""));
         // insert sql
-        list.add(Tuple2.of("op_ts", "TIMESTAMP(3)"));
+        list.add(Tuple3.of("op_ts", "TIMESTAMP(3)", "op_ts"));
         String sql = list.stream().map(e -> {
             if (e.f1.equals("TIMESTAMP(3)"))
-                return String.format("CAST(CONVERT_TZ(CAST(%s AS STRING), 'Asia/Shanghai', 'UTC') AS TIMESTAMP(3)) %s", e.f0, e.f0);
+                return String.format("CAST(CONVERT_TZ(CAST(%s AS STRING), 'Asia/Shanghai', 'UTC') AS TIMESTAMP(3)) %s", e.f0, e.f2);
             else
-                return e.f0;
-        }).collect(Collectors.joining(", ", "INSERT INTO dwd SELECT\n", "\nFROM ods"));
+                return String.format("%s AS %s", e.f0, e.f2);
+        }).collect(Collectors.joining(",\n  ", "INSERT INTO dwd SELECT\n  ", "\nFROM ods"));
         // 拼接
         // bulk_insert
         if (writeOperationType == WriteOperationType.BULK_INSERT) {
@@ -73,7 +77,7 @@ public class TableFactory {
                     .getResourceAsStream("sql/bulk_insert.sql");
             assert stream != null;
             String template = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, min, max, createTable, tableName, tableName, sql);
+            return String.format(template, odsCreateTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, min, max, dwdCreateTable, tableName, tableName, sql);
         }
         // upsert
         else if (writeOperationType == WriteOperationType.UPSERT) {
@@ -85,7 +89,7 @@ public class TableFactory {
                 throw new RuntimeException("表名需要添加到com.liang.hudi.basic.TableFactory中");
             }
             int serverId = 5400 + TABLES.indexOf(tableName);
-            return String.format(template, createTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, serverId, createTable, tableName, tableName, sql);
+            return String.format(template, odsCreateTable, config.getDbConfigs().get(source).getHost(), config.getDbConfigs().get(source).getDatabase(), tableName, serverId, dwdCreateTable, tableName, tableName, sql);
         } else {
             throw new RuntimeException("writeOperationType need to be BULK_INSERT or UPSERT");
         }
