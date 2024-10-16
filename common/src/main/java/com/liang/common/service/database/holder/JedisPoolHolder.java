@@ -14,9 +14,7 @@ public class JedisPoolHolder implements MultiPoolHolder<JedisPool> {
     @Override
     public JedisPool getPool(String name) {
         return POOLS.computeIfAbsent(name, k ->
-                new JedisPoolFactory()
-                        .createPool(name)
-        );
+                new JedisPoolFactory().createPool(name));
     }
 
     @Override
