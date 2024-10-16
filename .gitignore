@@ -9,6 +9,7 @@ target/
 spark-warehouse/
 #忽略所有 奇怪 目录
 dependency-reduced-pom.xml
+${project.basedir}/
 
 ## git rm -r --cached .
 ## git add .
