@@ -4,6 +4,7 @@ import cn.hutool.core.collection.ListUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.service.database.template.JdbcTemplate;
 import com.liang.common.util.ConfigUtils;
+import com.liang.common.util.SqlUtils;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ public class TableFactory {
     );
 
     public static void main(String[] args) {
-        System.out.println(fromTemplate(WriteOperationType.UPSERT, "435.company_base", "company_index"));
+        System.out.println(fromTemplate(WriteOperationType.BULK_INSERT, "142.company_base", "company_001_company_list_total"));
     }
 
     @SneakyThrows
@@ -50,7 +51,7 @@ public class TableFactory {
         // mapping column and type
         AtomicInteger maxColumnLength = new AtomicInteger(Integer.MIN_VALUE);
         List<Tuple2<String, String>> list = jdbcTemplate.queryForList("desc " + tableName, rs -> {
-            String columnName = rs.getString(1);
+            String columnName = SqlUtils.formatField(rs.getString(1));
             String columnType = rs.getString(2);
             maxColumnLength.set(Math.max(maxColumnLength.get(), columnName.length()));
             return Tuple2.of(columnName, mappingToFlinkSqlType(columnType));
