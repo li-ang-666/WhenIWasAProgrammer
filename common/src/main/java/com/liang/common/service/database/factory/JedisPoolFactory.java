@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPool> {
-    private final static JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+    private final static JedisPoolConfig JEDIS_POOL_CONFIG = new JedisPoolConfig();
 
     static {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
@@ -40,7 +40,7 @@ public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPoo
             String host = config.getHost();
             int port = config.getPort();
             String password = config.getPassword();
-            JedisPool jedisPool = new JedisPool(jedisPoolConfig, host, port, (int) TimeUnit.MINUTES.toMillis(5), password);
+            JedisPool jedisPool = new JedisPool(JEDIS_POOL_CONFIG, host, port, (int) TimeUnit.MINUTES.toMillis(5), password);
             log.info("JedisPoolFactory createPool success, config: {}", JsonUtils.toString(config));
             return jedisPool;
         } catch (Exception e) {
