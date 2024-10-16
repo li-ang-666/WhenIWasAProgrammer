@@ -1,6 +1,6 @@
 package com.liang.common.service.database.holder;
 
-public interface PoolHolder<POOL> {
+public interface MultiPoolHolder<POOL> {
     POOL getPool(String name);
 
     void closeAll();

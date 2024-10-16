@@ -9,7 +9,7 @@ import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 @Slf4j
-public class HbaseConnectionFactory implements PoolFactory<HbaseConfig, Connection> {
+public class HbaseConnectionFactory implements SinglePoolFactory<HbaseConfig, Connection> {
 
     @Override
     public Connection createPool(String name) {

@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class JedisPoolFactory implements PoolFactory<RedisConfig, JedisPool> {
+public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPool> {
     private final static JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 
     static {

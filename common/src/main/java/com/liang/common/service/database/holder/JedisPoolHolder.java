@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class JedisPoolHolder implements PoolHolder<JedisPool> {
+public class JedisPoolHolder implements MultiPoolHolder<JedisPool> {
     private static final Map<String, JedisPool> POOLS = new ConcurrentHashMap<>();
 
     @Override

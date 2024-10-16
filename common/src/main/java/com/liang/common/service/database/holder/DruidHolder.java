@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class DruidHolder implements PoolHolder<DruidDataSource> {
+public class DruidHolder implements MultiPoolHolder<DruidDataSource> {
     private static final Map<String, DruidDataSource> POOLS = new ConcurrentHashMap<>();
 
     @Override

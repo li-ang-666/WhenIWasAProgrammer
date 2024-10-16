@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class DruidFactory implements PoolFactory<DBConfig, DruidDataSource> {
+public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource> {
 
     @Override
     public DruidDataSource createPool(String name) {

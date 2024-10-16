@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class HbaseConnectionHolder implements PoolHolder<Connection> {
+public class HbaseConnectionHolder implements MultiPoolHolder<Connection> {
     private static final Map<String, Connection> POOLS = new ConcurrentHashMap<>();
 
     @Override
