@@ -8,39 +8,27 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class HbaseConnectionHolder implements IHolder<Connection> {
-    private static final Map<String, Connection> pools = new ConcurrentHashMap<>();
+public class HbaseConnectionHolder implements PoolHolder<Connection> {
+    private static final Map<String, Connection> POOLS = new ConcurrentHashMap<>();
 
     @Override
     public Connection getPool(String name) {
-        if (pools.get(name) == null) {
-            Connection connection = new HbaseConnectionFactory().createPool(name);
-            Connection callback = pools.putIfAbsent(name, connection);
-            //说明这次put已经有值了
-            if (callback != null) {
-                log.warn("putIfAbsent() failed, delete redundant hbaseConnection: {}", name);
-                try {
-                    connection.close();
-                } catch (Exception ignore) {
-                }
-                connection = null;//help gc
-            }
-        }
-        return pools.get(name);
+        return POOLS.computeIfAbsent(name, k ->
+                new HbaseConnectionFactory()
+                        .createPool(name)
+        );
     }
 
     @Override
     public void closeAll() {
-        for (Map.Entry<String, Connection> entry : pools.entrySet()) {
-            Connection connection = entry.getValue();
-            if (!connection.isClosed()) {
-                log.warn("hbaseConnection close: {}", entry.getKey());
-                try {
-                    connection.close();
-                } catch (Exception e) {
-                    log.error("HbaseConnectionHolder closeAll error", e);
+        POOLS.forEach((name, pool) -> {
+            try {
+                if (!pool.isClosed()) {
+                    log.warn("hbase close: {}", name);
+                    pool.close();
                 }
+            } catch (Exception ignore) {
             }
-        }
+        });
     }
 }

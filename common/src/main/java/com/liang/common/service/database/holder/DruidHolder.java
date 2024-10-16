@@ -8,35 +8,27 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class DruidHolder implements IHolder<DruidDataSource> {
-    private static final Map<String, DruidDataSource> pools = new ConcurrentHashMap<>();
+public class DruidHolder implements PoolHolder<DruidDataSource> {
+    private static final Map<String, DruidDataSource> POOLS = new ConcurrentHashMap<>();
 
     @Override
     public DruidDataSource getPool(String name) {
-        if (pools.get(name) == null) {
-            DruidDataSource druidDataSource = new DruidFactory().createPool(name);
-            DruidDataSource callback = pools.putIfAbsent(name, druidDataSource);
-            //说明这次put已经有值了
-            if (callback != null) {
-                log.warn("putIfAbsent() failed, delete redundant druid: {}", name);
-                try {
-                    druidDataSource.close();
-                } catch (Exception ignore) {
-                }
-                druidDataSource = null;//help gc
-            }
-        }
-        return pools.get(name);
+        return POOLS.computeIfAbsent(name, k ->
+                new DruidFactory()
+                        .createPool(name)
+        );
     }
 
     @Override
     public void closeAll() {
-        for (Map.Entry<String, DruidDataSource> entry : pools.entrySet()) {
-            DruidDataSource dataSource = entry.getValue();
-            if (!dataSource.isClosed()) {
-                log.warn("druid close: {}", entry.getKey());
-                dataSource.close();
+        POOLS.forEach((name, pool) -> {
+            try {
+                if (!pool.isClosed()) {
+                    log.warn("druid close: {}", name);
+                    pool.close();
+                }
+            } catch (Exception ignore) {
             }
-        }
+        });
     }
 }
