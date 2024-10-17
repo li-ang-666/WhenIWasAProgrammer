@@ -37,8 +37,8 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
                 .collect(Collectors.joining("&"));
         // list
-        OTHER_INIT_SQLS.add("set wait_timeout = 3600 * 24 * 7");
-        OTHER_INIT_SQLS.add("set interactive_timeout = 3600 * 24 * 7");
+        OTHER_INIT_SQLS.add("set wait_timeout = " + (3600 * 24 * 7));
+        OTHER_INIT_SQLS.add("set interactive_timeout = " + (3600 * 24 * 7));
     }
 
     @Override
