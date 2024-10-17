@@ -37,7 +37,7 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
         // str
         URL_PROP_STR = URL_PROP_MAP.entrySet().stream()
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
-                .collect(Collectors.joining("&", "?", ""));
+                .collect(Collectors.joining("&"));
         // list
         OTHER_INIT_SQLS.add("set wait_timeout = 3600 * 24 * 7");
         OTHER_INIT_SQLS.add("set interactive_timeout = 3600 * 24 * 7");
@@ -52,7 +52,7 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
     public DruidDataSource createPool(DBConfig config) {
         try {
             DruidDataSource druidDataSource = new DruidDataSource();
-            String url = String.format("jdbc:mysql://%s:%s/%s%s",
+            String url = String.format("jdbc:mysql://%s:%s/%s?%s",
                     config.getHost(), config.getPort(), config.getDatabase(), URL_PROP_STR);
             druidDataSource.setUrl(url);
             druidDataSource.setUsername(config.getUser());
