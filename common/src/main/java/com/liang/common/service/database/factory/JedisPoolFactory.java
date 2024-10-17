@@ -18,7 +18,7 @@ public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPoo
         jedisPoolConfig.setMinIdle(1);
         jedisPoolConfig.setMaxIdle(128);
         jedisPoolConfig.setMaxTotal(128);
-        jedisPoolConfig.setMaxWait(Duration.ofMillis(-1));
+        jedisPoolConfig.setMaxWait(Duration.ofMillis(Long.MAX_VALUE));
         jedisPoolConfig.setTestOnBorrow(false);
         jedisPoolConfig.setTestOnReturn(false);
         jedisPoolConfig.setTestWhileIdle(true);
@@ -35,7 +35,7 @@ public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPoo
             String host = config.getHost();
             int port = config.getPort();
             String password = config.getPassword();
-            JedisPool jedisPool = new JedisPool(JEDIS_POOL_CONFIG, host, port, -1, password);
+            JedisPool jedisPool = new JedisPool(JEDIS_POOL_CONFIG, host, port, Integer.MAX_VALUE, password);
             jedisPool.getResource().close();
             log.info("JedisPoolFactory createPool success, config: {}", JsonUtils.toString(config));
             return jedisPool;
