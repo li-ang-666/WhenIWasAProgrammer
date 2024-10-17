@@ -75,8 +75,6 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             druidDataSource.setPoolPreparedStatements(true);
             druidDataSource.setMaxOpenPreparedStatements(100);
             druidDataSource.setUsePingMethod(false);
-            druidDataSource.setAsyncInit(false);
-            druidDataSource.setName("druidDataSource-=-=-=-=-=-=-=-=-=-=");
             // 隔离级别
             druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             // 超时
@@ -85,6 +83,9 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             druidDataSource.setSocketTimeout((int) MILLISECONDS.convert(7, DAYS));
             druidDataSource.setQueryTimeout((int) SECONDS.convert(7, DAYS));
             druidDataSource.setTransactionQueryTimeout((int) SECONDS.convert(7, DAYS));
+            // 启动
+            druidDataSource.setAsyncInit(false);
+            druidDataSource.init();
             log.info("DruidFactory createPool success, config: {}", JsonUtils.toString(config));
             return druidDataSource;
         } catch (Exception e) {
