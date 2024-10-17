@@ -86,6 +86,7 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             // 启动
             druidDataSource.setAsyncInit(false);
             druidDataSource.init();
+            druidDataSource.getConnection().close();
             log.info("DruidFactory createPool success, config: {}", JsonUtils.toString(config));
             return druidDataSource;
         } catch (Exception e) {

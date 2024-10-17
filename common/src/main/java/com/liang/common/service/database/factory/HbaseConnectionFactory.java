@@ -23,6 +23,7 @@ public class HbaseConnectionFactory implements SinglePoolFactory<HbaseConfig, Co
             Configuration configuration = new Configuration();
             configuration.set(HConstants.ZOOKEEPER_QUORUM, config.getZookeeperQuorum());
             Connection connection = ConnectionFactory.createConnection(configuration);
+            connection.getAdmin().close();
             log.info("HbaseConnectionFactory createPool success, config: {}", JsonUtils.toString(config));
             return connection;
         } catch (Exception e) {

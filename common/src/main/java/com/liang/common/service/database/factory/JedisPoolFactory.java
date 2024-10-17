@@ -43,6 +43,7 @@ public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPoo
             int port = config.getPort();
             String password = config.getPassword();
             JedisPool jedisPool = new JedisPool(JEDIS_POOL_CONFIG, host, port, (int) MILLISECONDS.convert(5, MINUTES), password);
+            jedisPool.getResource().close();
             log.info("JedisPoolFactory createPool success, config: {}", JsonUtils.toString(config));
             return jedisPool;
         } catch (Exception e) {
