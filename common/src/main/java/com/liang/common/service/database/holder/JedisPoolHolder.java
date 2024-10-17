@@ -22,10 +22,11 @@ public class JedisPoolHolder implements MultiPoolHolder<JedisPool> {
         POOLS.forEach((name, pool) -> {
             try {
                 if (!pool.isClosed()) {
-                    log.warn("redis close: {}", name);
+                    log.info("redis close {}", name);
                     pool.close();
                 }
             } catch (Exception ignore) {
+                log.warn("redis close {} error, ignore", name);
             }
         });
     }

@@ -22,10 +22,11 @@ public class DruidHolder implements MultiPoolHolder<DruidDataSource> {
         POOLS.forEach((name, pool) -> {
             try {
                 if (!pool.isClosed()) {
-                    log.warn("druid close: {}", name);
+                    log.info("druid close {}", name);
                     pool.close();
                 }
             } catch (Exception ignore) {
+                log.warn("druid close {} error, ignore", name);
             }
         });
     }

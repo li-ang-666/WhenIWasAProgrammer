@@ -22,10 +22,11 @@ public class HbaseConnectionHolder implements MultiPoolHolder<Connection> {
         POOLS.forEach((name, pool) -> {
             try {
                 if (!pool.isClosed()) {
-                    log.warn("hbase close: {}", name);
+                    log.info("hbase close {}", name);
                     pool.close();
                 }
             } catch (Exception ignore) {
+                log.warn("hbase close {} error, ignore", name);
             }
         });
     }
