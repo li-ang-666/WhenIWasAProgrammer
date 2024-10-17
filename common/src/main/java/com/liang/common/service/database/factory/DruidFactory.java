@@ -60,7 +60,7 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             druidDataSource.setConnectionInitSqls(OTHER_INIT_SQLS);
             druidDataSource.setMinIdle(1);
             druidDataSource.setMaxActive(128);
-            druidDataSource.setMaxWait(Long.MAX_VALUE);
+            druidDataSource.setMaxWait(-1);
             druidDataSource.setTestOnBorrow(false);
             druidDataSource.setTestOnReturn(false);
             druidDataSource.setTestWhileIdle(true);
@@ -71,11 +71,11 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             // 隔离级别
             druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             // 超时
-            druidDataSource.setConnectTimeout(Integer.MAX_VALUE);
-            druidDataSource.setSocketTimeout(Integer.MAX_VALUE);
-            druidDataSource.setQueryTimeout(Integer.MAX_VALUE);
-            druidDataSource.setValidationQueryTimeout(Integer.MAX_VALUE);
-            druidDataSource.setTransactionQueryTimeout(Integer.MAX_VALUE);
+            druidDataSource.setConnectTimeout(-1);
+            druidDataSource.setSocketTimeout(-1);
+            druidDataSource.setQueryTimeout(-1);
+            druidDataSource.setValidationQueryTimeout(-1);
+            druidDataSource.setTransactionQueryTimeout(-1);
             // 启动
             druidDataSource.setAsyncInit(false);
             druidDataSource.init();

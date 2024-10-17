@@ -18,7 +18,7 @@ public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPoo
         jedisPoolConfig.setMinIdle(1);
         jedisPoolConfig.setMaxIdle(128);
         jedisPoolConfig.setMaxTotal(128);
-        jedisPoolConfig.setMaxWait(Duration.ofMillis(Long.MAX_VALUE));
+        jedisPoolConfig.setMaxWait(Duration.ofMillis(-1));
         jedisPoolConfig.setTestOnBorrow(false);
         jedisPoolConfig.setTestOnReturn(false);
         jedisPoolConfig.setTestWhileIdle(true);
