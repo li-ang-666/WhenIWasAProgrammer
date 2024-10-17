@@ -57,23 +57,20 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             druidDataSource.setPassword(config.getPassword());
             // 配置参数
             druidDataSource.setInitialSize(1);
+            druidDataSource.setConnectionInitSqls(OTHER_INIT_SQLS);
             druidDataSource.setMinIdle(1);
             druidDataSource.setMaxActive(128);
             druidDataSource.setMaxWait(-1);
             druidDataSource.setTestOnBorrow(false);
             druidDataSource.setTestOnReturn(false);
             druidDataSource.setTestWhileIdle(true);
-            // minIdle以内的连接保持活跃
+            // 探活
             druidDataSource.setKeepAlive(true);
-            druidDataSource.setValidationQuery("SELECT 1 FROM DUAL");
-            // 其它
-            druidDataSource.setPoolPreparedStatements(true);
-            druidDataSource.setMaxOpenPreparedStatements(100);
             druidDataSource.setUsePingMethod(false);
+            druidDataSource.setValidationQuery("SELECT 1 FROM DUAL");
             // 隔离级别
             druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             // 超时
-            druidDataSource.setConnectionInitSqls(OTHER_INIT_SQLS);
             druidDataSource.setConnectTimeout(-1);
             druidDataSource.setSocketTimeout(-1);
             druidDataSource.setQueryTimeout(-1);
