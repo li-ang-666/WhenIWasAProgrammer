@@ -70,7 +70,7 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             druidDataSource.setMinEvictableIdleTimeMillis(MILLISECONDS.convert(60, SECONDS));
             // minIdle以内的连接保持活跃
             druidDataSource.setKeepAlive(true);
-            druidDataSource.setValidationQuery("select 1");
+            druidDataSource.setValidationQuery("SELECT 1");
             // 其它
             druidDataSource.setPoolPreparedStatements(true);
             druidDataSource.setMaxOpenPreparedStatements(100);

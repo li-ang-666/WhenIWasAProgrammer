@@ -8,7 +8,9 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 @Slf4j
 public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPool> {
@@ -40,7 +42,7 @@ public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPoo
             String host = config.getHost();
             int port = config.getPort();
             String password = config.getPassword();
-            JedisPool jedisPool = new JedisPool(JEDIS_POOL_CONFIG, host, port, (int) TimeUnit.MINUTES.toMillis(5), password);
+            JedisPool jedisPool = new JedisPool(JEDIS_POOL_CONFIG, host, port, (int) MILLISECONDS.convert(5, MINUTES), password);
             log.info("JedisPoolFactory createPool success, config: {}", JsonUtils.toString(config));
             return jedisPool;
         } catch (Exception e) {
