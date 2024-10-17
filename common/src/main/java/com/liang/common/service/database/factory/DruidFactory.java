@@ -75,7 +75,7 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             druidDataSource.setPoolPreparedStatements(true);
             druidDataSource.setMaxOpenPreparedStatements(100);
             druidDataSource.setUsePingMethod(false);
-            druidDataSource.setAsyncInit(true);
+            druidDataSource.setAsyncInit(false);
             // 隔离级别
             druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             // 超时
