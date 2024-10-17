@@ -5,6 +5,7 @@ import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 
@@ -20,7 +21,7 @@ public class HbaseConnectionFactory implements SinglePoolFactory<HbaseConfig, Co
     public Connection createPool(HbaseConfig config) {
         try {
             Configuration configuration = new Configuration();
-            configuration.set("hbase.zookeeper.quorum", config.getZookeeperQuorum());
+            configuration.set(HConstants.ZOOKEEPER_QUORUM, config.getZookeeperQuorum());
             Connection connection = ConnectionFactory.createConnection(configuration);
             log.info("HbaseConnectionFactory createPool success, config: {}", JsonUtils.toString(config));
             return connection;
