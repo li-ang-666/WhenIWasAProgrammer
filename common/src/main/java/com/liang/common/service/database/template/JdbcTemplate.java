@@ -15,7 +15,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
@@ -141,7 +140,6 @@ public class JdbcTemplate extends AbstractCache<String, String> {
             connection.setAutoCommit(false);
             try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
                 statement.setFetchSize(Integer.MIN_VALUE);
-                statement.setQueryTimeout((int) TimeUnit.DAYS.toSeconds(7));
                 try (ResultSet resultSet = statement.executeQuery(sql)) {
                     while (resultSet.next()) {
                         consumer.consume(resultSet);

@@ -9,9 +9,6 @@ import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-
 @Slf4j
 public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPool> {
     private final static JedisPoolConfig JEDIS_POOL_CONFIG = new JedisPoolConfig();
@@ -21,14 +18,10 @@ public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPoo
         jedisPoolConfig.setMinIdle(1);
         jedisPoolConfig.setMaxIdle(128);
         jedisPoolConfig.setMaxTotal(128);
-        jedisPoolConfig.setMaxWait(Duration.ofMinutes(5));
+        jedisPoolConfig.setMaxWait(Duration.ofMillis(-1));
         jedisPoolConfig.setTestOnBorrow(false);
         jedisPoolConfig.setTestOnReturn(false);
         jedisPoolConfig.setTestWhileIdle(true);
-        jedisPoolConfig.setTimeBetweenEvictionRuns(Duration.ofSeconds(30));
-        jedisPoolConfig.setMinEvictableIdleTime(Duration.ofSeconds(60));
-        jedisPoolConfig.setSoftMinEvictableIdleTime(Duration.ofSeconds(60));
-        jedisPoolConfig.setNumTestsPerEvictionRun(1);
     }
 
     @Override
@@ -42,7 +35,7 @@ public class JedisPoolFactory implements SinglePoolFactory<RedisConfig, JedisPoo
             String host = config.getHost();
             int port = config.getPort();
             String password = config.getPassword();
-            JedisPool jedisPool = new JedisPool(JEDIS_POOL_CONFIG, host, port, (int) MILLISECONDS.convert(5, MINUTES), password);
+            JedisPool jedisPool = new JedisPool(JEDIS_POOL_CONFIG, host, port, -1, password);
             jedisPool.getResource().close();
             log.info("JedisPoolFactory createPool success, config: {}", JsonUtils.toString(config));
             return jedisPool;

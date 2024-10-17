@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.concurrent.TimeUnit.*;
-
 @Slf4j
 public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource> {
     private static final Map<String, String> URL_PROP_MAP = new HashMap<>();
@@ -61,16 +59,13 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             druidDataSource.setInitialSize(1);
             druidDataSource.setMinIdle(1);
             druidDataSource.setMaxActive(128);
-            druidDataSource.setMaxWait(MILLISECONDS.convert(7, DAYS));
+            druidDataSource.setMaxWait(-1);
             druidDataSource.setTestOnBorrow(false);
             druidDataSource.setTestOnReturn(false);
             druidDataSource.setTestWhileIdle(true);
-            // 管理minIdle
-            druidDataSource.setTimeBetweenEvictionRunsMillis(MILLISECONDS.convert(30, SECONDS));
-            druidDataSource.setMinEvictableIdleTimeMillis(MILLISECONDS.convert(60, SECONDS));
             // minIdle以内的连接保持活跃
             druidDataSource.setKeepAlive(true);
-            druidDataSource.setValidationQuery("SELECT 1");
+            druidDataSource.setValidationQuery("SELECT 1 FROM DUAL");
             // 其它
             druidDataSource.setPoolPreparedStatements(true);
             druidDataSource.setMaxOpenPreparedStatements(100);
@@ -79,10 +74,11 @@ public class DruidFactory implements SinglePoolFactory<DBConfig, DruidDataSource
             druidDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             // 超时
             druidDataSource.setConnectionInitSqls(OTHER_INIT_SQLS);
-            druidDataSource.setConnectTimeout((int) MILLISECONDS.convert(7, DAYS));
-            druidDataSource.setSocketTimeout((int) MILLISECONDS.convert(7, DAYS));
-            druidDataSource.setQueryTimeout((int) SECONDS.convert(7, DAYS));
-            druidDataSource.setTransactionQueryTimeout((int) SECONDS.convert(7, DAYS));
+            druidDataSource.setConnectTimeout(-1);
+            druidDataSource.setSocketTimeout(-1);
+            druidDataSource.setQueryTimeout(-1);
+            druidDataSource.setValidationQueryTimeout(-1);
+            druidDataSource.setTransactionQueryTimeout(-1);
             // 启动
             druidDataSource.setAsyncInit(false);
             druidDataSource.init();
