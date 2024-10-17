@@ -13,8 +13,8 @@ public class DruidHolder implements MultiPoolHolder<DruidDataSource> {
 
     @Override
     public DruidDataSource getPool(String name) {
-        return POOLS.computeIfAbsent(name, k ->
-                new DruidFactory().createPool(name));
+        return POOLS.computeIfAbsent(name,
+                k -> new DruidFactory().createPool(k));
     }
 
     @Override

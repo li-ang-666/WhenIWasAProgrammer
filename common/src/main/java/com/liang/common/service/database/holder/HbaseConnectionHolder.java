@@ -13,8 +13,8 @@ public class HbaseConnectionHolder implements MultiPoolHolder<Connection> {
 
     @Override
     public Connection getPool(String name) {
-        return POOLS.computeIfAbsent(name, k ->
-                new HbaseConnectionFactory().createPool(name));
+        return POOLS.computeIfAbsent(name,
+                k -> new HbaseConnectionFactory().createPool(k));
     }
 
     @Override
