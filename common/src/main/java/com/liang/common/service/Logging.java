@@ -24,12 +24,7 @@ public class Logging {
     }
 
     public void afterExecute(String methodName, Object methodArg) {
-        long interval = timer.getInterval();
-        if (interval > SLOW_MILLI) {
-            log.warn(afterLog, methodName, methodArg, interval);
-        } else if (log.isDebugEnabled()) {
-            log.debug(afterLog, methodName, methodArg, interval);
-        }
+        afterExecute(methodName, methodArg, methodArg);
     }
 
     public void afterExecute(String methodName, Object debugMethodArg, Object warnMethodArg) {

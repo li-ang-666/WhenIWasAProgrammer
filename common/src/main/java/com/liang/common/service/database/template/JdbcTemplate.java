@@ -37,13 +37,14 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
             connection.setAutoCommit(false);
-            Statement statement = connection.createStatement();
-            for (String sql : sqls) {
-                statement.addBatch(sql);
+            try (Statement statement = connection.createStatement()) {
+                for (String sql : sqls) {
+                    statement.addBatch(sql);
+                }
+                statement.executeBatch();
+                connection.commit();
+                logging.afterExecute("updateBatch", sqls, sqls.size() + "条");
             }
-            statement.executeBatch();
-            connection.commit();
-            logging.afterExecute("updateBatch", sqls, sqls.size() + "条");
         } catch (Exception e) {
             // 归还的时候, DruidDataSource.recycle 会自动 rollback 一次
             // 批量更新报错不打印明细, 单条执行报错再打印具体SQL
@@ -52,21 +53,26 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         }
         if (getException) {
             for (String sql : sqls) {
-                LockSupport.parkUntil(System.currentTimeMillis() + 50);
-                int i = 3;
-                while (i > 0) {
-                    String failedLogPrefix = "/* 第" + (4 - i) + "次重试 */";
+                LockSupport.parkUntil(System.currentTimeMillis() + 100);
+                int retryTimes = 0;
+                int maxRetryTimes = 3;
+                while (++retryTimes <= maxRetryTimes) {
+                    String failedLogPrefix = "/* 第" + retryTimes + "次重试 */";
                     logging.beforeExecute();
                     try (DruidPooledConnection connection = pool.getConnection()) {
                         connection.setAutoCommit(true);
-                        connection.prepareStatement(sql).executeUpdate();
-                        logging.afterExecute("updateSingle", failedLogPrefix + sql);
-                        i = 0;
+                        try (Statement statement = connection.createStatement()) {
+                            statement.executeUpdate(sql);
+                            logging.afterExecute("updateSingle", failedLogPrefix + sql);
+                            // 打断循环
+                            retryTimes += maxRetryTimes;
+                        }
                     } catch (Exception ee) {
-                        String methodArg = i == 1 ? "/* Exception: " + ee.getMessage() + " */" + " " + failedLogPrefix + sql : failedLogPrefix + sql;
+                        String methodArg = (retryTimes == maxRetryTimes)
+                                ? ("/* " + ee.getClass().getName() + ": " + ee.getMessage() + " */" + " " + failedLogPrefix + sql)
+                                : (failedLogPrefix + sql);
                         logging.ifError("updateSingle", methodArg, ee);
-                        i--;
-                        LockSupport.parkUntil(System.currentTimeMillis() + 50);
+                        LockSupport.parkUntil(System.currentTimeMillis() + 100);
                     }
                 }
             }
@@ -80,10 +86,13 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         logging.beforeExecute();
         ArrayList<T> list = new ArrayList<>();
         try (DruidPooledConnection connection = pool.getConnection()) {
-            ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
-            list.add(resultSet.next() ? resultSetMapper.map(resultSet) : null);
-            logging.afterExecute("queryForObject", sql);
-            return list.get(0);
+            try (Statement statement = connection.createStatement()) {
+                try (ResultSet resultSet = statement.executeQuery(sql)) {
+                    list.add(resultSet.next() ? resultSetMapper.map(resultSet) : null);
+                    logging.afterExecute("queryForObject", sql);
+                    return list.get(0);
+                }
+            }
         } catch (Exception e) {
             logging.ifError("queryForObject", sql, e);
             return null;
@@ -97,12 +106,15 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         }
         logging.beforeExecute();
         try (DruidPooledConnection connection = pool.getConnection()) {
-            ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
-            while (resultSet.next()) {
-                list.add(resultSetMapper.map(resultSet));
+            try (Statement statement = connection.createStatement()) {
+                try (ResultSet resultSet = statement.executeQuery(sql)) {
+                    while (resultSet.next()) {
+                        list.add(resultSetMapper.map(resultSet));
+                    }
+                    logging.afterExecute("queryForList", sql);
+                    return list;
+                }
             }
-            logging.afterExecute("queryForList", sql);
-            return list;
         } catch (Exception e) {
             logging.ifError("queryForList", sql, e);
             return list;
@@ -113,24 +125,53 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         logging.beforeExecute();
         List<Map<String, Object>> result = new ArrayList<>();
         try (DruidPooledConnection connection = pool.getConnection()) {
-            ResultSet resultSet = connection.prepareStatement(sql).executeQuery();
-            ResultSetMetaData metaData = resultSet.getMetaData();
-            int columnCount = metaData.getColumnCount();
-            while (resultSet.next()) {
-                HashMap<String, Object> columnMap = new LinkedHashMap<>();
-                for (int i = 1; i <= columnCount; i++) {
-                    String columnName = metaData.getColumnName(i);
-                    Object columnValue = BITMAP_COLUMN_NAME.equals(columnName) ?
-                            DorisBitmapUtils.parseBinary(resultSet.getBytes(i)) : resultSet.getString(i);
-                    columnMap.put(columnName, columnValue);
+            try (Statement statement = connection.createStatement()) {
+                try (ResultSet resultSet = statement.executeQuery(sql)) {
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+                    while (resultSet.next()) {
+                        HashMap<String, Object> columnMap = new LinkedHashMap<>();
+                        for (int i = 1; i <= columnCount; i++) {
+                            String columnName = metaData.getColumnName(i);
+                            Object columnValue = BITMAP_COLUMN_NAME.equals(columnName) ?
+                                    DorisBitmapUtils.parseBinary(resultSet.getBytes(i)) : resultSet.getString(i);
+                            columnMap.put(columnName, columnValue);
+                        }
+                        result.add(columnMap);
+                    }
+                    logging.afterExecute("queryForColumnMaps", sql);
+                    return result;
                 }
-                result.add(columnMap);
             }
-            logging.afterExecute("queryForColumnMaps", sql);
-            return result;
         } catch (Exception e) {
             logging.ifError("queryForColumnMaps", sql, e);
             return result;
+        }
+    }
+
+    public Map<String, Object> queryForColumnMap(String sql) {
+        logging.beforeExecute();
+        Map<String, Object> columnMap = new LinkedHashMap<>();
+        try (DruidPooledConnection connection = pool.getConnection()) {
+            try (Statement statement = connection.createStatement()) {
+                try (ResultSet resultSet = statement.executeQuery(sql)) {
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+                    if (resultSet.next()) {
+                        for (int i = 1; i <= columnCount; i++) {
+                            String columnName = metaData.getColumnName(i);
+                            Object columnValue = BITMAP_COLUMN_NAME.equals(columnName) ?
+                                    DorisBitmapUtils.parseBinary(resultSet.getBytes(i)) : resultSet.getString(i);
+                            columnMap.put(columnName, columnValue);
+                        }
+                    }
+                    logging.afterExecute("queryForColumnMap", sql);
+                    return columnMap;
+                }
+            }
+        } catch (Exception e) {
+            logging.ifError("queryForColumnMap", sql, e);
+            return columnMap;
         }
     }
 
@@ -169,4 +210,3 @@ public class JdbcTemplate extends AbstractCache<String, String> {
         void consume(ResultSet rs) throws Exception;
     }
 }
-
