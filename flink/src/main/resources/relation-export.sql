@@ -46,6 +46,8 @@ LOCATION 'obs://hadoop-obs/flink/relation/edge/';
 
 -- spark-sql
 
+-- node
+
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/company/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
@@ -57,6 +59,8 @@ ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
 SELECT /*+ REPARTITION(1) */ DISTINCT human_id,node_type,human_name_id,human_name FROM test.relation_node_human;
+
+-- edge
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/LEGAL/'
 ROW FORMAT DELIMITED
