@@ -106,24 +106,24 @@ ROW FORMAT DELIMITED
   LINES TERMINATED BY '\n'
 SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation FROM test.relation_edge WHERE relation = 'HIS_SERVE';
 
-INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/company_INVEST/'
-ROW FORMAT DELIMITED
-  FIELDS TERMINATED BY ','
-  LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT t1.* FROM test.relation_node_company t1
-LEFT SEMI JOIN (
-  SELECT DISTINCT source_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
-  UNION
-  SELECT DISTINCT target_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
-) t2 ON t1.company_id = t2.id;
-
-INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/human_INVEST/'
-ROW FORMAT DELIMITED
-  FIELDS TERMINATED BY ','
-  LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT t1.* FROM test.relation_node_human t1
-LEFT SEMI JOIN (
-  SELECT DISTINCT source_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
-  UNION
-  SELECT DISTINCT target_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
-) t2 ON t1.human_id = t2.id;
+-- INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/company_INVEST/'
+-- ROW FORMAT DELIMITED
+--   FIELDS TERMINATED BY ','
+--   LINES TERMINATED BY '\n'
+-- SELECT /*+ REPARTITION(128) */ DISTINCT t1.* FROM test.relation_node_company t1
+-- LEFT SEMI JOIN (
+--   SELECT DISTINCT source_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
+--   UNION
+--   SELECT DISTINCT target_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
+-- ) t2 ON t1.company_id = t2.id;
+--
+-- INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/human_INVEST/'
+-- ROW FORMAT DELIMITED
+--   FIELDS TERMINATED BY ','
+--   LINES TERMINATED BY '\n'
+-- SELECT /*+ REPARTITION(128) */ DISTINCT t1.* FROM test.relation_node_human t1
+-- LEFT SEMI JOIN (
+--   SELECT DISTINCT source_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
+--   UNION
+--   SELECT DISTINCT target_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
+-- ) t2 ON t1.human_id = t2.id;
