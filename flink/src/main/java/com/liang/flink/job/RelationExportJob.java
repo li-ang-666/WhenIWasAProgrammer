@@ -23,6 +23,10 @@ import java.util.Map;
 @Slf4j
 @LocalConfigFile("relation-export.yml")
 public class RelationExportJob {
+    static {
+        RelationExportJob.class.getClassLoader().getResource("relation-export.sql");
+    }
+
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
