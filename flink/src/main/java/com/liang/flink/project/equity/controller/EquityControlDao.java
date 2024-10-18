@@ -1,4 +1,4 @@
-package com.liang.flink.service.equity.controller;
+package com.liang.flink.project.equity.controller;
 
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;

@@ -1,4 +1,4 @@
-package com.liang.flink.service.equity.bfs.dto.pojo;
+package com.liang.flink.project.equity.bfs.dto.pojo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

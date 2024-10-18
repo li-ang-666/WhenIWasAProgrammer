@@ -1,24 +1,24 @@
-package com.liang.flink.service.equity.bfs;
+package com.liang.flink.project.equity.bfs;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.TycUtils;
-import com.liang.flink.service.equity.bfs.dto.Operation;
-import com.liang.flink.service.equity.bfs.dto.ShareholderJudgeInfo;
-import com.liang.flink.service.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
-import com.liang.flink.service.equity.bfs.dto.mysql.RatioPathCompanyDto;
-import com.liang.flink.service.equity.bfs.dto.pojo.Edge;
-import com.liang.flink.service.equity.bfs.dto.pojo.Node;
-import com.liang.flink.service.equity.bfs.dto.pojo.Path;
+import com.liang.flink.project.equity.bfs.dto.Operation;
+import com.liang.flink.project.equity.bfs.dto.ShareholderJudgeInfo;
+import com.liang.flink.project.equity.bfs.dto.mysql.CompanyEquityRelationDetailsDto;
+import com.liang.flink.project.equity.bfs.dto.mysql.RatioPathCompanyDto;
+import com.liang.flink.project.equity.bfs.dto.pojo.Edge;
+import com.liang.flink.project.equity.bfs.dto.pojo.Node;
+import com.liang.flink.project.equity.bfs.dto.pojo.Path;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.liang.flink.service.equity.bfs.dto.Operation.*;
+import static com.liang.flink.project.equity.bfs.dto.Operation.*;
 
 @Slf4j
 public class EquityBfsService {

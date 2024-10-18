@@ -1,4 +1,4 @@
-package com.liang.flink.service.equity.bfs.dto.mysql;
+package com.liang.flink.project.equity.bfs.dto.mysql;
 
 import lombok.Data;
 

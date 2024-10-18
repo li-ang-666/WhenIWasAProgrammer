@@ -1,11 +1,11 @@
-package com.liang.flink.service.equity.bfs.dto.mysql;
+package com.liang.flink.project.equity.bfs.dto.mysql;
 
 import cn.hutool.core.util.StrUtil;
 import com.liang.common.util.JsonUtils;
-import com.liang.flink.service.equity.bfs.dto.pojo.Edge;
-import com.liang.flink.service.equity.bfs.dto.pojo.Node;
-import com.liang.flink.service.equity.bfs.dto.pojo.Path;
-import com.liang.flink.service.equity.bfs.dto.pojo.PathElement;
+import com.liang.flink.project.equity.bfs.dto.pojo.Edge;
+import com.liang.flink.project.equity.bfs.dto.pojo.Node;
+import com.liang.flink.project.equity.bfs.dto.pojo.Path;
+import com.liang.flink.project.equity.bfs.dto.pojo.PathElement;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 

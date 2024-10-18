@@ -1,11 +1,11 @@
-package com.liang.flink.service.equity.controller;
+package com.liang.flink.project.equity.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
 import com.liang.common.util.TycUtils;
-import com.liang.flink.service.equity.bfs.EquityBfsDao;
+import com.liang.flink.project.equity.bfs.EquityBfsDao;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
