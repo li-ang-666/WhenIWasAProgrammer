@@ -50,61 +50,61 @@ INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/company/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT company_id,node_type,status,is_empty,company_name FROM test.relation_node_company;
+SELECT /*+ REPARTITION(1) */ DISTINCT company_id,node_type,status,is_empty,company_name FROM test.relation_node_company;
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/human/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT human_id,node_type,human_name_id,human_name FROM test.relation_node_human;
+SELECT /*+ REPARTITION(1) */ DISTINCT human_id,node_type,human_name_id,human_name FROM test.relation_node_human;
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/LEGAL/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'LEGAL';
+SELECT /*+ REPARTITION(1) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'LEGAL';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/HIS_LEGAL/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'HIS_LEGAL';
+SELECT /*+ REPARTITION(1) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'HIS_LEGAL';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/INVEST/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'INVEST';
+SELECT /*+ REPARTITION(1) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'INVEST';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/HIS_INVEST/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'HIS_INVEST';
+SELECT /*+ REPARTITION(1) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'HIS_INVEST';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/BRANCH/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation FROM test.relation_edge WHERE relation = 'BRANCH';
+SELECT /*+ REPARTITION(1) */ DISTINCT source_id,target_id,relation FROM test.relation_edge WHERE relation = 'BRANCH';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/AC/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation FROM test.relation_edge WHERE relation = 'AC';
+SELECT /*+ REPARTITION(1) */ DISTINCT source_id,target_id,relation FROM test.relation_edge WHERE relation = 'AC';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/SERVE/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'SERVE';
+SELECT /*+ REPARTITION(1) */ DISTINCT source_id,target_id,relation,other FROM test.relation_edge WHERE relation = 'SERVE';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/HIS_SERVE/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ DISTINCT source_id,target_id,relation FROM test.relation_edge WHERE relation = 'HIS_SERVE';
+SELECT /*+ REPARTITION(1) */ DISTINCT source_id,target_id,relation FROM test.relation_edge WHERE relation = 'HIS_SERVE';
 
 -- INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/company_INVEST/'
 -- ROW FORMAT DELIMITED
