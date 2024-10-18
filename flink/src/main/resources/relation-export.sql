@@ -50,59 +50,80 @@ INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/company/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_node_company;
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_node_company;
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/human/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_node_human;
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_node_human;
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/LEGAL/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_edge WHERE relation = 'LEGAL';
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_edge WHERE relation = 'LEGAL';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/HIS_LEGAL/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_edge WHERE relation = 'HIS_LEGAL';
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_edge WHERE relation = 'HIS_LEGAL';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/INVEST/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_edge WHERE relation = 'INVEST';
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_edge WHERE relation = 'INVEST';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/HIS_INVEST/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_edge WHERE relation = 'HIS_INVEST';
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_edge WHERE relation = 'HIS_INVEST';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/BRANCH/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_edge WHERE relation = 'BRANCH';
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_edge WHERE relation = 'BRANCH';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/AC/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_edge WHERE relation = 'AC';
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_edge WHERE relation = 'AC';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/SERVE/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_edge WHERE relation = 'SERVE';
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_edge WHERE relation = 'SERVE';
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/HIS_SERVE/'
 ROW FORMAT DELIMITED
   FIELDS TERMINATED BY ','
   LINES TERMINATED BY '\n'
-SELECT /*+ REPARTITION(128) */ distinct * FROM test.relation_edge WHERE relation = 'HIS_SERVE';
+SELECT /*+ REPARTITION(128) */ DISTINCT * FROM test.relation_edge WHERE relation = 'HIS_SERVE';
 
+INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/company_INVEST/'
+ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY ','
+  LINES TERMINATED BY '\n'
+SELECT /*+ REPARTITION(128) */ DISTINCT t1.* FROM test.relation_node_company t1
+LEFT SEMI JOIN (
+  SELECT DISTINCT source_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
+  UNION
+  SELECT DISTINCT target_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
+) t2 ON t1.company_id = t2.id;
+
+INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/human_INVEST/'
+ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY ','
+  LINES TERMINATED BY '\n'
+SELECT /*+ REPARTITION(128) */ DISTINCT t1.* FROM test.relation_node_human t1
+LEFT SEMI JOIN (
+  SELECT DISTINCT source_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
+  UNION
+  SELECT DISTINCT target_id id FROM test.relation_edge WHERE relation in ('INVEST', 'HIS_INVEST')
+) t2 ON t1.human_id = t2.id;
