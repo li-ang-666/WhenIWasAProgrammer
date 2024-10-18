@@ -45,7 +45,7 @@ dbConfigs:
 
 redisConfigs:
   localhost: { host: "127.0.0.1", password: ~ }
-  metadata: { host: "10.99.205.87", password: "123456" }
+  metadata: { host: "redis-4a9afb0d-8197-4827-ab90-337f060de8fa.cn-north-4.dcs.myhuaweicloud.com", password: "zjqxhka45eKcl7wmdp" }
 
 hbaseConfigs:
   hbaseSink:
