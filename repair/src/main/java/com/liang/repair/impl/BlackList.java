@@ -39,7 +39,7 @@ public class BlackList extends ConfigHolder {
     }
 
     private static String getPidByUrl(String url) {
-        String[] split = url.split("-c");
+        String[] split = url.replaceAll("(.*?)(\\d+-c\\d+)(.*)", "$2").split("-c");
         String sql = new SQL().SELECT("human_pid")
                 .FROM("company_human_relation")
                 .WHERE("human_graph_id = " + SqlUtils.formatValue(split[0]))
