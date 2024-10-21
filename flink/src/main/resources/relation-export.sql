@@ -46,6 +46,18 @@ LOCATION 'obs://hadoop-obs/flink/relation/edge/';
 
 -- spark-sql
 
+with ids as(
+  select distinct company_id id from test.relation_node_company
+  union
+  select distinct human_id id from test.relation_node_human
+)
+insert overwrite table test.relation_edge
+select /*+ REPARTITION(128) */ distinct t1.*
+from test.relation_edge t1
+left semi join ids on t1.source_id = ids.id
+left semi join ids on t1.target_id = ids.id;
+
+
 -- node
 
 INSERT OVERWRITE DIRECTORY 'obs://hadoop-obs/flink/relation/result/company/'
