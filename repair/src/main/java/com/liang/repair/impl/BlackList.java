@@ -147,12 +147,16 @@ public class BlackList extends ConfigHolder {
         deleteBossAll("80TA5MB00S2N6PTSP");
         deleteBossAll("10TNMM602K1GSN032");
         // 删除合作伙伴 ============================================================================
+        deletePartner("30TLY9F00ZAUE28J8");
+        deletePartner("Z0TP6MV02C7LB71MB");
         deletePartner("40TN89C001CR0MVL6");
         deletePartner("E07CEM9003HR3DQ24");
         deletePartner("E0M969M01Q3RHT5N5");
         deletePartner("L0LBZ9802YY2L1NET");
         deletePartner("F0TSBM600EBH2VDCD");
         deletePartner("A00VK9H00K3SNME2H");
+        // 删除实控人 ============================================================================
+        new JdbcTemplate("463.bdp_equity").update("delete from entity_controller_details_new where company_id_controlled = '6713760382'");
         deletePartner("B0AHJM302Z6BSBAAZ");
         deletePartner("00V0Y9P02VHCN26Q5");
         deletePartner("40TN89C001CR0MVL6");
