@@ -1,0 +1,25 @@
+dbConfigs:
+  volcanic_cloud_0: { host: "101.126.25.158", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_1: { host: "180.184.47.89", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_2: { host: "101.126.6.200", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_3: { host: "180.184.65.41", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_4: { host: "101.126.86.7", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_5: { host: "101.126.81.189", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_6: { host: "180.184.42.198", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_7: { host: "101.126.38.164", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_8: { host: "101.126.24.119", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_9: { host: "101.126.92.217", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+  volcanic_cloud_10: { host: "101.126.95.93", database: "data_bid", user: "tyc_data", password: "G7n$2k!f9Qx#Lm1Z" }
+
+# sourceType: KAFKA or REPAIR
+flinkConfig:
+  sourceType: REPAIR
+  sourceParallel: 1
+  otherParallel: 1
+
+repairTasks:
+  - sourceName: "volcanic_cloud_0"
+    tableName: "company_bid"
+    columns: "id,content"
+    where: "id = 229775633"
+
