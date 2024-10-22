@@ -19,9 +19,11 @@ import org.apache.parquet.hadoop.ParquetWriter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class FsParquetWriter {
@@ -31,8 +33,8 @@ public class FsParquetWriter {
     private final Schema schema;
     private ParquetWriter<GenericRecord> writer;
 
-    public FsParquetWriter(String path, Map<String, String> descInfo) {
-        this.path = path;
+    public FsParquetWriter(String sinkTableName, Map<String, String> descInfo) {
+        path = "obs://hadoop-obs/flink/parquet/" + sinkTableName + "/";
         val fields = SchemaBuilder.record(DorisOneRow.class.getSimpleName()).fields();
         descInfo.forEach((columnName, mysqlType) -> {
             ReadableSchema readableSchema = formatType(columnName, mysqlType);
@@ -42,6 +44,12 @@ public class FsParquetWriter {
                     .withDefault(null);
         });
         schema = fields.endRecord();
+        ArrayList<String> createTable = new ArrayList<>();
+        createTable.add("DROP TABLE IF EXISTS test." + sinkTableName);
+        createTable.add("CREATE EXTERNAL TABLE IF NOT EXISTS test." + sinkTableName + " (");
+        formatInfo.forEach((k, v) -> createTable.add(String.format("  %s, %s", k, v.getType())));
+        createTable.add(String.format(") STORED AS PARQUET location '%s';", path));
+        log.info(createTable.stream().collect(Collectors.joining("\n", "\n", "\n")));
     }
 
     private ReadableSchema formatType(String columnName, String mysqlType) {
@@ -157,15 +165,25 @@ public class FsParquetWriter {
     @Setter
     @Getter
     @Accessors(chain = true)
-    private static class ReadableSchema {
+    private static abstract class ReadableSchema {
         protected Schema schema;
+
+        protected abstract String getType();
     }
 
     private static final class StringSchema extends ReadableSchema {
+        @Override
+        protected String getType() {
+            return "string";
+        }
     }
 
 
     private static final class LongSchema extends ReadableSchema {
+        @Override
+        protected String getType() {
+            return "bigint";
+        }
     }
 
     @Getter
@@ -174,5 +192,10 @@ public class FsParquetWriter {
     private static final class DecimalSchema extends ReadableSchema {
         private int precision;
         private int scale;
+
+        @Override
+        protected String getType() {
+            return String.format("decimal(%d, %d)", precision, scale);
+        }
     }
 }
