@@ -25,11 +25,11 @@ import java.util.UUID;
 
 @Slf4j
 public class FsParquetWriter {
+    private static final int PARQUET_ROW_GROUP_SIZE = 128 * 1024 * 1024;
     private final String path;
     private final Map<String, ReadableSchema> formatInfo = new HashMap<>();
     private final Schema schema;
     private ParquetWriter<GenericRecord> writer;
-
 
     public FsParquetWriter(String path, Map<String, String> descInfo) {
         this.path = path;
@@ -42,68 +42,6 @@ public class FsParquetWriter {
                     .withDefault(null);
         });
         schema = fields.endRecord();
-    }
-
-    private static int computeMinBytesForDecimalPrecision(int precision) {
-        int numBytes = 1;
-        while (Math.pow(2.0, 8 * numBytes - 1) < Math.pow(10.0, precision)) {
-            numBytes += 1;
-        }
-        return numBytes;
-    }
-
-    public void write(Map<String, Object> columnMap) {
-        try {
-            GenericData.Record record = getRecord(columnMap);
-            ParquetWriter<GenericRecord> writer = (this.writer != null) ? this.writer : getWriter();
-            writer.write(record);
-        } catch (Exception e) {
-            String msg = "FsParquetWriter write error";
-            log.error(msg, e);
-            throw new RuntimeException(msg, e);
-        }
-    }
-
-    private GenericData.Record getRecord(Map<String, Object> columnMap) {
-        GenericRecordBuilder recordBuilder = new GenericRecordBuilder(schema);
-        columnMap.forEach((k, v) -> {
-            if (formatInfo.containsKey(k)) {
-                recordBuilder.set(k, formatValue(k, v));
-            }
-        });
-        return recordBuilder.build();
-    }
-
-    private Object formatValue(String k, Object v) {
-        if (v == null) {
-            return null;
-        }
-        ReadableSchema readableSchema = formatInfo.get(k);
-        if (readableSchema instanceof LongSchema) {
-            return Long.parseLong(String.valueOf(v));
-        }
-        if (readableSchema instanceof DecimalSchema) {
-            return new BigDecimal(String.valueOf(v)).setScale(((DecimalSchema) readableSchema).getScale(), RoundingMode.DOWN);
-        }
-        if (readableSchema instanceof StringSchema) {
-            return String.valueOf(v);
-        }
-        return null;
-    }
-
-    private ParquetWriter<GenericRecord> getWriter() {
-        try {
-            return AvroParquetWriter.<GenericRecord>builder(new Path(path + UUID.randomUUID()))
-                    .withSchema(schema)
-                    .withDataModel(new GenericData() {{
-                        addLogicalTypeConversion(new Conversions.DecimalConversion());
-                    }})
-                    .build();
-        } catch (Exception e) {
-            String msg = "FsParquetWriter getWriter error";
-            log.error(msg, e);
-            throw new RuntimeException(msg, e);
-        }
     }
 
     private ReadableSchema formatType(String columnName, String mysqlType) {
@@ -138,6 +76,82 @@ public class FsParquetWriter {
                 .setPrecision(precision)
                 .setScale(scale)
                 .setSchema(LogicalTypes.decimal(precision, scale).addToSchema(schema));
+    }
+
+    private int computeMinBytesForDecimalPrecision(int precision) {
+        int numBytes = 1;
+        while (Math.pow(2.0, 8 * numBytes - 1) < Math.pow(10.0, precision)) {
+            numBytes += 1;
+        }
+        return numBytes;
+    }
+
+    public void write(Map<String, Object> columnMap) {
+        try {
+            if (writer == null) {
+                writer = getWriter();
+            }
+            GenericData.Record record = getRecord(columnMap);
+            writer.write(record);
+        } catch (Exception e) {
+            String msg = "FsParquetWriter write error";
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
+        }
+    }
+
+    private ParquetWriter<GenericRecord> getWriter() {
+        try {
+            return AvroParquetWriter.<GenericRecord>builder(new Path(path + UUID.randomUUID()))
+                    .withSchema(schema)
+                    .withRowGroupSize(PARQUET_ROW_GROUP_SIZE)
+                    .withDataModel(new GenericData() {{
+                        addLogicalTypeConversion(new Conversions.DecimalConversion());
+                    }})
+                    .build();
+        } catch (Exception e) {
+            String msg = "FsParquetWriter getWriter error";
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
+        }
+    }
+
+    private GenericData.Record getRecord(Map<String, Object> columnMap) {
+        GenericRecordBuilder recordBuilder = new GenericRecordBuilder(schema);
+        columnMap.forEach((k, v) -> {
+            if (formatInfo.containsKey(k)) {
+                recordBuilder.set(k, formatValue(k, v));
+            }
+        });
+        return recordBuilder.build();
+    }
+
+    private Object formatValue(String k, Object v) {
+        if (v == null) {
+            return null;
+        }
+        ReadableSchema readableSchema = formatInfo.get(k);
+        if (readableSchema instanceof LongSchema) {
+            return Long.parseLong(String.valueOf(v));
+        }
+        if (readableSchema instanceof DecimalSchema) {
+            return new BigDecimal(String.valueOf(v)).setScale(((DecimalSchema) readableSchema).getScale(), RoundingMode.DOWN);
+        }
+        if (readableSchema instanceof StringSchema) {
+            return String.valueOf(v);
+        }
+        return null;
+    }
+
+    public void flush() {
+        try {
+            writer.close();
+            writer = null;
+        } catch (Exception e) {
+            String msg = "FsParquetWriter flush error";
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
+        }
     }
 
     @Setter
