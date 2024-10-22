@@ -19,22 +19,41 @@ import java.util.UUID;
 
 @Slf4j
 public class FlinkTest {
+    private static final int PRECISION = 23;
+    private static final int SCALE = 3;
+
     public static void main(String[] args) throws Exception {
-        Schema schema = SchemaBuilder.record(DorisOneRow.class.getSimpleName()).fields()
-                .name("id").type(LogicalTypes.decimal(40, 20).addToSchema(SchemaBuilder.builder().bytesType())).withDefault(null)
-                .name("name").type(SchemaBuilder.builder().stringType()).withDefault(null)
+        Schema columnSchema;
+        if (PRECISION > 18) {
+            columnSchema = LogicalTypes.decimal(PRECISION, SCALE).addToSchema(Schema.create(Schema.Type.BYTES));
+        } else {
+            columnSchema = LogicalTypes.decimal(PRECISION, SCALE).addToSchema(Schema.createFixed("id", null, null, computeMinBytesForDecimalPrecision(PRECISION)));
+        }
+        Schema rowSchema = SchemaBuilder.record(DorisOneRow.class.getSimpleName()).fields()
+                .name("id")
+                .type(columnSchema)
+                .withDefault(null)
                 .endRecord();
-        GenericData genericData = new GenericData();
-        genericData.addLogicalTypeConversion(new Conversions.DecimalConversion());
-        GenericRecordBuilder record = new GenericRecordBuilder(schema);
-        record.set("id", new BigDecimal("100.001").setScale(20, RoundingMode.DOWN));
-        record.set("name", "liang");
-        record.build();
+        GenericData.Record record = new GenericRecordBuilder(rowSchema) {{
+            set("id", new BigDecimal("123.456").setScale(SCALE, RoundingMode.DOWN));
+        }}.build();
+
+
         ParquetWriter<GenericRecord> writer = AvroParquetWriter.<GenericRecord>builder(new Path("obs://hadoop-obs/flink/test/" + UUID.randomUUID()))
-                .withDataModel(genericData)
-                .withSchema(schema)
+                .withSchema(rowSchema)
+                .withDataModel(new GenericData() {{
+                    addLogicalTypeConversion(new Conversions.DecimalConversion());
+                }})
                 .build();
-        writer.write(record.build());
+        writer.write(record);
         writer.close();
+    }
+
+    public static int computeMinBytesForDecimalPrecision(int precision) {
+        int numBytes = 1;
+        while (Math.pow(2.0, 8 * numBytes - 1) < Math.pow(10.0, precision)) {
+            numBytes += 1;
+        }
+        return numBytes;
     }
 }

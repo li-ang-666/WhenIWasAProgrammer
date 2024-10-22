@@ -13,18 +13,22 @@ public class BlackList extends ConfigHolder {
 
     public static void main(String[] args) {
         POOL.execute(deletePartner("ps://www.tianyancha.com/human/2256476524-c5989305801"));
+        POOL.execute(deletePartner("ttps://www.tianyancha.com/human/2276910784-c5362941886"));
+        POOL.execute(deletePartner("https://www.tianyancha.com/human/2294397035-c1235590572", "company_gid = 2544215070"));
         POOL.execute(deleteController("6713760382"));
         POOL.shutdown();
     }
 
-    private static Runnable deletePartner(String pidOrUrl) {
+    private static Runnable deletePartner(String pidOrUrl, String... where) {
         return () -> {
             String pid = pidOrUrl.contains("-c") ? getPidByUrl(pidOrUrl) : pidOrUrl;
             if (String.valueOf(pid).length() == 17) {
-                String sql = new SQL().DELETE_FROM("cooperation_partner")
-                        .WHERE("boss_human_pid = " + SqlUtils.formatValue(pid))
-                        .toString();
-                new JdbcTemplate("467.company_base").update(sql);
+                SQL sql = new SQL().DELETE_FROM("cooperation_partner")
+                        .WHERE("boss_human_pid = " + SqlUtils.formatValue(pid));
+                for (String whereSyntax : where) {
+                    sql.WHERE(whereSyntax);
+                }
+                new JdbcTemplate("467.company_base").update(sql.toString());
             }
         };
     }
