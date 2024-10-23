@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RepairTest extends ConfigHolder {
     public static void main(String[] args) throws Exception {
-        String content = new JdbcTemplate("104.data_bid").queryForObject("select content from company_bid where id = 229774584", rs -> rs.getString(1));
+        String content = new JdbcTemplate("104.data_bid").queryForObject("select content from company_bid where id = 57197", rs -> rs.getString(1));
         System.out.println(htmlToMd(content));
     }
 
