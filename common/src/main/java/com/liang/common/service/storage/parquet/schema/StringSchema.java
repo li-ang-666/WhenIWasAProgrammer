@@ -3,10 +3,6 @@ package com.liang.common.service.storage.parquet.schema;
 import org.apache.avro.Schema;
 
 public class StringSchema extends ReadableSchema {
-    public StringSchema(String name) {
-        super(name);
-    }
-
     @Override
     public String getSqlType() {
         return "STRING";
