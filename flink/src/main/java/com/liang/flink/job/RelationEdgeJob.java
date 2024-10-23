@@ -31,10 +31,7 @@ import org.roaringbitmap.longlong.Roaring64Bitmap;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -110,6 +107,7 @@ public class RelationEdgeJob {
         private JdbcTemplate bdpPersonnel466;
         private JdbcTemplate graphData430;
         private JdbcTemplate sink;
+        private JdbcTemplate sinkQuery;
 
         {
             dictionary.put("1", "法定代表人");
@@ -130,6 +128,7 @@ public class RelationEdgeJob {
             graphData430 = new JdbcTemplate("430.graph_data");
             sink = new JdbcTemplate("466.bdp_personnel");
             sink.enableCache();
+            sinkQuery = new JdbcTemplate("466.bdp_personnel");
         }
 
         @Override
@@ -151,14 +150,16 @@ public class RelationEdgeJob {
                 }
                 bitmap.forEach(companyId -> {
                     String targetId = String.valueOf(companyId);
-                    // 先删除
-                    String deleteSql = new SQL().DELETE_FROM("relation_edge")
-                            .WHERE("target_id = " + SqlUtils.formatValue(targetId))
-                            .toString();
-                    sink.update(deleteSql);
                     String companyName = queryCompanyName(targetId);
-                    // 是合法公司, 才写入
-                    if (TycUtils.isValidName(companyName)) {
+                    // 非法公司 删除
+                    if (!TycUtils.isValidName(companyName)) {
+                        String deleteSql = new SQL().DELETE_FROM("relation_edge")
+                                .WHERE("target_id = " + SqlUtils.formatValue(targetId))
+                                .toString();
+                        sink.update(deleteSql);
+                    }
+                    // 合法公司 diff
+                    else {
                         ArrayList<Row> results = new ArrayList<>();
                         parseLegalPerson(targetId, companyName, results);
                         parseController(targetId, companyName, results);
@@ -166,20 +167,34 @@ public class RelationEdgeJob {
                         parseBranch(targetId, companyName, results);
                         parseHisShareholder(targetId, companyName, results);
                         parseHisLegalPerson(targetId, companyName, results);
-                        if (!results.isEmpty()) {
-                            List<Map<String, Object>> columnMaps = results.stream()
-                                    .filter(Row::isValid)
-                                    .map(Row::toColumnMap)
-                                    .collect(Collectors.toList());
-                            if (!columnMaps.isEmpty()) {
-                                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(columnMaps);
+                        Set<Map<String, Object>> newColumnMaps = results.stream()
+                                .filter(Row::isValid)
+                                .map(Row::toColumnMap)
+                                .collect(Collectors.toSet());
+                        Set<Map<String, Object>> oldColumnMaps = new HashSet<>(sinkQuery.queryForColumnMaps(new SQL()
+                                .SELECT("source_id", "source_name", "target_id", "target_name", "relation", "other")
+                                .FROM("relation_edge")
+                                .WHERE("target_id = " + SqlUtils.formatValue(companyId))
+                                .toString()));
+                        oldColumnMaps.forEach(oldColumnMap -> {
+                            if (!newColumnMaps.contains(oldColumnMap)) {
+                                String where = SqlUtils.columnMap2Where(oldColumnMap);
+                                String deleteSql = new SQL().DELETE_FROM("relation_edge")
+                                        .WHERE(where)
+                                        .toString();
+                                sink.update(deleteSql);
+                            }
+                        });
+                        newColumnMaps.forEach(newColumnMap -> {
+                            if (!oldColumnMaps.contains(newColumnMap)) {
+                                Tuple2<String, String> insert = SqlUtils.columnMap2Insert(newColumnMap);
                                 String insertSql = new SQL().INSERT_INTO("relation_edge")
                                         .INTO_COLUMNS(insert.f0)
                                         .INTO_VALUES(insert.f1)
                                         .toString();
                                 sink.update(insertSql);
                             }
-                        }
+                        });
                     }
                 });
                 bitmap.clear();
@@ -357,7 +372,7 @@ public class RelationEdgeJob {
         }
 
         public Map<String, Object> toColumnMap() {
-            return new HashMap<String, Object>() {{
+            return new LinkedHashMap<String, Object>() {{
                 put("source_id", sourceId);
                 put("source_name", sourceName);
                 put("target_id", targetId);

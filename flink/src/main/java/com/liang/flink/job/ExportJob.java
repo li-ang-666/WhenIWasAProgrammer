@@ -26,9 +26,12 @@ public class ExportJob {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
         Config config = ConfigUtils.getConfig();
+        RepairTask repairTask = config.getRepairTasks().get(0);
+        List<ReadableSchema> schemas = new JdbcTemplate(repairTask.getSourceName()).queryForList("DESC " + repairTask.getTableName(),
+                rs -> ReadableSchema.of(rs.getString(1), rs.getString(2)));
         StreamFactory.create(env)
                 .rebalance()
-                .addSink(new ExportSink(config))
+                .addSink(new ExportSink(config, schemas))
                 .name("ExportSink")
                 .uid("ExportSink")
                 .setParallelism(config.getFlinkConfig().getOtherParallel());
@@ -38,15 +41,14 @@ public class ExportJob {
     @RequiredArgsConstructor
     private final static class ExportSink extends RichSinkFunction<SingleCanalBinlog> implements CheckpointedFunction {
         private final Config config;
+        private final List<ReadableSchema> schemas;
         private TableParquetWriter tableParquetWriter;
 
         @Override
         public void initializeState(FunctionInitializationContext context) {
             ConfigUtils.setConfig(config);
-            RepairTask repairTask = config.getRepairTasks().get(0);
-            List<ReadableSchema> schemas = new JdbcTemplate(repairTask.getSourceName()).queryForList("DESC " + repairTask.getTableName(),
-                    rs -> ReadableSchema.of(rs.getString(1), rs.getString(2)));
-            tableParquetWriter = new TableParquetWriter(repairTask.getTableName(), schemas);
+            String tableName = config.getRepairTasks().get(0).getTableName();
+            tableParquetWriter = new TableParquetWriter(tableName, schemas);
         }
 
         @Override
