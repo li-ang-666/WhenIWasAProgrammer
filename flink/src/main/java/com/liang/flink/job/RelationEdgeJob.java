@@ -162,6 +162,10 @@ public class RelationEdgeJob {
                     }
                     // 合法公司 diff
                     else {
+                        // 制造冗余数据 也先删除
+                        sinkQuery.update(new SQL().DELETE_FROM(SINK_TABLE)
+                                .WHERE("target_id = " + SqlUtils.formatValue(targetId))
+                                .toString());
                         ArrayList<Row> results = new ArrayList<>();
                         parseLegalPerson(targetId, companyName, results);
                         parseController(targetId, companyName, results);
