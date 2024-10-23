@@ -98,6 +98,8 @@ public class RelationEdgeJob {
 
     @RequiredArgsConstructor
     private static final class RelationEdgeSink extends RichSinkFunction<String> implements CheckpointedFunction {
+        private static final String SINK_SOURCE = "466.bdp_personnel";
+        private static final String SINK_TABLE = "relation_edge";
         private final Config config;
         private final Map<String, String> dictionary = new HashMap<>();
         private final Roaring64Bitmap bitmap = new Roaring64Bitmap();
@@ -126,9 +128,9 @@ public class RelationEdgeJob {
             bdpEquity463 = new JdbcTemplate("463.bdp_equity");
             bdpPersonnel466 = new JdbcTemplate("466.bdp_personnel");
             graphData430 = new JdbcTemplate("430.graph_data");
-            sink = new JdbcTemplate("466.bdp_personnel");
+            sink = new JdbcTemplate(SINK_SOURCE);
             sink.enableCache();
-            sinkQuery = new JdbcTemplate("466.bdp_personnel");
+            sinkQuery = new JdbcTemplate(SINK_SOURCE);
         }
 
         @Override
@@ -153,7 +155,7 @@ public class RelationEdgeJob {
                     String companyName = queryCompanyName(targetId);
                     // 非法公司 删除
                     if (!TycUtils.isValidName(companyName)) {
-                        String deleteSql = new SQL().DELETE_FROM("relation_edge")
+                        String deleteSql = new SQL().DELETE_FROM(SINK_TABLE)
                                 .WHERE("target_id = " + SqlUtils.formatValue(targetId))
                                 .toString();
                         sink.update(deleteSql);
@@ -173,28 +175,28 @@ public class RelationEdgeJob {
                                 .collect(Collectors.toSet());
                         Set<Map<String, Object>> oldColumnMaps = new HashSet<>(sinkQuery.queryForColumnMaps(new SQL()
                                 .SELECT("source_id", "source_name", "target_id", "target_name", "relation", "other")
-                                .FROM("relation_edge")
+                                .FROM(SINK_TABLE)
                                 .WHERE("target_id = " + SqlUtils.formatValue(companyId))
                                 .toString()));
-                        oldColumnMaps.forEach(oldColumnMap -> {
+                        for (Map<String, Object> oldColumnMap : oldColumnMaps) {
                             if (!newColumnMaps.contains(oldColumnMap)) {
                                 String where = SqlUtils.columnMap2Where(oldColumnMap);
-                                String deleteSql = new SQL().DELETE_FROM("relation_edge")
+                                String deleteSql = new SQL().DELETE_FROM(SINK_TABLE)
                                         .WHERE(where)
                                         .toString();
                                 sink.update(deleteSql);
                             }
-                        });
-                        newColumnMaps.forEach(newColumnMap -> {
+                        }
+                        for (Map<String, Object> newColumnMap : newColumnMaps) {
                             if (!oldColumnMaps.contains(newColumnMap)) {
                                 Tuple2<String, String> insert = SqlUtils.columnMap2Insert(newColumnMap);
-                                String insertSql = new SQL().INSERT_INTO("relation_edge")
+                                String insertSql = new SQL().INSERT_INTO(SINK_TABLE)
                                         .INTO_COLUMNS(insert.f0)
                                         .INTO_VALUES(insert.f1)
                                         .toString();
                                 sink.update(insertSql);
                             }
-                        });
+                        }
                     }
                 });
                 bitmap.clear();
