@@ -23,7 +23,7 @@ public class TableParquetWriter {
     private final String path;
     private final Map<String, ReadableSchema> columnToSchema = new LinkedHashMap<>();
     private final Schema recordSchema;
-    private ParquetWriter<GenericRecord> writer;
+    private volatile ParquetWriter<GenericRecord> writer = null;
 
     public TableParquetWriter(String sinkTableName, List<ReadableSchema> columnSchemas) {
         path = "obs://hadoop-obs/flink/parquet/" + sinkTableName + "/";
