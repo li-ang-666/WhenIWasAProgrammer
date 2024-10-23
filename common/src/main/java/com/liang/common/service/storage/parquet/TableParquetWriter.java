@@ -20,12 +20,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TableParquetWriter {
     private static final int PARQUET_ROW_GROUP_SIZE = 128 * 1024 * 1024;
+    private final String sinkTableName;
     private final String path;
     private final Map<String, ReadableSchema> columnToSchema = new LinkedHashMap<>();
     private final Schema recordSchema;
     private volatile ParquetWriter<GenericRecord> writer = null;
 
     public TableParquetWriter(String sinkTableName, List<ReadableSchema> columnSchemas) {
+        this.sinkTableName = sinkTableName;
         path = "obs://hadoop-obs/flink/parquet/" + sinkTableName + "/";
         SchemaBuilder.FieldAssembler<Schema> recordSchemaBuilder = SchemaBuilder.record(sinkTableName).fields();
         columnSchemas.forEach(readableSchema -> {
@@ -37,23 +39,6 @@ public class TableParquetWriter {
                     .noDefault();
         });
         recordSchema = recordSchemaBuilder.endRecord();
-        // print create table
-        ArrayList<String> createTable = new ArrayList<String>() {{
-            add("DROP TABLE IF EXISTS test." + sinkTableName + ";");
-            add("CREATE EXTERNAL TABLE IF NOT EXISTS test." + sinkTableName + " (");
-            int maxLength = columnToSchema.keySet().stream().mapToInt(String::length).max()
-                    .orElseThrow(() -> new RuntimeException("columns can not be empty"))
-                    + 7;
-            columnToSchema.forEach((k, v) -> {
-                String formattedColumnName = SqlUtils.formatField(k);
-                String formattedColumnType = v.getSqlType();
-                add(String.format("  %s%s%s,",
-                        formattedColumnName, StrUtil.repeat(" ", maxLength - formattedColumnName.length()), formattedColumnType));
-            });
-            add(String.format(") STORED AS PARQUET LOCATION '%s';", path));
-        }};
-        String logs = createTable.stream().collect(Collectors.joining("\n", "\n", "\n"));
-        log.info(StrUtil.replaceLast(logs, ",", " "));
     }
 
     public synchronized void write(Map<String, Object> columnMap) {
@@ -107,5 +92,23 @@ public class TableParquetWriter {
             }
         });
         return recordBuilder.build();
+    }
+
+    private synchronized void reportCreateTableSql() {
+        ArrayList<String> createTable = new ArrayList<String>() {{
+            add("DROP TABLE IF EXISTS test." + sinkTableName + ";");
+            add("CREATE EXTERNAL TABLE IF NOT EXISTS test." + sinkTableName + " (");
+            int maxLength = columnToSchema.keySet().stream().mapToInt(String::length).max()
+                    .orElseThrow(() -> new RuntimeException("columns can not be empty"))
+                    + 7;
+            columnToSchema.forEach((k, v) -> {
+                String formattedColumnName = SqlUtils.formatField(k);
+                String formattedColumnType = v.getSqlType();
+                add(String.format("  %s%s%s,",
+                        formattedColumnName, StrUtil.repeat(" ", maxLength - formattedColumnName.length()), formattedColumnType));
+            });
+            add(String.format(") STORED AS PARQUET LOCATION '%s';", path));
+        }};
+        String sql = createTable.stream().collect(Collectors.joining("\n", "\n", "\n"));
     }
 }
