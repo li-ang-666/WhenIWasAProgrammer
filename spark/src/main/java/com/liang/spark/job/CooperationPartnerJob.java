@@ -31,7 +31,7 @@ public class CooperationPartnerJob {
     private final static String END = "end";
 
     public static void main(String[] args) throws Exception {
-        SparkSession spark = SparkSessionFactory.createSparkWithHudi(args);
+        SparkSession spark = SparkSessionFactory.createSpark(args);
         Config config = ConfigUtils.getConfig();
         RedisTemplate redis = new RedisTemplate("metadata");
         spark.udf().register("format_reg_st", new FormatRegSt(), DataTypes.IntegerType);
