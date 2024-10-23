@@ -69,6 +69,19 @@ public class TableParquetWriter {
         }
     }
 
+    public synchronized void flush() {
+        try {
+            if (writer != null) {
+                writer.close();
+                writer = null;
+            }
+        } catch (Exception e) {
+            String msg = "FsParquetWriter flush error";
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
+        }
+    }
+
     private synchronized ParquetWriter<GenericRecord> getWriter() {
         try {
             return AvroParquetWriter.<GenericRecord>builder(new Path(path + UUID.randomUUID()))
@@ -93,18 +106,5 @@ public class TableParquetWriter {
             }
         });
         return recordBuilder.build();
-    }
-
-    public synchronized void flush() {
-        try {
-            if (writer != null) {
-                writer.close();
-                writer = null;
-            }
-        } catch (Exception e) {
-            String msg = "FsParquetWriter flush error";
-            log.error(msg, e);
-            throw new RuntimeException(msg, e);
-        }
     }
 }
