@@ -9,7 +9,7 @@ import org.apache.avro.Schema;
 @Getter
 @Accessors(chain = true)
 public abstract class ReadableSchema {
-    protected Schema NULL_SCHEMA = Schema.create(Schema.Type.NULL);
+    protected static final Schema NULL_SCHEMA = Schema.create(Schema.Type.NULL);
     private String name;
 
     public static ReadableSchema of(String columnName, String mysqlType) {

@@ -50,9 +50,9 @@ public class TableParquetWriter {
                 add(String.format("  %s%s%s,",
                         formattedColumnName, StrUtil.repeat(" ", maxLength - formattedColumnName.length()), formattedColumnType));
             });
-            add(String.format(") STORED AS PARQUET LOCATION '%s'", path));
+            add(String.format(") STORED AS PARQUET LOCATION '%s';", path));
         }};
-        String logs = createTable.stream().collect(Collectors.joining("\n", "\n", ";"));
+        String logs = createTable.stream().collect(Collectors.joining("\n", "\n", "\n"));
         log.info(StrUtil.replaceLast(logs, ",", " "));
     }
 
