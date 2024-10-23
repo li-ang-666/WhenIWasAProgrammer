@@ -193,16 +193,12 @@
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                             <!--重定向-->
-                            <relocations>
+                            <!--<relocations>
                                 <relocation>
-                                    <pattern></pattern>
-                                    <shadedPattern></shadedPattern>
+                                    <pattern>org.apache.</pattern>
+                                    <shadedPattern>com.liang.shaded.org.apache.</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern></pattern>
-                                    <shadedPattern></shadedPattern>
-                                </relocation>
-                            </relocations>
+                            </relocations>-->
                         </configuration>
                     </execution>
                 </executions>
