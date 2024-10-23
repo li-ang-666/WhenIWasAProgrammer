@@ -51,7 +51,8 @@ public class TableParquetWriter {
             });
             add(String.format(") STORED AS PARQUET LOCATION '%s'", path));
         }};
-        log.info(createTable.stream().collect(Collectors.joining("\n", "\n", ";")));
+        String logs = createTable.stream().collect(Collectors.joining("\n", "\n", ";"));
+        log.info(StrUtil.replaceLast(logs, ",", " "));
     }
 
     public synchronized void write(Map<String, Object> columnMap) {

@@ -6,10 +6,10 @@ flinkConfig:
 
 
 repairTasks:
-  - sourceName: "116.prism"
-    tableName: "equity_ratio"
+  - sourceName: "463.bdp_equity"
+    tableName: "entity_controller_details_new"
     columns: "*"
-    where: "id <= 10"
+    where: "id <= 298792762"
 
 kafkaConfigs:
   kafkaSource:
