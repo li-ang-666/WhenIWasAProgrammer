@@ -3,6 +3,7 @@ package com.liang.common.service.storage.parquet.schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.PackagePrivate;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 
@@ -12,7 +13,8 @@ import java.math.RoundingMode;
 @Getter
 @Setter
 @AllArgsConstructor
-public class DecimalSchema extends ReadableSchema {
+@PackagePrivate
+class DecimalSchema extends ReadableSchema {
     private int precision;
     private int scale;
 

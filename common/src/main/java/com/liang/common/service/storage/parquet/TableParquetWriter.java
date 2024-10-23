@@ -1,5 +1,6 @@
 package com.liang.common.service.storage.parquet;
 
+import cn.hutool.core.util.StrUtil;
 import com.liang.common.service.storage.parquet.schema.ReadableSchema;
 import com.liang.common.util.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -17,14 +18,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class FsParquetWriter {
+public class TableParquetWriter {
     private static final int PARQUET_ROW_GROUP_SIZE = 128 * 1024 * 1024;
     private final String path;
     private final Map<String, ReadableSchema> columnToSchema = new LinkedHashMap<>();
     private final Schema recordSchema;
     private ParquetWriter<GenericRecord> writer;
 
-    public FsParquetWriter(String sinkTableName, List<ReadableSchema> columnSchemas) {
+    public TableParquetWriter(String sinkTableName, List<ReadableSchema> columnSchemas) {
         path = "obs://hadoop-obs/flink/parquet/" + sinkTableName + "/";
         SchemaBuilder.FieldAssembler<Schema> recordSchemaBuilder = SchemaBuilder.record(sinkTableName).fields();
         columnSchemas.forEach(readableSchema -> {
@@ -35,12 +36,22 @@ public class FsParquetWriter {
                     .withDefault(null);
         });
         recordSchema = recordSchemaBuilder.endRecord();
-        ArrayList<String> createTable = new ArrayList<>();
-        createTable.add("DROP TABLE IF EXISTS test." + sinkTableName + ";");
-        createTable.add("CREATE EXTERNAL TABLE IF NOT EXISTS test." + sinkTableName + " (");
-        columnToSchema.forEach((k, v) -> createTable.add(String.format("  %s %s,", SqlUtils.formatField(k), v.getSqlType())));
-        createTable.add(String.format(") STORED AS PARQUET location '%s';", path));
-        log.info(createTable.stream().collect(Collectors.joining("\n", "\n", "\n")));
+        // print create table
+        ArrayList<String> createTable = new ArrayList<String>() {{
+            add("DROP TABLE IF EXISTS test." + sinkTableName + ";");
+            add("CREATE EXTERNAL TABLE IF NOT EXISTS test." + sinkTableName + " (");
+            int maxLength = columnToSchema.keySet().stream().mapToInt(String::length).max()
+                    .orElseThrow(() -> new RuntimeException("columns can not be empty"))
+                    + 7;
+            columnToSchema.forEach((k, v) -> {
+                String formattedColumnName = SqlUtils.formatField(k);
+                String formattedColumnType = v.getSqlType();
+                add(String.format("  %s%s%s,",
+                        formattedColumnName, StrUtil.repeat(" ", maxLength - formattedColumnName.length()), formattedColumnType));
+            });
+            add(String.format(") STORED AS PARQUET LOCATION '%s'", path));
+        }};
+        log.info(createTable.stream().collect(Collectors.joining("\n", "\n", ";")));
     }
 
     public synchronized void write(Map<String, Object> columnMap) {
@@ -77,7 +88,7 @@ public class FsParquetWriter {
         GenericRecordBuilder recordBuilder = new GenericRecordBuilder(recordSchema);
         columnMap.forEach((column, value) -> {
             if (columnToSchema.containsKey(column)) {
-                columnToSchema.get(column).formatValue(value);
+                recordBuilder.set(column, columnToSchema.get(column).formatValue(value));
             }
         });
         return recordBuilder.build();

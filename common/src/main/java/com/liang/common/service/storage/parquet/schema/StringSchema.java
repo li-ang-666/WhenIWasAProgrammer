@@ -1,8 +1,10 @@
 package com.liang.common.service.storage.parquet.schema;
 
+import lombok.experimental.PackagePrivate;
 import org.apache.avro.Schema;
 
-public class StringSchema extends ReadableSchema {
+@PackagePrivate
+class StringSchema extends ReadableSchema {
     @Override
     public String getSqlType() {
         return "STRING";
