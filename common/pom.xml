@@ -193,9 +193,15 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>
-                                        com.liang.shaded.com.fasterxml.jackson
-                                    </shadedPattern>
+                                    <shadedPattern>com.liang.shaded.com.fasterxml.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.avro</pattern>
+                                    <shadedPattern>com.liang.shaded.org.apache.avro</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.parquet</pattern>
+                                    <shadedPattern>com.liang.shaded.org.apache.parquet</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
