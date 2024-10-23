@@ -7,7 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import com.liang.common.dto.Config;
 import com.liang.common.service.SQL;
 import com.liang.common.service.database.template.JdbcTemplate;
-import com.liang.common.service.storage.ObsWriter;
+import com.liang.common.service.storage.obs.ObsWriter;
 import com.liang.common.util.AreaCodeUtils;
 import com.liang.common.util.ConfigUtils;
 import com.liang.common.util.JsonUtils;
