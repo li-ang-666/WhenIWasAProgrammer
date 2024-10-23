@@ -29,12 +29,12 @@ class DecimalSchema extends ReadableSchema {
     @Override
     public Schema getSchema() {
         if (precision > 38) {
-            return Schema.create(Schema.Type.STRING);
+            return nullableSchema(Schema.create(Schema.Type.STRING));
         }
         Schema schema = (precision > 18)
                 ? Schema.create(Schema.Type.BYTES)
                 : Schema.createFixed(getName(), null, null, computeMinBytesForDecimalPrecision(precision));
-        return LogicalTypes.decimal(precision, scale).addToSchema(schema);
+        return nullableSchema(LogicalTypes.decimal(precision, scale).addToSchema(schema));
     }
 
     @Override

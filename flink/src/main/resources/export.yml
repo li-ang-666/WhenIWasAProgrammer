@@ -6,7 +6,7 @@ flinkConfig:
 
 
 repairTasks:
-  - sourceName: "463.bdp_equity"
-    tableName: "entity_controller_details_new"
+  - sourceName: "435.company_base"
+    tableName: "company_index"
     columns: "*"
-    where: "id <= 298792762"
+    where: "id <= 100"

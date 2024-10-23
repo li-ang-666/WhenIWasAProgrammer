@@ -12,7 +12,7 @@ class StringSchema extends ReadableSchema {
 
     @Override
     public Schema getSchema() {
-        return Schema.create(Schema.Type.STRING);
+        return nullableSchema(Schema.create(Schema.Type.STRING));
     }
 
     @Override

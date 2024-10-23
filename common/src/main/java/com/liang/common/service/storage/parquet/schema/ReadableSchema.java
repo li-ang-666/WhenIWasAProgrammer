@@ -9,6 +9,7 @@ import org.apache.avro.Schema;
 @Getter
 @Accessors(chain = true)
 public abstract class ReadableSchema {
+    protected Schema NULL_SCHEMA = Schema.create(Schema.Type.NULL);
     private String name;
 
     public static ReadableSchema of(String columnName, String mysqlType) {
@@ -30,6 +31,10 @@ public abstract class ReadableSchema {
         else {
             return new StringSchema().setName(columnName);
         }
+    }
+
+    protected Schema nullableSchema(Schema schema) {
+        return Schema.createUnion(NULL_SCHEMA, schema);
     }
 
     public abstract String getSqlType();

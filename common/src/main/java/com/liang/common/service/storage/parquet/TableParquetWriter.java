@@ -31,9 +31,10 @@ public class TableParquetWriter {
         columnSchemas.forEach(readableSchema -> {
             String columnName = readableSchema.getName();
             columnToSchema.put(columnName, readableSchema);
-            recordSchemaBuilder.name(columnName)
+            recordSchemaBuilder
+                    .name(columnName)
                     .type(readableSchema.getSchema())
-                    .withDefault(null);
+                    .noDefault();
         });
         recordSchema = recordSchemaBuilder.endRecord();
         // print create table

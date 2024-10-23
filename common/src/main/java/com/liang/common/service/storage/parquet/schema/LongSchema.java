@@ -12,7 +12,7 @@ class LongSchema extends ReadableSchema {
 
     @Override
     public Schema getSchema() {
-        return Schema.create(Schema.Type.LONG);
+        return nullableSchema(Schema.create(Schema.Type.LONG));
     }
 
     @Override
