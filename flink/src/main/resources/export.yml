@@ -5,12 +5,12 @@ flinkConfig:
   otherParallel: 1
 
 repairTasks:
-  - sourceName: "448.operating_info"
-    tableName: "product_info"
+  - sourceName: &source "448.operating_info"
+    tableName: &table "product_info"
     columns: "*"
     where: "id <= 1000"
 
 otherConfigs:
-  schemaSource: "448.operating_info"
-  schemaTable: "product_info"
-  sinkTableName: "company_base_company_index"
+  schemaSource: *source
+  schemaTable: *table
+  sinkTableName: *table

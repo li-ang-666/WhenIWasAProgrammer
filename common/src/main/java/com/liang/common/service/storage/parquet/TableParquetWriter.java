@@ -26,7 +26,7 @@ public class TableParquetWriter {
     private volatile ParquetWriter<GenericRecord> writer = null;
 
     public TableParquetWriter(String path, List<ReadableSchema> columnSchemas) {
-        this.path = path;
+        this.path = (path.endsWith("/")) ? path : path + "/";
         SchemaBuilder.FieldAssembler<Schema> recordSchemaBuilder = SchemaBuilder.record("record").fields();
         columnSchemas.forEach(readableSchema -> {
             String columnName = readableSchema.getName();
