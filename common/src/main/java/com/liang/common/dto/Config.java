@@ -22,5 +22,7 @@ public class Config implements Serializable {
     private Map<String, DorisConfig> dorisConfigs;
     // Doris
     private DorisSchema dorisSchema;
+    // 其他
+    private Map<String, Object> otherConfigs;
 }
 
