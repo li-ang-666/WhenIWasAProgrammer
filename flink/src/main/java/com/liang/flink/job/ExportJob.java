@@ -24,7 +24,6 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,8 +44,7 @@ public class ExportJob {
         String schemaTable = (String) config.getOtherConfigs().get("schemaTable");
         List<ReadableSchema> schemas = new JdbcTemplate(schemaSource).queryForList("DESC " + schemaTable,
                 rs -> ReadableSchema.of(rs.getString(1), rs.getString(2)));
-
-
+        createTable(sinkTableName, schemas);
         StreamFactory.create(env)
                 .rebalance()
                 .addSink(new ExportSink(config, sinkTableName, schemas))
@@ -62,14 +60,13 @@ public class ExportJob {
             String dropSql = "DROP TABLE IF EXISTS test." + sinkTableName;
             String createSql = StrUtil.replaceLast(new ArrayList<String>() {{
                 add("CREATE TABLE IF NOT EXISTS test." + sinkTableName + " (");
-                AtomicInteger maxLength = new AtomicInteger(Integer.MIN_VALUE);
+                int maxLength = schemas.stream().mapToInt(e -> e.getName().length()).max().orElse(0) + 7;
                 schemas.forEach(readableSchema -> {
                     String formattedColumnName = SqlUtils.formatField(readableSchema.getName());
                     String formattedColumnType = readableSchema.getSqlType();
-                    maxLength.set(Math.max(maxLength.get(), formattedColumnName.length() + 7));
-                    add(String.format("  %s%s%s,", formattedColumnName, StrUtil.repeat(" ", maxLength.get() - formattedColumnName.length()), formattedColumnType));
+                    add(String.format("  %s%s%s,", formattedColumnName, StrUtil.repeat(" ", maxLength - formattedColumnName.length()), formattedColumnType));
                 });
-                add(String.format(") STORED AS PARQUET LOCATION '%s';", TableParquetWriter.PARQUET_PATH_PREFIX + sinkTableName));
+                add(String.format(") STORED AS PARQUET LOCATION '%s'", TableParquetWriter.PARQUET_PATH_PREFIX + sinkTableName));
             }}.stream().collect(Collectors.joining("\n", "\n", "\n")), ",", "");
             try (Statement statement = connection.createStatement()) {
                 statement.execute(dropSql);

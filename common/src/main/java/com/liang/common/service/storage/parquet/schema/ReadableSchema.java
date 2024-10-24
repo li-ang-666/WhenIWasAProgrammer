@@ -5,10 +5,12 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.avro.Schema;
 
+import java.io.Serializable;
+
 @Setter
 @Getter
 @Accessors(chain = true)
-public abstract class ReadableSchema {
+public abstract class ReadableSchema implements Serializable {
     protected static final Schema NULL_SCHEMA = Schema.create(Schema.Type.NULL);
     private String name;
 
