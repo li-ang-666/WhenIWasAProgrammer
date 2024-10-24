@@ -19,16 +19,15 @@ import java.util.UUID;
 
 @Slf4j
 public class TableParquetWriter {
-    public static final String PARQUET_PATH_PREFIX = "obs://hadoop-obs/flink/parquet/";
     private static final int PARQUET_ROW_GROUP_SIZE = 128 * 1024 * 1024;
     private final String path;
     private final Map<String, ReadableSchema> columnToSchema = new LinkedHashMap<>();
     private final Schema recordSchema;
     private volatile ParquetWriter<GenericRecord> writer = null;
 
-    public TableParquetWriter(String sinkTableName, List<ReadableSchema> columnSchemas) {
-        path = PARQUET_PATH_PREFIX + sinkTableName + "/";
-        SchemaBuilder.FieldAssembler<Schema> recordSchemaBuilder = SchemaBuilder.record(sinkTableName).fields();
+    public TableParquetWriter(String path, List<ReadableSchema> columnSchemas) {
+        this.path = path;
+        SchemaBuilder.FieldAssembler<Schema> recordSchemaBuilder = SchemaBuilder.record("record").fields();
         columnSchemas.forEach(readableSchema -> {
             String columnName = readableSchema.getName();
             columnToSchema.put(columnName, readableSchema);

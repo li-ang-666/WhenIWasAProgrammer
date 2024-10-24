@@ -29,11 +29,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @LocalConfigFile("export.yml")
 public class ExportJob {
+    public static final String PATH_PREFIX = "obs://hadoop-obs/flink/parquet/";
     // hive jdbc
     private static final String DRIVER = "org.apache.hive.jdbc.HiveDriver";
     private static final String URL = "jdbc:hive2://10.99.202.153:2181,10.99.198.86:2181,10.99.203.51:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2";
     private static final String USER = "hive";
     private static final String PASSWORD = "";
+    private static final String DATABASE = "flink";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = EnvironmentFactory.create(args);
@@ -45,6 +47,7 @@ public class ExportJob {
         List<ReadableSchema> schemas = new JdbcTemplate(schemaSource).queryForList("DESC " + schemaTable,
                 rs -> ReadableSchema.of(rs.getString(1), rs.getString(2)));
         createTable(sinkTableName, schemas);
+        // stream
         StreamFactory.create(env)
                 .rebalance()
                 .addSink(new ExportSink(config, sinkTableName, schemas))
@@ -57,16 +60,16 @@ public class ExportJob {
     private static void createTable(String sinkTableName, List<ReadableSchema> schemas) throws Exception {
         Class.forName(DRIVER);
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            String dropSql = "DROP TABLE IF EXISTS test." + sinkTableName;
+            String dropSql = "DROP TABLE IF EXISTS " + DATABASE + "." + sinkTableName;
             String createSql = StrUtil.replaceLast(new ArrayList<String>() {{
-                add("CREATE TABLE IF NOT EXISTS test." + sinkTableName + " (");
+                add("CREATE TABLE IF NOT EXISTS " + DATABASE + "." + sinkTableName + " (");
                 int maxLength = schemas.stream().mapToInt(e -> e.getName().length()).max().orElse(0) + 7;
                 schemas.forEach(readableSchema -> {
                     String formattedColumnName = SqlUtils.formatField(readableSchema.getName());
                     String formattedColumnType = readableSchema.getSqlType();
                     add(String.format("  %s%s%s,", formattedColumnName, StrUtil.repeat(" ", maxLength - formattedColumnName.length()), formattedColumnType));
                 });
-                add(String.format(") STORED AS PARQUET LOCATION '%s'", TableParquetWriter.PARQUET_PATH_PREFIX + sinkTableName));
+                add(String.format(") STORED AS PARQUET LOCATION '%s%s'", PATH_PREFIX, sinkTableName));
             }}.stream().collect(Collectors.joining("\n", "\n", "\n")), ",", "");
             try (Statement statement = connection.createStatement()) {
                 statement.execute(dropSql);
@@ -87,7 +90,7 @@ public class ExportJob {
         @Override
         public void initializeState(FunctionInitializationContext context) {
             ConfigUtils.setConfig(config);
-            tableParquetWriter = new TableParquetWriter(sinkTableName, schemas);
+            tableParquetWriter = new TableParquetWriter(PATH_PREFIX + sinkTableName, schemas);
         }
 
         @Override
